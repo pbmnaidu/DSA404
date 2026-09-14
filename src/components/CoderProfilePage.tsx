@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import Link from "next/link";
 import { updateProfile } from "firebase/auth";
 import { auth } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -72,6 +73,7 @@ import {
   Lock,
   FileText,
   Link2,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -689,12 +691,25 @@ export function CoderProfilePage() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 pb-1 w-full sm:w-auto">
+          <div className="flex items-center gap-2 pb-1 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
             <ThemedTooltip hint="Copy shareable public profile link">
-              <Button variant="outline" size="sm" className="h-8 text-xs px-3 gap-1.5 rounded-xl border-white/10 w-full sm:w-auto" onClick={copyShareLink}>
+              <Button variant="outline" size="sm" className="h-8 text-xs px-3 gap-1.5 rounded-xl border-white/10 flex-1 sm:flex-none" onClick={copyShareLink}>
                 {copied ? <Check className="size-3.5 text-emerald-400" /> : <Share2 className="size-3.5 text-primary" />}
                 <span>{copied ? "Copied!" : "Share Profile"}</span>
               </Button>
+            </ThemedTooltip>
+
+            <ThemedTooltip hint="Open your public profile page">
+              <Link
+                href={`/profile/${username || user?.uid || "demo"}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center h-8 text-xs px-3 gap-1.5 rounded-xl font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm active:scale-95 flex-1 sm:flex-none cursor-pointer"
+              >
+                <Eye className="size-3.5" />
+                <span>View Profile</span>
+                <ExternalLink className="size-2.5 opacity-70" />
+              </Link>
             </ThemedTooltip>
           </div>
         </div>
