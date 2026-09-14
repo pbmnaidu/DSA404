@@ -345,6 +345,25 @@ function StatsBar() {
                 </div>
               </div>
             )}
+
+            {/* If this is the Portfolio Card: Link to See Demo Public Profile Showcase */}
+            {s.id === "portfolio" && (
+              <div className="mt-3 pt-2.5 border-t border-border/60">
+                <Link
+                  href="/profile/demo"
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 dark:bg-blue-400/15 dark:hover:bg-blue-400/25 border border-blue-500/30 hover:border-blue-500/50 py-1.5 px-2 text-[11px] font-bold text-blue-600 dark:text-blue-400 transition-all duration-200 shadow-xs active:scale-[0.98] cursor-pointer"
+                  title="Click to view live showcase of how public profiles are presented"
+                >
+                  <ExternalLink className="size-3.5 shrink-0" />
+                  <span className="font-sans font-bold text-[11px] leading-tight text-center">
+                    See Demo Public Profile ↗
+                  </span>
+                </Link>
+                <p className="mt-1 text-[10px] text-center text-muted-foreground font-medium">
+                  Preview showcase portfolio
+                </p>
+              </div>
+            )}
           </div>
         );
       })}
@@ -1115,7 +1134,16 @@ export default function Home() {
           </p>
 
           <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-            Created by <span className="font-bold text-foreground underline decoration-primary decoration-2 underline-offset-2">Bhanu</span>
+            Created by{" "}
+            <a
+              href="https://pbmnaiduportfolio.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-foreground underline decoration-primary decoration-2 underline-offset-2 hover:text-primary transition-colors cursor-pointer"
+              title="Visit Bhanu's Portfolio"
+            >
+              Bhanu
+            </a>
           </p>
 
           <div className="flex items-center gap-2 pt-0.5 font-mono text-xs">

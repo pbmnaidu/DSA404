@@ -897,13 +897,15 @@ export default function SettingsPage() {
           🚀 DSA404 — a platform to help students organize and stay consistent with their DSA preparation.
         </p>
         <p className="text-xs text-muted-foreground">
-          Created by <span className="font-bold text-foreground">Bhanu</span> ·{" "}
+          Created by{" "}
           <a
-            href="https://dsa404.vercel.app"
+            href="https://pbmnaiduportfolio.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline font-mono inline-flex items-center gap-1 font-semibold"
+            className="font-bold text-foreground hover:text-primary underline decoration-primary decoration-2 underline-offset-2 transition-colors cursor-pointer"
+            title="Visit Bhanu's Portfolio"
           >
+            Bhanu
           </a>
         </p>
       </div>

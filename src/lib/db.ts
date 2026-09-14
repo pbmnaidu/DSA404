@@ -203,6 +203,11 @@ export interface CustomLink {
   url: string;
 }
 
+export interface SocialLinkItem {
+  platform: string;
+  url: string;
+}
+
 export interface CodingProfiles {
   leetcode?: string;
   codeforces?: string;
@@ -235,13 +240,20 @@ export interface UserProfile {
   photoURL: string;
   bannerURL?: string;
   bio: string;
-  /** Private notes-to-self. Loaded for the owner's edit form only — the
-   * public profile page intentionally never reads or renders this field. */
+  /** Public About Me narrative / description shown on public profile & coder profile */
   aboutMe?: string;
+  /** Private notes-to-self (owner-only, saved in users/{uid}/private/profile) */
+  notes?: string;
   /** Public, unique handle chosen at signup — drives the /profile/{username} URL. */
   username?: string;
   /** Primary contact/login email linked with the user profile */
   email?: string;
+  /** LinkedIn profile URL */
+  linkedin?: string;
+  /** Personal Portfolio website URL */
+  portfolio?: string;
+  /** Other social media links (Twitter/X, YouTube, GitHub, Discord, etc.) */
+  socialLinks?: SocialLinkItem[];
   codingProfiles: CodingProfiles;
   publicStats: PublicStats;
   platformStats?: Record<string, any>;
@@ -259,11 +271,8 @@ export function normalizeUsername(raw: string): string {
 /**
  * Reads the PUBLIC-safe subset of the user profile doc. Works for owner and
  * unauthenticated callers alike — this is what the public /profile/[uid]
- * page uses, so it deliberately never fetches `aboutMe` (private notes-to-
- * self, lives in a separate owner-only doc — see loadOwnerProfile below).
- * Not filtering this at read-time used to mean aboutMe was sent to every
- * anonymous visitor even though the UI didn't render it; now it's never
- * fetched for public callers in the first place.
+ * page uses. Now includes public aboutMe, linkedin, portfolio, and socialLinks.
+ * Private `notes` are kept in users/{uid}/private/profile and never returned here.
  */
 export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>> {
   const snap = await getDoc(userDoc(uid));
@@ -274,8 +283,12 @@ export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>
     photoURL: (data.photoURL as string) ?? "",
     bannerURL: (data.bannerURL as string) ?? "",
     bio: (data.bio as string) ?? "",
+    aboutMe: (data.aboutMe as string) ?? "",
     username: (data.username as string) ?? "",
     email: (data.email as string) ?? "",
+    linkedin: (data.linkedin as string) ?? "",
+    portfolio: (data.portfolio as string) ?? "",
+    socialLinks: (data.socialLinks as SocialLinkItem[]) ?? [],
     codingProfiles: (data.codingProfiles as CodingProfiles) ?? {},
     publicStats: (data.publicStats as PublicStats) ?? { totalSolved: 0, byPlatform: {}, lastUpdated: "" },
     platformStats: (data.platformStats as Record<string, any>) ?? {},
@@ -285,40 +298,43 @@ export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>
 
 /**
  * Owner-only profile read: everything loadUserProfile returns, PLUS the
- * private `aboutMe` field (pulled from users/{uid}/private/profile, which
+ * private `notes` field (pulled from users/{uid}/private/profile, which
  * Firestore rules restrict to isOwner(uid)). Use this on self-edit screens
- * (Settings, CoderProfilePage, MergedTodayProfile) — never on the public
- * profile route.
+ * (CoderProfilePage, Settings) — never on the public profile route.
  */
 export async function loadOwnerProfile(uid: string): Promise<Partial<UserProfile>> {
   const [pub, privSnap] = await Promise.all([
     loadUserProfile(uid),
     getDoc(privateProfileDoc(uid)),
   ]);
+  const privData = privSnap.exists() ? privSnap.data() : {};
+  // If user previously had notes in private aboutMe, migrate or fallback to it
+  const privateNotes = (privData.notes as string) ?? (privData.aboutMe as string) ?? "";
   return {
     ...pub,
-    aboutMe: privSnap.exists() ? ((privSnap.data().aboutMe as string) ?? "") : "",
+    // if public aboutMe is empty but private had aboutMe, keep as aboutMe if not notes
+    aboutMe: pub.aboutMe || (privData.aboutMe as string) || "",
+    notes: privateNotes,
   };
 }
 
 /**
- * Merges a profile patch. Public fields (displayName, bio, photoURL, etc.)
- * go to the world-readable users/{uid} doc; `aboutMe` is routed to the
- * private users/{uid}/private/profile doc instead, so it never becomes
- * world-readable even though it travels through this one function. Both
- * writes remain owner-only (enforced by Firestore rules).
+ * Merges a profile patch. Public fields (displayName, bio, photoURL, aboutMe,
+ * linkedin, portfolio, socialLinks, etc.) go to the world-readable users/{uid} doc;
+ * `notes` is routed to the private users/{uid}/private/profile doc instead, so it
+ * remains strictly owner-only.
  */
 export async function saveUserProfile(uid: string, patch: Partial<UserProfile>) {
-  const { aboutMe, ...publicPatch } = patch;
+  const { notes, ...publicPatch } = patch;
   const writes: Promise<unknown>[] = [];
   if (Object.keys(publicPatch).length > 0) {
     writes.push(
       setDoc(userDoc(uid), { ...publicPatch, updatedAt: serverTimestamp() }, { merge: true }),
     );
   }
-  if (aboutMe !== undefined) {
+  if (notes !== undefined) {
     writes.push(
-      setDoc(privateProfileDoc(uid), { aboutMe, updatedAt: serverTimestamp() }, { merge: true }),
+      setDoc(privateProfileDoc(uid), { notes, updatedAt: serverTimestamp() }, { merge: true }),
     );
   }
   await Promise.all(writes);

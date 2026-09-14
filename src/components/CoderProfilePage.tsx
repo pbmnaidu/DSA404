@@ -17,8 +17,16 @@ import {
   USERNAME_REGEX,
   type CodingProfiles,
   type CustomLink,
+  type SocialLinkItem,
   type CompletedProblemSnapshot,
 } from "@/lib/db";
+import {
+  LinkedInIcon,
+  GitHubIcon,
+  TwitterIcon,
+  YouTubeIcon,
+  getSocialIcon,
+} from "@/components/SocialIcons";
 import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
 import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
@@ -61,6 +69,9 @@ import {
   ChevronUp,
   AlertCircle,
   Sparkles,
+  Lock,
+  FileText,
+  Link2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -166,6 +177,11 @@ export function CoderProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [aboutMe, setAboutMe] = useState("");
+  const [notes, setNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [linkedin, setLinkedin] = useState("");
+  const [portfolio, setPortfolio] = useState("");
+  const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([]);
   const [username, setUsername] = useState("");
   const [usernameDraft, setUsernameDraft] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<
@@ -189,6 +205,10 @@ export function CoderProfilePage() {
   const [gmailInput, setGmailInput] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
 
+  // Custom social link draft in Edit form
+  const [customSocialPlatform, setCustomSocialPlatform] = useState("");
+  const [customSocialUrl, setCustomSocialUrl] = useState("");
+
   const currentEmail = profileEmail || user?.email || "";
 
   // — Load profile
@@ -210,6 +230,10 @@ export function CoderProfilePage() {
         setDisplayName(p.displayName ?? user.displayName ?? "");
         setBio(p.bio ?? "");
         setAboutMe(p.aboutMe ?? "");
+        setNotes(p.notes ?? "");
+        setLinkedin(p.linkedin ?? "");
+        setPortfolio(p.portfolio ?? "");
+        setSocialLinks(p.socialLinks ?? []);
         setUsername(p.username ?? "");
         setUsernameDraft(p.username ?? "");
         if (p.email) {
@@ -505,18 +529,37 @@ export function CoderProfilePage() {
         displayName,
         bio,
         aboutMe,
+        notes,
+        linkedin: linkedin.trim(),
+        portfolio: portfolio.trim(),
+        socialLinks,
         username: finalUsername,
         email: currentEmail || undefined,
         publicStats: { totalSolved: stats.total, byPlatform: stats.byPlatform, lastUpdated: new Date().toISOString() },
         completedProblems,
       });
-      toast.success("Profile saved!");
+      toast.success("Profile details saved! 🎉");
     } catch (err) {
       toast.error("Save failed", { description: (err as Error).message });
     } finally {
       setSaving(false);
     }
-  }, [user, displayName, bio, aboutMe, usernameDraft, username, currentEmail, stats, completedProblems]);
+  }, [user, displayName, bio, aboutMe, notes, linkedin, portfolio, socialLinks, usernameDraft, username, currentEmail, stats, completedProblems]);
+
+  const handleSaveNotes = useCallback(async () => {
+    if (!user) return;
+    setSavingNotes(true);
+    try {
+      await saveUserProfile(user.uid, { notes });
+      toast.success("Personal notes saved! 🔒", {
+        description: "Stored securely in your private workspace.",
+      });
+    } catch (err) {
+      toast.error("Failed to save notes", { description: (err as Error).message });
+    } finally {
+      setSavingNotes(false);
+    }
+  }, [user, notes]);
 
   const saveCodingProfiles = useCallback(async () => {
     if (!user) return; setSaving(true);
@@ -589,9 +632,51 @@ export function CoderProfilePage() {
             </div>
 
             <div className="pb-1 min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-foreground truncate">{userNameDisplay}</h1>
-              {username && <p className="text-xs font-medium text-primary truncate">@{username}</p>}
-              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">{bio || "SDE Aspirant · DSA Prep Tracker"}</p>
+              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-foreground truncate">
+                {userNameDisplay.toLowerCase().includes("bhanu") ? (
+                  <a
+                    href="https://pbmnaiduportfolio.vercel.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors cursor-pointer"
+                    title="Visit Bhanu's Portfolio"
+                  >
+                    {userNameDisplay}
+                  </a>
+                ) : (
+                  userNameDisplay
+                )}
+              </h1>
+              <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                {username && <p className="text-xs font-semibold text-primary truncate">@{username}</p>}
+                {linkedin && (
+                  <a
+                    href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
+                    title={`Open LinkedIn profile: ${linkedin}`}
+                  >
+                    <LinkedInIcon className="size-3 shrink-0" />
+                    <span>LinkedIn</span>
+                    <ExternalLink className="size-2.5 opacity-70" />
+                  </a>
+                )}
+                {portfolio && (
+                  <a
+                    href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
+                    title={`Open Portfolio: ${portfolio}`}
+                  >
+                    <Globe className="size-3 shrink-0" />
+                    <span>Portfolio</span>
+                    <ExternalLink className="size-2.5 opacity-70" />
+                  </a>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1 mt-1">{bio || "SDE Aspirant · DSA Prep Tracker"}</p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-400">
                   <Flame className="size-3.5 animate-pulse" /> {streakCount} Day Streak
@@ -805,18 +890,182 @@ export function CoderProfilePage() {
               </div>
             </div>
 
-            {/* About Me */}
+            {/* LinkedIn & Portfolio */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-linkedin" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <LinkedInIcon className="size-3.5 text-[#0077b5]" /> LinkedIn Profile URL
+                </Label>
+                <Input
+                  id="prof-linkedin"
+                  value={linkedin}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  placeholder="https://linkedin.com/in/username"
+                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-portfolio" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Globe className="size-3.5 text-emerald-500" /> Portfolio Website URL
+                </Label>
+                <Input
+                  id="prof-portfolio"
+                  value={portfolio}
+                  onChange={(e) => setPortfolio(e.target.value)}
+                  placeholder="https://yourportfolio.dev"
+                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Other Social Media Profiles */}
+            <div className="space-y-2.5 rounded-2xl border border-white/10 bg-background/40 p-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Share2 className="size-3.5 text-primary" /> Other Social Media Profiles
+                </Label>
+                <span className="text-[10px] text-muted-foreground">GitHub, Twitter/X, YouTube, etc.</span>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                    <GitHubIcon className="size-3" /> GitHub
+                  </span>
+                  <Input
+                    value={socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSocialLinks((prev) => {
+                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "github");
+                        return val ? [...filtered, { platform: "GitHub", url: val }] : filtered;
+                      });
+                    }}
+                    placeholder="https://github.com/yourname"
+                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                    <TwitterIcon className="size-3" /> Twitter / X
+                  </span>
+                  <Input
+                    value={socialLinks.find((s) => s.platform.toLowerCase() === "twitter" || s.platform.toLowerCase() === "x")?.url || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSocialLinks((prev) => {
+                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "twitter" && s.platform.toLowerCase() !== "x");
+                        return val ? [...filtered, { platform: "Twitter", url: val }] : filtered;
+                      });
+                    }}
+                    placeholder="https://x.com/yourname"
+                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                    <YouTubeIcon className="size-3 text-red-500" /> YouTube
+                  </span>
+                  <Input
+                    value={socialLinks.find((s) => s.platform.toLowerCase() === "youtube")?.url || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSocialLinks((prev) => {
+                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "youtube");
+                        return val ? [...filtered, { platform: "YouTube", url: val }] : filtered;
+                      });
+                    }}
+                    placeholder="https://youtube.com/@channel"
+                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                </div>
+              </div>
+
+              {/* Additional Custom Social Links */}
+              {socialLinks.filter((s) => !["github", "twitter", "x", "youtube"].includes(s.platform.toLowerCase())).length > 0 && (
+                <div className="space-y-1.5 pt-2 border-t border-white/5">
+                  <span className="text-[11px] font-semibold text-muted-foreground">Additional Links:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {socialLinks.filter((s) => !["github", "twitter", "x", "youtube"].includes(s.platform.toLowerCase())).map((item, idx) => (
+                      <div key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-xs">
+                        {getSocialIcon(item.platform, "size-3 text-primary")}
+                        <span className="font-semibold text-foreground">{item.platform}:</span>
+                        <span className="text-muted-foreground font-mono truncate max-w-[150px]">{item.url}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSocialLinks((prev) => prev.filter((s) => s !== item))}
+                          className="text-muted-foreground hover:text-red-400 ml-1 cursor-pointer"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add custom link row */}
+              <div className="flex items-center gap-2 pt-1">
+                <Input
+                  value={customSocialPlatform}
+                  onChange={(e) => setCustomSocialPlatform(e.target.value)}
+                  placeholder="Platform (e.g. Discord, Blog)"
+                  className="bg-background/60 border-white/10 rounded-xl text-xs h-8 w-1/3"
+                />
+                <Input
+                  value={customSocialUrl}
+                  onChange={(e) => setCustomSocialUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="bg-background/60 border-white/10 rounded-xl text-xs h-8 flex-1"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl text-xs h-8 gap-1 shrink-0 cursor-pointer"
+                  disabled={!customSocialPlatform.trim() || !customSocialUrl.trim()}
+                  onClick={() => {
+                    if (customSocialPlatform.trim() && customSocialUrl.trim()) {
+                      setSocialLinks((prev) => [...prev, { platform: customSocialPlatform.trim(), url: customSocialUrl.trim() }]);
+                      setCustomSocialPlatform("");
+                      setCustomSocialUrl("");
+                    }
+                  }}
+                >
+                  <Plus className="size-3.5" /> Add Link
+                </Button>
+              </div>
+            </div>
+
+            {/* Public About Me */}
             <div className="space-y-1.5">
-              <Label htmlFor="prof-about-me" className="text-xs font-semibold text-muted-foreground">
-                About Me <span className="font-normal text-muted-foreground/70">— private, not shown on your public profile</span>
+              <Label htmlFor="prof-about-me" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-primary" /> About Me <span className="font-normal text-muted-foreground/70">— Public showcase seen on your public profile</span>
               </Label>
               <Textarea
                 id="prof-about-me"
                 value={aboutMe}
                 onChange={(e) => setAboutMe(e.target.value)}
-                placeholder="Personal notes to yourself — goals, context, reminders. Only you can see this."
+                placeholder="Share your software engineering journey, tech stack, aspirations, and what you're currently preparing for..."
                 rows={4}
                 className="bg-background/40 border-white/10 rounded-xl text-sm resize-none"
+              />
+            </div>
+
+            {/* Private Personal Notes */}
+            <div className="space-y-1.5">
+              <Label htmlFor="prof-notes" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Lock className="size-3.5 text-amber-500" /> Personal Notes <span className="font-normal text-amber-500/90 font-mono text-[11px]">🔒 Owner Only (Private — never shown on public profile)</span>
+              </Label>
+              <Textarea
+                id="prof-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Internal notes to yourself — weak DSA concepts to revisit, upcoming interview dates, checklist, reminders..."
+                rows={4}
+                className="bg-background/40 border-amber-500/20 focus-visible:ring-amber-500/30 rounded-xl text-sm resize-none"
               />
             </div>
 
@@ -986,6 +1235,206 @@ export function CoderProfilePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── About Me (Public Profile Details) ── */}
+      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <Sparkles className="size-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">About Me</h2>
+              <p className="text-xs text-muted-foreground">Public overview, target career goals &amp; verified professional links</p>
+            </div>
+          </div>
+          <span className="self-start sm:self-auto rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
+            Public Profile Viewable
+          </span>
+        </div>
+
+        {/* Profile Details Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Key Contact & Identity Info */}
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-background/40 p-4">
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <span className="text-xs font-medium text-muted-foreground">Full Name</span>
+              <span className="text-xs font-bold text-foreground truncate max-w-[200px]">
+                {userNameDisplay.toLowerCase().includes("bhanu") ? (
+                  <a
+                    href="https://pbmnaiduportfolio.vercel.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary underline decoration-primary decoration-1 underline-offset-2 transition-colors cursor-pointer"
+                    title="Visit Bhanu's Portfolio"
+                  >
+                    {userNameDisplay}
+                  </a>
+                ) : (
+                  userNameDisplay
+                )}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <span className="text-xs font-medium text-muted-foreground">Goal / Target Role</span>
+              <span className="text-xs font-bold text-primary truncate max-w-[200px]">{bio || "SDE Aspirant · DSA Prep"}</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Mail className="size-3 text-muted-foreground" /> Email
+              </span>
+              {currentEmail ? (
+                <a
+                  href={`mailto:${currentEmail}`}
+                  className="text-xs font-mono text-foreground hover:text-primary transition-colors underline decoration-dotted truncate max-w-[200px]"
+                  title={`Email ${currentEmail}`}
+                >
+                  {currentEmail}
+                </a>
+              ) : (
+                <span className="text-xs text-muted-foreground italic">Not specified</span>
+              )}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Profile Handle</span>
+              <span className="text-xs font-mono font-semibold text-primary">@{username || "coder"}</span>
+            </div>
+          </div>
+
+          {/* Social & Professional Links */}
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-background/40 p-4 flex flex-col justify-between">
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                Connected Profiles &amp; Links
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {linkedin ? (
+                  <a
+                    href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                    title={`Open LinkedIn: ${linkedin}`}
+                  >
+                    <LinkedInIcon className="size-3.5 shrink-0" />
+                    <span>LinkedIn</span>
+                    <ExternalLink className="size-3 opacity-70" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
+                    <LinkedInIcon className="size-3.5 opacity-40" /> No LinkedIn linked
+                  </span>
+                )}
+
+                {portfolio ? (
+                  <a
+                    href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                    title={`Open Portfolio: ${portfolio}`}
+                  >
+                    <Globe className="size-3.5 shrink-0" />
+                    <span>Portfolio</span>
+                    <ExternalLink className="size-3 opacity-70" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
+                    <Globe className="size-3.5 opacity-40" /> No Portfolio linked
+                  </span>
+                )}
+
+                {/* Other Social Media Links */}
+                {socialLinks.map((s, idx) => (
+                  <a
+                    key={idx}
+                    href={s.url.startsWith("http") ? s.url : `https://${s.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                    title={`Open ${s.platform}: ${s.url}`}
+                  >
+                    {getSocialIcon(s.platform, "size-3.5 shrink-0")}
+                    <span>{s.platform}</span>
+                    <ExternalLink className="size-3 opacity-70" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {(!linkedin && !portfolio && socialLinks.length === 0) && (
+              <p className="text-[11px] text-muted-foreground">
+                Click <button type="button" onClick={() => setShowEditDetails(true)} className="text-primary hover:underline font-semibold cursor-pointer">Edit Profile Details</button> to add your LinkedIn, Portfolio, and other social profiles.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Narrative About Me Text */}
+        <div className="rounded-2xl border border-white/10 bg-background/30 p-4 space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <UserCircle2 className="size-3.5 text-primary" /> Bio &amp; Journey
+          </p>
+          {aboutMe ? (
+            <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">
+              {aboutMe}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground italic">
+              No description added yet. Add a short bio describing your DSA preparation trajectory, tech stack, and goals in the &quot;Edit Profile Details&quot; form above.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ── Personal Notes (Owner Only — STRICTLY PRIVATE) ── */}
+      <section className="rounded-3xl border border-amber-500/20 bg-amber-500/[0.02] backdrop-blur-xl p-6 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/20 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+              <Lock className="size-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-foreground">Personal Notes</h2>
+                <Badge variant="outline" className="text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                  🔒 Strictly Private
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">Personal scratchpad, interview review checklist, and topics to revisit. Never displayed on your public profile.</p>
+            </div>
+          </div>
+
+          <Button
+            size="sm"
+            onClick={handleSaveNotes}
+            disabled={savingNotes}
+            className="self-start sm:self-auto gap-1.5 text-xs rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-md cursor-pointer"
+          >
+            {savingNotes ? <RefreshCw className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+            <span>{savingNotes ? "Saving…" : "Save Notes"}</span>
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Write your private study notes here... e.g.
+• Revise DP Memoization vs Tabulation before Saturday mock interview
+• Review Dijkstra & Bellman-Ford cycle detection edge cases
+• Revisit Day 42 hard problems on Trie and Segment Tree"
+            rows={5}
+            className="bg-background/60 border-amber-500/30 focus-visible:ring-amber-500/40 rounded-2xl text-sm leading-relaxed resize-none p-3.5 font-mono text-xs"
+          />
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
+            <span className="flex items-center gap-1 text-amber-500/90">
+              <Lock className="size-3" /> Encrypted &amp; private to your account uid
+            </span>
+            <span>{notes.length} characters</span>
+          </div>
+        </div>
+      </section>
 
       {/* ── Multi-Platform Coding Profile Integration Dashboard ── */}
       <UnifiedProfileDashboard

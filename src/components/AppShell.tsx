@@ -246,14 +246,18 @@ function DesktopSidebar({
 
           {!collapsed && (
             <div className="pt-2 px-1 text-[10px] text-muted-foreground/75 leading-tight select-none border-t border-border/30 mt-1">
-              <p>Created by <span className="text-foreground font-semibold">Bhanu</span></p>
-              <a
-                href="https://dsa404.vercel.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[9px] text-primary/80 hover:text-primary hover:underline font-mono inline-block mt-0.5"
-              >
-              </a>
+              <p>
+                Created by{" "}
+                <a
+                  href="https://pbmnaiduportfolio.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground font-semibold hover:text-primary underline decoration-primary decoration-1 underline-offset-2 transition-colors cursor-pointer"
+                  title="Visit Bhanu's Portfolio"
+                >
+                  Bhanu
+                </a>
+              </p>
             </div>
           )}
         </div>
@@ -404,17 +408,21 @@ function MobileDrawer({
           </DropdownMenu>
 
           <div className="pt-2.5 px-1 border-t border-border/40 text-[10px] text-muted-foreground/80 leading-tight select-none mt-1">
-            <p className="font-semibold text-foreground">Created by Bhanu</p>
+            <p className="font-semibold text-foreground">
+              Created by{" "}
+              <a
+                href="https://pbmnaiduportfolio.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary underline decoration-primary decoration-1 underline-offset-2 transition-colors cursor-pointer"
+                title="Visit Bhanu's Portfolio"
+              >
+                Bhanu
+              </a>
+            </p>
             <p className="text-[9px] text-muted-foreground/70 leading-tight mt-0.5">
               🚀 DSA404 — a platform to help students organize and stay consistent with their DSA preparation.
             </p>
-            <a
-              href="https://dsa404.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[9px] text-primary hover:underline font-mono inline-block mt-1"
-            >
-            </a>
           </div>
         </div>
       </aside>
