@@ -65,11 +65,13 @@ console.error = (...args: unknown[]) => {
 function isIgnoredDatabaseError(reason: unknown): boolean {
   if (!reason) return false;
   const msg = typeof reason === "string" ? reason : (reason as any)?.message || (reason as any)?.name || String(reason);
+  const lower = msg.toLowerCase();
   return (
-    msg.includes("Database is closing") ||
-    msg.includes("Database is closing/hidden") ||
-    msg.includes("BloomFilter") ||
-    msg.includes("indexedDB")
+    lower.includes("database is closing") ||
+    lower.includes("database is closing/hidden") ||
+    lower.includes("closing/hidden") ||
+    lower.includes("bloomfilter") ||
+    lower.includes("indexeddb")
   );
 }
 

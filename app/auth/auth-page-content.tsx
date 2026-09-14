@@ -16,7 +16,7 @@ import {
   type User,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import { auth } from "@/integrations/firebase/client";
+import { auth, isClosingOrHiddenError } from "@/integrations/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -51,9 +51,23 @@ function authErrorMessage(e: unknown): string {
         return "Password is too weak. Use at least 8 characters.";
       case "auth/too-many-requests":
         return "Too many attempts. Try again later.";
+      case "auth/popup-closed-by-user":
+        return "Sign-in popup was closed before completing.";
+      case "auth/cancelled-popup-request":
+        return "Previous sign-in attempt was cancelled.";
+      case "auth/popup-blocked":
+        return "The sign-in popup was blocked by your browser. Please allow popups and try again.";
+      case "auth/network-request-failed":
+        return "Network connection issue. Please check your internet connection.";
       default:
-        return e.message || "An error occurred";
+        break;
     }
+  }
+  if (isClosingOrHiddenError(e)) {
+    return "Browser tab was hidden or connection interrupted. Please tap Google sign-in again.";
+  }
+  if (e instanceof FirebaseError) {
+    return e.message || "An error occurred";
   }
   return String(e || "An error occurred");
 }
@@ -251,7 +265,22 @@ export function AuthPageContent() {
     setBusy(true);
     try {
       const provider = new GoogleAuthProvider();
-      const cred = await signInWithPopup(auth, provider);
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      let cred;
+      try {
+        cred = await signInWithPopup(auth, provider);
+      } catch (popupErr: any) {
+        if (isClosingOrHiddenError(popupErr)) {
+          // If a mobile browser triggered a background visibility / IndexedDB closing glitch, retry once
+          console.warn("[Auth] IndexedDB closing/hidden error detected, retrying signInWithPopup...", popupErr);
+          await new Promise((res) => setTimeout(res, 500));
+          cred = await signInWithPopup(auth, provider);
+        } else {
+          throw popupErr;
+        }
+      }
+
       const userEmail = cred.user.email ?? "";
       const userDisplayName = cred.user.displayName ?? cred.user.email?.split("@")[0] ?? "Learner";
 
@@ -322,8 +351,12 @@ export function AuthPageContent() {
         title: isNewUser ? "Account created with Google! 🎉" : "Welcome back! Thanks for logging in.",
         description: isNewUser ? `Welcome @${finalUsername || "learner"}! Your plan is ready.` : "Ready to solve today's DSA problems?",
       });
-    } catch (e) {
-      toast.error(authErrorMessage(e));
+    } catch (e: any) {
+      if (e?.code === "auth/popup-closed-by-user") {
+        toast.info("Google sign-in was cancelled.");
+      } else {
+        toast.error(authErrorMessage(e));
+      }
     } finally {
       setBusy(false);
     }

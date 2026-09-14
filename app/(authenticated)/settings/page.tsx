@@ -14,7 +14,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import { auth } from "@/integrations/firebase/client";
+import { auth, isClosingOrHiddenError } from "@/integrations/firebase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
 import { changeStartDate, deleteAccountData, updateUserProfile } from "@/lib/db";
@@ -195,12 +195,30 @@ export default function SettingsPage() {
     try {
       const user = auth.currentUser;
       if (!user) throw new Error("Not signed in.");
-      await linkWithPopup(user, new GoogleAuthProvider());
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      try {
+        await linkWithPopup(user, provider);
+      } catch (linkErr: any) {
+        if (isClosingOrHiddenError(linkErr)) {
+          console.warn("[Auth] IndexedDB closing/hidden error during linkGoogle, retrying...", linkErr);
+          await new Promise((res) => setTimeout(res, 500));
+          await linkWithPopup(user, provider);
+        } else {
+          throw linkErr;
+        }
+      }
       toast.success("Google account connected");
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.code === "auth/popup-closed-by-user") {
+        toast.info("Google linking was cancelled.");
+        return;
+      }
       const already = e instanceof FirebaseError && e.code === "auth/credential-already-in-use";
       toast.error(already ? "That Google account is already linked elsewhere" : "Google sign-in failed", {
-        description: e instanceof Error ? e.message : String(e),
+        description: isClosingOrHiddenError(e)
+          ? "Connection temporarily interrupted. Please try again."
+          : e instanceof Error ? e.message : String(e),
       });
     }
   }
@@ -336,7 +354,17 @@ export default function SettingsPage() {
           if (isGoogle) {
             toast.info("Re-authenticating with Google to confirm deletion...");
             const provider = new GoogleAuthProvider();
-            await linkWithPopup(user, provider);
+            provider.setCustomParameters({ prompt: "select_account" });
+            try {
+              await linkWithPopup(user, provider);
+            } catch (linkErr: any) {
+              if (isClosingOrHiddenError(linkErr)) {
+                await new Promise((res) => setTimeout(res, 500));
+                await linkWithPopup(user, provider);
+              } else {
+                throw linkErr;
+              }
+            }
             await deleteUser(user);
           } else {
             toast.error("Security timeout: Please sign out and sign back in to delete your account.");

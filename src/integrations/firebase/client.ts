@@ -14,19 +14,22 @@ import { getFirestore as getFirestoreFromFirebase, connectFirestoreEmulator } fr
 import { getStorage } from "firebase/storage";
 import { isSupported, type Messaging } from "firebase/messaging";
 
+// Helper to identify transient IndexedDB closing/hidden errors (e.g. mobile tab switching during OAuth)
+export function isClosingOrHiddenError(reason: unknown): boolean {
+  if (!reason) return false;
+  const msg = typeof reason === "string" ? reason : (reason as any)?.message || (reason as any)?.name || String(reason);
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes("database is closing") ||
+    lower.includes("database is closing/hidden") ||
+    lower.includes("closing/hidden") ||
+    lower.includes("bloomfilter") ||
+    lower.includes("indexeddb")
+  );
+}
+
 // Suppress known Firebase Auth / Firestore IndexedDB internal closing warnings in browser
 if (typeof window !== "undefined") {
-  const isClosingOrHiddenError = (reason: any): boolean => {
-    if (!reason) return false;
-    const msg = typeof reason === "string" ? reason : reason?.message || reason?.name || String(reason);
-    return (
-      msg.includes("Database is closing") ||
-      msg.includes("Database is closing/hidden") ||
-      msg.includes("BloomFilter") ||
-      msg.includes("indexedDB")
-    );
-  };
-
   window.addEventListener("unhandledrejection", (e) => {
     if (isClosingOrHiddenError(e.reason)) {
       e.preventDefault();
