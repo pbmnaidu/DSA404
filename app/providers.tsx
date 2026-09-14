@@ -1,9 +1,11 @@
 'use client'
 
+import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
-import React from 'react'
 import { ThemeCustomizerProvider } from './theme-customizer-context'
+import { InAppBrowserProvider } from '@/components/in-app-browser/InAppBrowserContext'
+import { InAppBrowserModal } from '@/components/in-app-browser/InAppBrowserModal'
 
 // Create a client for the entire app
 const queryClient = new QueryClient({
@@ -19,8 +21,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeCustomizerProvider>
-        {children}
-        <Toaster />
+        <InAppBrowserProvider>
+          {children}
+          <InAppBrowserModal />
+          <Toaster />
+        </InAppBrowserProvider>
       </ThemeCustomizerProvider>
     </QueryClientProvider>
   )
