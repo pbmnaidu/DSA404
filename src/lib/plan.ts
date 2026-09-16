@@ -543,11 +543,22 @@ export function setSkipped(
   const set = new Set(Array.isArray(dayNumbers) ? dayNumbers : [dayNumbers]);
   if (set.size === 0) return days;
 
+  const oldFirstOpen = days.find((d) => !d.skipped && !isDayComplete(d) && d.status !== "merged");
+
   const result = days.map((d) =>
     set.has(d.dayNumber)
       ? { ...d, skipped, status: skipped ? ("skipped" as const) : ("pending" as const) }
       : d,
   );
+
+  const newFirstOpen = result.find((d) => !d.skipped && !isDayComplete(d) && d.status !== "merged");
+
+  // If the first open day changed (e.g. we skipped the current "Today" or unskipped a day that becomes the new "Today"),
+  // the new first open day MUST anchor on the exact same real-world date the open sequence was previously anchored on.
+  // Otherwise, the calendar will drift forward/backward incorrectly.
+  if (oldFirstOpen && newFirstOpen && oldFirstOpen.id !== newFirstOpen.id && oldFirstOpen.date) {
+    newFirstOpen.date = oldFirstOpen.date;
+  }
 
   return renumber(result, startDate, 0, isPaused);
 }
@@ -568,11 +579,19 @@ export function setSkippedById(
   const idSet = new Set(Array.isArray(ids) ? ids : [ids]);
   if (idSet.size === 0) return days;
 
+  const oldFirstOpen = days.find((d) => !d.skipped && !isDayComplete(d) && d.status !== "merged");
+
   const result = days.map((d) =>
     idSet.has(d.id)
       ? { ...d, skipped, status: skipped ? ("skipped" as const) : ("pending" as const) }
       : d,
   );
+
+  const newFirstOpen = result.find((d) => !d.skipped && !isDayComplete(d) && d.status !== "merged");
+
+  if (oldFirstOpen && newFirstOpen && oldFirstOpen.id !== newFirstOpen.id && oldFirstOpen.date) {
+    newFirstOpen.date = oldFirstOpen.date;
+  }
 
   return renumber(result, startDate, 0, isPaused);
 }
