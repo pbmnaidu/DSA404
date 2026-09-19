@@ -250,9 +250,11 @@ export interface UserProfile {
   email?: string;
   /** LinkedIn profile URL */
   linkedin?: string;
+  /** GitHub profile URL */
+  github?: string;
   /** Personal Portfolio website URL */
   portfolio?: string;
-  /** Other social media links (Twitter/X, YouTube, GitHub, Discord, etc.) */
+  /** Other social media links (Twitter/X, YouTube, Discord, etc.) */
   socialLinks?: SocialLinkItem[];
   codingProfiles: CodingProfiles;
   publicStats: PublicStats;
@@ -271,7 +273,7 @@ export function normalizeUsername(raw: string): string {
 /**
  * Reads the PUBLIC-safe subset of the user profile doc. Works for owner and
  * unauthenticated callers alike — this is what the public /profile/[uid]
- * page uses. Now includes public aboutMe, linkedin, portfolio, and socialLinks.
+ * page uses. Now includes public aboutMe, linkedin, github, portfolio, and socialLinks.
  * Private `notes` are kept in users/{uid}/private/profile and never returned here.
  */
 export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>> {
@@ -287,6 +289,7 @@ export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>
     username: (data.username as string) ?? "",
     email: (data.email as string) ?? "",
     linkedin: (data.linkedin as string) ?? "",
+    github: (data.github as string) ?? "",
     portfolio: (data.portfolio as string) ?? "",
     socialLinks: (data.socialLinks as SocialLinkItem[]) ?? [],
     codingProfiles: (data.codingProfiles as CodingProfiles) ?? {},
@@ -464,13 +467,13 @@ export async function loadPublicDays(uid: string): Promise<Day[]> {
   return snap.docs.map((d) => fieldsToDay(d.data()));
 }
 
-export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: PlanMeta }> {
+export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: PlanMeta; sheetId?: string }> {
   await ensureProfile(userId);
 
   const metaSnap = await getDoc(planMetaDoc(userId));
   if (!metaSnap.exists()) {
     const s = await loadSettings(userId);
-    return seedPlan(userId, undefined, s?.counts);
+    return seedPlan(userId, undefined, s?.counts, s?.activeSheet);
   }
 
   // Order by seqIndex — the stable array-position field written by saveSequence.
@@ -479,7 +482,7 @@ export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: Pla
   const daysSnap = await getDocs(query(daysCol(userId), orderBy("seqIndex", "asc")));
   if (daysSnap.empty) {
     const s = await loadSettings(userId);
-    return seedPlan(userId, undefined, s?.counts);
+    return seedPlan(userId, undefined, s?.counts, s?.activeSheet);
   }
 
   const metaData = metaSnap.data();
@@ -488,7 +491,7 @@ export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: Pla
   const storedSchemaVersion = (metaData.schemaVersion as number | undefined) ?? 0;
   if (storedSchemaVersion !== SCHEMA_VERSION) {
     const s = await loadSettings(userId);
-    return seedPlan(userId, metaData.startDate as string, s?.counts);
+    return seedPlan(userId, metaData.startDate as string, s?.counts, s?.activeSheet);
   }
 
   return {
@@ -498,29 +501,37 @@ export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: Pla
       lastActiveDate: metaData.lastActiveDate as string,
       lastSyncedAt: (metaData.lastSyncedAt as string) ?? new Date().toISOString(),
     },
+    sheetId: (metaData.sheetId as string | undefined) ?? "core404",
   };
 }
 
 
-export async function seedPlan(userId: string, startDate?: string, counts?: DailyCounts): Promise<{ days: Day[]; meta: PlanMeta }> {
+export async function seedPlan(
+  userId: string,
+  startDate?: string,
+  counts?: DailyCounts,
+  sheetId?: string,
+): Promise<{ days: Day[]; meta: PlanMeta }> {
   await ensureProfile(userId);
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const effectiveStartDate = startDate || today;
 
-  let days = seedDays(effectiveStartDate);
-
-  // Read user saved counts from settings if counts is omitted
+  let effectiveSheet = sheetId;
   let effectiveCounts = counts;
-  if (!effectiveCounts) {
+  if (!effectiveCounts || !effectiveSheet) {
     try {
       const s = await loadSettings(userId);
-      if (s?.counts) effectiveCounts = s.counts;
+      if (!effectiveCounts && s?.counts) effectiveCounts = s.counts;
+      if (!effectiveSheet && s?.activeSheet) effectiveSheet = s.activeSheet;
     } catch {
       // fallback
     }
   }
   if (!effectiveCounts) effectiveCounts = DEFAULT_DAILY_COUNTS;
+  if (!effectiveSheet) effectiveSheet = "core404";
+
+  let days = seedDays(effectiveStartDate, effectiveSheet);
 
   // Rebalance initial days according to user daily pace limits so day 1 gets full quota (e.g. 5 Easy)
   days = rebalanceRemaining(days, effectiveCounts, effectiveStartDate);
@@ -533,12 +544,26 @@ export async function seedPlan(userId: string, startDate?: string, counts?: Dail
     startDate: effectiveStartDate,
     lastActiveDate: today,
     lastSyncedAt: now.toISOString(),
+    sheetId: effectiveSheet,
   });
 
   return {
     days,
     meta: { startDate: effectiveStartDate, lastActiveDate: today, lastSyncedAt: now.toISOString() },
   };
+}
+
+export async function switchUserSheet(
+  userId: string,
+  sheetId: string,
+  startDate?: string,
+): Promise<{ days: Day[]; meta: PlanMeta }> {
+  try {
+    await setDoc(settingsDoc(userId), { activeSheet: sheetId }, { merge: true });
+  } catch (e) {
+    console.warn("Failed to persist activeSheet to settings doc:", e);
+  }
+  return seedPlan(userId, startDate, undefined, sheetId);
 }
 
 /** Returns true if this user has never had a plan seeded (first login). */
@@ -576,14 +601,217 @@ export async function touchSync(userId: string) {
   );
 }
 
-export async function logEvent(userId: string, kind: string, detail: string) {
-  const ref = doc(revisionEventsCol(userId));
-  await setDoc(ref, { kind, detail, createdAt: serverTimestamp() });
+export interface ScheduleEventRow {
+  id: string;
+  kind: string;
+  detail: string;
+  createdAt?: any;
+  createdAtIso: string;
+  snapshot: string | null;
+  canRevert: boolean;
+  isWithinWeek: boolean;
 }
 
-export async function listEvents(userId: string) {
-  const snap = await getDocs(query(revisionEventsCol(userId), orderBy("createdAt", "desc")));
-  return snap.docs.slice(0, 25).map((d) => ({ id: d.id, ...d.data() }));
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+export function compressDaySnapshot(days: Day[]): string {
+  if (!days || !Array.isArray(days)) return "";
+  const minified = days.map((d) => ({
+    id: d.id,
+    dayNumber: d.dayNumber,
+    date: d.date,
+    section: d.section,
+    topic: d.topic,
+    subtopics: d.subtopics || [],
+    status: d.status,
+    notes: d.notes ? d.notes.slice(0, 500) : "",
+    revisionNotes: d.revisionNotes ? d.revisionNotes.slice(0, 500) : "",
+    skipped: Boolean(d.skipped),
+    isRevisionDay: Boolean(d.isRevisionDay),
+    mergeSnapshot: d.mergeSnapshot,
+    problems: (d.problems || []).map((p) => ({
+      name: p.name,
+      platform: p.platform,
+      difficulty: p.difficulty,
+      link: p.link,
+      done: Boolean(p.done),
+      isHard: Boolean(p.isHard),
+      borrowedFromDay: p.borrowedFromDay,
+      carriedFromDay: p.carriedFromDay,
+    })),
+    skippedProblems: d.skippedProblems
+      ? d.skippedProblems.map((p) => ({
+          name: p.name,
+          platform: p.platform,
+          difficulty: p.difficulty,
+          link: p.link,
+          done: Boolean(p.done),
+          isHard: Boolean(p.isHard),
+          borrowedFromDay: p.borrowedFromDay,
+          carriedFromDay: p.carriedFromDay,
+        }))
+      : undefined,
+  }));
+  return JSON.stringify(minified);
+}
+
+export function parseDaySnapshot(snapshotJson: string): Day[] {
+  if (!snapshotJson) return [];
+  try {
+    const raw = JSON.parse(snapshotJson);
+    if (!Array.isArray(raw)) return [];
+    return raw.map((d: any) => ({
+      id: d.id || `day-${d.dayNumber}`,
+      dayNumber: d.dayNumber,
+      date: d.date,
+      section: d.section || "",
+      topic: d.topic || "",
+      subtopics: d.subtopics || [],
+      status: d.status || "pending",
+      checklist: d.checklist || { readTheory: false, solvedCore: false, revised: false },
+      notes: d.notes || "",
+      revisionNotes: d.revisionNotes || "",
+      skipped: Boolean(d.skipped),
+      isRevisionDay: Boolean(d.isRevisionDay),
+      mergeSnapshot: d.mergeSnapshot,
+      problems: (d.problems || []).map((p: any) => ({
+        name: p.name || "",
+        platform: p.platform || "LeetCode",
+        difficulty: p.difficulty || "Medium",
+        link: p.link || "",
+        done: Boolean(p.done),
+        isHard: Boolean(p.isHard),
+        borrowedFromDay: p.borrowedFromDay,
+        carriedFromDay: p.carriedFromDay,
+      })),
+      skippedProblems: d.skippedProblems
+        ? d.skippedProblems.map((p: any) => ({
+            name: p.name || "",
+            platform: p.platform || "LeetCode",
+            difficulty: p.difficulty || "Medium",
+            link: p.link || "",
+            done: Boolean(p.done),
+            isHard: Boolean(p.isHard),
+            borrowedFromDay: p.borrowedFromDay,
+            carriedFromDay: p.carriedFromDay,
+          }))
+        : undefined,
+    }));
+  } catch (e) {
+    console.error("Error parsing day snapshot:", e);
+    return [];
+  }
+}
+
+function getEventTimestamp(data: Record<string, any>): number {
+  if (data.createdAt) {
+    if (typeof data.createdAt.toMillis === "function") {
+      const ms = data.createdAt.toMillis();
+      if (typeof ms === "number" && !isNaN(ms) && ms > 0) return ms;
+    }
+    if (typeof data.createdAt.seconds === "number") {
+      const ms = data.createdAt.seconds * 1000;
+      if (typeof ms === "number" && !isNaN(ms) && ms > 0) return ms;
+    }
+    if (typeof data.createdAt === "number" && !isNaN(data.createdAt) && data.createdAt > 0) {
+      return data.createdAt;
+    }
+    if (typeof data.createdAt === "string") {
+      const ms = new Date(data.createdAt).getTime();
+      if (!isNaN(ms) && ms > 0) return ms;
+    }
+    if (data.createdAt instanceof Date) {
+      const ms = data.createdAt.getTime();
+      if (!isNaN(ms) && ms > 0) return ms;
+    }
+  }
+  if (data.createdAtIso && typeof data.createdAtIso === "string") {
+    const ms = new Date(data.createdAtIso).getTime();
+    if (!isNaN(ms) && ms > 0) return ms;
+  }
+  return Date.now();
+}
+
+export async function logEvent(
+  userId: string,
+  kind: string,
+  detail: string,
+  snapshotDays?: Day[],
+) {
+  if (!userId) return;
+  const ref = doc(revisionEventsCol(userId));
+  const nowIso = new Date().toISOString();
+  let snapshotStr: string | null = null;
+  if (snapshotDays && Array.isArray(snapshotDays) && snapshotDays.length > 0) {
+    try {
+      snapshotStr = compressDaySnapshot(snapshotDays);
+    } catch (err) {
+      console.warn("Failed to compress snapshot for logEvent:", err);
+    }
+  }
+  await setDoc(ref, {
+    kind,
+    detail,
+    createdAt: serverTimestamp(),
+    createdAtIso: nowIso,
+    snapshot: snapshotStr,
+  });
+}
+
+export async function listEvents(userId: string): Promise<ScheduleEventRow[]> {
+  if (!userId) return [];
+  const colRef = revisionEventsCol(userId);
+  const snap = await getDocs(query(colRef, orderBy("createdAt", "desc")));
+  const now = Date.now();
+
+  const results: ScheduleEventRow[] = [];
+  const toDelete: string[] = [];
+
+  for (const d of snap.docs) {
+    const data = d.data();
+    const eventTime = getEventTimestamp(data);
+    const age = Math.max(0, now - eventTime);
+    const isWithinWeek = age <= ONE_WEEK_MS;
+
+    // Permanent deletion after 1 week (max 7 days)
+    if (age > ONE_WEEK_MS) {
+      toDelete.push(d.id);
+      continue;
+    }
+
+    const canRevert = Boolean(data.snapshot) && isWithinWeek;
+
+    results.push({
+      id: d.id,
+      kind: (data.kind as string) || "update",
+      detail: (data.detail as string) || "",
+      createdAt: data.createdAt,
+      createdAtIso:
+        data.createdAtIso ||
+        (eventTime ? new Date(eventTime).toISOString() : new Date().toISOString()),
+      snapshot: (data.snapshot as string) || null,
+      canRevert,
+      isWithinWeek,
+    });
+  }
+
+  // Permanently delete expired events (> 1 week)
+  if (toDelete.length > 0) {
+    for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
+      const b = writeBatch(firestore);
+      toDelete.slice(i, i + BATCH_SIZE).forEach((id) => {
+        b.delete(doc(colRef, id));
+      });
+      b.commit().catch((err) => console.warn("Failed to delete expired schedule events:", err));
+    }
+  }
+
+  return results.slice(0, 30);
+}
+
+export async function revertScheduleSnapshot(userId: string, targetDays: Day[]) {
+  if (!userId) return;
+  await saveSequence(userId, targetDays);
 }
 
 /**

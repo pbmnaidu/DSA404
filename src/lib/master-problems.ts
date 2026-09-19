@@ -12,11 +12,15 @@ export interface MasterProblem {
   id: string;
   name: string;
   difficulty: Difficulty;
-  platform: "LeetCode" | "GeeksforGeeks";
+  platform: "LeetCode" | "GeeksforGeeks" | "HackerRank" | "CodeStudio" | string;
   link: string;
   pattern: string;
   /** Roadmap level from workbook: "Level 1" | "Level 2" | "Level 3". */
   level: string;
+  topic?: string;
+  topicNo?: number;
+  channel?: string;
+  videoUrl?: string;
 }
 
 export interface CoreSection {

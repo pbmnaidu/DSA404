@@ -8,12 +8,14 @@ import { useProblemCompletions } from "@/hooks/useProblemCompletions";
 import { useContests } from "@/hooks/useContests";
 import { ContestProgress } from "@/components/ContestsSection";
 import { dayProgress, isDayComplete, todayIso } from "@/lib/plan";
-import { listEvents } from "@/lib/db";
+import { listEvents, parseDaySnapshot, type ScheduleEventRow } from "@/lib/db";
 import { EXTRA_PROBLEMS } from "@/lib/extra-problems-data";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
+import { Undo2, History, Calendar, Clock, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Area,
   AreaChart,
@@ -35,9 +37,6 @@ import {
   weeklyStats,
 } from "@/lib/gamification";
 
-
-type EventRow = { id: string; kind: string; detail: string; created_at: string };
-
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
@@ -48,14 +47,15 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export default function ProgressPage() {
-  const { days, loading, userId, resetAll } = usePlan();
+  const { days, loading, userId, resetAll, revertSchedule } = usePlan();
   const { completed: pbCompleted } = useProblemCompletions();
   const { contests } = useContests();
-  const [events, setEvents] = useState<EventRow[]>([]);
+  const [events, setEvents] = useState<ScheduleEventRow[]>([]);
+  const [revertingId, setRevertingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
-    void listEvents(userId).then((rows) => setEvents(rows as EventRow[]));
+    void listEvents(userId).then((rows) => setEvents(rows));
   }, [userId, days]);
 
   const stats = useMemo(() => {
@@ -318,22 +318,135 @@ export default function ProgressPage() {
         ))}
       </div>
 
-      <h2 className="mb-3 font-display text-lg font-semibold">Schedule history</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <History className="size-5 text-primary" />
+          <h2 className="font-display text-lg font-semibold">Schedule History</h2>
+        </div>
+        <span className="text-[11px] text-muted-foreground font-mono bg-muted/60 px-2.5 py-1 rounded-full border border-border/50">
+          Saved for 1 week · Auto-pruned permanently after 7 days
+        </span>
+      </div>
+
       {events.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No schedule changes yet.</p>
+        <div className="mb-8 rounded-xl border border-dashed border-border bg-card/40 p-6 text-center text-sm text-muted-foreground">
+          <History className="mx-auto size-8 opacity-40 mb-2" />
+          <p className="font-medium text-foreground">No schedule changes recorded yet.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Modifications like postponing days, rebalancing daily pace, skipping, or inserting revisions will appear here with 1-week revert capability.
+          </p>
+        </div>
       ) : (
-        <ul className="mb-8 space-y-2">
-          {events.map((e) => (
-            <li key={e.id} className="rounded-lg border border-border bg-card p-3 text-sm">
-              <span className="mr-2 rounded bg-secondary px-1.5 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
-                {e.kind}
-              </span>
-              {e.detail}
-              <span className="ml-2 text-xs text-muted-foreground">
-                {new Date(e.created_at).toLocaleString()}
-              </span>
-            </li>
-          ))}
+        <ul className="mb-8 space-y-3">
+          {events.map((e) => {
+            const dateObj = new Date(e.createdAtIso);
+            const isValidDate = !isNaN(dateObj.getTime());
+            const dateStr = isValidDate
+              ? dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+              : "Recent";
+            const timeStr = isValidDate
+              ? dateObj.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+              : "";
+            
+            const isRevertingThis = revertingId === e.id;
+
+            return (
+              <li
+                key={e.id}
+                className="rounded-2xl border border-border bg-card p-4 shadow-xs hover:border-primary/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-md bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                      {e.kind}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono">
+                      <Calendar className="size-3 text-muted-foreground/70" />
+                      <span>{dateStr}</span>
+                      {timeStr && (
+                        <>
+                          <Clock className="size-3 text-muted-foreground/70 ml-1" />
+                          <span>{timeStr}</span>
+                        </>
+                      )}
+                    </span>
+                    {e.canRevert ? (
+                      <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        <CheckCircle2 className="size-2.5" />
+                        Revert Eligible (within 7 days)
+                      </span>
+                    ) : e.isWithinWeek ? (
+                      <span className="text-[10px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                        No Revert Snapshot
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        Expired (&gt; 1 week)
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm font-medium text-foreground leading-snug">
+                    {e.detail}
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
+                  {e.canRevert ? (
+                    <ConfirmDialog
+                      title="Revert this schedule change?"
+                      description={`This will restore your entire schedule back to the state prior to this action: "${e.detail}". You can only revert changes within 1 week.`}
+                      confirmWord="REVERT"
+                      confirmLabel="Yes, Revert Schedule"
+                      onConfirm={async () => {
+                        if (!e.snapshot) return;
+                        try {
+                          setRevertingId(e.id);
+                          const targetDays = parseDaySnapshot(e.snapshot);
+                          await revertSchedule(targetDays, e.detail);
+                          if (userId) {
+                            const refreshed = await listEvents(userId);
+                            setEvents(refreshed);
+                          }
+                        } catch (err: any) {
+                          toast.error("Could not revert schedule", { description: err.message });
+                        } finally {
+                          setRevertingId(null);
+                        }
+                      }}
+                      trigger={
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isRevertingThis}
+                          className="h-8 gap-1.5 rounded-xl border-primary/30 text-xs font-bold text-primary hover:bg-primary/10 hover:text-primary transition-all cursor-pointer shadow-xs"
+                          title="Restore schedule to the state before this change"
+                        >
+                          <Undo2 className="size-3.5" />
+                          <span>{isRevertingThis ? "Reverting..." : "Revert this change"}</span>
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="h-8 gap-1.5 rounded-xl text-xs font-semibold opacity-50 cursor-not-allowed"
+                      title={
+                        e.isWithinWeek
+                          ? "Snapshot was not saved for this action."
+                          : "Changes older than 1 week cannot be reverted and will be permanently deleted."
+                      }
+                    >
+                      <Undo2 className="size-3.5" />
+                      <span>{e.isWithinWeek ? "Revert Unavailable" : "Revert Expired"}</span>
+                    </Button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
 

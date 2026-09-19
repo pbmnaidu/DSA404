@@ -23,8 +23,6 @@ const URL_PATTERNS: { platform: PlatformId; regex: RegExp; extractIndex: number 
   { platform: "codewars", regex: /(?:https?:\/\/)?(?:www\.)?codewars\.com\/users\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
   { platform: "exercism", regex: /(?:https?:\/\/)?exercism\.org\/profiles\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
   { platform: "kaggle", regex: /(?:https?:\/\/)?(?:www\.)?kaggle\.com\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
-  { platform: "github", regex: /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
-  { platform: "linkedin", regex: /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
 ];
 
 export function detectPlatformAndUsername(input: string): DetectionResult {

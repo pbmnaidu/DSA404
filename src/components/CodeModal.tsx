@@ -9,6 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Code2, ExternalLink, Trash2, CheckCircle2, Save, Lightbulb } from "lucide-react";
 import type { CodeSubmission } from "@/lib/db";
 import { getCanonicalProblemLink } from "@/lib/problems";
+import {
+  getLocalGitHubSyncConfig,
+  type GitHubSyncConfig,
+} from "@/lib/github-sync";
+import { GitHubRepoLinkModal } from "./GitHubRepoLinkModal";
+import { GitHubIcon } from "./SocialIcons";
 import { toast } from "sonner";
 
 interface CodeModalProps {
@@ -34,10 +40,13 @@ export function CodeModal({
   const [link, setLink] = useState("");
   const [keyPoints, setKeyPoints] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ghConfig, setGhConfig] = useState<GitHubSyncConfig | null>(null);
+  const [showGitHubModal, setShowGitHubModal] = useState(false);
 
   // Sync state whenever modal opens or existingSubmission changes
   useEffect(() => {
     if (open) {
+      setGhConfig(getLocalGitHubSyncConfig());
       const draftCode = typeof window !== "undefined" ? localStorage.getItem(`draft_code_${problemName}`) : null;
       const draftKeyPoints = typeof window !== "undefined" ? localStorage.getItem(`draft_keypoints_${problemName}`) : null;
       const canonicalLink = getCanonicalProblemLink(problemName) || "";
@@ -176,6 +185,46 @@ export function CodeModal({
             )}
           </div>
 
+          {/* GitHub Auto-Sync status & trigger banner */}
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl border border-white/10 bg-background/50">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="size-7 rounded-xl bg-zinc-900 dark:bg-white/10 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <GitHubIcon className="size-4" />
+              </div>
+              {ghConfig?.enabled && ghConfig?.repo ? (
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs font-bold text-foreground">GitHub Auto-Sync:</span>
+                    <span className="text-xs font-mono font-bold text-primary truncate">{ghConfig.owner}/{ghConfig.repo}</span>
+                    <span className="rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold">
+                      ACTIVE
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">
+                    Commits {ghConfig.folderPath ? `${ghConfig.folderPath}/` : ""}&lt;Problem_Name&gt;.txt with Key Patterns &amp; Code
+                  </p>
+                </div>
+              ) : (
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-foreground">Auto-Push Solutions to GitHub</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    Link a GitHub repository to automatically commit solutions &amp; key patterns as .txt files
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGitHubModal(true)}
+              className="h-7 px-2.5 rounded-xl text-[11px] font-semibold shrink-0 gap-1 hover:border-primary/40"
+            >
+              <span>{ghConfig?.enabled && ghConfig?.repo ? "Configure Repo" : "Link GitHub Repo"}</span>
+            </Button>
+          </div>
+
           {/* Code Textarea */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -239,6 +288,12 @@ export function CodeModal({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      <GitHubRepoLinkModal
+        open={showGitHubModal}
+        onOpenChange={setShowGitHubModal}
+        onConfigSaved={(cfg) => setGhConfig(cfg)}
+      />
     </Dialog>
   );
 }

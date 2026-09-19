@@ -5,7 +5,6 @@ import { CodeChefAdapter } from "./adapters/codechef";
 import { AtCoderAdapter } from "./adapters/atcoder";
 import { HackerRankAdapter } from "./adapters/hackerrank";
 import { GFGAdapter } from "./adapters/gfg";
-import { GitHubAdapter } from "./adapters/github";
 import { CodewarsAdapter } from "./adapters/codewars";
 import { HackerEarthAdapter } from "./adapters/hackerearth";
 import { Code360Adapter } from "./adapters/code360";
@@ -16,7 +15,6 @@ import { TopcoderAdapter } from "./adapters/topcoder";
 import { KattisAdapter } from "./adapters/kattis";
 import { ExercismAdapter } from "./adapters/exercism";
 import { KaggleAdapter } from "./adapters/kaggle";
-import { LinkedInAdapter } from "./adapters/linkedin";
 import { detectPlatformAndUsername } from "./detector";
 
 class PlatformAdapterRegistry {
@@ -29,8 +27,6 @@ class PlatformAdapterRegistry {
     this.register(new AtCoderAdapter());
     this.register(new HackerRankAdapter());
     this.register(new GFGAdapter());
-    this.register(new GitHubAdapter());
-    this.register(new LinkedInAdapter());
     this.register(new CodewarsAdapter());
     this.register(new HackerEarthAdapter());
     this.register(new Code360Adapter());

@@ -76,64 +76,56 @@ Happy Coding!
 </html>`;
 
     // ── EMAIL 2: Comprehensive Platform Features & Settings Guide ──
-    const subject2 = `📖 Complete Guide: DSA⁴⁰⁴ Features, Roadmap Settings & Patterns`;
+    const subject2 = `📖 Complete Guide: DSA⁴⁰⁴ Features, Curated Sheets, GitHub Sync & Coder Profiles`;
     const text2 = `Here is your complete guide to all features and settings in DSA⁴⁰⁴:
 
-1.Settings Tab:
-   - Install PWA application for better experience.
-   - Adjust your preferences of no of problems you can solve per day i.e.,easy,medium,hard.you can restart by choosing the date.
-   - you can pause the preparation and resume it when you want.if you have any exams or other works for long period.
-   - Notification in section you need to enable the Browser notifications and Test it once is that notificaitons are getting or not.
-   - you can set reminders for every session like morning and evening at a specific time to reminde you.
-   - for contests reminders will be sent on that day,before 1hr and 10 mins of the contest starts.
-   - you can change the name password and Delete account completely.
-   
-2. Coder Profile tab
-   - Public Profile & Coding Handles:
-   - Update your bio profile pic, goal and Banner.
-   - After all changes in profile click on save button.
-   - Now your profile is live and you can share it with anyone.By clicking on share profile.
-   - Your Shareable Link: /profile/${username || "your_handle"}.
-   - Connect handles for LeetCode, Codeforces, CodeChef, AtCoder, HackerRank, GeeksforGeeks (GFG), GitHub.
+1. 📚 Curated & Custom DSA Sheets (Roadmap Selector):
+   - Choose your preferred DSA sheet: Flagship Core 404 Roadmap, Striver's A2Z DSA Sheet, Striver's SDE Sheet, NeetCode 150, Love Babbar 450 Cracker, or RisingBrains Sheet.
+   - Dynamic schedule generation tailored to your daily problem solving pace.
+   - One-click Excel (.xlsx) sheet export & download for offline tracking anytime.
 
-Built-in Integrations:
-   - ⚡ Solve (AI Tutor): Interactive Socratic ChatGPT hints untill you understand the pattern or topic unless you specified will not give any code.
-   - ▶ YouTube: One-click video solutions fro the related problem.
-   - 🔍 Google Search: Scoped search results across major platforms.
+2. 🐙 GitHub Repository Auto-Sync (Link GitHub Repo):
+   - Link your GitHub account and target repository directly from Settings or the Code Modal.
+   - Auto-commits your solved code, key pattern insights, and submission links into your GitHub repository as structured .txt files whenever you save a solution!
 
-3.Todays Workspace tab(Daily problems and contests): 
-   - In this you can see all the topics and problems assigned to you for that day.
-   - In heatmap you can see your progress in terms of days. and on click of any day you can see the problems assigned to you for that day.
-   - Contest section you can see all the upcoming contests for that day.By clicking on that you can directly go to the contest page and register for it.
-   - these postpone,borrow,merge,delete/skip,bookmark,revision mode are the buttons that will help you to adjust your workload accordingly.
-   - Postpone: Shift unfinished days forward automatically.
-   - Borrow: Pull a problem from future days into today.
-   - Merge: Combine today's workload with tomorrow.
-   - Delete / Skip: Remove or skip days/topics.
-   - Bookmark (Review Deck): Flag problems to revise.
-   - Revision Mode: Schedule weekly topic revisions.
-   - Bottom you can write notes for that day and can revise on sunday
+3. 👤 Public Coder Profile & Shareable Portfolio:
+   - Your personalized live shareable link: /profile/${username || "your_handle"}
+   - Connect all your competitive coding handles: LeetCode, Codeforces, CodeChef, AtCoder, HackerRank, GeeksforGeeks (GFG), and GitHub.
+   - Displays real-time submission heatmaps, LeetCode Widget, GitHub contribution heatmap, streaks, solved problem stats, and earned badges.
+   - Customize your bio, profile picture, career goal, background banner, and direct email contact link.
 
-4. Practice Tab:
-   - where you can practice problems that are not in the roadmap or you want to practice more on a specific topic.
-   - for every problem you can save the code,keypoints and submission link and can view any time(make sure that you are saving correct because you revise that afterwards).
+4. 💡 Code Editor, Solution Vault & Built-in Integrations:
+   - In-app solution editor to store your clean code, submission URLs, and key problem takeaways.
+   - ⚡ Solve (AI Tutor): Interactive Socratic ChatGPT hints that guide your intuition step-by-step without spoiling full code.
+   - ▶ YouTube: Direct 1-click video solution tutorials for every problem.
+   - 🔍 Scoped Search: Instant scoped Google search across top programming platforms.
 
-5. Topics Tab & Weeks Tab:
-   - Skip known topics & unskip anytime from Topics tab.
-   - In Week section you can see all the weeks and the topics covered in that week.
-   - Daily Pace Customizer (Easy, Medium, Hard limits).
+5. 📅 Today's Workspace & Smart Workload Management:
+   - Topic and problem schedule for the day with daily heatmaps.
+   - Postpone: Automatically shift unfinished daily targets forward without breaking schedule momentum.
+   - Borrow: Pull future problems into today's workload when you want to solve extra.
+   - Merge: Combine today's workload with tomorrow seamlessly.
+   - Delete / Skip: Skip topics or problems you have already mastered.
+   - Bookmark (Review Deck): Flag challenging problems for spaced repetition revision.
+   - Daily Notes: Write daily takeaways and revise them on weekends.
 
-6. Review tab and backlog tab:
-   - In Review tab you can see all the problems that you have bookmarked and you can revise them.
-   - And also can set email reminder for revision of that particular topic and any specifed date with custom message.
-   - In Backlog tab you can see all the problems or days that you have missed or not solved yet and you can revise them.
+6. 🏆 Automated Contest Attendance & Reminders:
+   - Live contest calendar for upcoming contests across LeetCode, Codeforces, CodeChef, AtCoder, GFG, etc.
+   - Automated contest alerts sent on contest day, 1 hour before, and 10 minutes before start time.
+   - Direct links to practice missed contests on original platforms in virtual/practice mode.
 
-7. Progress tab and Contests tab
-   - In progress tab you can see your progress in terms of weeks and topics in the form of heatmap.
-   - still no of days left to comlete.you can see all badges you have earned and also total no of problems you have solved by topic wise.
-   - In Contests tab you can see all the upcoming contests for that day.By clicking on that you can directly go to the contest page and register for it.
-   - if any contest is missed on any platform you can pracitce them on their respective platform in virtul or paritice mode
-   
+7. 🔁 Review Deck, Backlog & Custom Revision Reminders:
+   - Review Tab: Access all bookmarked problems to revise anytime.
+   - Set custom email reminders for topic revision on any designated date with custom notes.
+   - Backlog Tab: Track missed or unfinished days and clear them systematically.
+
+8. ⚙️ Settings, PWA & Habit Reminders:
+   - Install as a PWA (Progressive Web App) for native desktop & mobile experience.
+   - Daily pace customizer (Easy, Medium, Hard limits per day).
+   - Set Morning and Evening session reminders at specific times.
+   - Pause & Resume study mode for exams, vacations, or busy work schedules.
+   - Notification management with instant browser push test alerts.
+
 Save/Print this guide as a PDF for offline reference anytime!
 
 - The 404 DSA Team`;
@@ -148,8 +140,11 @@ Save/Print this guide as a PDF for offline reference anytime!
     .card { max-width: 680px; margin: 0 auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .badge { display: inline-block; background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: bold; font-family: monospace; }
     h2 { font-size: 22px; color: #f8fafc; margin-top: 12px; }
-    h3 { font-size: 16px; color: #38bdf8; margin-top: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 6px; }
+    h3 { font-size: 16px; color: #38bdf8; margin-top: 24px; border-bottom: 1px solid #1e293b; padding-bottom: 6px; }
     .feature-item { background: #1e293b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; border-left: 4px solid #38bdf8; }
+    .feature-item-emerald { border-left-color: #10b981; }
+    .feature-item-purple { border-left-color: #a855f7; }
+    .feature-item-amber { border-left-color: #f59e0b; }
     .feature-title { font-weight: bold; font-size: 14px; color: #f8fafc; margin-bottom: 6px; }
     .feature-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; margin: 0; }
     ul { margin: 6px 0 0 0; padding-left: 18px; color: #cbd5e1; font-size: 13px; line-height: 1.6; }
@@ -162,92 +157,85 @@ Save/Print this guide as a PDF for offline reference anytime!
 <body>
   <div class="card">
     <div class="badge">DSA⁴⁰⁴ PLATFORM GUIDE</div>
-    <h2>Here is your complete guide to all features and settings in DSA⁴⁰⁴:</h2>
+    <h2>Here is your complete guide to all features & settings in DSA⁴⁰⁴:</h2>
 
-    <h3>1. Settings Tab</h3>
-    <div class="feature-item">
+    <h3>1. 📚 Curated & Custom DSA Sheets (Roadmap Selector)</h3>
+    <div class="feature-item feature-item-emerald">
       <ul>
-        <li>Install PWA application for better experience.</li>
-        <li>Adjust your preferences of no of problems you can solve per day i.e., easy, medium, hard. You can restart by choosing the date.</li>
-        <li>You can pause the preparation and resume it when you want (if you have exams or other work for long period).</li>
-        <li>Notification section: enable Browser notifications and test once to verify receiving notifications.</li>
-        <li>Set reminders for every session like morning and evening at a specific time.</li>
-        <li>Contest reminders will be sent on that day, before 1hr and 10 mins of contest start.</li>
-        <li>Change your name, password, and delete account completely.</li>
+        <li>Choose your target sheet: <strong>Core 404 Roadmap</strong>, <strong>Striver's A2Z DSA Sheet</strong>, <strong>Striver's SDE Sheet</strong>, <strong>NeetCode 150</strong>, <strong>Love Babbar 450 Cracker</strong>, or <strong>RisingBrains Sheet</strong>.</li>
+        <li>Dynamic day-by-day schedule generation tailored to your daily problem-solving limits.</li>
+        <li>One-click Excel (<strong style="color: #10b981;">.xlsx</strong>) export & download for offline reference anytime.</li>
       </ul>
     </div>
 
-    <h3>2. Coder Profile Tab</h3>
-    <div class="feature-item">
-      <div class="feature-title">Public Profile & Coding Handles</div>
+    <h3>2. 🐙 GitHub Repository Auto-Sync (Link GitHub Repo)</h3>
+    <div class="feature-item feature-item-purple">
       <ul>
-        <li>Update your bio, profile pic, goal, and banner.</li>
-        <li>After all changes in profile, click on save button.</li>
-        <li>Now your profile is live and you can share it with anyone by clicking on share profile.</li>
-        <li>Your Shareable Link: <strong style="color: #38bdf8;">/profile/${username || "your_handle"}</strong></li>
-        <li>Connect handles for LeetCode, Codeforces, CodeChef, AtCoder, HackerRank, GeeksforGeeks (GFG), and GitHub.</li>
+        <li>Connect your GitHub account and link/create a repository in Settings or Code Modal.</li>
+        <li>Automatically commits solved code, key takeaway points, and submission URLs to your GitHub repo as formatted <strong style="color: #a855f7;">.txt</strong> files on every save!</li>
       </ul>
     </div>
 
-    <h3>Built-in Integrations</h3>
+    <h3>3. 👤 Public Coder Profile & Shareable Portfolio</h3>
     <div class="feature-item">
+      <div class="feature-title">Live Portfolio & Multi-Platform Integration</div>
       <ul>
-        <li>⚡ <strong>Solve (AI Tutor)</strong>: Interactive Socratic ChatGPT hints until you understand the pattern or topic unless specified will not give any code.</li>
-        <li>▶ <strong>YouTube</strong>: One-click video solutions for the related problem.</li>
-        <li>🔍 <strong>Google Search</strong>: Scoped search results across major platforms.</li>
+        <li>Your shareable live profile link: <strong style="color: #38bdf8;">/profile/${username || "your_handle"}</strong></li>
+        <li>Connect handles for <strong>LeetCode</strong>, <strong>Codeforces</strong>, <strong>CodeChef</strong>, <strong>AtCoder</strong>, <strong>HackerRank</strong>, <strong>GeeksforGeeks (GFG)</strong>, and <strong>GitHub</strong>.</li>
+        <li>Showcases live submission heatmaps, LeetCode widget, GitHub contribution heatmap, streaks, solved breakdown, and earned badges.</li>
+        <li>Customize profile bio, avatar, background banner, career goal, and contact email link.</li>
       </ul>
     </div>
 
-    <h3>3. Today's Workspace Tab (Daily Problems & Contests)</h3>
+    <h3>4. 💡 Code Editor, Solution Vault & Learning Tools</h3>
     <div class="feature-item">
       <ul>
-        <li>See all topics and problems assigned to you for that day.</li>
-        <li>Heatmap shows your progress in terms of days. On click of any day, see problems assigned to you for that day.</li>
-        <li>Contest section shows all upcoming contests for that day. Click to go directly to contest page and register.</li>
-        <li>Workload adjustment buttons: Postpone, Borrow, Merge, Delete/Skip, Bookmark, Revision Mode.</li>
-        <li><strong>Postpone</strong>: Shift unfinished days forward automatically.</li>
-        <li><strong>Borrow</strong>: Pull a problem from future days into today.</li>
+        <li>In-app code editor to save solution code, submission links, and key intuition points.</li>
+        <li>⚡ <strong>Solve (AI Tutor)</strong>: Interactive Socratic ChatGPT hints to build intuition without giving away raw solution code upfront.</li>
+        <li>▶ <strong>YouTube Solutions</strong>: One-click video solutions for related problems.</li>
+        <li>🔍 <strong>Scoped Search</strong>: Quick Google search scoped across top competitive programming sites.</li>
+      </ul>
+    </div>
+
+    <h3>5. 📅 Today's Workspace & Workload Rebalancing</h3>
+    <div class="feature-item">
+      <ul>
+        <li>Daily assigned topics, problems, and progress heatmaps.</li>
+        <li><strong>Postpone</strong>: Shift unfinished days forward automatically without stress.</li>
+        <li><strong>Borrow</strong>: Pull future problems into today's goal if you are ahead.</li>
         <li><strong>Merge</strong>: Combine today's workload with tomorrow.</li>
-        <li><strong>Delete / Skip</strong>: Remove or skip days/topics.</li>
-        <li><strong>Bookmark (Review Deck)</strong>: Flag problems to revise.</li>
-        <li><strong>Revision Mode</strong>: Schedule weekly topic revisions.</li>
-        <li>Bottom section: Write notes for that day and revise on Sunday.</li>
+        <li><strong>Delete / Skip</strong>: Skip or remove topics you already master.</li>
+        <li><strong>Bookmark (Review Deck)</strong>: Flag problems for revision.</li>
+        <li>Daily notes section to write key takeaways and review on weekends.</li>
       </ul>
     </div>
 
-    <h3>4. Practice Tab</h3>
-    <div class="feature-item">
+    <h3>6. 🏆 Automated Contest Attendance & Reminders</h3>
+    <div class="feature-item feature-item-amber">
       <ul>
-        <li>Practice problems that are not in the roadmap or practice more on a specific topic.</li>
-        <li>For every problem, save code, keypoints, and submission link to view anytime (make sure you save correctly for revision later).</li>
+        <li>Live contest calendar featuring upcoming contests on LeetCode, Codeforces, CodeChef, AtCoder, GFG, etc.</li>
+        <li>Automated reminders sent on contest day, 1 hour before, and 10 minutes before start time.</li>
+        <li>Direct links to attempt missed contests on original platforms in virtual or practice mode.</li>
       </ul>
     </div>
 
-    <h3>5. Topics Tab & Weeks Tab</h3>
+    <h3>7. 🔁 Review Deck, Backlog & Custom Reminders</h3>
     <div class="feature-item">
       <ul>
-        <li>Skip known topics & unskip anytime from Topics tab.</li>
-        <li>Week section shows all weeks and topics covered in that week.</li>
-        <li>Daily Pace Customizer (Easy, Medium, Hard limits).</li>
+        <li><strong>Review Tab</strong>: Access all bookmarked problems to revise anytime.</li>
+        <li>Set custom email reminders for topic revision on specific dates with personal notes.</li>
+        <li><strong>Backlog Tab</strong>: View missed or pending days and clear them systematically.</li>
       </ul>
     </div>
 
-    <h3>6. Review Tab & Backlog Tab</h3>
+    <h3>8. ⚙️ Settings, PWA & Daily Habit Reminders</h3>
     <div class="feature-item">
       <ul>
-        <li>In Review tab, see all bookmarked problems to revise.</li>
-        <li>Set email reminders for revision of a particular topic and specified date with custom message.</li>
-        <li>In Backlog tab, see all missed or unsolved problems or days and revise them.</li>
-      </ul>
-    </div>
-
-    <h3>7. Progress Tab & Contests Tab</h3>
-    <div class="feature-item">
-      <ul>
-        <li>In Progress tab, see your progress in terms of weeks and topics in heatmap format.</li>
-        <li>See days left to complete, earned badges, and total problems solved by topic.</li>
-        <li>In Contests tab, see all upcoming contests for that day. Click to go directly to contest page to register.</li>
-        <li>If any contest is missed, practice on respective platform in virtual or practice mode.</li>
+        <li>Install PWA application on desktop or mobile for native offline experience.</li>
+        <li>Daily pace customizer (Easy, Medium, Hard limits per day).</li>
+        <li>Set Morning and Evening session reminders at your preferred times.</li>
+        <li>Pause & Resume study mode for exams, vacations, or busy periods.</li>
+        <li>Notification section to test and manage browser push notifications.</li>
       </ul>
     </div>
 

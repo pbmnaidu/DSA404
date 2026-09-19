@@ -1,7 +1,7 @@
 /** Upgrade 2/3/5: per-user settings persisted in Firestore. */
 import { getDoc, setDoc } from "firebase/firestore";
 import { settingsDoc } from "./db";
-import { DEFAULT_DAILY_COUNTS, type DailyCounts } from "./plan";
+import { DEFAULT_DAILY_COUNTS, type DailyCounts, normalizeDailyCounts } from "./plan";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -19,6 +19,7 @@ export interface UserSettings {
   pausedFrom: string | null;
   pausedDays: number;
   resumeDate: string | null;
+  activeSheet: string;
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -35,10 +36,13 @@ export const DEFAULT_SETTINGS: UserSettings = {
   pausedFrom: null,
   pausedDays: 0,
   resumeDate: null,
+  activeSheet: "core404",
 };
 
 type Fields = {
   theme?: string;
+  dailyTarget?: number;
+  paceTier?: string;
   easyPerDay?: number;
   mediumPerDay?: number;
   hardPerDay?: number;
@@ -53,35 +57,46 @@ type Fields = {
   pausedFrom?: string | null;
   pausedDays?: number;
   resumeDate?: string | null;
+  activeSheet?: string;
 };
 
-const fieldsToSettings = (f: Fields): UserSettings => ({
-  theme: (f.theme as ThemeMode) ?? "light",
-  counts: {
-    easy: f.easyPerDay ?? DEFAULT_DAILY_COUNTS.easy,
-    medium: f.mediumPerDay ?? DEFAULT_DAILY_COUNTS.medium,
-    hard: f.hardPerDay ?? DEFAULT_DAILY_COUNTS.hard,
-  },
-  pushEnabled: Boolean(f.pushEnabled),
-  emailEnabled: Boolean(f.emailEnabled),
-  reminderTime: (f.reminderTime ?? "19:00").slice(0, 5),
-  morningReminderEnabled: Boolean(f.morningReminderEnabled),
-  morningReminderTime: (f.morningReminderTime ?? "08:00").slice(0, 5),
-  contestReminderEnabled: Boolean(f.contestReminderEnabled),
-  timezone: f.timezone || DEFAULT_SETTINGS.timezone,
-  paused: Boolean(f.paused),
-  pausedFrom: f.pausedFrom ?? null,
-  pausedDays: f.pausedDays ?? 0,
-  resumeDate: f.resumeDate ?? null,
-});
+const fieldsToSettings = (f: Fields): UserSettings => {
+  const normCounts = normalizeDailyCounts({
+    target: f.dailyTarget,
+    tier: f.paceTier as any,
+    easy: f.easyPerDay,
+    medium: f.mediumPerDay,
+    hard: f.hardPerDay,
+  });
+
+  return {
+    theme: (f.theme as ThemeMode) ?? "light",
+    counts: normCounts,
+    pushEnabled: Boolean(f.pushEnabled),
+    emailEnabled: Boolean(f.emailEnabled),
+    reminderTime: (f.reminderTime ?? "19:00").slice(0, 5),
+    morningReminderEnabled: Boolean(f.morningReminderEnabled),
+    morningReminderTime: (f.morningReminderTime ?? "08:00").slice(0, 5),
+    contestReminderEnabled: Boolean(f.contestReminderEnabled),
+    timezone: f.timezone || DEFAULT_SETTINGS.timezone,
+    paused: Boolean(f.paused),
+    pausedFrom: f.pausedFrom ?? null,
+    pausedDays: f.pausedDays ?? 0,
+    resumeDate: f.resumeDate ?? null,
+    activeSheet: f.activeSheet || "core404",
+  };
+};
 
 const settingsToFields = (s: Partial<UserSettings>): Fields => {
   const fields: Fields = {};
   if (s.theme !== undefined) fields.theme = s.theme;
   if (s.counts !== undefined) {
-    fields.easyPerDay = s.counts.easy;
-    fields.mediumPerDay = s.counts.medium;
-    fields.hardPerDay = s.counts.hard;
+    const norm = normalizeDailyCounts(s.counts);
+    fields.dailyTarget = norm.target;
+    fields.paceTier = norm.tier;
+    fields.easyPerDay = norm.easy;
+    fields.mediumPerDay = norm.medium;
+    fields.hardPerDay = norm.hard;
   }
   if (s.pushEnabled !== undefined) fields.pushEnabled = s.pushEnabled;
   if (s.emailEnabled !== undefined) fields.emailEnabled = s.emailEnabled;
@@ -94,6 +109,7 @@ const settingsToFields = (s: Partial<UserSettings>): Fields => {
   if (s.pausedFrom !== undefined) fields.pausedFrom = s.pausedFrom;
   if (s.pausedDays !== undefined) fields.pausedDays = s.pausedDays;
   if (s.resumeDate !== undefined) fields.resumeDate = s.resumeDate;
+  if (s.activeSheet !== undefined) fields.activeSheet = s.activeSheet;
   return fields;
 };
 

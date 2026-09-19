@@ -12,6 +12,7 @@ import {
   Zap,
   BarChart3,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -19,6 +20,8 @@ import {
   type ContestWithStatus,
   type UserMark,
 } from "@/hooks/useContests";
+import { ContestsPlatformBar } from "./ContestsPlatformBar";
+import { type PlatformId } from "@/lib/coding-platforms/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -57,9 +60,9 @@ function fmtDateIST(ms: number): string {
 export function isToday(ms: number): boolean {
   if (!ms || isNaN(ms)) return false;
   const dateObj = new Date(ms);
-  const nowObj = new Date(); // Takes current system time
+  const nowObj = new Date();
 
-  // Local browser date check (system time)
+  // Local browser date check
   const isLocalToday =
     nowObj.getFullYear() === dateObj.getFullYear() &&
     nowObj.getMonth() === dateObj.getMonth() &&
@@ -132,87 +135,187 @@ function Countdown({
 // ─── Mark bar ────────────────────────────────────────────────────────────────
 
 function MarkBar({
-  contestId,
-  mark,
-  status,
+  contest,
   onMark,
+  onOpenLinkModal,
 }: {
-  contestId: string;
-  mark: UserMark;
-  status: ContestWithStatus["status"];
+  contest: ContestWithStatus;
   onMark: (id: string, m: UserMark) => void;
+  onOpenLinkModal?: (platformId: PlatformId) => void;
 }) {
-  // Only show mark bar for live or missed (after end)
-  if (status === "upcoming") return null;
+  const { id: contestId, mark, status, attendanceInfo } = contest;
 
+  // Only show mark bar for live or missed (after end)
+  if (status === "upcoming") {
+    if (attendanceInfo?.isLinked) {
+      return (
+        <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 border-t border-border/40">
+          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+            <CheckCircle2 className="size-3 text-emerald-500" />
+            Linked: @{attendanceInfo.handle}
+          </span>
+          <span className="text-[10px]">Auto-tracks on completion</span>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  // ── CASE 1: Coding Platform Details ARE NOT Entered (Show Normal UI) ──
+  if (!attendanceInfo?.isLinked) {
+    if (mark === "attended") {
+      return (
+        <div className="mt-2 flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
+          <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="size-3" />
+            Attended ✓
+          </span>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onMark(contestId, null);
+            }}
+            className="text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            Undo
+          </button>
+        </div>
+      );
+    }
+
+    if (mark === "missed_intentional") {
+      return (
+        <div className="mt-2 flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
+          <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+            <XCircle className="size-3" />
+            Marked missed
+          </span>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onMark(contestId, null);
+            }}
+            className="text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            Undo
+          </button>
+        </div>
+      );
+    }
+
+    // Normal unmarked state: "Did you attend? [Attended] [Missed]"
+    return (
+      <div className="mt-2 flex flex-col gap-1.5 pt-1.5 border-t border-border/40" onClick={(e) => e.preventDefault()}>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted-foreground">Did you attend?</span>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onMark(contestId, "attended");
+            }}
+            className="flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-800/60"
+          >
+            <CheckCircle2 className="size-3" />
+            Attended
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onMark(contestId, "missed_intentional");
+            }}
+            className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800/60 dark:text-gray-400 dark:hover:bg-gray-700/60"
+          >
+            <XCircle className="size-3" />
+            Missed
+          </button>
+        </div>
+        {onOpenLinkModal && attendanceInfo?.platformMeta && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onOpenLinkModal(attendanceInfo.platformMeta!.id);
+            }}
+            className="text-[10px] text-primary/80 hover:text-primary hover:underline text-left inline-flex items-center gap-1"
+          >
+            <span>+ Link {contest.platform} account for auto-tracking</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // ── CASE 2: Coding Platform Details ARE Entered (Auto Linked) ──
   if (mark === "attended") {
     return (
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 className="size-3" />
-          Attended ✓
-        </span>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onMark(contestId, null);
-          }}
-          className="text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-        >
-          Undo
-        </button>
+      <div className="mt-2 flex flex-col gap-1 pt-1.5 border-t border-border/40">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+              <CheckCircle2 className="size-3" />
+              Attended ✓
+            </span>
+            {attendanceInfo.source === "auto_platform" ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                Verified ({attendanceInfo.platformMeta?.label})
+              </span>
+            ) : (
+              <span className="text-[10px] text-muted-foreground">(Manual override)</span>
+            )}
+          </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onMark(contestId, attendanceInfo.source === "auto_platform" ? "missed_intentional" : null);
+            }}
+            className="text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            title="Override or change attendance mark"
+          >
+            {attendanceInfo.source === "auto_platform" ? "Mark Missed" : "Undo"}
+          </button>
+        </div>
+
+        {(attendanceInfo.rank || attendanceInfo.rating) && (
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
+            {attendanceInfo.rank && <span>Rank #{attendanceInfo.rank}</span>}
+            {attendanceInfo.rating && <span>· Rating {attendanceInfo.rating}</span>}
+            {attendanceInfo.handle && <span>· @{attendanceInfo.handle}</span>}
+          </div>
+        )}
       </div>
     );
   }
 
   if (mark === "missed_intentional") {
     return (
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 dark:text-gray-500">
-          <XCircle className="size-3" />
-          Marked missed
-        </span>
+      <div className="mt-2 flex items-center justify-between gap-2 flex-wrap pt-1.5 border-t border-border/40">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600 dark:bg-gray-800/60 dark:text-gray-400">
+            <XCircle className="size-3" />
+            Not Attended
+          </span>
+          {attendanceInfo.source === "auto_platform" ? (
+            <span className="text-[10px] text-muted-foreground">
+              Synced from {attendanceInfo.platformMeta?.label}
+            </span>
+          ) : (
+            <span className="text-[10px] text-muted-foreground">(Manual mark)</span>
+          )}
+        </div>
         <button
           onClick={(e) => {
             e.preventDefault();
-            onMark(contestId, null);
+            onMark(contestId, "attended");
           }}
-          className="text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          className="text-[10px] text-primary underline underline-offset-2 hover:text-primary/80"
+          title="Mark as attended (override)"
         >
-          Undo
+          Mark Attended
         </button>
       </div>
     );
   }
 
-  return (
-    <div
-      className="mt-2 flex items-center gap-2"
-      onClick={(e) => e.preventDefault()}
-    >
-      <span className="text-[11px] text-muted-foreground">Did you attend?</span>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          onMark(contestId, "attended");
-        }}
-        className="flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-800/60"
-      >
-        <CheckCircle2 className="size-3" />
-        Attended
-      </button>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          onMark(contestId, "missed_intentional");
-        }}
-        className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800/60 dark:text-gray-400 dark:hover:bg-gray-700/60"
-      >
-        <XCircle className="size-3" />
-        Missed
-      </button>
-    </div>
-  );
+  return null;
 }
 
 // ─── Contest card ─────────────────────────────────────────────────────────────
@@ -221,32 +324,63 @@ function ContestCard({
   c,
   now,
   onMark,
+  onOpenLinkModal,
 }: {
   c: ContestWithStatus;
   now: number;
   onMark: (id: string, m: UserMark) => void;
+  onOpenLinkModal?: (platformId: PlatformId) => void;
 }) {
   const attended = c.mark === "attended";
+  const info = c.attendanceInfo;
 
   return (
     <div
       className={cn(
-        "group flex flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-colors",
-        c.status === "missed" && !attended && "opacity-60",
-        attended && "border-emerald-400/60 bg-emerald-50/40 dark:bg-emerald-900/10"
+        "group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-all shadow-2xs hover:shadow-xs",
+        c.status === "missed" && !attended && "opacity-75 hover:opacity-100",
+        attended && "border-emerald-400/60 bg-emerald-50/40 dark:bg-emerald-950/20"
       )}
     >
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
-        <span
-          className={cn(
-            "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-            PLATFORM_STYLES[c.platform] ??
-              "bg-muted text-muted-foreground"
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
+              PLATFORM_STYLES[c.platform] ?? "bg-muted text-muted-foreground"
+            )}
+          >
+            {c.platform}
+          </span>
+          {info?.isLinked && info.handle && (
+            <a
+              href={info.profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-mono text-[10px] text-muted-foreground hover:text-primary transition-colors"
+              title={`View @${info.handle} on ${c.platform}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span>@{info.handle}</span>
+              <ExternalLink className="size-2.5 opacity-60" />
+            </a>
           )}
-        >
-          {c.platform}
-        </span>
+          {!info?.isLinked && onOpenLinkModal && info?.platformMeta && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenLinkModal(info.platformMeta!.id);
+              }}
+              className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground/80 hover:text-primary transition-colors underline"
+              title={`Link your ${c.platform} handle`}
+            >
+              + Link Acc
+            </button>
+          )}
+        </div>
+
         <span
           className={cn(
             "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
@@ -262,9 +396,9 @@ function ContestCard({
         href={c.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-start justify-between gap-1 text-sm font-medium leading-snug text-foreground hover:text-primary"
+        className="flex items-start justify-between gap-1 text-sm font-semibold leading-snug text-foreground hover:text-primary"
       >
-        {c.title}
+        <span>{c.title}</span>
         <ExternalLink className="mt-0.5 size-3 shrink-0 opacity-50 group-hover:opacity-100" />
       </a>
 
@@ -285,7 +419,7 @@ function ContestCard({
         <Countdown targetMs={c.endMs} label="Ends in" now={now} />
       )}
 
-      {/* Upcoming countdown — show for all upcoming contests within 7 days */}
+      {/* Upcoming countdown */}
       {c.status === "upcoming" && c.startMs - now <= 7 * 24 * 60 * 60 * 1000 && (
         <Countdown targetMs={c.startMs} label="Starts in" now={now} />
       )}
@@ -296,7 +430,7 @@ function ContestCard({
           href={c.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 text-[11px] text-blue-500 underline underline-offset-2 hover:text-blue-700"
+          className="mt-0.5 text-[11px] text-blue-500 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
           onClick={(e) => e.stopPropagation()}
         >
           Practice in virtual/upsolve mode →
@@ -305,10 +439,9 @@ function ContestCard({
 
       {/* Mark bar */}
       <MarkBar
-        contestId={c.id}
-        mark={c.mark}
-        status={c.status}
+        contest={c}
         onMark={onMark}
+        onOpenLinkModal={onOpenLinkModal}
       />
     </div>
   );
@@ -358,22 +491,28 @@ function SectionHeader({
 export function ContestProgress({ contests }: { contests: ContestWithStatus[] }) {
   const allEnded = contests.filter((c) => c.status === "missed");
   const attended = allEnded.filter((c) => c.mark === "attended");
+  const autoAttended = attended.filter((c) => c.attendanceInfo?.source === "auto_platform");
   const missedMark = allEnded.filter((c) => c.mark === "missed_intentional");
+  const autoMissed = missedMark.filter((c) => c.attendanceInfo?.source === "auto_platform");
   const unmarked = allEnded.filter((c) => c.mark === null);
   const total = allEnded.length;
   const pct = total === 0 ? 0 : Math.round((attended.length / total) * 100);
 
   // Platform breakdown
   const platforms = ["Codeforces", "CodeChef", "LeetCode", "HackerRank", "HackerEarth"] as const;
-  const platformStats = platforms.map((p) => {
-    const pEnded = allEnded.filter((c) => c.platform === p);
-    const pAttended = pEnded.filter((c) => c.mark === "attended");
-    return {
-      platform: p,
-      total: pEnded.length,
-      attended: pAttended.length,
-    };
-  }).filter((s) => s.total > 0);
+  const platformStats = platforms
+    .map((p) => {
+      const pEnded = allEnded.filter((c) => c.platform === p);
+      const pAttended = pEnded.filter((c) => c.mark === "attended");
+      const isLinked = pEnded.some((c) => c.attendanceInfo?.isLinked);
+      return {
+        platform: p,
+        total: pEnded.length,
+        attended: pAttended.length,
+        isLinked,
+      };
+    })
+    .filter((s) => s.total > 0);
 
   if (total === 0) return null;
 
@@ -382,7 +521,7 @@ export function ContestProgress({ contests }: { contests: ContestWithStatus[] })
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BarChart3 className="size-4 text-primary" />
-          <h2 className="text-base font-semibold">Contest Attendance & Upsolve Progress</h2>
+          <h2 className="text-base font-semibold">Contest Attendance &amp; Upsolve Progress</h2>
         </div>
         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
           {attended.length} / {total} Completed ({pct}%)
@@ -403,14 +542,20 @@ export function ContestProgress({ contests }: { contests: ContestWithStatus[] })
       </div>
 
       {/* Summary stats */}
-      <div className="mb-4 flex flex-wrap gap-4 text-xs">
+      <div className="mb-4 flex flex-wrap items-center gap-4 text-xs">
         <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="size-3.5" />
           {attended.length} Completed / Attended
+          {autoAttended.length > 0 && (
+            <span className="opacity-80 text-[11px]">({autoAttended.length} auto-verified)</span>
+          )}
         </span>
         <span className="flex items-center gap-1 font-medium text-gray-500">
           <XCircle className="size-3.5" />
-          {missedMark.length} Marked Missed
+          {missedMark.length} Not Attended
+          {autoMissed.length > 0 && (
+            <span className="opacity-80 text-[11px]">({autoMissed.length} auto-synced)</span>
+          )}
         </span>
         {unmarked.length > 0 && (
           <span className="flex items-center gap-1 font-medium text-amber-500">
@@ -439,6 +584,11 @@ export function ContestProgress({ contests }: { contests: ContestWithStatus[] })
                 <span className="font-mono text-emerald-600 dark:text-emerald-400">
                   {s.attended}/{s.total}
                 </span>
+                {s.isLinked && (
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium" title="Account connected for auto-attendance">
+                    ✓ Linked
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -476,8 +626,22 @@ function SourceFooter() {
 // ─── Today contests (shown in Today tab) ─────────────────────────────────────
 
 export function TodayContestsSection() {
-  const { contests, loading, error, now, markContest, refetch } = useContests();
+  const {
+    contests,
+    loading,
+    error,
+    now,
+    markContest,
+    refetch,
+    codingProfiles,
+    platformStats,
+    updateCodingProfile,
+    removeCodingProfile,
+    syncAllProfiles,
+    isSyncingProfiles,
+  } = useContests();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [modalPlatform, setModalPlatform] = useState<PlatformId | null>(null);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -540,7 +704,7 @@ export function TodayContestsSection() {
   }
 
   return (
-    <section className="mt-6">
+    <section className="mt-6 space-y-4">
       <SectionHeader
         title="Today's Contests"
         count={todaysContests.length}
@@ -550,10 +714,29 @@ export function TodayContestsSection() {
       />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {todaysContests.map((c) => (
-          <ContestCard key={c.id} c={c} now={now} onMark={markContest} />
+          <ContestCard
+            key={c.id}
+            c={c}
+            now={now}
+            onMark={markContest}
+            onOpenLinkModal={(plat) => setModalPlatform(plat)}
+          />
         ))}
       </div>
       <SourceFooter />
+
+      {/* Platform bar rendered in modal-only mode so accounts box is hidden from Today page */}
+      <ContestsPlatformBar
+        codingProfiles={codingProfiles}
+        platformStats={platformStats}
+        onUpdateProfile={updateCodingProfile}
+        onRemoveProfile={removeCodingProfile}
+        onSyncAll={syncAllProfiles}
+        isSyncing={isSyncingProfiles}
+        modalPlatform={modalPlatform}
+        setModalPlatform={setModalPlatform}
+        modalOnly={true}
+      />
     </section>
   );
 }
@@ -594,8 +777,22 @@ const PRACTICE_HUB_LINKS = [
 // ─── Full contests page ───────────────────────────────────────────────────────
 
 export function ContestsPageSection() {
-  const { contests, loading, error, now, markContest, refetch } = useContests();
+  const {
+    contests,
+    loading,
+    error,
+    now,
+    markContest,
+    refetch,
+    codingProfiles,
+    platformStats,
+    updateCodingProfile,
+    removeCodingProfile,
+    syncAllProfiles,
+    isSyncingProfiles,
+  } = useContests();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [modalPlatform, setModalPlatform] = useState<PlatformId | null>(null);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -628,27 +825,43 @@ export function ContestsPageSection() {
   }
 
   const LOOKAHEAD_MS = 30 * 24 * 60 * 60 * 1000;
-  const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000; // Only last 3 days missed contests
+  const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000; // Last 3 days missed contests
 
   const live = contests.filter((c) => c.status === "live");
   const upcoming = contests.filter((c) => c.status === "upcoming" && c.startMs - now <= LOOKAHEAD_MS);
-  
+
   // Sort missed contests DESCENDING (newest first)
   const missed = contests
     .filter((c) => c.status === "missed")
     .sort((a, b) => b.startMs - a.startMs);
 
-  // ONLY show missed contests from the LAST 3 DAYS
+  // Unmarked contests from the last 3 days (only for unlinked platforms where user hasn't marked yet)
   const recentMissed = missed.filter(
-    (c) => c.mark !== "missed_intentional" && c.mark !== "attended" && (now - c.endMs <= THREE_DAYS_MS)
+    (c) => c.mark !== "missed_intentional" && c.mark !== "attended" && now - c.endMs <= THREE_DAYS_MS
   );
+
+  // Not attended / Skipped contests (both auto-synced not attended and manually skipped) from last 3 days
   const markedMissed = missed.filter(
-    (c) => c.mark === "missed_intentional" && (now - c.endMs <= THREE_DAYS_MS)
+    (c) => c.mark === "missed_intentional" && now - c.endMs <= THREE_DAYS_MS
   );
+
+  // Attended contests (both auto-verified and manually marked attended)
   const attendedMissed = missed.filter((c) => c.mark === "attended");
 
   return (
     <div className="space-y-10">
+      {/* ── Linked Platform Accounts & Auto-Attendance Bar ── */}
+      <ContestsPlatformBar
+        codingProfiles={codingProfiles}
+        platformStats={platformStats}
+        onUpdateProfile={updateCodingProfile}
+        onRemoveProfile={removeCodingProfile}
+        onSyncAll={syncAllProfiles}
+        isSyncing={isSyncingProfiles}
+        modalPlatform={modalPlatform}
+        setModalPlatform={setModalPlatform}
+      />
+
       {/* Progress bar */}
       <ContestProgress contests={contests} />
 
@@ -662,7 +875,13 @@ export function ContestsPageSection() {
           />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {live.map((c) => (
-              <ContestCard key={c.id} c={c} now={now} onMark={markContest} />
+              <ContestCard
+                key={c.id}
+                c={c}
+                now={now}
+                onMark={markContest}
+                onOpenLinkModal={(plat) => setModalPlatform(plat)}
+              />
             ))}
           </div>
         </section>
@@ -679,13 +898,19 @@ export function ContestsPageSection() {
           />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {upcoming.map((c) => (
-              <ContestCard key={c.id} c={c} now={now} onMark={markContest} />
+              <ContestCard
+                key={c.id}
+                c={c}
+                now={now}
+                onMark={markContest}
+                onOpenLinkModal={(plat) => setModalPlatform(plat)}
+              />
             ))}
           </div>
         </section>
       )}
 
-      {/* Attended (marked) */}
+      {/* Attended (Auto-verified + Manually Marked) */}
       {attendedMissed.length > 0 && (
         <section>
           <SectionHeader
@@ -695,46 +920,63 @@ export function ContestsPageSection() {
           />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {attendedMissed.map((c) => (
-              <ContestCard key={c.id} c={c} now={now} onMark={markContest} />
+              <ContestCard
+                key={c.id}
+                c={c}
+                now={now}
+                onMark={markContest}
+                onOpenLinkModal={(plat) => setModalPlatform(plat)}
+              />
             ))}
           </div>
         </section>
       )}
 
-      {/* Recent Missed Contests (Last 3 Days Only) */}
-      <section>
-        <SectionHeader
-          title="Missed Contests (Last 3 Days)"
-          count={recentMissed.length}
-          icon={<XCircle className="size-4 text-orange-400" />}
-        />
-        <p className="mb-3 text-xs text-muted-foreground">
-          Displaying missed contests from the last 3 days. Mark completed ones or practice them!
-        </p>
-        {recentMissed.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {recentMissed.map((c) => (
-              <ContestCard key={c.id} c={c} now={now} onMark={markContest} />
-            ))}
-          </div>
-        ) : (
-          <p className="rounded-lg border border-border bg-card p-4 text-xs text-muted-foreground">
-            No missed contests in the last 3 days! Great job staying on track.
-          </p>
-        )}
-      </section>
-
-      {/* Skipped / Marked Missed (Last 3 Days) */}
+      {/* Not Attended / Skipped Contests (Last 3 Days) */}
       {markedMissed.length > 0 && (
         <section>
           <SectionHeader
-            title="Skipped (Marked Missed — Last 3 Days)"
+            title="Not Attended / Skipped (Last 3 Days)"
             count={markedMissed.length}
-            icon={<AlertCircle className="size-4 text-gray-400" />}
+            icon={<XCircle className="size-4 text-orange-400" />}
           />
+          <p className="mb-3 text-xs text-muted-foreground">
+            Contests from the last 3 days where you were not detected as participating or marked skipped. You can practice them in virtual mode!
+          </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {markedMissed.map((c) => (
-              <ContestCard key={c.id} c={c} now={now} onMark={markContest} />
+              <ContestCard
+                key={c.id}
+                c={c}
+                now={now}
+                onMark={markContest}
+                onOpenLinkModal={(plat) => setModalPlatform(plat)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Unmarked Contests (Last 3 Days - where platform is not linked yet) */}
+      {recentMissed.length > 0 && (
+        <section>
+          <SectionHeader
+            title="Unmarked Contests (Last 3 Days)"
+            count={recentMissed.length}
+            icon={<AlertCircle className="size-4 text-amber-500" />}
+          />
+          <p className="mb-3 text-xs text-muted-foreground">
+            Contests without linked platform accounts. Mark whether you attended, or link your account above to auto-detect attendance.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {recentMissed.map((c) => (
+              <ContestCard
+                key={c.id}
+                c={c}
+                now={now}
+                onMark={markContest}
+                onOpenLinkModal={(plat) => setModalPlatform(plat)}
+              />
             ))}
           </div>
         </section>
@@ -745,7 +987,7 @@ export function ContestsPageSection() {
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Trophy className="size-4 text-primary" />
-            <h2 className="text-base font-semibold">Older Contests & Platform Practice Hub</h2>
+            <h2 className="text-base font-semibold">Older Contests &amp; Platform Practice Hub</h2>
           </div>
           <span className="text-xs text-muted-foreground">
             Official Archives

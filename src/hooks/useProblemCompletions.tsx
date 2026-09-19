@@ -9,6 +9,7 @@ import {
   type CodeSubmission,
 } from "@/lib/db";
 import { getCanonicalProblemLink } from "@/lib/problems";
+import { getLocalGitHubSyncConfig, pushProblemSolutionToGitHub } from "@/lib/github-sync";
 
 function getLocalSubmissionsKey(uid: string) {
   return `dsa_code_submissions_${uid}`;
@@ -132,6 +133,34 @@ export function useProblemCompletions() {
       await saveCodeSubmission(currentUid, name, sub, completed).catch(() => {
         toast.error("Saved on this device, but couldn't sync to your account. Check your connection.");
       });
+
+      // Auto-push solution .txt to GitHub if configured
+      const ghConfig = getLocalGitHubSyncConfig(currentUid);
+      if (ghConfig?.enabled && ghConfig?.token && ghConfig?.repo && code.trim()) {
+        pushProblemSolutionToGitHub(ghConfig, {
+          problemName: name,
+          code,
+          keyPoints,
+          link: effectiveLink,
+        })
+          .then((res) => {
+            if (res.success) {
+              toast.success("Solution pushed to GitHub! 🐙", {
+                description: `Created ${res.filePath} in ${ghConfig.owner}/${ghConfig.repo}`,
+                action: res.fileUrl
+                  ? { label: "View on GitHub", onClick: () => window.open(res.fileUrl, "_blank") }
+                  : undefined,
+              });
+            } else {
+              toast.warning("Saved code, but GitHub push failed", {
+                description: res.error,
+              });
+            }
+          })
+          .catch((err) => {
+            console.warn("GitHub auto-push error:", err);
+          });
+      }
     },
     [user, completed],
   );

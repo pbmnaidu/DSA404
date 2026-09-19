@@ -101,13 +101,6 @@ const PLATFORMS: {
       color: "#2F8D46",
       bgColor: "rgba(47,141,70,0.12)",
     },
-    {
-      key: "github",
-      label: "GitHub",
-      placeholder: "https://github.com/yourname",
-      color: "#6E7681",
-      bgColor: "rgba(110,118,129,0.12)",
-    },
   ];
 
 
@@ -163,18 +156,20 @@ export function MergedTodayProfile() {
   // When paused, freeze the reference date to pausedFrom so Today's workspace doesn't advance forward in problems
   const iso = settings.paused && settings.pausedFrom ? settings.pausedFrom : todayIso();
   const todayDay = days.find((d) => d.date === iso && !d.skipped);
-  // When today's plan is deleted, the day that shifts forward fills its slot
-  // and fully replaces it as "today" — restoring the deleted day now happens
-  // from the Topic section (see the "Deleted" toast), so Today should just
-  // show the day that took its place, not the deleted stub.
+  // When today's topic is skipped or deleted, the day that shifts forward fills its slot
+  // and fully replaces it as "today" — so Today immediately displays the replacing active day.
+  const firstOpenActive = days.find((d) => !d.skipped && !d.problems.every((p) => p.done) && d.status !== "merged");
   const futureFallback = days.find((d) => d.date > iso && !d.skipped);
   const pastFallback = days.filter((d) => d.date < iso && !d.skipped).at(-1);
-  const currentDay = todayDay ?? futureFallback ?? pastFallback ?? days[0];
+  const firstActive = days.find((d) => !d.skipped);
+  const currentDay = todayDay ?? firstOpenActive ?? futureFallback ?? pastFallback ?? firstActive ?? days[0];
 
-  // Selected Day from Calendar click or default current day
+  // Selected Day from Calendar click or default current day (guards against stale skipped selection)
   const displayedDay = useMemo(() => {
     if (!selectedCalendarDate) return currentDay;
-    return days.find((d) => d.date === selectedCalendarDate) ?? currentDay;
+    const picked = days.find((d) => d.date === selectedCalendarDate);
+    if (!picked || picked.skipped) return currentDay;
+    return picked;
   }, [days, selectedCalendarDate, currentDay]);
 
   const isExactlyToday = displayedDay?.date === iso;

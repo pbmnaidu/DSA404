@@ -42,7 +42,9 @@ import { cn } from "@/lib/utils";
 
 import { CodeModal } from "@/components/CodeModal";
 import { useProblemCompletions } from "@/hooks/useProblemCompletions";
+import { usePlan } from "@/hooks/usePlan";
 import { getCanonicalProblemLink } from "@/lib/problems";
+import { getRespectedChannelForProblem } from "@/lib/sheets-data";
 import { Code2 } from "lucide-react";
 
 const diffClass: Record<string, string> = {
@@ -91,6 +93,7 @@ export function ProblemRow({
   const [modalOpen, setModalOpen] = useState(false);
 
   const { submissions, submitCode, removeCode } = useProblemCompletions();
+  const { activeSheet } = usePlan();
   const submission = submissions[problem.name];
 
   const handleSaveCode = async (code: string, link: string, keyPoints: string) => {
@@ -181,33 +184,53 @@ export function ProblemRow({
           {(() => {
             // Derive the actual platform label and canonical link
             const url = getCanonicalProblemLink(problem.name) ?? problem.link;
-            if (!url) return null;
-            if (problem.platform === "LeetCode" && !problem.linkVerified && !getCanonicalProblemLink(problem.name)) return null;
-            const linkPlatform =
-              url.includes("geeksforgeeks.org") ? "GeeksforGeeks" :
-                url.includes("hackerrank.com") ? "HackerRank" :
-                  url.includes("w3schools.com") ? "W3Schools" :
-                    url.includes("leetcode.com") ? "LeetCode" :
-                      (problem.platform === "GFG" ? "GeeksforGeeks" : problem.platform);
-            const hint =
-              linkPlatform === "LeetCode"
-                ? "Opens this problem directly on LeetCode"
-                : `Opens this problem on ${linkPlatform}`;
+            const hasValidLink = Boolean(url && url.startsWith("http") && !url.includes("undefined"));
+
+            if (hasValidLink) {
+              const linkPlatform =
+                url!.includes("geeksforgeeks.org") ? "GeeksforGeeks" :
+                  url!.includes("hackerrank.com") ? "HackerRank" :
+                    url!.includes("w3schools.com") ? "W3Schools" :
+                      url!.includes("codingninjas.com") || url!.includes("naukri.com") ? "CodingNinjas" :
+                        url!.includes("leetcode.com") ? "LeetCode" :
+                          (problem.platform === "GFG" ? "GeeksforGeeks" : problem.platform || "Platform");
+              const hint =
+                linkPlatform === "LeetCode"
+                  ? "Opens this problem directly on LeetCode"
+                  : `Opens this problem on ${linkPlatform}`;
+              return (
+                <HoverHint hint={hint}>
+                  <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-primary hover:text-primary/80">
+                    <a href={url} target="_blank" rel="noreferrer" aria-label={`Solve ${problem.name} on ${linkPlatform}`}>
+                      <ExternalLink className="size-3.5" aria-hidden="true" />
+                      <span className="ml-1 text-xs">{linkPlatform}</span>
+                    </a>
+                  </Button>
+                </HoverHint>
+              );
+            }
+
+            // Fallback: If no direct link exists, prompt with Google search for problem statement & solution
             return (
-              <HoverHint hint={hint}>
-                <Button asChild variant="ghost" size="sm" className="h-8 px-2">
-                  <a href={url} target="_blank" rel="noreferrer" aria-label={`Solve ${problem.name} on ${linkPlatform}`}>
-                    <ExternalLink className="size-3.5" aria-hidden="true" />
-                    <span className="ml-1 text-xs">{linkPlatform}</span>
+              <HoverHint hint={`Direct link not verified — Search Google for ${problem.name}`}>
+                <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                  <a
+                    href={googleSearchUrl(problem.name, (problem as any).topic)}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Search Google for ${problem.name}`}
+                  >
+                    <Search className="size-3.5" aria-hidden="true" />
+                    <span className="ml-1 text-xs">Search</span>
                   </a>
                 </Button>
               </HoverHint>
             );
           })()}
-          <HoverHint hint="Search Google: problem name + DSA LeetCode GeeksforGeeks TUF YouTube tutorials">
+          <HoverHint hint="Search Google: problem name + DSA LeetCode GeeksforGeeks TUF tutorials">
             <Button asChild variant="ghost" size="sm" className="h-8 px-2">
               <a
-                href={googleSearchUrl(problem.name)}
+                href={googleSearchUrl(problem.name, (problem as any).topic)}
                 target="_blank"
                 rel="noreferrer"
                 aria-label={`Search Google for ${problem.name} DSA tutorials`}
@@ -217,21 +240,28 @@ export function ProblemRow({
               </a>
             </Button>
           </HoverHint>
-          <HoverHint hint="Search YouTube for brute force, better, and optimal solutions with explanations">
-            <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-red-500 hover:text-red-600">
-              <a
-                href={youtubeSearchUrl(problem.name)}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Search YouTube for ${problem.name} solution`}
-              >
-                <svg className="size-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-                <span className="ml-1 text-xs">YouTube</span>
-              </a>
-            </Button>
-          </HoverHint>
+          {(() => {
+            const channelInfo = getRespectedChannelForProblem(problem.name, activeSheet);
+            const videoTargetUrl = (problem as any).videoUrl || channelInfo.youtubeSearchUrl;
+            const channelName = (problem as any).channel || channelInfo.channel;
+            return (
+              <HoverHint hint={`Watch tutorial on ${channelName} for ${problem.name}`}>
+                <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-red-500 hover:text-red-600">
+                  <a
+                    href={videoTargetUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Search YouTube (${channelName}) for ${problem.name} solution`}
+                  >
+                    <svg className="size-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                    </svg>
+                    <span className="ml-1 text-xs">YouTube</span>
+                  </a>
+                </Button>
+              </HoverHint>
+            );
+          })()}
           <HoverHint hint="Ask ChatGPT to explain brute force, better, optimal approach, TC, SC, and intuition for this problem">
             <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-green-600 hover:text-green-700">
               <a

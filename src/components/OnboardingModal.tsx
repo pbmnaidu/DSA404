@@ -9,8 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { CORE_SECTIONS } from "@/lib/master-problems";
 import { ALL_PROBLEMS } from "@/lib/problems";
-import { todayIso, DEFAULT_DAILY_COUNTS, TOTAL_PROBLEMS, type DailyCounts } from "@/lib/plan";
-import { Loader2, BookOpen, Zap, Trophy, CalendarDays, Sliders, X } from "lucide-react";
+import {
+  todayIso,
+  DEFAULT_DAILY_COUNTS,
+  TOTAL_PROBLEMS,
+  TUTOR_PACE_PRESETS,
+  getPacePresetByTarget,
+  normalizeDailyCounts,
+  type DailyCounts,
+  type PaceTier,
+} from "@/lib/plan";
+import { Loader2, BookOpen, Zap, Trophy, CalendarDays, Sliders, X, Sparkles, CheckCircle2 } from "lucide-react";
+import { DailyCombinationsBreakdown } from "@/components/DailyCombinationsBreakdown";
 
 interface OnboardingModalProps {
   open: boolean;
@@ -39,9 +49,11 @@ const LEVEL_COUNTS = CORE_SECTIONS.reduce(
 export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("welcome");
-  const [counts, setCounts] = useState<DailyCounts>({ ...DEFAULT_DAILY_COUNTS });
+  const [counts, setCounts] = useState<DailyCounts>(() => ({ ...DEFAULT_DAILY_COUNTS }));
   const [startDate, setStartDate] = useState(todayIso());
   const [busy, setBusy] = useState(false);
+
+  const activePreset = getPacePresetByTarget(counts.target || 3);
 
   const handleClose = () => {
     if (onClose) {
@@ -51,17 +63,45 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
     }
   };
 
-  const setCount = (key: keyof DailyCounts, val: number) =>
-    setCounts((prev) => ({ ...prev, [key]: val }));
+  const handleSelectTier = (tier: PaceTier) => {
+    const p = TUTOR_PACE_PRESETS[tier];
+    setCounts({
+      target: p.target,
+      tier: p.id,
+      easy: p.levelRatios.level1.easy,
+      medium: p.levelRatios.level2.medium,
+      hard: p.levelRatios.level3.hard,
+      levelRatios: p.levelRatios,
+    });
+  };
+
+  const handleTargetChange = (val: number) => {
+    const clamped = Math.max(1, Math.min(8, val));
+    const p = getPacePresetByTarget(clamped);
+    const tier = (["casual", "balanced", "standard", "intensive"] as PaceTier[]).find(
+      (t) => TUTOR_PACE_PRESETS[t].target === clamped
+    ) || "custom";
+    setCounts({
+      target: clamped,
+      tier,
+      easy: p.levelRatios.level1.easy,
+      medium: p.levelRatios.level2.medium,
+      hard: p.levelRatios.level3.hard,
+      levelRatios: p.levelRatios,
+    });
+  };
 
   const handleFinish = async () => {
     setBusy(true);
     try {
-      await onComplete(startDate, counts);
+      const normalized = normalizeDailyCounts(counts);
+      await onComplete(startDate, normalized);
     } finally {
       setBusy(false);
     }
   };
+
+  const PRESET_TIERS: PaceTier[] = ["casual", "balanced", "standard", "intensive"];
 
   return (
     <Dialog
@@ -142,84 +182,91 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
             </div>
           )}
 
-          {/* ── Step 2: Daily Pace ── */}
+          {/* ── Step 2: Daily Pace (Tutor Recommended Ratio) ── */}
           {step === "pace" && (
             <div className="space-y-4 sm:space-y-5">
               <DialogHeader className="text-left">
                 <div className="flex items-center gap-2 mb-0.5">
                   <Sliders className="size-4 sm:size-5 text-primary" />
-                  <DialogTitle className="text-lg sm:text-xl">Set Your Daily Pace</DialogTitle>
+                  <DialogTitle className="text-lg sm:text-xl">Choose Your Daily Target</DialogTitle>
                 </div>
                 <DialogDescription className="text-xs sm:text-sm">
-                  How many problems can you solve per day? This controls how the plan distributes your workload.
+                  Select how many problems you want to solve each day. Your tutor balances difficulty ratios automatically by level so you never face unrealistic workloads.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4">
-                {/* Easy */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs sm:text-sm">
-                    <Label className="flex items-center gap-1.5 text-xs sm:text-sm">
-                      <span className="inline-block size-2 rounded-full bg-green-500" />
-                      Easy problems / day
-                    </Label>
-                    <span className="w-6 text-center font-bold text-green-600 tabular-nums">{counts.easy}</span>
-                  </div>
-                  <Slider
-                    min={1} max={10} step={1}
-                    value={[counts.easy]}
-                    onValueChange={([v]) => setCount("easy", v)}
-                    className="[&>[role=slider]]:bg-green-500 py-1"
-                  />
-                  <p className="text-[10px] sm:text-[11px] text-muted-foreground">Max {counts.easy} Easy problems/day (~{counts.easy * 15} min at 15m/easy)</p>
-                </div>
+              {/* Tutor Pace Preset Cards */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                {PRESET_TIERS.map((tierKey) => {
+                  const p = TUTOR_PACE_PRESETS[tierKey];
+                  const isSelected = (counts.tier === tierKey && counts.target === p.target) || (counts.target === p.target && counts.tier !== "custom");
+                  return (
+                    <button
+                      key={tierKey}
+                      type="button"
+                      onClick={() => handleSelectTier(tierKey)}
+                      className={`relative flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
+                          : "border-border bg-card/60 hover:border-primary/40 hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="flex w-full items-center justify-between gap-1 mb-1">
+                        <span className="text-xs sm:text-sm font-bold text-foreground">
+                          {p.label}
+                        </span>
+                        {p.badge && (
+                          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
+                            tierKey === "balanced"
+                              ? "bg-primary/20 text-primary font-bold"
+                              : "bg-muted text-muted-foreground"
+                          }`}>
+                            {p.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-lg sm:text-xl font-extrabold text-foreground tabular-nums">
+                          {p.target}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">problems / day</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
+                        ~{p.timeEstimateMin}–{p.timeEstimateMax} min/day · {p.tagline.split(" · ")[1] || p.label}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
 
-                {/* Medium */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs sm:text-sm">
-                    <Label className="flex items-center gap-1.5 text-xs sm:text-sm">
-                      <span className="inline-block size-2 rounded-full bg-yellow-500" />
-                      Medium pace limit / day
-                    </Label>
-                    <span className="w-6 text-center font-bold text-yellow-600 tabular-nums">{counts.medium}</span>
-                  </div>
-                  <Slider
-                    min={1} max={8} step={1}
-                    value={[counts.medium]}
-                    onValueChange={([v]) => setCount("medium", v)}
-                    className="[&>[role=slider]]:bg-yellow-500 py-1"
-                  />
-                  <p className="text-[10px] sm:text-[11px] text-muted-foreground">Max {counts.medium} Medium problems/day (~{counts.medium * 30} min at 30m/medium)</p>
+              {/* Slider for fine adjustment */}
+              <div className="space-y-1.5 rounded-xl border border-border/70 bg-muted/20 p-3.5">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <Label className="flex items-center gap-1.5 font-medium">
+                    <Sparkles className="size-3.5 text-primary" />
+                    Fine-tune Daily Target:
+                  </Label>
+                  <span className="font-extrabold text-primary text-base tabular-nums">
+                    {counts.target} <span className="text-xs font-normal text-muted-foreground">problems / day</span>
+                  </span>
                 </div>
-
-                {/* Hard */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs sm:text-sm">
-                    <Label className="flex items-center gap-1.5 text-xs sm:text-sm">
-                      <span className="inline-block size-2 rounded-full bg-red-500" />
-                      Hard pace limit / day
-                    </Label>
-                    <span className="w-6 text-center font-bold text-red-600 tabular-nums">{counts.hard}</span>
-                  </div>
-                  <Slider
-                    min={1} max={5} step={1}
-                    value={[counts.hard]}
-                    onValueChange={([v]) => setCount("hard", v)}
-                    className="[&>[role=slider]]:bg-red-500 py-1"
-                  />
-                  <p className="text-[10px] sm:text-[11px] text-muted-foreground">Max {counts.hard} Hard problems/day (~{counts.hard * 45} min at 45m/hard)</p>
+                <Slider
+                  min={1}
+                  max={6}
+                  step={1}
+                  value={[counts.target || 3]}
+                  onValueChange={([v]) => handleTargetChange(v)}
+                  className="py-1"
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                  <span>1 (Light)</span>
+                  <span>3 (Tutor Standard ⭐)</span>
+                  <span>6 (Surgical Sprint)</span>
                 </div>
               </div>
 
-              {/* Daily time estimate */}
-              <div className="rounded-xl border border-primary/30 bg-primary/5 px-3.5 py-2.5 sm:px-4 sm:py-3">
-                <p className="text-xs sm:text-sm font-semibold text-primary">
-                  Dynamic daily study time: ~{Math.min(counts.easy * 15, counts.medium * 30, counts.hard * 45)} to {Math.max(counts.easy * 15, counts.medium * 30, counts.hard * 45)} min / day
-                </p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-                  Workload is calculated dynamically based on problem difficulty. Leftover problems overflow to next day.
-                </p>
-              </div>
+              {/* Tutor Pedagogical Workload Combinations Breakdown */}
+              <DailyCombinationsBreakdown target={counts.target || 3} showPlanFrequency={false} />
 
               <div className="flex gap-2 pt-1">
                 <Button variant="outline" className="flex-1 cursor-pointer h-10" onClick={() => setStep("welcome")}>Back</Button>
@@ -256,8 +303,9 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
               <div className="rounded-xl border border-border bg-muted/40 px-3.5 py-3 sm:px-4 space-y-1.5">
                 <p className="text-xs sm:text-sm font-semibold">Your plan summary</p>
                 <p className="text-[11px] sm:text-xs text-muted-foreground">📅 Starting: {new Date(`${startDate}T00:00:00Z`).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground">⚡ Daily pace: {counts.easy} Easy · {counts.medium} Medium · {counts.hard} Hard</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground">⏱ Study time: ~{Math.min(counts.easy * 15, counts.medium * 30, counts.hard * 45)} – {Math.max(counts.easy * 15, counts.medium * 30, counts.hard * 45)} min/day</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground">⚡ Daily pace: <strong>{counts.target} problems/day</strong> ({activePreset.label} Pace)</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground">⏱ Study time: ~{activePreset.timeEstimateMin} – {activePreset.timeEstimateMax} min/day</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground">⚖️ Weightage: Balanced via 2E = 1M &amp; 3E = 1H rules (Cap: {counts.target} problems/day)</p>
               </div>
 
               <div className="flex gap-2 pt-1">
@@ -290,9 +338,9 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                 <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3.5 py-2.5 sm:px-4 sm:py-3">
                   <Sliders className="size-4 text-primary shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Daily Pace Limits</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Daily Target</p>
                     <p className="text-xs sm:text-sm font-semibold truncate">
-                      {counts.easy} Easy · {counts.medium} Medium · {counts.hard} Hard
+                      {counts.target} problems / day ({activePreset.label} Pace)
                     </p>
                   </div>
                 </div>
@@ -300,13 +348,13 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                   <span className="text-sm sm:text-base">⏱</span>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-xs text-muted-foreground">Daily Study Time</p>
-                    <p className="text-xs sm:text-sm font-semibold truncate">~{Math.min(counts.easy * 15, counts.medium * 30, counts.hard * 45)} to {Math.max(counts.easy * 15, counts.medium * 30, counts.hard * 45)} min / day</p>
+                    <p className="text-xs sm:text-sm font-semibold truncate">~{activePreset.timeEstimateMin} to {activePreset.timeEstimateMax} min / day</p>
                   </div>
                 </div>
               </div>
 
               <p className="text-[11px] sm:text-xs text-muted-foreground">
-                You can always change your pace and schedule in Settings.
+                You can always fine-tune your daily target and schedule anytime in Settings.
               </p>
 
               <div className="flex gap-2 pt-1">

@@ -143,6 +143,7 @@ export class LeetCodeAdapter implements PlatformAdapter {
                 .filter((c: any) => c.attended)
                 .map((c: any) => ({
                   contestName: c.contest?.title || "Contest",
+                  contestId: c.contest?.titleSlug || c.contest?.title || "",
                   rating: Math.round(c.rating),
                   rank: c.ranking,
                   timestamp: (c.contest?.startTime || 0) * 1000,
@@ -191,6 +192,7 @@ export class LeetCodeAdapter implements PlatformAdapter {
             recentSubmissions: formattedSubmissions,
             acceptedSubmissions: formattedSubmissions,
             submissionCalendar: parsedCalendar,
+            platformSpecificData: { contestHistory },
             status: "SUCCESS",
             dataSource: "Official GraphQL/REST",
           });

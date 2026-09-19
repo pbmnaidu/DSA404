@@ -1,4 +1,5 @@
 import { SECTIONS, type SeedProblem } from "./a2z-data";
+import { getSectionsForSheet, getSheetMeta, CURATED_SHEETS } from "./sheets-data";
 import type { ChecklistItem, Day, Difficulty, Problem } from "./types";
 
 export const START_DATE = "2026-08-01";
@@ -62,49 +63,55 @@ const slug = (s: string) =>
  * Upgrade 1: prefer the verified direct problem page. Only fall back to the
  * old search URL when we could not confirm a canonical link.
  */
-function platformLink(p: SeedProblem): string {
-  if (p.l) return p.l;
-  const q = encodeURIComponent(p.n);
-  if (p.p === "LeetCode") return `https://leetcode.com/problemset/?search=${q}`;
-  if (p.p === "GFG" || p.p === "GeeksforGeeks") return `https://www.geeksforgeeks.org/search/?gq=${q}`;
-  return `https://www.naukri.com/code360/search?q=${q}`;
+function platformLink(p: any): string {
+  const raw = p.link || p.l;
+  if (raw && !raw.includes("search?q=") && !raw.includes("search/?gq=")) return raw;
+  const name = p.name || p.n || "";
+  const topic = p.topic || "";
+  const q = encodeURIComponent(`${name} ${topic}`);
+  const plat = p.platform || p.p || "LeetCode";
+  if (plat === "LeetCode") return `https://leetcode.com/problemset/?search=${q}`;
+  if (plat === "GFG" || plat === "GeeksforGeeks") return `https://www.geeksforgeeks.org/search/?gq=${q}`;
+  return `https://www.google.com/search?q=${q}`;
 }
 
 const estFor = (d: Difficulty) => (d === "Easy" ? 15 : d === "Medium" ? 30 : 45);
 
-function toProblem(p: SeedProblem): Problem {
-  const normPlat = p.p === "GFG" || p.p === "GeeksforGeeks" ? "GeeksforGeeks" : p.p;
+function toProblem(p: any): Problem {
+  const name = p.name || p.n;
+  const diff = (p.difficulty || p.d || "Easy") as Difficulty;
+  const plat = p.platform || p.p || "LeetCode";
+  const rawLink = p.link || p.l;
+  const normPlat = plat === "GFG" || plat === "GeeksforGeeks" ? "GeeksforGeeks" : plat;
+  const isDirect = Boolean(rawLink && !rawLink.includes("search?q=") && !rawLink.includes("search/?gq="));
   return {
-    name: p.n,
-    difficulty: p.d,
+    name,
+    difficulty: diff,
     platform: normPlat,
     link: platformLink(p),
-    linkVerified: Boolean(p.l),
-    // No hardcoded TUF metadata in the problem database — the Google search
-    // link (see ProblemRow.tsx) already includes takeuforward.org in its query.
-    takeUForwardLink: null,
-    estTime: estFor(p.d),
+    linkVerified: isDirect,
+    takeUForwardLink: p.videoUrl || null,
+    estTime: estFor(diff),
     done: false,
-    isHard: p.d === "Hard",
-    level: p.lvl ?? "Level 1",
+    isHard: diff === "Hard",
+    level: p.level || p.lvl || "Level 1",
   };
 }
 
-
 export const TOTAL_PROBLEMS = SECTIONS.reduce((a, s) => a + s.problems.length, 0);
 
-/** Distribute the topic sections across BASE_DAYS days, preserving order. */
-function dayAllocation(): number[] {
-  const counts = SECTIONS.map((s) => s.problems.length);
+/** Distribute the topic sections across target days, preserving order. */
+export function dayAllocationForSections(sections: { problems: any[] }[], targetDays = BASE_DAYS): number[] {
+  const counts = sections.map((s) => Math.max(1, s.problems.length));
   const total = counts.reduce((a, b) => a + b, 0);
-  const raw = counts.map((c) => (c / total) * BASE_DAYS);
+  const raw = counts.map((c) => (c / total) * targetDays);
   const alloc = raw.map((r) => Math.max(1, Math.floor(r)));
-  let remaining = BASE_DAYS - alloc.reduce((a, b) => a + b, 0);
+  let remaining = targetDays - alloc.reduce((a, b) => a + b, 0);
   const order = raw
     .map((r, i) => ({ i, frac: r - Math.floor(r) }))
     .sort((a, b) => b.frac - a.frac);
   let k = 0;
-  while (remaining > 0) {
+  while (remaining > 0 && order.length > 0) {
     alloc[order[k % order.length].i] += 1;
     remaining -= 1;
     k += 1;
@@ -115,6 +122,10 @@ function dayAllocation(): number[] {
     remaining += 1;
   }
   return alloc;
+}
+
+function dayAllocation(): number[] {
+  return dayAllocationForSections(SECTIONS);
 }
 
 /**
@@ -196,30 +207,32 @@ function interleaveWeeklyRevision(
   return days;
 }
 
-export function seedDays(startDate = START_DATE): Day[] {
-  const alloc = dayAllocation();
+export function seedDays(startDate = START_DATE, sheetId = "core404"): Day[] {
+  const sections = getSectionsForSheet(sheetId);
+  const alloc = dayAllocationForSections(sections);
   const contentDays: Omit<Day, "dayNumber" | "date">[] = [];
 
-  SECTIONS.forEach((section, si) => {
-    const nDays = alloc[si];
+  sections.forEach((section, si) => {
+    const nDays = alloc[si] || 1;
     const problems = section.problems;
     const per = Math.ceil(problems.length / nDays);
     for (let i = 0; i < nDays; i++) {
       const chunk = problems.slice(i * per, (i + 1) * per);
+      if (chunk.length === 0 && i > 0) continue;
       const subCount = Math.max(1, Math.ceil(section.subtopics.length / nDays));
       const subs = section.subtopics.slice(i * subCount, (i + 1) * subCount);
       contentDays.push({
-        id: `${slug(section.section)}-${i + 1}`,
-        section: section.section,
-        topic: nDays > 1 ? `${section.section} — Part ${i + 1}` : section.section,
+        id: `${slug(section.topic)}-${sheetId}-${i + 1}`,
+        section: section.topic,
+        topic: nDays > 1 ? `${section.topic} — Part ${i + 1}` : section.topic,
         subtopics: subs.length ? subs : section.subtopics.slice(0, 2),
-        problems: chunk.map(toProblem),
+        problems: chunk.map((p) => toProblem(p)),
         checklist: newChecklist(),
         status: "pending",
         notes: "",
         revisionNotes: "",
         skipped: false,
-        level: section.level,
+        level: chunk[0]?.level || "Level 1",
       });
     }
   });
@@ -281,9 +294,7 @@ export function renumber(
   }
 
   const baseDate =
-    firstOpenIdx > 0 && days[firstOpenIdx].date
-      ? days[firstOpenIdx].date
-      : addDays(startDate, offset);
+    days[firstOpenIdx]?.date || addDays(startDate, offset);
 
   const startDow = new Date(`${baseDate}T00:00:00Z`).getUTCDay();
   const isThuToSun = startDow === 4 || startDow === 5 || startDow === 6 || startDow === 0;
@@ -388,30 +399,656 @@ export const STATUS_META: Record<Day["status"], { icon: string; label: string; c
   skipped: { icon: "⛔", label: "Skipped", className: "text-muted-foreground" },
 };
 /* ------------------------------------------------------------------ */
-/* Upgrade 5b: per-difficulty daily problem counts                      */
+/* Upgrade 5b: Tutor & Student Daily Problem Count & Level Ratios      */
 /* ------------------------------------------------------------------ */
 
-export interface DailyCounts {
+export type PaceTier = "casual" | "balanced" | "standard" | "intensive" | "custom";
+
+export interface LevelRatio {
   easy: number;
   medium: number;
   hard: number;
 }
 
-export const DEFAULT_DAILY_COUNTS: DailyCounts = { easy: 4, medium: 3, hard: 2 };
+export interface TutorPacePreset {
+  id: PaceTier;
+  label: string;
+  badge?: string;
+  target: number; // total problems to solve per day
+  timeEstimateMin: number;
+  timeEstimateMax: number;
+  description: string;
+  tagline: string;
+  levelRatios: {
+    level1: LevelRatio; // Foundations (Level 1)
+    level2: LevelRatio; // Core DSA (Level 2)
+    level3: LevelRatio; // Advanced (Level 3)
+  };
+}
+
+export const TUTOR_PACE_PRESETS: Record<PaceTier, TutorPacePreset> = {
+  casual: {
+    id: "casual",
+    label: "Casual",
+    badge: "Low Stress",
+    target: 2,
+    timeEstimateMin: 35,
+    timeEstimateMax: 50,
+    tagline: "2 problems / day · Consistent habit without pressure",
+    description: "Perfect for busy college semesters, exam weeks, or working developers.",
+    levelRatios: {
+      level1: { easy: 2, medium: 0, hard: 0 },
+      level2: { easy: 0, medium: 1, hard: 0 },
+      level3: { easy: 0, medium: 1, hard: 0 },
+    },
+  },
+  balanced: {
+    id: "balanced",
+    label: "Balanced",
+    badge: "⭐ Tutor Recommended",
+    target: 3,
+    timeEstimateMin: 65,
+    timeEstimateMax: 90,
+    tagline: "3 problems / day · The golden standard for DSA mastery",
+    description: "Recommended by top mentors: master 1 core pattern + solve solid variations every day without mental burnout.",
+    levelRatios: {
+      level1: { easy: 1, medium: 1, hard: 0 },
+      level2: { easy: 1, medium: 1, hard: 0 },
+      level3: { easy: 0, medium: 0, hard: 1 },
+    },
+  },
+  standard: {
+    id: "standard",
+    label: "Standard",
+    badge: "Placement Track",
+    target: 4,
+    timeEstimateMin: 90,
+    timeEstimateMax: 120,
+    tagline: "4 problems / day · Fast-track campus & interview prep",
+    description: "Structured sprint with balanced weightage (2E=1M, 3E=1H, 2M=1H).",
+    levelRatios: {
+      level1: { easy: 2, medium: 1, hard: 0 },
+      level2: { easy: 0, medium: 2, hard: 0 },
+      level3: { easy: 1, medium: 0, hard: 1 },
+    },
+  },
+  intensive: {
+    id: "intensive",
+    label: "Intensive",
+    badge: "Bootcamp Mode",
+    target: 5,
+    timeEstimateMin: 120,
+    timeEstimateMax: 160,
+    tagline: "5 problems / day · Dedicated full-time coding sprint",
+    description: "For vacations or students dedicating whole days to competitive programming.",
+    levelRatios: {
+      level1: { easy: 3, medium: 1, hard: 0 },
+      level2: { easy: 1, medium: 2, hard: 0 },
+      level3: { easy: 0, medium: 1, hard: 1 },
+    },
+  },
+  custom: {
+    id: "custom",
+    label: "Custom",
+    target: 3,
+    timeEstimateMin: 60,
+    timeEstimateMax: 120,
+    tagline: "Custom problems / day",
+    description: "Customized daily workload.",
+    levelRatios: {
+      level1: { easy: 1, medium: 1, hard: 0 },
+      level2: { easy: 1, medium: 1, hard: 0 },
+      level3: { easy: 0, medium: 0, hard: 1 },
+    },
+  },
+};
+
+export interface DailyProblemCombination {
+  id: string;
+  label: string;
+  easy: number;
+  medium: number;
+  hard: number;
+  totalProblems: number;
+  weight: number;
+  timeEstimateMin: number;
+  dayType: string;
+  description: string;
+}
+
+export const DAILY_COMBINATIONS_BY_TARGET: Record<number, DailyProblemCombination[]> = {
+  1: [
+    {
+      id: "1-easy",
+      label: "1 Easy",
+      easy: 1,
+      medium: 0,
+      hard: 0,
+      totalProblems: 1,
+      weight: 1,
+      timeEstimateMin: 15,
+      dayType: "Foundations & Syntax Drill",
+      description: "Core programming syntax & warmup problems",
+    },
+    {
+      id: "1-medium",
+      label: "1 Medium",
+      easy: 0,
+      medium: 1,
+      hard: 0,
+      totalProblems: 1,
+      weight: 2,
+      timeEstimateMin: 30,
+      dayType: "Core Interview Pattern Day",
+      description: "Standard interview pattern (Two Pointers, Hash Map, Binary Search)",
+    },
+    {
+      id: "1-hard",
+      label: "1 Hard",
+      easy: 0,
+      medium: 0,
+      hard: 1,
+      totalProblems: 1,
+      weight: 3,
+      timeEstimateMin: 45,
+      dayType: "Advanced Algorithmic Challenge",
+      description: "Complex DP, Graph algorithms or Trie optimization",
+    },
+  ],
+  2: [
+    {
+      id: "2-easy",
+      label: "2 Easy",
+      easy: 2,
+      medium: 0,
+      hard: 0,
+      totalProblems: 2,
+      weight: 2,
+      timeEstimateMin: 30,
+      dayType: "Foundations & Basics Days",
+      description: "Rapid fundamentals & syntax consolidation",
+    },
+    {
+      id: "1e-1m",
+      label: "1 Easy + 1 Medium",
+      easy: 1,
+      medium: 1,
+      hard: 0,
+      totalProblems: 2,
+      weight: 3,
+      timeEstimateMin: 45,
+      dayType: "Concept + Interview Application",
+      description: "1 concept builder + 1 standard interview question",
+    },
+    {
+      id: "2-medium",
+      label: "2 Medium",
+      easy: 0,
+      medium: 2,
+      hard: 0,
+      totalProblems: 2,
+      weight: 4,
+      timeEstimateMin: 60,
+      dayType: "Standard Interview Practice",
+      description: "2 solid interview problems (2M = 1H equivalent weight)",
+    },
+    {
+      id: "1-hard",
+      label: "1 Hard",
+      easy: 0,
+      medium: 0,
+      hard: 1,
+      totalProblems: 1,
+      weight: 3,
+      timeEstimateMin: 45,
+      dayType: "Dedicated Deep Dive",
+      description: "Focused advanced problem session (3E = 1H balance)",
+    },
+  ],
+  3: [
+    {
+      id: "3-easy",
+      label: "3 Easy",
+      easy: 3,
+      medium: 0,
+      hard: 0,
+      totalProblems: 3,
+      weight: 3,
+      timeEstimateMin: 45,
+      dayType: "Foundations Sprint Days",
+      description: "Rapid basics practice across basic data structures",
+    },
+    {
+      id: "2e-1m",
+      label: "2 Easy + 1 Medium",
+      easy: 2,
+      medium: 1,
+      hard: 0,
+      totalProblems: 3,
+      weight: 4,
+      timeEstimateMin: 60,
+      dayType: "Balanced Ramp-up Days",
+      description: "2 foundational questions + 1 interview variation",
+    },
+    {
+      id: "1e-2m",
+      label: "1 Easy + 2 Medium",
+      easy: 1,
+      medium: 2,
+      hard: 0,
+      totalProblems: 3,
+      weight: 5,
+      timeEstimateMin: 75,
+      dayType: "Core Interview Sprint Days",
+      description: "1 concept refresher + 2 medium interview patterns",
+    },
+    {
+      id: "1m-1h",
+      label: "1 Medium + 1 Hard",
+      easy: 0,
+      medium: 1,
+      hard: 1,
+      totalProblems: 2,
+      weight: 5,
+      timeEstimateMin: 75,
+      dayType: "Advanced Mastery Days",
+      description: "1 medium warm-up + 1 hard algorithmic deep dive",
+    },
+    {
+      id: "1e-1h",
+      label: "1 Easy + 1 Hard",
+      easy: 1,
+      medium: 0,
+      hard: 1,
+      totalProblems: 2,
+      weight: 4,
+      timeEstimateMin: 60,
+      dayType: "Focused Challenge Days",
+      description: "1 basic idea + 1 hard extension (3E = 1H balance)",
+    },
+  ],
+  4: [
+    {
+      id: "4-easy",
+      label: "4 Easy",
+      easy: 4,
+      medium: 0,
+      hard: 0,
+      totalProblems: 4,
+      weight: 4,
+      timeEstimateMin: 60,
+      dayType: "Foundations Sprint Days",
+      description: "Fast-track programming basics & syntax fluency",
+    },
+    {
+      id: "2e-1m",
+      label: "2 Easy + 1 Medium",
+      easy: 2,
+      medium: 1,
+      hard: 0,
+      totalProblems: 3,
+      weight: 4,
+      timeEstimateMin: 60,
+      dayType: "Concept & Variation Days",
+      description: "2 Easy + 1 Medium = 4 weight units (2E = 1M rule)",
+    },
+    {
+      id: "2-medium",
+      label: "2 Medium",
+      easy: 0,
+      medium: 2,
+      hard: 0,
+      totalProblems: 2,
+      weight: 4,
+      timeEstimateMin: 60,
+      dayType: "Standard Interview Days",
+      description: "2 Medium = 4 weight units (2M = 1H equivalent)",
+    },
+    {
+      id: "1e-1h",
+      label: "1 Easy + 1 Hard",
+      easy: 1,
+      medium: 0,
+      hard: 1,
+      totalProblems: 2,
+      weight: 4,
+      timeEstimateMin: 60,
+      dayType: "Advanced Pattern Days",
+      description: "1 Easy + 1 Hard = 4 weight units (3E = 1H rule)",
+    },
+    {
+      id: "2e-2m",
+      label: "2 Easy + 2 Medium",
+      easy: 2,
+      medium: 2,
+      hard: 0,
+      totalProblems: 4,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Comprehensive Practice Days",
+      description: "2 concept builders + 2 real company interview problems",
+    },
+    {
+      id: "2m-1h",
+      label: "2 Medium + 1 Hard",
+      easy: 0,
+      medium: 2,
+      hard: 1,
+      totalProblems: 3,
+      weight: 7,
+      timeEstimateMin: 105,
+      dayType: "FAANG / Top-Tier Sprint Days",
+      description: "2 medium patterns + 1 advanced hard problem",
+    },
+  ],
+  5: [
+    {
+      id: "5-easy",
+      label: "5 Easy",
+      easy: 5,
+      medium: 0,
+      hard: 0,
+      totalProblems: 5,
+      weight: 5,
+      timeEstimateMin: 75,
+      dayType: "High-Volume Foundations Days",
+      description: "Rapid coverage of basics, recursion & math",
+    },
+    {
+      id: "3e-1m",
+      label: "3 Easy + 1 Medium",
+      easy: 3,
+      medium: 1,
+      hard: 0,
+      totalProblems: 4,
+      weight: 5,
+      timeEstimateMin: 75,
+      dayType: "Foundations + Applied Days",
+      description: "3 concept warmups + 1 core interview challenge",
+    },
+    {
+      id: "1e-2m",
+      label: "1 Easy + 2 Medium",
+      easy: 1,
+      medium: 2,
+      hard: 0,
+      totalProblems: 3,
+      weight: 5,
+      timeEstimateMin: 75,
+      dayType: "Standard Interview Days",
+      description: "1 concept builder + 2 interview patterns",
+    },
+    {
+      id: "2e-1h",
+      label: "2 Easy + 1 Hard",
+      easy: 2,
+      medium: 0,
+      hard: 1,
+      totalProblems: 3,
+      weight: 5,
+      timeEstimateMin: 75,
+      dayType: "Concept + Advanced Days",
+      description: "2 Easy + 1 Hard = 5 weight units (3E = 1H)",
+    },
+    {
+      id: "1m-1h",
+      label: "1 Medium + 1 Hard",
+      easy: 0,
+      medium: 1,
+      hard: 1,
+      totalProblems: 2,
+      weight: 5,
+      timeEstimateMin: 75,
+      dayType: "Intensive Deep Dive Days",
+      description: "1 core interview problem + 1 hard algorithmic problem",
+    },
+    {
+      id: "2e-2m-1h",
+      label: "2 Easy + 2 Medium + 1 Hard",
+      easy: 2,
+      medium: 2,
+      hard: 1,
+      totalProblems: 5,
+      weight: 9,
+      timeEstimateMin: 135,
+      dayType: "Full Bootcamp Sprint Days",
+      description: "Maximum pace across all 3 difficulty tiers",
+    },
+  ],
+  6: [
+    {
+      id: "6-easy",
+      label: "6 Easy",
+      easy: 6,
+      medium: 0,
+      hard: 0,
+      totalProblems: 6,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Maximum Foundations Drill",
+      description: "Comprehensive drill across fundamentals & basic arrays",
+    },
+    {
+      id: "4e-1m",
+      label: "4 Easy + 1 Medium",
+      easy: 4,
+      medium: 1,
+      hard: 0,
+      totalProblems: 5,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Fundamentals + Medium Sprint",
+      description: "4 rapid drills + 1 solid medium interview problem",
+    },
+    {
+      id: "2e-2m",
+      label: "2 Easy + 2 Medium",
+      easy: 2,
+      medium: 2,
+      hard: 0,
+      totalProblems: 4,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Balanced Heavy Day",
+      description: "2 Easy + 2 Medium = 6 weight units",
+    },
+    {
+      id: "3-medium",
+      label: "3 Medium",
+      easy: 0,
+      medium: 3,
+      hard: 0,
+      totalProblems: 3,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Triple Interview Challenge",
+      description: "3 solid medium interview problems (3 × 2 = 6 pts)",
+    },
+    {
+      id: "3e-1h",
+      label: "3 Easy + 1 Hard",
+      easy: 3,
+      medium: 0,
+      hard: 1,
+      totalProblems: 4,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Concept + Hard Algorithmic Day",
+      description: "3 Easy + 1 Hard = 6 weight units (3E = 1H)",
+    },
+    {
+      id: "1e-1m-1h",
+      label: "1 Easy + 1 Medium + 1 Hard",
+      easy: 1,
+      medium: 1,
+      hard: 1,
+      totalProblems: 3,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Staircase Difficulty Day",
+      description: "1 warmup + 1 medium pattern + 1 hard challenge",
+    },
+    {
+      id: "2-hard",
+      label: "2 Hard",
+      easy: 0,
+      medium: 0,
+      hard: 2,
+      totalProblems: 2,
+      weight: 6,
+      timeEstimateMin: 90,
+      dayType: "Elite Competitive Coding Day",
+      description: "2 Hard problems = 6 weight units (2 × 3 = 6 pts)",
+    },
+  ],
+};
+
+export function getDailyCombinationsForTarget(target: number): DailyProblemCombination[] {
+  const bounded = Math.min(6, Math.max(1, target));
+  return DAILY_COMBINATIONS_BY_TARGET[bounded] || DAILY_COMBINATIONS_BY_TARGET[3];
+}
+
+export function analyzePlanDailyCombinations(days: Day[]): {
+  combinationCounts: Record<string, { easy: number; medium: number; hard: number; count: number }>;
+  uniqueCombinations: { label: string; easy: number; medium: number; hard: number; count: number; sampleTopics: string[] }[];
+} {
+  const map = new Map<string, { easy: number; medium: number; hard: number; count: number; sampleTopics: Set<string> }>();
+
+  for (const d of days) {
+    if (d.skipped || d.isRevisionDay || !d.problems || d.problems.length === 0) continue;
+    let easy = 0, medium = 0, hard = 0;
+    for (const p of d.problems) {
+      if (p.difficulty === "Easy") easy++;
+      else if (p.difficulty === "Medium") medium++;
+      else if (p.difficulty === "Hard") hard++;
+    }
+    const key = `${easy}E_${medium}M_${hard}H`;
+    const existing = map.get(key) || { easy, medium, hard, count: 0, sampleTopics: new Set<string>() };
+    existing.count += 1;
+    if (existing.sampleTopics.size < 3) {
+      existing.sampleTopics.add(d.topic.replace(/ — Part \d+$/, ""));
+    }
+    map.set(key, existing);
+  }
+
+  const unique = Array.from(map.values())
+    .map((item) => {
+      const parts: string[] = [];
+      if (item.easy > 0) parts.push(`${item.easy} Easy`);
+      if (item.medium > 0) parts.push(`${item.medium} Medium`);
+      if (item.hard > 0) parts.push(`${item.hard} Hard`);
+      const label = parts.join(" + ") || "0 Problems";
+      return {
+        label,
+        easy: item.easy,
+        medium: item.medium,
+        hard: item.hard,
+        count: item.count,
+        sampleTopics: Array.from(item.sampleTopics),
+      };
+    })
+    .sort((a, b) => b.count - a.count);
+
+  return {
+    combinationCounts: Object.fromEntries(map.entries()),
+    uniqueCombinations: unique,
+  };
+}
+
+export interface DailyCounts {
+  /** Target problems to solve each day (e.g. 2, 3, 4, 5, 6) */
+  target: number;
+  /** Active pace tier */
+  tier: PaceTier;
+  /** Effective per-difficulty weights for backward compatibility */
+  easy: number;
+  medium: number;
+  hard: number;
+  /** Ratios for levels */
+  levelRatios?: {
+    level1: LevelRatio;
+    level2: LevelRatio;
+    level3: LevelRatio;
+  };
+}
+
+export const DEFAULT_DAILY_COUNTS: DailyCounts = {
+  target: 3,
+  tier: "balanced",
+  easy: 1,
+  medium: 1,
+  hard: 0,
+  levelRatios: TUTOR_PACE_PRESETS.balanced.levelRatios,
+};
+
+export function getPacePresetByTarget(target: number): TutorPacePreset {
+  if (target <= 2) return TUTOR_PACE_PRESETS.casual;
+  if (target === 3) return TUTOR_PACE_PRESETS.balanced;
+  if (target === 4) return TUTOR_PACE_PRESETS.standard;
+  if (target >= 5) return TUTOR_PACE_PRESETS.intensive;
+  return TUTOR_PACE_PRESETS.balanced;
+}
+
+export function normalizeDailyCounts(raw?: Partial<DailyCounts> | null): DailyCounts {
+  if (!raw) return { ...DEFAULT_DAILY_COUNTS };
+
+  // If already has target
+  if (typeof raw.target === "number" && raw.target > 0) {
+    const target = Math.min(8, Math.max(1, raw.target));
+    const preset = getPacePresetByTarget(target);
+    const tier = (raw.tier as PaceTier) || preset.id;
+    return {
+      target,
+      tier,
+      easy: raw.easy ?? preset.levelRatios.level1.easy,
+      medium: raw.medium ?? preset.levelRatios.level1.medium,
+      hard: raw.hard ?? preset.levelRatios.level1.hard,
+      levelRatios: raw.levelRatios ?? preset.levelRatios,
+    };
+  }
+
+  // If legacy counts { easy, medium, hard }
+  if (typeof raw.easy === "number" && typeof raw.medium === "number") {
+    if (raw.easy === 4 && raw.medium === 3 && raw.hard === 2) {
+      return { ...DEFAULT_DAILY_COUNTS };
+    }
+    const derivedTarget = Math.min(6, Math.max(2, Math.round((raw.easy + raw.medium + (raw.hard || 0)) / 2.5)));
+    const preset = getPacePresetByTarget(derivedTarget);
+    return {
+      target: derivedTarget,
+      tier: preset.id,
+      easy: raw.easy,
+      medium: raw.medium,
+      hard: raw.hard ?? 0,
+      levelRatios: preset.levelRatios,
+    };
+  }
+
+  return { ...DEFAULT_DAILY_COUNTS };
+}
 
 /**
- * Cost of one problem as a fraction of a day. 4 easy/day => each easy costs
- * 0.25 of a day; 2 hard/day => each hard costs 0.5. Mixed days therefore stay
- * honest: an easy-heavy topic gets more problems, a hard topic gets fewer.
+ * Cost of one problem as a fraction of a day based on tutor equivalence:
+ * 1 Easy = 1 weight unit
+ * 1 Medium = 2 weight units (2E = 1M)
+ * 1 Hard = 3 weight units (3E = 1H, 2M ≈ 1H)
+ *
+ * Daily capacity budget = target (e.g. 4 problems = 4 weight units).
+ * A student can solve 4 Easy, OR 2 Easy + 1 Medium, OR 2 Medium, OR 1 Easy + 1 Hard.
+ * Ensures the student never feels burdened by overwhelming daily tasks.
  */
 export const problemCost = (d: Difficulty, counts: DailyCounts) => {
-  const per = d === "Easy" ? counts.easy : d === "Medium" ? counts.medium : counts.hard;
-  return 1 / Math.max(1, per);
+  const norm = normalizeDailyCounts(counts);
+  const target = Math.max(1, norm.target || 3);
+  const weight = d === "Easy" ? 1 : d === "Medium" ? 2 : 3;
+  return weight / target;
 };
 
 /** How many days a bag of problems needs at the given pace. */
-export const daysNeeded = (problems: Problem[], counts: DailyCounts) =>
-  Math.max(1, Math.ceil(problems.reduce((a, p) => a + problemCost(p.difficulty, counts), 0)));
+export const daysNeeded = (problems: Problem[], counts: DailyCounts) => {
+  const norm = normalizeDailyCounts(counts);
+  return Math.max(1, Math.ceil(problems.reduce((a, p) => a + problemCost(p.difficulty, norm), 0)));
+};
 
 /**
  * Redistribute every *not yet completed* problem across freshly-sized days,
@@ -643,57 +1280,32 @@ export function resumePlan(
 /* ------------------------------------------------------------------ */
 
 /**
- * Given a list of problems (e.g. all problems in a topic's single day),
- * returns which problems the user CAN solve today given their daily limits.
- *
- * Logic:
- * - User sets 4 Easy / 3 Medium / 2 Hard per day.
- * - A topic day has e.g. 2 Easy + 2 Medium + 1 Hard → all fit (under limits).
- * - A topic day has 6 Easy + 4 Medium + 3 Hard → only first 4E/3M/2H are shown.
- * - If this topic exhausts the daily capacity, leftover capacity from other
- *   difficulties is NOT reallocated to compensate — the limits are per-type.
- *
- * Returns problems that fit within today's per-difficulty quota.
+ * Returns problems that fit within the student's daily target problem count.
  */
 export function problemsWithinDailyLimit(
   problems: Problem[],
   counts: DailyCounts,
 ): Problem[] {
-  let easy = 0, medium = 0, hard = 0;
-  const result: Problem[] = [];
-  for (const p of problems) {
-    if (p.difficulty === "Easy" && easy < counts.easy) {
-      result.push(p);
-      easy++;
-    } else if (p.difficulty === "Medium" && medium < counts.medium) {
-      result.push(p);
-      medium++;
-    } else if (p.difficulty === "Hard" && hard < counts.hard) {
-      result.push(p);
-      hard++;
-    }
-  }
-  return result;
+  const norm = normalizeDailyCounts(counts);
+  const target = norm.target || 3;
+  return problems.slice(0, target);
 }
 
 /**
  * How much daily capacity remains after allocating problems from `problems`
- * against `counts`. Returns the leftover slots per difficulty.
- * Used to pull overflow problems from the next topic.
+ * against the student's daily target.
  */
 export function remainingCapacity(
   problems: Problem[],
   counts: DailyCounts,
 ): DailyCounts {
-  const used = { easy: 0, medium: 0, hard: 0 };
-  problems.forEach((p) => {
-    if (p.difficulty === "Easy") used.easy = Math.min(used.easy + 1, counts.easy);
-    else if (p.difficulty === "Medium") used.medium = Math.min(used.medium + 1, counts.medium);
-    else used.hard = Math.min(used.hard + 1, counts.hard);
-  });
+  const norm = normalizeDailyCounts(counts);
+  const target = norm.target || 3;
+  const left = Math.max(0, target - problems.length);
   return {
-    easy: Math.max(0, counts.easy - used.easy),
-    medium: Math.max(0, counts.medium - used.medium),
-    hard: Math.max(0, counts.hard - used.hard),
+    ...norm,
+    easy: left,
+    medium: left,
+    hard: left,
   };
 }

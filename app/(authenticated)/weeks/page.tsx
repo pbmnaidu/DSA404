@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePlan } from "@/hooks/usePlan";
-import { formatDate, todayIso } from "@/lib/plan";
+import { addDays, diffDays, formatDate, todayIso } from "@/lib/plan";
 import type { Day } from "@/lib/types";
 import { DayCard } from "@/components/DayCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,28 +18,30 @@ import {
 
 type ViewMode = "week" | "month" | "all";
 
-/** Group days into calendar weeks (Mon-Sun boundaries) */
+/** Group days into clean 7-calendar-day weeks so every single scheduled date is properly shown */
 function groupIntoWeeks(days: Day[]): Day[][] {
+  if (!days || days.length === 0) return [];
+  // Sort strictly by date in chronological order
+  const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
+
+  const firstDate = sorted[0].date;
   const result: Day[][] = [];
   let currentWeek: Day[] = [];
-  let currentWeekStart: string | null = null;
+  let currentWeekStartDate = firstDate;
 
-  for (const day of days) {
-    if (!currentWeekStart) {
-      currentWeekStart = day.date;
-    }
-    const weekIndex = Math.floor(
-      (new Date(day.date).getTime() - new Date(currentWeekStart).getTime()) /
-      (7 * 24 * 60 * 60 * 1000),
-    );
-    if (weekIndex > 0 && currentWeek.length > 0) {
+  for (const day of sorted) {
+    const diff = diffDays(currentWeekStartDate, day.date);
+    if (diff >= 7 && currentWeek.length > 0) {
       result.push(currentWeek);
       currentWeek = [];
-      currentWeekStart = day.date;
+      const weeksPassed = Math.floor(diff / 7);
+      currentWeekStartDate = addDays(currentWeekStartDate, weeksPassed * 7);
     }
     currentWeek.push(day);
   }
-  if (currentWeek.length > 0) result.push(currentWeek);
+  if (currentWeek.length > 0) {
+    result.push(currentWeek);
+  }
   return result;
 }
 
@@ -67,37 +69,70 @@ export default function WeeksPage() {
   const { days, loading, skipTopic } = usePlan();
   const today = todayIso();
 
-  // Skipped days keep a frozen, stale `date` from before they were skipped
-  // (renumber() intentionally never updates it — see plan.ts). Grouping them
-  // in with active days breaks the week-boundary math below, which assumes
-  // days arrive in roughly chronological order. Exclude them here; they get
-  // their own dedicated "Skipped" section further down instead.
-  const activeDays = useMemo(() => days.filter((d) => !d.skipped), [days]);
+  // Active and skipped memo helpers
+  const activeDays = useMemo(() => days.filter((d) => !d.skipped && !d.isRevisionDay), [days]);
   const skippedDays = useMemo(
     () => days.filter((d) => d.skipped).sort((a, b) => a.dayNumber - b.dayNumber),
     [days],
   );
 
-  const weeks = useMemo(() => groupIntoWeeks(activeDays), [activeDays]);
-  const monthsMap = useMemo(() => groupIntoMonths(activeDays), [activeDays]);
+  // Keep ALL days in weeks and months so every single scheduled date is visible in every week
+  const weeks = useMemo(() => groupIntoWeeks(days), [days]);
+  const monthsMap = useMemo(() => groupIntoMonths(days), [days]);
   const monthKeys = useMemo(() => Object.keys(monthsMap).sort(), [monthsMap]);
 
-  // Find the current week index (the week that contains today)
+  // Find the current week index (the week that contains today, or the first upcoming week)
   const currentWeekIdx = useMemo(() => {
+    if (weeks.length === 0) return 0;
     const idx = weeks.findIndex((week) =>
       week.some((d) => d.date === today),
     );
-    return idx >= 0 ? idx : weeks.findIndex((week) => week.some((d) => d.date >= today));
+    if (idx >= 0) return idx;
+    const nextIdx = weeks.findIndex((week) => week.some((d) => d.date >= today));
+    return nextIdx >= 0 ? nextIdx : Math.max(0, weeks.length - 1);
   }, [weeks, today]);
 
   // Find the current month key
   const currentMonthKey = today.slice(0, 7);
 
   const [viewMode, setViewMode] = useState<ViewMode>("week");
-  const [selectedWeekIdx, setSelectedWeekIdx] = useState<number>(currentWeekIdx);
+  const [selectedWeekIdx, setSelectedWeekIdx] = useState<number>(() => Math.max(0, currentWeekIdx));
   const [selectedMonthKey, setSelectedMonthKey] = useState<string>(
     monthKeys.includes(currentMonthKey) ? currentMonthKey : monthKeys[0] ?? "",
   );
+
+  // Sync selectedWeekIdx safely whenever weeks array changes (e.g. after skips/unskips)
+  useEffect(() => {
+    if (weeks.length > 0) {
+      setSelectedWeekIdx((prev) => {
+        if (prev < 0 || prev >= weeks.length) {
+          return currentWeekIdx >= 0 && currentWeekIdx < weeks.length ? currentWeekIdx : 0;
+        }
+        return prev;
+      });
+    }
+  }, [weeks.length, currentWeekIdx]);
+
+  // Keep selectedWeekIdx in sync and safely bounded
+  const safeWeekIdx = weeks.length > 0
+    ? Math.max(0, Math.min(selectedWeekIdx < 0 ? (currentWeekIdx >= 0 ? currentWeekIdx : 0) : selectedWeekIdx, weeks.length - 1))
+    : 0;
+
+  // Compute progress stats for a week safely
+  function weekStats(week: Day[] = []) {
+    if (!week || week.length === 0) return { total: 0, done: 0, pct: 0 };
+    const activeInWeek = week.filter((d) => !d.skipped && !d.isRevisionDay);
+    const total = activeInWeek.reduce((s, d) => s + (d.problems?.length ?? 0), 0);
+    const done = activeInWeek.reduce((s, d) => s + (d.problems?.filter((p) => p.done)?.length ?? 0), 0);
+    return { total, done, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
+  }
+
+  function monthStats(mDays: Day[] = []) {
+    if (!mDays || mDays.length === 0) return { total: 0, done: 0, pct: 0 };
+    const total = mDays.reduce((s, d) => s + (d.problems?.length ?? 0), 0);
+    const done = mDays.reduce((s, d) => s + (d.problems?.filter((p) => p.done)?.length ?? 0), 0);
+    return { total, done, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
+  }
 
   const SkippedSection = ({ list }: { list: Day[] }) =>
     list.length > 0 ? (
@@ -148,22 +183,6 @@ export default function WeeksPage() {
       </div>
     ) : null;
 
-  // Keep selectedWeekIdx in sync after data loads
-  const safeWeekIdx = weeks.length > 0 ? Math.min(selectedWeekIdx < 0 ? currentWeekIdx : selectedWeekIdx, weeks.length - 1) : 0;
-
-  // Compute progress stats for a week
-  function weekStats(week: Day[]) {
-    const total = week.reduce((s, d) => s + d.problems.length, 0);
-    const done = week.reduce((s, d) => s + d.problems.filter((p) => p.done).length, 0);
-    return { total, done, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
-  }
-
-  function monthStats(mDays: Day[]) {
-    const total = mDays.reduce((s, d) => s + d.problems.length, 0);
-    const done = mDays.reduce((s, d) => s + d.problems.filter((p) => p.done).length, 0);
-    return { total, done, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
-  }
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -208,10 +227,12 @@ export default function WeeksPage() {
               <span>
                 {safeWeekIdx === currentWeekIdx ? "This Week · " : ""}
                 Week {safeWeekIdx + 1}{" "}
-                <span className="hidden sm:inline text-muted-foreground">
-                  ({formatDate(weeks[safeWeekIdx][0].date)} –{" "}
-                  {formatDate(weeks[safeWeekIdx][weeks[safeWeekIdx].length - 1].date)})
-                </span>
+                {weeks[safeWeekIdx] && weeks[safeWeekIdx].length > 0 && (
+                  <span className="hidden sm:inline text-muted-foreground">
+                    ({formatDate(weeks[safeWeekIdx][0]?.date ?? "")} –{" "}
+                    {formatDate(weeks[safeWeekIdx][weeks[safeWeekIdx].length - 1]?.date ?? "")})
+                  </span>
+                )}
               </span>
               <ChevronDown className="size-3.5" />
             </Button>
@@ -234,9 +255,11 @@ export default function WeeksPage() {
                       <span className="inline-block size-1.5 rounded-full bg-primary shrink-0" />
                     )}
                     <span className="font-medium">Week {idx + 1}</span>
-                    <span className="text-xs text-muted-foreground hidden sm:inline">
-                      {formatDate(week[0].date)}
-                    </span>
+                    {week[0]?.date && (
+                      <span className="text-xs text-muted-foreground hidden sm:inline">
+                        {formatDate(week[0].date)}
+                      </span>
+                    )}
                   </span>
                   <span className={cn(
                     "text-xs tabular-nums shrink-0",
@@ -333,20 +356,30 @@ export default function WeeksPage() {
                 </span>
               )}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              {formatDate(week[0]?.date ?? "")} – {formatDate(week[week.length - 1]?.date ?? "")}
-            </p>
+            {week.length > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {formatDate(week[0]?.date ?? "")} – {formatDate(week[week.length - 1]?.date ?? "")}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">No active days scheduled in this week.</p>
+            )}
           </div>
           <div className="ml-auto text-right">
             <div className="text-2xl font-bold tabular-nums">{stats.pct}%</div>
             <div className="text-xs text-muted-foreground">{stats.done}/{stats.total} done</div>
           </div>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {week.map((d, i) => (
-            <DayCard key={`${d.date}-${i}`} day={d} />
-          ))}
-        </div>
+        {week.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground text-sm">
+            All days in this week are currently skipped. You can un-skip topics anytime from the Topics tab or below.
+          </div>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {week.map((d, i) => (
+              <DayCard key={`${d.date}-${d.dayNumber}-${i}`} day={d} showSkipAction />
+            ))}
+          </div>
+        )}
         {/* Prev / Next week navigation */}
         <div className="flex justify-between pt-2">
           <Button
@@ -412,7 +445,7 @@ export default function WeeksPage() {
                 </h3>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {week.map((d, i) => (
-                    <DayCard key={`${d.date}-${i}`} day={d} />
+                    <DayCard key={`${d.date}-${d.dayNumber}-${i}`} day={d} showSkipAction />
                   ))}
                 </div>
               </div>
@@ -485,7 +518,7 @@ export default function WeeksPage() {
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {week.map((d, i) => (
-                  <DayCard key={`${d.date}-${i}`} day={d} />
+                  <DayCard key={`${d.date}-${d.dayNumber}-${i}`} day={d} showSkipAction />
                 ))}
               </div>
             </div>

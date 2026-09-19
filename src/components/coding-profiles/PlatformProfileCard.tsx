@@ -221,27 +221,20 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
           </div>
         )}
 
-        {/* Footer: Source provenance & Modal Heatmap Popup Trigger */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] text-muted-foreground/70 pt-2 border-t border-white/10">
-          <div className="flex items-center gap-1.5 min-w-0 truncate text-[10px] sm:text-[11px]">
-            <span className="truncate">Source: {profile.dataSource}</span>
-            <span>•</span>
-            <span className="truncate">{new Date(profile.fetchedAt).toLocaleDateString()}</span>
-          </div>
-
-          {/* Activity Heatmap Popup Button - Only show if platform has actual heatmap or activity data */}
-          {hasHeatmapData && (
+        {/* Activity Heatmap Popup Button - Only show if platform has actual heatmap or activity data */}
+        {hasHeatmapData && (
+          <div className="pt-2 border-t border-white/10 flex justify-end">
             <button
               type="button"
               onClick={() => setShowHeatmapModal(true)}
-              className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold px-2.5 py-1.5 rounded-xl border border-white/10 hover:border-primary/40 bg-background/60 hover:bg-primary/10 text-foreground/90 hover:text-primary transition-all shrink-0 shadow-sm ml-auto"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-xl border border-white/10 hover:border-primary/40 bg-background/60 hover:bg-primary/10 text-foreground/90 hover:text-primary transition-all shrink-0 shadow-sm"
               title={`View ${profile.platform} Activity Heatmap`}
             >
               <Flame className="size-3 sm:size-3.5 text-amber-500 shrink-0" />
               <span>Activity Heatmap</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Heatmap Popup Modal */}

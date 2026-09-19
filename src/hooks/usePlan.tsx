@@ -52,6 +52,10 @@ interface PlanCtx {
   borrowFromNext: (dayNumber: number) => Promise<void>;
   /** Restores a day — unmerges merged topics, un-skips skipped days, or resets status/problems back to pending. */
   restoreDay: (dayNumber: number) => Promise<void>;
+  /** Reverts schedule back to a saved snapshot state (within 1 week). */
+  revertSchedule: (snapshotDays: Day[], eventDetail: string) => Promise<void>;
+  activeSheet: string;
+  switchSheet: (sheetId: string) => Promise<void>;
   userId: string | null;
   paused: boolean;
 }
@@ -73,16 +77,18 @@ export function PlanProvider({
   const [error, setError] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(todayIso());
+  const [activeSheet, setActiveSheet] = useState<string>("core404");
   const checkedGap = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { days: d, meta } = await db.loadPlan(userId);
+      const { days: d, meta, sheetId } = await db.loadPlan(userId);
       setDays(d);
       setStartDate(meta.startDate);
       setLastSynced(meta.lastSyncedAt);
+      if (sheetId) setActiveSheet(sheetId);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load your progress.");
     } finally {
@@ -103,6 +109,27 @@ export function PlanProvider({
       action: { label: "Retry", onClick: () => void load() },
     });
   };
+
+  const switchSheet = useCallback(
+    async (sheetId: string) => {
+      setLoading(true);
+      try {
+        const { days: newDays, meta } = await db.switchUserSheet(userId, sheetId, startDate);
+        setDays(newDays);
+        setActiveSheet(sheetId);
+        setStartDate(meta.startDate);
+        setLastSynced(meta.lastSyncedAt);
+        toast.success("DSA Sheet Switched!", {
+          description: "Your daily plan and problems are now loaded from your chosen sheet.",
+        });
+      } catch (e) {
+        fail(e);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userId, startDate],
+  );
 
   /** Optimistic single-day update, confirmed to the cloud in the background. */
   const updateDay = useCallback(
@@ -128,24 +155,27 @@ export function PlanProvider({
 
   const commitSequence = useCallback(
     async (next: Day[], eventKind?: string, detail?: string) => {
+      // Snapshot before change for 1-week revert capability
+      const previousSnapshot = days;
       // Preserve any calendar shift already applied by postpone / pause.
-      const sequenced = renumber(next, startDate, planOffset(days, startDate), paused);
+      const sequenced = renumber(next, startDate, planOffset(next, startDate), paused);
       setDays(sequenced);
       try {
         await db.saveSequence(userId, sequenced);
-        if (eventKind) await db.logEvent(userId, eventKind, detail ?? "");
+        if (eventKind) await db.logEvent(userId, eventKind, detail ?? "", previousSnapshot);
         markSynced();
       } catch (e) {
         fail(e);
       }
     },
-    [userId, startDate, days, paused, load],
+    [days, userId, startDate, paused],
   );
 
   const postpone = useCallback(
     async (dayNumber: number, newDate: string) => {
       const day = days.find((d) => d.dayNumber === dayNumber);
       if (!day) return;
+      const previousSnapshot = days;
       const gap = Math.max(1, diffDays(day.date, newDate));
       const next = days.map((d) =>
         d.dayNumber === dayNumber ? { ...d, status: "postponed" as const } : d,
@@ -162,6 +192,7 @@ export function PlanProvider({
           userId,
           "postpone",
           `Day ${dayNumber} postponed by ${gap} day(s) — plan now ends ${shifted[shifted.length - 1].date}`,
+          previousSnapshot,
         );
         markSynced();
       } catch (e) {
@@ -174,9 +205,11 @@ export function PlanProvider({
   const mergeTomorrow = useCallback(
     async (dayNumber: number) => {
       const idx = days.findIndex((d) => d.dayNumber === dayNumber);
-      if (idx === -1 || idx + 1 >= days.length) return;
+      if (idx === -1) return;
+      const nextActiveIdx = days.findIndex((d, i) => i > idx && !d.skipped);
+      if (nextActiveIdx === -1) return;
       const today = days[idx];
-      const tomorrow = days[idx + 1];
+      const tomorrow = days[nextActiveIdx];
       const merged: Day = {
         ...today,
         topic: `${today.topic} + ${tomorrow.topic}`,
@@ -194,7 +227,12 @@ export function PlanProvider({
           baseTopic: today.topic,
         },
       };
-      const next = [...days.slice(0, idx), merged, ...days.slice(idx + 2)];
+      const next = [
+        ...days.slice(0, idx),
+        merged,
+        ...days.slice(idx + 1, nextActiveIdx),
+        ...days.slice(nextActiveIdx + 1),
+      ];
       await commitSequence(
         next,
         "merge",
@@ -502,16 +540,19 @@ export function PlanProvider({
    */
   const rebalance = useCallback(
     async (counts: DailyCounts) => {
+      const previousSnapshot = days;
       const before = days.length;
       const next = rebalanceRemaining(days, counts, startDate, planOffset(days, startDate));
       setDays(next);
       const finish = next[next.length - 1]?.date ?? startDate;
       try {
         await db.saveSequence(userId, next);
+        const targetPace = counts.target || (counts.easy + counts.medium + counts.hard);
         await db.logEvent(
           userId,
           "rebalance",
-          `Daily pace set to ${counts.easy} easy / ${counts.medium} medium / ${counts.hard} hard — plan is now ${next.length} days (was ${before}), finishing ${finish}`,
+          `Daily pace set to ${targetPace} problems/day (${counts.tier || "custom"}) — plan is now ${next.length} days (was ${before}), finishing ${finish}`,
+          previousSnapshot,
         );
         markSynced();
       } catch (e) {
@@ -525,6 +566,7 @@ export function PlanProvider({
   /** Pause / resume simply slides the calendar, never the sequence. */
   const shiftSchedule = useCallback(
     async (fromDate: string, byDays?: number) => {
+      const previousSnapshot = days;
       const today = todayIso();
       const first =
         days.find((d) => !d.skipped && !isDayComplete(d) && d.date >= fromDate) ??
@@ -543,6 +585,7 @@ export function PlanProvider({
           userId,
           "resume",
           `Schedule shifted by ${gap} day(s) from ${first.date} — new finish date ${finish}`,
+          previousSnapshot,
         );
         markSynced();
       } catch (e) {
@@ -636,6 +679,28 @@ export function PlanProvider({
     [days, unmerge, skipTopic, updateDay, commitSequence],
   );
 
+  const revertSchedule = useCallback(
+    async (snapshotDays: Day[], eventDetail: string) => {
+      const prev = days;
+      setDays(snapshotDays);
+      try {
+        await db.saveSequence(userId, snapshotDays);
+        await db.logEvent(
+          userId,
+          "revert",
+          `Reverted change: "${eventDetail}"`,
+          prev,
+        );
+        markSynced();
+        toast.success("Schedule successfully reverted! ↺");
+      } catch (e) {
+        fail(e);
+        throw e;
+      }
+    },
+    [days, userId],
+  );
+
   const value = useMemo<PlanCtx>(
     () => ({
       days,
@@ -660,6 +725,9 @@ export function PlanProvider({
       shiftSchedule,
       borrowFromNext,
       restoreDay,
+      revertSchedule,
+      activeSheet,
+      switchSheet,
       userId,
       paused,
     }),
@@ -669,6 +737,8 @@ export function PlanProvider({
       error,
       lastSynced,
       startDate,
+      activeSheet,
+      switchSheet,
       load,
       updateDay,
       postpone,
@@ -686,6 +756,7 @@ export function PlanProvider({
       shiftSchedule,
       borrowFromNext,
       restoreDay,
+      revertSchedule,
       userId,
       paused,
     ],

@@ -29,7 +29,7 @@ export function DayCard({ day, showSkipAction }: { day: Day; showSkipAction?: bo
       >
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-xs uppercase tracking-wide text-muted-foreground truncate">
-            Day {day.dayNumber} · {formatDate(day.date)}
+            {day.skipped ? "Skipped Topic" : day.isRevisionDay ? "Weekly Revision" : `Day ${day.dayNumber}`} · {formatDate(day.date)}
           </span>
           <span className={`text-xs font-medium ${meta.className} truncate`} title={meta.label}>{meta.icon} {meta.label}</span>
         </div>

@@ -34,6 +34,7 @@ import {
 } from "recharts";
 import { ExternalLink, Globe, Code2, Flame, Sparkles, TrendingUp, BarChart3, CheckCircle2, Mail, UserCircle2 } from "lucide-react";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
+import { GitHubContributionHeatmap } from "@/components/GitHubContributionHeatmap";
 import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { computeBadges, currentStreak, solvedTrend, difficultySplit } from "@/lib/gamification";
@@ -48,9 +49,11 @@ const diffColor: Record<string, string> = {
   Hard: "#ef4444",
 };
 
-const CODING_PLATFORM_META: Record<
-  Exclude<keyof CodingProfiles, "customLinks">,
-  { label: string; color: string; bgColor: string }
+const CODING_PLATFORM_META: Partial<
+  Record<
+    Exclude<keyof CodingProfiles, "customLinks">,
+    { label: string; color: string; bgColor: string }
+  >
 > = {
   leetcode: { label: "LeetCode", color: "#FFA116", bgColor: "rgba(255,161,22,0.12)" },
   codeforces: { label: "Codeforces", color: "#1F8ACB", bgColor: "rgba(31,138,203,0.12)" },
@@ -58,7 +61,6 @@ const CODING_PLATFORM_META: Record<
   atcoder: { label: "AtCoder", color: "#8BC4E8", bgColor: "rgba(139,196,232,0.12)" },
   hackerrank: { label: "HackerRank", color: "#00EA64", bgColor: "rgba(0,234,100,0.12)" },
   gfg: { label: "GeeksforGeeks", color: "#2F8D46", bgColor: "rgba(47,141,70,0.12)" },
-  github: { label: "GitHub", color: "#6E7681", bgColor: "rgba(110,118,129,0.12)" },
 };
 
 interface ExtendedCompletedSnapshot extends CompletedProblemSnapshot {
@@ -177,6 +179,7 @@ function getDemoProfileData(): {
       aboutMe: "Full-stack software engineer and algorithmic problem solver with 4+ years of experience building scalable backend architectures, high-throughput microservices, and distributed data pipelines. Actively mastering the 404 DSA milestone to refine problem solving across dynamic programming, graph theory, and advanced data structures. Regular contest participant on LeetCode (Knight) and Codeforces (Expert).",
       email: "alex.rivera.dev@gmail.com",
       linkedin: "https://linkedin.com/in/alexrivera-dev",
+      github: "https://github.com/alexrivera-dev",
       portfolio: "https://alexrivera.dev",
       socialLinks: [
         { platform: "GitHub", url: "https://github.com/alexrivera-dev" },
@@ -190,7 +193,6 @@ function getDemoProfileData(): {
         gfg: "alex_rivera",
         hackerrank: "alex_rivera",
         codechef: "alex_rivera",
-        github: "alexrivera-dev",
       },
       platformStats: {
         leetcode: {
@@ -440,6 +442,7 @@ export default function PublicProfilePage() {
   const [aboutMe, setAboutMe] = useState("");
   const [email, setEmail] = useState("");
   const [linkedin, setLinkedin] = useState("");
+  const [github, setGithub] = useState("");
   const [portfolio, setPortfolio] = useState("");
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([]);
   const [isDemo, setIsDemo] = useState(false);
@@ -471,6 +474,7 @@ export default function PublicProfilePage() {
       setAboutMe(demo.profile.aboutMe ?? "");
       setEmail(demo.profile.email ?? "");
       setLinkedin(demo.profile.linkedin ?? "");
+      setGithub(demo.profile.github ?? "https://github.com/alexrivera-dev");
       setPortfolio(demo.profile.portfolio ?? "");
       setSocialLinks(demo.profile.socialLinks ?? []);
       setCodingProfiles(demo.profile.codingProfiles ?? {});
@@ -506,6 +510,7 @@ export default function PublicProfilePage() {
           setAboutMe(p.aboutMe ?? "");
           setEmail(p.email ?? "");
           setLinkedin(p.linkedin ?? "");
+          setGithub(p.github ?? (p.socialLinks?.find((s) => s.platform.toLowerCase() === "github")?.url ?? ""));
           setPortfolio(p.portfolio ?? "");
           setSocialLinks(p.socialLinks ?? []);
           setCodingProfiles(p.codingProfiles ?? {});
@@ -571,6 +576,16 @@ export default function PublicProfilePage() {
     }
     return { heatmapData: hData, detailMap: dMap };
   }, [days]);
+
+  // Auto-extract GitHub username/handle from profile links or connected profiles
+  const githubUsername = useMemo(() => {
+    if (github) return github;
+    const fromSocial = socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url;
+    if (fromSocial) return fromSocial;
+    if (codingProfiles.github) return codingProfiles.github;
+    if (isDemo) return "torvalds";
+    return "";
+  }, [github, socialLinks, codingProfiles, isDemo]);
 
   if (loading) {
     return <QuoteLoader fullScreen />;
@@ -696,6 +711,19 @@ export default function PublicProfilePage() {
                 </h1>
                 <div className="flex items-center gap-2 flex-wrap mt-0.5">
                   {username && <p className="text-xs font-mono font-medium text-primary truncate">@{username}</p>}
+                  {github && (
+                    <a
+                      href={github.startsWith("http") ? github : `https://${github}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                      title={`Open GitHub profile: ${github}`}
+                    >
+                      <GitHubIcon className="size-3 shrink-0" />
+                      <span>GitHub</span>
+                      <ExternalLink className="size-2.5 opacity-70" />
+                    </a>
+                  )}
                   {linkedin && (
                     <a
                       href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
@@ -1066,6 +1094,11 @@ export default function PublicProfilePage() {
             <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
           </section>
         )}
+
+        {/* ── GitHub Contribution Activity Heatmap ── */}
+        {githubUsername ? (
+          <GitHubContributionHeatmap username={githubUsername} />
+        ) : null}
 
         {/* ── Badges & Achievements Section ── */}
         {days.length > 0 && (

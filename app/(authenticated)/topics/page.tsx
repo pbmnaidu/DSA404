@@ -1,21 +1,43 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
-import { dayProgress, DEFAULT_DAILY_COUNTS } from "@/lib/plan";
-import { CORE_SECTIONS } from "@/lib/master-problems";
+import {
+  dayProgress,
+  DEFAULT_DAILY_COUNTS,
+  formatDate,
+  normalizeDailyCounts,
+  daysNeeded,
+  type DailyCounts,
+} from "@/lib/plan";
+import { CURATED_SHEETS, getSectionsForSheet, getSheetMeta, type SheetMeta } from "@/lib/sheets-data";
 import { DayCard } from "@/components/DayCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Ban, Undo2 } from "lucide-react";
+import {
+  Ban,
+  Undo2,
+  FileSpreadsheet,
+  Download,
+  BookOpen,
+  Layers,
+  Video,
+  CheckCircle2,
+  Check,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { Day } from "@/lib/types";
 
 function normalizeLevel(lvl?: string): "Level 1" | "Level 2" | "Level 3" {
@@ -34,35 +56,48 @@ function diffCounts(day: Day) {
   return { easy, medium, hard };
 }
 
-/** Whether a day's problems fit within user's daily limits */
-function fitsInOneDay(day: Day, counts: { easy: number; medium: number; hard: number }) {
-  const dc = diffCounts(day);
-  return dc.easy <= counts.easy && dc.medium <= counts.medium && dc.hard <= counts.hard;
-}
 
-/** How many "days" this topic needs given the user's daily preference */
-function daysRequired(days: Day[], counts: { easy: number; medium: number; hard: number }) {
-  let totalEasy = 0, totalMed = 0, totalHard = 0;
-  days.forEach((d) => {
-    const dc = diffCounts(d);
-    totalEasy += dc.easy;
-    totalMed += dc.medium;
-    totalHard += dc.hard;
-  });
-  const easyDays = counts.easy > 0 ? Math.ceil(totalEasy / counts.easy) : (totalEasy > 0 ? Infinity : 0);
-  const medDays = counts.medium > 0 ? Math.ceil(totalMed / counts.medium) : (totalMed > 0 ? Infinity : 0);
-  const hardDays = counts.hard > 0 ? Math.ceil(totalHard / counts.hard) : (totalHard > 0 ? Infinity : 0);
-  return Math.max(easyDays, medDays, hardDays, 1);
+
+/** How many days this topic needs given the user's daily target */
+function daysRequired(days: Day[], counts: DailyCounts) {
+  const norm = normalizeDailyCounts(counts);
+  const problems = days.flatMap((d) => d.problems);
+  if (problems.length === 0) return 0;
+  return daysNeeded(problems, norm);
 }
 
 export default function TopicsPage() {
-  const { days, loading, skipSection, skipTopic } = usePlan();
-  const { settings } = useSettings();
-  const counts = settings?.counts ?? DEFAULT_DAILY_COUNTS;
+  const { days, loading, skipSection, skipTopic, activeSheet, switchSheet, startDate } = usePlan();
+  const { settings, update } = useSettings();
+  const counts = useMemo(() => normalizeDailyCounts(settings?.counts), [settings?.counts]);
 
-  // Group days by Topic in 28 Dependency-Aware Topic Order (1..28)
+  const currentSheetId = activeSheet || settings?.activeSheet || "core404";
+  const activeMeta = getSheetMeta(currentSheetId);
+  const [switchingSheetId, setSwitchingSheetId] = useState<string | null>(null);
+
+  async function handleSwitchSheet(sheetId: string) {
+    if (sheetId === currentSheetId) return;
+    setSwitchingSheetId(sheetId);
+    try {
+      await update({ activeSheet: sheetId });
+      await switchSheet(sheetId);
+      const targetMeta = getSheetMeta(sheetId);
+      toast.success(`Switched to ${targetMeta.name}!`, {
+        description: `Topic view and schedule re-seeded with ${targetMeta.problemCount} problems across ${targetMeta.topicCount} topics.`
+      });
+    } catch (err: any) {
+      toast.error("Failed to switch sheet", {
+        description: err?.message || "Please try again."
+      });
+    } finally {
+      setSwitchingSheetId(null);
+    }
+  }
+
+  // Group days by Topic dynamically based on active sheet's sections
   const topicsList = useMemo(() => {
-    const orderedTopicNames = CORE_SECTIONS.map((s) => s.topic);
+    const sections = getSectionsForSheet(currentSheetId);
+    const orderedTopicNames = sections.map((s) => s.topic);
     const sectionDaysMap = new Map<string, Day[]>();
 
     days.filter((d) => !d.isRevisionDay).forEach((d) => {
@@ -71,7 +106,9 @@ export default function TopicsPage() {
       sectionDaysMap.set(d.section, existing);
     });
 
-    return orderedTopicNames.map((topicName, idx) => {
+    const allTopicNames = Array.from(new Set([...orderedTopicNames, ...Array.from(sectionDaysMap.keys())]));
+
+    return allTopicNames.map((topicName, idx) => {
       const topicDays = sectionDaysMap.get(topicName) ?? [];
       const active = topicDays.filter((d) => !d.skipped);
       const done = active.reduce((a, d) => a + dayProgress(d).done, 0);
@@ -100,7 +137,7 @@ export default function TopicsPage() {
         { easy: 0, medium: 0, hard: 0 }
       );
 
-      const coreSec = CORE_SECTIONS.find((s) => s.topic === topicName);
+      const coreSec = sections.find((s) => s.topic === topicName);
 
       return {
         topicNo: idx + 1,
@@ -116,7 +153,7 @@ export default function TopicsPage() {
         levelCounts,
       };
     }).filter((s) => s.total > 0 || s.allSkipped);
-  }, [days, counts]);
+  }, [days, counts, currentSheetId]);
 
   const skippedDays = useMemo(
     () => days.filter((d) => d.skipped).sort((a, b) => a.dayNumber - b.dayNumber),
@@ -127,16 +164,135 @@ export default function TopicsPage() {
 
   return (
     <>
-      {/* Header */}
-      <div className="mb-4 border-b border-border pb-3">
-        <h1 className="text-2xl font-bold tracking-tight">Topic View</h1>
-        <p className="text-sm text-muted-foreground">
-          Dependency-aware vertical learning sequence (28 Major Topics). Daily capacity:{" "}
-          <span className="font-medium text-foreground">{counts.easy}E · {counts.medium}M · {counts.hard}H</span>
-        </p>
+      {/* ── Customized Sheet Switcher Header Card ── */}
+      <div className="mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-card to-card p-4 sm:p-5 shadow-sm">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl border border-primary/30 bg-primary/15 p-2.5 text-primary shrink-0">
+              <FileSpreadsheet className="size-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-xs font-semibold uppercase text-primary tracking-wider">
+                  Active Sheet
+                </span>
+                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border", activeMeta.badgeColor)}>
+                  {activeMeta.badge}
+                </span>
+              </div>
+              <h2 className="font-display text-lg font-bold text-foreground mt-0.5">
+                {activeMeta.name}
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Curated by <strong>{activeMeta.author}</strong> · Video tutorials by <strong>{activeMeta.channel}</strong>
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-mono text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <BookOpen className="size-3.5 text-primary" />
+                  <strong className="text-foreground">{activeMeta.problemCount}</strong> problems
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Layers className="size-3.5 text-primary" />
+                  <strong className="text-foreground">{activeMeta.topicCount}</strong> topics
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto shrink-0">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="font-mono text-xs gap-1.5 border-primary/30 hover:bg-primary/10"
+            >
+              <a
+                href={activeMeta.excelFile}
+                download={activeMeta.excelFileName}
+                title={`Download ${activeMeta.name} (.xlsx)`}
+              >
+                <Download className="size-3.5 text-primary" />
+                Download Excel (.xlsx)
+              </a>
+            </Button>
+          </div>
+        </div>
+
+        {/* Quick Sheet Selector Pills */}
+        <div className="mt-4 pt-4 border-t border-border/60">
+          <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+            <span>Select your customized sheet:</span>
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            {CURATED_SHEETS.map((sheet) => {
+              const isCurrent = sheet.id === currentSheetId;
+              const isSwitching = switchingSheetId === sheet.id;
+
+              if (isCurrent) {
+                return (
+                  <div
+                    key={sheet.id}
+                    className="flex flex-col items-center justify-center p-2 rounded-xl border border-primary bg-primary/15 text-center"
+                  >
+                    <span className="text-[11px] font-bold text-primary truncate max-w-full">
+                      {sheet.shortName}
+                    </span>
+                    <span className="text-[9px] font-mono text-primary/80 flex items-center gap-1 mt-0.5">
+                      <Check className="size-2.5" /> Active
+                    </span>
+                  </div>
+                );
+              }
+
+              return (
+                <ConfirmDialog
+                  key={sheet.id}
+                  trigger={
+                    <button
+                      type="button"
+                      disabled={switchingSheetId !== null}
+                      className="flex flex-col items-center justify-center p-2 rounded-xl border border-border bg-card/80 hover:border-primary/40 hover:bg-card text-center transition-all cursor-pointer group"
+                    >
+                      <span className="text-[11px] font-medium text-foreground group-hover:text-primary truncate max-w-full">
+                        {sheet.shortName}
+                      </span>
+                      <span className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                        {sheet.problemCount} Qs · {sheet.topicCount} Topics
+                      </span>
+                    </button>
+                  }
+                  title={`Switch to ${sheet.name}?`}
+                  description={`This will re-seed your plan with ${sheet.problemCount} problems across ${sheet.topicCount} topics from ${sheet.name}, starting from your plan start date (${formatDate(startDate)}).`}
+                  confirmLabel={`Switch to ${sheet.shortName}`}
+                  onConfirm={() => handleSwitchSheet(sheet.id)}
+                />
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Vertical Topic Order (1..28) */}
+      {/* Header */}
+      <div className="mb-4 border-b border-border pb-3 flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Topic View</h1>
+          <p className="text-sm text-muted-foreground">
+            {activeMeta.name} ({activeMeta.topicCount} Topics) · Daily target:{" "}
+            <span className="font-semibold text-foreground">{counts.target} problems/day</span>
+            {counts.tier && (
+              <span className="text-xs text-muted-foreground font-mono ml-1">
+                ({counts.tier.charAt(0).toUpperCase() + counts.tier.slice(1)} Pace)
+              </span>
+            )}
+          </p>
+        </div>
+        <span className="text-xs font-mono text-muted-foreground">
+          {topicsList.length} active topics · {topicsList.reduce((acc, t) => acc + t.total, 0)} problems
+        </span>
+      </div>
+
+      {/* Vertical Topic Order */}
       <Accordion type="multiple" defaultValue={topicsList.slice(0, 3).map((t) => t.section)} className="space-y-3">
         {topicsList.map((s) => (
           <AccordionItem
@@ -202,7 +358,7 @@ export default function TopicsPage() {
                       </div>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">Daily capacity:</span> {counts.easy}E · {counts.medium}M · {counts.hard}H
+                      <span className="font-medium text-foreground">Daily pace:</span> {counts.target} problems/day
                       {" · "}<span className="font-medium text-foreground">Est. {s.daysNeeded} day{s.daysNeeded === 1 ? "" : "s"}</span>
                     </p>
                   </div>
@@ -211,34 +367,29 @@ export default function TopicsPage() {
                   <div className="grid gap-3 pb-2 sm:grid-cols-2">
                     {s.list.map((d) => {
                       const dc = diffCounts(d);
-                      const fits = fitsInOneDay(d, counts);
                       return (
                         <div key={d.dayNumber} className="relative">
-                          {!fits && (
-                            <div className="absolute -top-1 -right-1 z-10">
-                              <span className="rounded-full bg-warning/90 px-1.5 py-0.5 text-[10px] font-semibold text-warning-foreground">
-                                Exceeds limit
-                              </span>
-                            </div>
-                          )}
                           <DayCard day={d} showSkipAction />
                           {/* Difficulty breakdown */}
-                          <div className="mt-1 flex gap-1.5 px-1">
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 px-1">
                             {dc.easy > 0 && (
-                              <span className={`rounded px-1.5 py-0.5 text-[11px] tabular-nums ${dc.easy > counts.easy ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 font-semibold" : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"}`}>
-                                {dc.easy}/{counts.easy} E
+                              <span className="inline-flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+                                {dc.easy} Easy
                               </span>
                             )}
                             {dc.medium > 0 && (
-                              <span className={`rounded px-1.5 py-0.5 text-[11px] tabular-nums ${dc.medium > counts.medium ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 font-semibold" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"}`}>
-                                {dc.medium}/{counts.medium} M
+                              <span className="inline-flex items-center rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400 tabular-nums">
+                                {dc.medium} Medium
                               </span>
                             )}
                             {dc.hard > 0 && (
-                              <span className={`rounded px-1.5 py-0.5 text-[11px] tabular-nums ${dc.hard > counts.hard ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 font-semibold" : "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-300"}`}>
-                                {dc.hard}/{counts.hard} H
+                              <span className="inline-flex items-center rounded-md bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[11px] font-medium text-rose-600 dark:text-rose-400 tabular-nums">
+                                {dc.hard} Hard
                               </span>
                             )}
+                            <span className="text-[11px] text-muted-foreground ml-auto font-mono">
+                              {d.problems.length} {d.problems.length === 1 ? "problem" : "problems"}
+                            </span>
                           </div>
                         </div>
                       );

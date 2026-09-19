@@ -58,12 +58,15 @@ import {
   BarChart3,
   CheckCircle,
   Share2,
+  FolderGit2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
+import { GitHubContributionHeatmap } from "@/components/GitHubContributionHeatmap";
+import { DailyCombinationsBreakdown } from "@/components/DailyCombinationsBreakdown";
 
 const DEMO_NAV = [
   { key: "today", label: "Today's Workspace", icon: Sparkles },
@@ -222,6 +225,29 @@ function TodayPanel() {
           </div>
         </div>
 
+        {/* GitHub Auto-Sync Active Banner */}
+        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <FolderGit2 className="size-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-foreground">GitHub Repo Automatic Submission</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-mono font-bold">
+                  ● AUTO-PUSH ACTIVE
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Target Repo: <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">aditi-sharma/dsa-solutions</span> (branch: <code className="text-foreground">main</code>) · Pushing code &amp; patterns as .txt files
+              </p>
+            </div>
+          </div>
+          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
+            2 Commits Pushed Today ✓
+          </span>
+        </div>
+
         {/* Problems List with All Action Buttons */}
         <div className="space-y-3">
           {FAKE_TODAY_PROBLEMS.map((p, idx) => (
@@ -309,18 +335,37 @@ function TodayPanel() {
 }
 
 function ProblemsPanel() {
+  const sheets = ["All Sheets", "Core 404", "Striver A2Z", "Striver SDE", "NeetCode 150", "Love Babbar", "RisingBrains"];
   const platforms = ["All", "LeetCode", "GeeksforGeeks", "CodeChef", "HackerRank"];
+  const [activeSheet, setActiveSheet] = useState("All Sheets");
   const [active, setActive] = useState("All");
   return (
     <div className="space-y-4">
+      {/* Sheet Filter Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <span className="text-xs font-semibold text-muted-foreground shrink-0">Sheet:</span>
+        {sheets.map((s) => (
+          <button
+            key={s}
+            onClick={() => setActiveSheet(s)}
+            className={cn(
+              "px-2.5 py-1 rounded-full text-xs font-mono border whitespace-nowrap transition-colors cursor-pointer",
+              activeSheet === s ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"
+            )}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-wrap gap-2">
         {platforms.map((p) => (
           <button
             key={p}
             onClick={() => setActive(p)}
             className={cn(
-              "px-3 py-1.5 rounded-full text-xs font-mono border transition-colors",
-              active === p ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"
+              "px-3 py-1.5 rounded-full text-xs font-mono border transition-colors cursor-pointer",
+              active === p ? "bg-muted text-foreground border-foreground/30 font-bold" : "border-border text-muted-foreground hover:bg-muted"
             )}
           >
             {p}
@@ -351,7 +396,7 @@ function ProblemsPanel() {
           </div>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">Showing a small sample — the real Problems tab has 904 problems across two curated sheets. <DemoCTA label="Register to unlock the full set" /></p>
+      <p className="text-xs text-muted-foreground">Showing a small sample — the real Problems tab has 1,500+ problems across 6 top curated sheets. <DemoCTA label="Register to unlock the full set" /></p>
     </div>
   );
 }
@@ -366,7 +411,32 @@ function TopicsPanel() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Curated Sheet Selector Bar in Demo Topics */}
+      <div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+            <span>📚 Active Sheet: Core 404 DSA Roadmap</span>
+          </span>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            Switch between Striver A2Z, Striver SDE, NeetCode 150, Love Babbar 450, RisingBrains &amp; Core 404
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {["Core 404", "Striver A2Z", "NeetCode 150", "Love Babbar"].map((s, idx) => (
+            <span
+              key={s}
+              className={cn(
+                "px-2 py-0.5 rounded text-[10px] font-mono font-bold border",
+                idx === 0 ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"
+              )}
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <p className="text-xs text-muted-foreground font-mono">
         💡 <strong>Topic View Feature:</strong> Click <strong>Skip</strong> on any topic to remove it from your daily roadmap. The remaining syllabus rebalances automatically!
       </p>
@@ -1012,6 +1082,9 @@ function ProfilePanel() {
         </div>
       </div>
 
+      {/* GitHub Contribution Activity Heatmap */}
+      <GitHubContributionHeatmap username="aditisharma" />
+
       {/* Achievements Badges */}
       <div className="rounded-2xl border border-border bg-card p-5">
         <h4 className="font-display font-semibold text-sm text-foreground mb-3">Earned Badges & Milestones</h4>
@@ -1039,6 +1112,7 @@ function ProfilePanel() {
 }
 
 function SettingsPanel() {
+  const [selectedDemoSheet, setSelectedDemoSheet] = useState("core404");
   const [workload, setWorkload] = useState(3);
   const [pushEnabled, setPushEnabled] = useState(true);
   const [morningEnabled, setMorningEnabled] = useState(true);
@@ -1049,10 +1123,95 @@ function SettingsPanel() {
 
   return (
     <div className="space-y-5">
+      {/* 0. Curated Sheet Customizer */}
+      <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+        <div>
+          <h3 className="font-display font-bold text-base text-foreground">Select your customized sheet</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Choose your preferred sheet — your daily roadmap and problem recommendations dynamically re-seed from it.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-2.5">
+          {[
+            { id: "core404", name: "Core 404 Roadmap", problems: "381 Qs", topics: "28 Topics", tag: "Official Default" },
+            { id: "striver_a2z", name: "Striver's A2Z Sheet", problems: "402 Qs", topics: "16 Steps", tag: "takeUforward" },
+            { id: "striver_sde", name: "Striver's SDE Sheet", problems: "183 Qs", topics: "26 Topics", tag: "takeUforward" },
+            { id: "neetcode150", name: "NeetCode 150", problems: "150 Qs", topics: "18 Topics", tag: "NeetCode" },
+            { id: "love_babbar", name: "Love Babbar 450", problems: "171 Qs", topics: "15 Topics", tag: "CodeHelp" },
+            { id: "rising_brains", name: "RisingBrains Sheet", problems: "97 Qs", topics: "11 Patterns", tag: "RisingBrains" },
+          ].map((sh) => {
+            const isActive = selectedDemoSheet === sh.id;
+            return (
+              <button
+                key={sh.id}
+                type="button"
+                onClick={() => setSelectedDemoSheet(sh.id)}
+                className={cn(
+                  "p-3 rounded-xl border flex flex-col justify-between text-left transition-colors cursor-pointer",
+                  isActive ? "border-primary bg-primary/10 shadow-xs" : "border-border bg-background hover:border-border/80"
+                )}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className="font-semibold text-xs text-foreground truncate">{sh.name}</span>
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border border-primary/30 text-primary">
+                      {sh.tag}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-muted-foreground">{sh.problems} · {sh.topics}</p>
+                </div>
+                <span className="text-[10px] font-bold text-primary mt-2 flex items-center gap-1">
+                  {isActive ? "✓ Active Sheet" : "Click to Switch"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* GitHub Repository Auto-Sync Settings Demo Card */}
+      <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center">
+              <FolderGit2 className="size-4" />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-base text-foreground">GitHub Automatic Submission</h3>
+              <p className="text-xs text-muted-foreground">Auto-commit code and key patterns to your repository on completion</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-mono font-bold">
+            CONNECTED
+          </span>
+        </div>
+
+        <div className="rounded-xl border border-border/80 bg-background p-4 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="text-[11px] font-mono text-muted-foreground">Target Repository</label>
+              <div className="font-mono font-semibold text-foreground mt-0.5 p-2 rounded-lg bg-muted/50 border border-border">
+                aditi-sharma/dsa-solutions
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-mono text-muted-foreground">Target Branch</label>
+              <div className="font-mono font-semibold text-foreground mt-0.5 p-2 rounded-lg bg-muted/50 border border-border">
+                main
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Every time you submit code in the "Add Code" section, a clean <code className="text-emerald-500">.txt</code> file is automatically generated and pushed to your repo containing your key patterns and optimal solution code.
+          </p>
+        </div>
+      </div>
+
       {/* 1. Workload Customizer */}
       <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
         <div>
-          <h3 className="font-display font-bold text-base text-foreground">Roadmap & Workload Customizer</h3>
+          <h3 className="font-display font-bold text-base text-foreground">Roadmap &amp; Workload Customizer</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Tune your daily problem target for optimal learning pace</p>
         </div>
 
@@ -1080,9 +1239,12 @@ function SettingsPanel() {
             ))}
           </div>
           <p className="text-[11px] text-muted-foreground mt-1">
-            Current pace: <strong>{workload} problems daily</strong> (1 Easy, 1 Medium, 1 Hard). Estimated roadmap completion: <strong>119 days</strong>.
+            Current pace: <strong>{workload} problems daily</strong>. Estimated roadmap completion: <strong>{Math.ceil(404 / workload)} days</strong>.
           </p>
         </div>
+
+        {/* Daily combinations breakdown */}
+        <DailyCombinationsBreakdown target={workload} showPlanFrequency={false} />
       </div>
 
       {/* 2. Interactive Notification Customizer */}

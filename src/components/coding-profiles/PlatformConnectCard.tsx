@@ -103,7 +103,7 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
             <Input
               value={inputUrl}
               onChange={handleInputChange}
-              placeholder="e.g. leetcode.com/u/john_doe, linkedin.com/in/john_doe, or handle"
+              placeholder="e.g. leetcode.com/u/john_doe, codeforces.com/profile/john_doe, or handle"
               className="bg-background/40 border-white/10 rounded-xl text-xs h-10"
             />
             <Button type="submit" size="sm" className="h-10 rounded-xl px-4 gap-1.5 shrink-0 font-bold">

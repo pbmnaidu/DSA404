@@ -196,13 +196,26 @@ export function UnifiedProfileDashboard({
     }
   };
 
-  // Compute aggregate analytics
-  const analytics = useMemo(() => analyzeCodingProfiles(fetchedData), [fetchedData]);
+  // Only calculate analytics and charts for platforms that are ACTUALLY linked in connectedProfiles
+  const activeFetchedData = useMemo(() => {
+    const active: Record<string, NormalizedCodingProfile> = {};
+    for (const [k, u] of Object.entries(connectedProfiles)) {
+      if (k !== "customLinks" && k !== "platformStats" && typeof u === "string" && Boolean(u.trim())) {
+        if (fetchedData[k]) {
+          active[k] = fetchedData[k];
+        }
+      }
+    }
+    return active;
+  }, [connectedProfiles, fetchedData]);
 
-  // Aggregate contest histories
+  // Compute aggregate analytics strictly from active connected platforms
+  const analytics = useMemo(() => analyzeCodingProfiles(activeFetchedData), [activeFetchedData]);
+
+  // Aggregate contest histories strictly from active connected platforms
   const activeContestHistories = useMemo(() => {
     const items: { platform: string; history: any[]; color: string }[] = [];
-    for (const [key, p] of Object.entries(fetchedData)) {
+    for (const [key, p] of Object.entries(activeFetchedData)) {
       if (p.ratingHistory && p.ratingHistory.length > 0) {
         items.push({
           platform: p.platform.toUpperCase(),
@@ -212,7 +225,7 @@ export function UnifiedProfileDashboard({
       }
     }
     return items;
-  }, [fetchedData]);
+  }, [activeFetchedData]);
 
   return (
     <div className="space-y-6 animate-fade-in">

@@ -30,6 +30,7 @@ import {
 } from "@/components/SocialIcons";
 import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
+import { GitHubContributionHeatmap } from "@/components/GitHubContributionHeatmap";
 import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { computeBadges, currentStreak } from "@/lib/gamification";
@@ -182,6 +183,7 @@ export function CoderProfilePage() {
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [linkedin, setLinkedin] = useState("");
+  const [github, setGithub] = useState("");
   const [portfolio, setPortfolio] = useState("");
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([]);
   const [username, setUsername] = useState("");
@@ -234,6 +236,7 @@ export function CoderProfilePage() {
         setAboutMe(p.aboutMe ?? "");
         setNotes(p.notes ?? "");
         setLinkedin(p.linkedin ?? "");
+        setGithub(p.github ?? (p.socialLinks?.find((s) => s.platform.toLowerCase() === "github")?.url ?? ""));
         setPortfolio(p.portfolio ?? "");
         setSocialLinks(p.socialLinks ?? []);
         setUsername(p.username ?? "");
@@ -460,6 +463,15 @@ export function CoderProfilePage() {
     return { heatmapData: hData, detailMap: dMap };
   }, [days, submissions]);
 
+  // Auto-extract GitHub username/handle from profile links or connected profiles
+  const githubUsername = useMemo(() => {
+    if (github) return github;
+    const fromSocial = socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url;
+    if (fromSocial) return fromSocial;
+    if (codingProfiles.github) return codingProfiles.github;
+    return "";
+  }, [github, socialLinks, codingProfiles]);
+
   // — Handlers
   const handleAvatarChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
@@ -533,6 +545,7 @@ export function CoderProfilePage() {
         aboutMe,
         notes,
         linkedin: linkedin.trim(),
+        github: github.trim(),
         portfolio: portfolio.trim(),
         socialLinks,
         username: finalUsername,
@@ -546,7 +559,7 @@ export function CoderProfilePage() {
     } finally {
       setSaving(false);
     }
-  }, [user, displayName, bio, aboutMe, notes, linkedin, portfolio, socialLinks, usernameDraft, username, currentEmail, stats, completedProblems]);
+  }, [user, displayName, bio, aboutMe, notes, linkedin, github, portfolio, socialLinks, usernameDraft, username, currentEmail, stats, completedProblems]);
 
   const handleSaveNotes = useCallback(async () => {
     if (!user) return;
@@ -651,6 +664,19 @@ export function CoderProfilePage() {
               </h1>
               <div className="flex items-center gap-2 flex-wrap mt-0.5">
                 {username && <p className="text-xs font-semibold text-primary truncate">@{username}</p>}
+                {github && (
+                  <a
+                    href={github.startsWith("http") ? github : `https://${github}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
+                    title={`Open GitHub profile: ${github}`}
+                  >
+                    <GitHubIcon className="size-3 shrink-0" />
+                    <span>GitHub</span>
+                    <ExternalLink className="size-2.5 opacity-70" />
+                  </a>
+                )}
                 {linkedin && (
                   <a
                     href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
@@ -905,8 +931,20 @@ export function CoderProfilePage() {
               </div>
             </div>
 
-            {/* LinkedIn & Portfolio */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* GitHub, LinkedIn & Portfolio */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-github" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <GitHubIcon className="size-3.5 text-foreground" /> GitHub Profile URL
+                </Label>
+                <Input
+                  id="prof-github"
+                  value={github}
+                  onChange={(e) => setGithub(e.target.value)}
+                  placeholder="https://github.com/username"
+                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="prof-linkedin" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                   <LinkedInIcon className="size-3.5 text-[#0077b5]" /> LinkedIn Profile URL
@@ -1499,6 +1537,11 @@ export function CoderProfilePage() {
         </div>
         <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
       </section>
+
+      {/* ── GitHub Contribution Activity Heatmap ── */}
+      {githubUsername && (
+        <GitHubContributionHeatmap username={githubUsername} />
+      )}
 
       {/* ── Solved Problems Archive ── */}
       <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">

@@ -43,7 +43,15 @@ export type Platform =
   | "GeeksforGeeks"
   | "GFG";
 
-export type SheetFilter = "All" | "Core 404" | Sheet;
+export type SheetFilter =
+  | "All"
+  | "Core 404"
+  | "Striver's A2Z"
+  | "Striver's SDE"
+  | "NeetCode 150"
+  | "Love Babbar 450"
+  | "RisingBrains"
+  | "Practice 404 Sheet";
 
 export type StatusFilter =
   | "All"
@@ -64,7 +72,13 @@ const PLATFORMS: Platform[] = [
 ];
 
 const SHEET_FILTERS: SheetFilter[] = [
+  "All",
   "Core 404",
+  "Striver's A2Z",
+  "Striver's SDE",
+  "NeetCode 150",
+  "Love Babbar 450",
+  "RisingBrains",
   "Practice 404 Sheet",
 ];
 
@@ -91,7 +105,7 @@ function canonicalPlatform(raw: string): Platform {
   return "All";
 }
 
-export function platformSearchLink(name: string, platform: Platform | string): string {
+function platformSearchLink(name: string, platform: Platform | string): string {
   const q = encodeURIComponent(name);
   if (platform === "GeeksforGeeks" || platform === "GFG") {
     return `https://www.geeksforgeeks.org/explore?search=${q}`;
@@ -107,7 +121,7 @@ function googleSearchUrl(problemName: string) {
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
-export const PLATFORM_META: Record<string, { label: string; color: string; bg: string; dot: string }> = {
+const PLATFORM_META: Record<string, { label: string; color: string; bg: string; dot: string }> = {
   All: { label: "All", color: "text-foreground", bg: "bg-secondary", dot: "bg-muted-foreground" },
   LeetCode: { label: "LeetCode", color: "text-[#FFA116]", bg: "bg-[#FFA116]/10", dot: "bg-[#FFA116]" },
   GeeksforGeeks: { label: "GeeksforGeeks", color: "text-[#2F8D46]", bg: "bg-[#2F8D46]/10", dot: "bg-[#2F8D46]" },
@@ -123,9 +137,16 @@ const DIFF_META: Record<string, { label: string; color: string; bg: string }> = 
   "Multiple Choice": { label: "MCQ", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10" },
 };
 
+import { ALL_PROBLEMS as GLOBAL_PROBLEMS } from "@/lib/problems";
+
 const SHEET_META: Record<SheetFilter, { color: string; bg: string }> = {
-  "All": { color: "text-primary", bg: "bg-primary/10" },
+  "All": { color: "text-foreground", bg: "bg-secondary" },
   "Core 404": { color: "text-primary", bg: "bg-primary/10" },
+  "Striver's A2Z": { color: "text-red-500", bg: "bg-red-500/10" },
+  "Striver's SDE": { color: "text-amber-500", bg: "bg-amber-500/10" },
+  "NeetCode 150": { color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  "Love Babbar 450": { color: "text-purple-500", bg: "bg-purple-500/10" },
+  "RisingBrains": { color: "text-blue-500", bg: "bg-blue-500/10" },
   "Practice 404 Sheet": { color: "text-[#00B8A3]", bg: "bg-[#00B8A3]/10" },
 };
 
@@ -141,45 +162,15 @@ interface FlatProblem {
   link: string;
 }
 
-function buildAllProblems(): FlatProblem[] {
-  let globalId = 1;
-  const a2z: FlatProblem[] = SECTIONS.flatMap((sec) =>
-    sec.problems
-      .map((p) => {
-        const plat = canonicalPlatform(p.p);
-        const link = p.l || "";
-        return {
-          id: globalId++,
-          name: p.n,
-          difficulty: p.d,
-          platform: plat,
-          topic: sec.section,
-          sheet: "Core 404" as SheetFilter,
-          link,
-        };
-      }),
-  );
-
-  const extra: FlatProblem[] = EXTRA_PROBLEMS.map((p) => ({
-    id: globalId++,
-    name: p.name,
-    difficulty: p.difficulty,
-    platform: canonicalPlatform(p.platform),
-    topic: p.topic,
-    sheet: p.sheet as SheetFilter,
-    link: p.link || "",
-  }));
-
-  const seen = new Set<string>();
-  return [...a2z, ...extra].filter((p) => {
-    const key = `${p.sheet}|${p.name.toLowerCase()}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-export const ALL_PROBLEMS = buildAllProblems();
+const ALL_PROBLEMS: FlatProblem[] = GLOBAL_PROBLEMS.map((p, idx) => ({
+  id: idx + 1,
+  name: p.name,
+  difficulty: p.difficulty,
+  platform: p.platform as Platform,
+  topic: p.topic,
+  sheet: p.sheet as SheetFilter,
+  link: p.link,
+}));
 
 function countBy<T>(arr: T[], key: (x: T) => string): Record<string, number> {
   return arr.reduce<Record<string, number>>((acc, x) => {
@@ -191,8 +182,18 @@ function countBy<T>(arr: T[], key: (x: T) => string): Record<string, number> {
 
 // ─── External link helpers ───────────────────────────────────────────────────
 
-function youtubeSearchUrl(problemName: string) {
-  const query = `${problemName} solution intuition explained NeetCode OR Striver`;
+function youtubeSearchUrl(problemName: string, sheet?: SheetFilter) {
+  let channel = "takeUforward OR NeetCode";
+  if (sheet === "Striver's A2Z" || sheet === "Striver's SDE") {
+    channel = "takeUforward";
+  } else if (sheet === "NeetCode 150") {
+    channel = "NeetCode";
+  } else if (sheet === "Love Babbar 450") {
+    channel = "Love Babbar CodeHelp";
+  } else if (sheet === "RisingBrains") {
+    channel = "RisingBrains";
+  }
+  const query = `${problemName} ${channel} solution intuition explained`;
   return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 }
 

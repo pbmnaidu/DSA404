@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMessaging } from "firebase-admin/messaging";
 import { getAdminDb } from "@/integrations/firebase/admin.server";
-import { syncContestsToFirestore, getContestsFromFirestore } from "../../contests/route";
+import { syncContestsIfNeeded, getContestsFromFirestore } from "@/lib/contests-service";
 
 /**
  * Runs on an EXTERNAL schedule (cron-job.org, GitHub Actions cron, etc.)
@@ -312,7 +312,7 @@ export async function GET(req: Request) {
   const contestCandidates = candidates.filter((row) => row.contestReminderEnabled);
   if (contestCandidates.length > 0) {
     try {
-      let contests = await syncContestsToFirestore();
+      let contests = await syncContestsIfNeeded();
       if (contests.length === 0) {
         contests = await getContestsFromFirestore();
       }

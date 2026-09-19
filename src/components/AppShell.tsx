@@ -47,12 +47,15 @@ import {
   Search,
   Megaphone,
   Globe,
+  FolderGit2,
 } from "lucide-react";
 import { loadUserProfile } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { useThemeCustomizer } from "../../app/theme-customizer-context";
 import { ThemeCustomizerPanel } from "../../app/theme-customizer-panel";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
+import { GitHubRepoLinkModal } from "@/components/GitHubRepoLinkModal";
+import { getLocalGitHubSyncConfig } from "@/lib/github-sync";
 
 const NAV = [
   { to: "/today", label: "Today's Workspace", icon: Sparkles, hint: "Your daily topic, core problems, streak, and activity heatmap." },
@@ -496,6 +499,31 @@ export function AppShell({ email, children }: { email: string; children: React.R
   }, [drawerOpen]);
 
   const [searchOpen, setSearchOpen] = useState(false);
+  const [githubModalOpen, setGithubModalOpen] = useState(false);
+
+  // Auto popup for linking GitHub repository on initial start/data load
+  useEffect(() => {
+    if (!user?.uid) return;
+    const cfg = getLocalGitHubSyncConfig(user.uid);
+    const dismissedSession = typeof window !== "undefined" ? sessionStorage.getItem("gh_link_prompt_dismissed") : null;
+    const dismissedLocal = cfg?.autoPromptDismissed;
+    const isConfigured = Boolean(cfg?.token && cfg?.repo);
+
+    // If not configured and not previously dismissed, trigger linking popup on startup
+    if (!isConfigured && !dismissedSession && !dismissedLocal) {
+      const timer = setTimeout(() => {
+        setGithubModalOpen(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [user?.uid]);
+
+  // Global listener to open GitHub sync modal from anywhere
+  useEffect(() => {
+    const handleOpen = () => setGithubModalOpen(true);
+    window.addEventListener("open-github-sync", handleOpen);
+    return () => window.removeEventListener("open-github-sync", handleOpen);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -585,6 +613,9 @@ export function AppShell({ email, children }: { email: string; children: React.R
                     <DropdownMenuItem asChild><Link href="/progress"><Flame className="mr-2 size-4 text-orange-500" /> Progress</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link href="/today"><Sparkles className="mr-2 size-4" /> Today's Workspace</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setGithubModalOpen(true)}>
+                      <FolderGit2 className="mr-2 size-4 text-emerald-500" /> Link GitHub Repo (Auto-Sync)
+                    </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => openPanel()}><Palette className="mr-2 size-4" /> Customize Color & Font</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">Log out</DropdownMenuItem>
@@ -658,6 +689,9 @@ export function AppShell({ email, children }: { email: string; children: React.R
                   <DropdownMenuItem asChild><Link href="/progress"><Flame className="mr-2 size-4 text-orange-500" /> Progress</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/today"><Sparkles className="mr-2 size-4" /> Today's Workspace</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setGithubModalOpen(true)}>
+                    <FolderGit2 className="mr-2 size-4 text-emerald-500" /> Link GitHub Repo (Auto-Sync)
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">Log out</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -732,6 +766,13 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
       {/* Global Command Search Modal */}
       <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} onOpenColorPanel={openPanel} />
+
+      {/* GitHub Repository Link & Auto-Sync Modal (Startup Popup & On-Demand) */}
+      <GitHubRepoLinkModal
+        open={githubModalOpen}
+        onOpenChange={setGithubModalOpen}
+        userId={user?.uid}
+      />
     </TooltipProvider>
   );
 }

@@ -131,6 +131,7 @@ export class CodeChefAdapter implements PlatformAdapter {
       const formattedHistory = history.length > 0
         ? history.map((h: any) => ({
             contestName: h.name || h.code || "Contest",
+            contestId: h.code || "",
             rating: parseInt(h.rating, 10),
             rank: h.rank ? parseInt(h.rank, 10) : undefined,
             date: h.end_date ? h.end_date.slice(0, 10) : (h.getyear ? `${h.getyear}-${String(h.getmonth).padStart(2, "0")}-${String(h.getday).padStart(2, "0")}` : ""),

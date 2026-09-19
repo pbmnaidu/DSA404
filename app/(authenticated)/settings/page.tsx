@@ -18,7 +18,18 @@ import { auth, isClosingOrHiddenError } from "@/integrations/firebase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
 import { changeStartDate, deleteAccountData, updateUserProfile } from "@/lib/db";
-import { addDays, daysNeeded, diffDays, formatDate, todayIso } from "@/lib/plan";
+import {
+  addDays,
+  daysNeeded,
+  diffDays,
+  formatDate,
+  todayIso,
+  TUTOR_PACE_PRESETS,
+  getPacePresetByTarget,
+  normalizeDailyCounts,
+  type DailyCounts,
+  type PaceTier,
+} from "@/lib/plan";
 import { pushState, requestPushPermission, subscribeDevice, showLocalReminder, registerReminderWorker } from "@/lib/push";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,10 +39,37 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { PasswordInput } from "@/components/PasswordInput";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { Bell, CalendarDays, Palette, PauseCircle, PlayCircle, Sliders, UserCog, HelpCircle, Trash2, AlertTriangle, Smartphone, CheckCircle2 } from "lucide-react";
+import { CURATED_SHEETS, getSheetMeta, type SheetMeta } from "@/lib/sheets-data";
+import {
+  Bell,
+  CalendarDays,
+  Palette,
+  PauseCircle,
+  PlayCircle,
+  Sliders,
+  UserCog,
+  HelpCircle,
+  Trash2,
+  AlertTriangle,
+  Smartphone,
+  CheckCircle2,
+  FileSpreadsheet,
+  Download,
+  BookOpen,
+  Check,
+  Video,
+  ExternalLink,
+  Layers,
+  Loader2,
+  Sparkles,
+  FolderGit2,
+} from "lucide-react";
+import { GitHubIcon } from "@/components/SocialIcons";
+import { getLocalGitHubSyncConfig, type GitHubSyncConfig } from "@/lib/github-sync";
 import { useThemeCustomizer } from "../../../app/theme-customizer-context";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { ChromeInstallModal } from "@/components/ChromeInstallModal";
+import { DailyCombinationsBreakdown } from "@/components/DailyCombinationsBreakdown";
 import { cn } from "@/lib/utils";
 
 function ChromeIcon({ className }: { className?: string }) {
@@ -77,9 +115,43 @@ function Section({
 export default function SettingsPage() {
   const router = useRouter();
   const { settings, loading, update, userId } = useSettings();
-  const { days, loading: planLoading, rebalance, shiftSchedule, startDate, reload } = usePlan();
+  const { days, loading: planLoading, rebalance, shiftSchedule, startDate, reload, activeSheet, switchSheet } = usePlan();
   const qc = useQueryClient();
   const { openPanel } = useThemeCustomizer();
+
+  const [switchingSheetId, setSwitchingSheetId] = useState<string | null>(null);
+  const currentSheetId = activeSheet || settings?.activeSheet || "core404";
+  const activeMeta = getSheetMeta(currentSheetId);
+
+  const [ghConfig, setGhConfig] = useState<GitHubSyncConfig | null>(null);
+
+  useEffect(() => {
+    setGhConfig(getLocalGitHubSyncConfig(userId));
+    const handleUpdate = () => {
+      setGhConfig(getLocalGitHubSyncConfig(userId));
+    };
+    window.addEventListener("storage", handleUpdate);
+    return () => window.removeEventListener("storage", handleUpdate);
+  }, [userId]);
+
+  async function handleSwitchSheet(sheetId: string) {
+    if (sheetId === currentSheetId) return;
+    setSwitchingSheetId(sheetId);
+    try {
+      await update({ activeSheet: sheetId });
+      await switchSheet(sheetId);
+      const targetMeta = getSheetMeta(sheetId);
+      toast.success(`Switched to ${targetMeta.name}!`, {
+        description: `Your roadmap and daily plan have been re-seeded with ${targetMeta.problemCount} problems across ${targetMeta.topicCount} topics.`
+      });
+    } catch (err: any) {
+      toast.error("Failed to switch sheet", {
+        description: err?.message || "Please try again."
+      });
+    } finally {
+      setSwitchingSheetId(null);
+    }
+  }
 
   const {
     canInstall,
@@ -98,7 +170,7 @@ export default function SettingsPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
-  const [counts, setCounts] = useState(settings.counts);
+  const [counts, setCounts] = useState<DailyCounts>(() => normalizeDailyCounts(settings.counts));
   const [countsDirty, setCountsDirty] = useState(false);
   const [planStartDate, setPlanStartDate] = useState(() => startDate);
   const [startDirty, setStartDirty] = useState(false);
@@ -107,28 +179,20 @@ export default function SettingsPage() {
   // Sync counts when settings load from Firestore
   useEffect(() => {
     if (settings?.counts) {
-      setCounts(settings.counts);
+      setCounts(normalizeDailyCounts(settings.counts));
     }
   }, [settings.counts]);
 
-  const minPace: Record<"easy" | "medium" | "hard", number> = {
-    easy: 2,
-    medium: 1,
-    hard: 1,
-  };
+  const activePreset = getPacePresetByTarget(counts.target || 3);
 
   const isCountsValid =
-    (counts.easy ?? 0) >= minPace.easy &&
-    (counts.medium ?? 0) >= minPace.medium &&
-    (counts.hard ?? 0) >= minPace.hard;
+    typeof counts.target === "number" &&
+    counts.target >= 1 &&
+    counts.target <= 8;
 
   // Live preview of what the new pace does to the finish date.
   const preview = useMemo(() => {
-    const validCounts = {
-      easy: Math.max(minPace.easy, counts.easy || 0),
-      medium: Math.max(minPace.medium, counts.medium || 0),
-      hard: Math.max(minPace.hard, counts.hard || 0),
-    };
+    const validCounts = normalizeDailyCounts(counts);
     const remaining = days.flatMap((d) => d.problems.filter((p) => !p.done));
     const need = daysNeeded(remaining, validCounts);
     const doneDays = days.filter((d) => d.problems.length > 0 && d.problems.every((p) => p.done))
@@ -243,17 +307,19 @@ export default function SettingsPage() {
   async function applyCounts() {
     if (!isCountsValid) {
       toast.error("Invalid daily pace values", {
-        description: "Minimum required: Easy (min 2), Medium (min 1), Hard (min 1).",
+        description: "Please choose between 1 and 8 problems per day.",
       });
       return;
     }
     setBusy(true);
     try {
-      await update({ counts });
-      const res = await rebalance(counts);
+      const normalized = normalizeDailyCounts(counts);
+      await update({ counts: normalized });
+      const res = await rebalance(normalized);
+      setCounts(normalized);
       setCountsDirty(false);
       toast.success("Daily pace updated", {
-        description: `Remaining problems redistributed — plan is now ${res.after} days (was ${res.before}), finishing ${formatDate(res.finish)}.`,
+        description: `Remaining problems redistributed at ${normalized.target} problems/day (${activePreset.label}) — plan is now ${res.after} days (was ${res.before}), finishing ${formatDate(res.finish)}.`,
       });
     } finally {
       setBusy(false);
@@ -285,9 +351,9 @@ export default function SettingsPage() {
     });
 
     // Step 3: attempt FCM background push subscription (best-effort, non-blocking)
-    subscribeDevice(userId).then((ok) => {
+    subscribeDevice(userId, true).then((ok) => {
       if (ok) {
-        console.info("[push] FCM background subscription active.");
+        console.info("[push] FCM background subscription active on this device.");
       } else {
         toast.info("Tip for closed-app notifications", {
           description: "In-tab notifications are active! For reliable alerts when the app is completely closed, enable Email Notifications below.",
@@ -456,92 +522,333 @@ export default function SettingsPage() {
 
       <h1 className="mb-1 text-2xl font-bold tracking-tight">Settings</h1>
       <p className="mb-6 text-sm text-muted-foreground">
-        Account, pace, reminders and pause controls.
+        Account, pace, customized sheet, reminders and pause controls.
       </p>
+
+      {/* ── Customized Sheet Selector Section ── */}
+      <Section
+        icon={FileSpreadsheet}
+        title="Select your customized sheet"
+        description="Choose your preferred curated DSA preparation sheet. Your daily plan, topic breakdown, and problem recommendations will dynamically re-seed from your chosen sheet."
+      >
+        {/* Active Sheet Banner */}
+        <div className="mb-6 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-card to-card p-4 sm:p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl border border-primary/30 bg-primary/15 p-2.5 text-primary shrink-0">
+                <FileSpreadsheet className="size-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-display text-base font-bold text-foreground">
+                    {activeMeta.name}
+                  </h3>
+                  <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold border", activeMeta.badgeColor)}>
+                    <CheckCircle2 className="size-3" /> Active Sheet
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Curated by <strong>{activeMeta.author}</strong> · Video tutorials by <strong>{activeMeta.channel}</strong>
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-mono text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <BookOpen className="size-3.5 text-primary" />
+                    <strong className="text-foreground">{activeMeta.problemCount}</strong> problems
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Layers className="size-3.5 text-primary" />
+                    <strong className="text-foreground">{activeMeta.topicCount}</strong> topics / sections
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="font-mono text-xs gap-1.5 flex-1 sm:flex-initial border-primary/30 hover:bg-primary/10"
+              >
+                <a
+                  href={activeMeta.excelFile}
+                  download={activeMeta.excelFileName}
+                  title={`Download ${activeMeta.name} in Excel (.xlsx) format`}
+                >
+                  <Download className="size-3.5 text-primary" />
+                  Download Excel (.xlsx)
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Curated Sheets Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CURATED_SHEETS.map((sheet) => {
+            const isActive = sheet.id === currentSheetId;
+            const isSwitching = switchingSheetId === sheet.id;
+
+            return (
+              <div
+                key={sheet.id}
+                className={cn(
+                  "relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-200",
+                  isActive
+                    ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                    : "border-border bg-card/60 hover:border-primary/40 hover:bg-card hover:shadow-xs"
+                )}
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-display font-bold text-sm text-foreground truncate">
+                          {sheet.shortName}
+                        </h4>
+                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border", sheet.badgeColor)}>
+                          {sheet.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        by {sheet.author}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+                    {sheet.description}
+                  </p>
+
+                  <div className="mb-3 space-y-1.5 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-lg border border-border/50">
+                    <div className="flex items-center justify-between font-mono">
+                      <span>Total Problems:</span>
+                      <strong className="text-foreground">{sheet.problemCount}</strong>
+                    </div>
+                    <div className="flex items-center justify-between font-mono">
+                      <span>Topics / Steps:</span>
+                      <strong className="text-foreground">{sheet.topicCount}</strong>
+                    </div>
+                    <div className="flex items-center justify-between font-mono text-[11px]">
+                      <span className="flex items-center gap-1">
+                        <Video className="size-3 text-red-500" /> Channel:
+                      </span>
+                      <span className="text-foreground font-semibold truncate max-w-[130px] text-right">
+                        {sheet.channel}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-border/60 flex items-center gap-2">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-xs font-mono gap-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <a
+                      href={sheet.excelFile}
+                      download={sheet.excelFileName}
+                      title={`Download ${sheet.name} (.xlsx)`}
+                    >
+                      <Download className="size-3 text-emerald-500" />
+                      .xlsx
+                    </a>
+                  </Button>
+
+                  {isActive ? (
+                    <Button
+                      size="sm"
+                      disabled
+                      className="h-8 flex-1 text-xs font-semibold gap-1 bg-primary/15 text-primary border border-primary/30"
+                    >
+                      <Check className="size-3.5" />
+                      Active Sheet
+                    </Button>
+                  ) : (
+                    <ConfirmDialog
+                      trigger={
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={switchingSheetId !== null}
+                          className="h-8 flex-1 text-xs font-semibold gap-1 border-primary/40 hover:bg-primary hover:text-primary-foreground"
+                        >
+                          {isSwitching ? (
+                            <>
+                              <Loader2 className="size-3.5 animate-spin" />
+                              Switching...
+                            </>
+                          ) : (
+                            "Switch to Sheet"
+                          )}
+                        </Button>
+                      }
+                      title={`Switch to ${sheet.name}?`}
+                      description={`Your study plan will be re-seeded using ${sheet.problemCount} problems across ${sheet.topicCount} topics from ${sheet.name}, starting from your plan start date (${formatDate(startDate)}). Your choice is saved to your account.`}
+                      confirmLabel={`Yes, switch to ${sheet.shortName}`}
+                      onConfirm={() => handleSwitchSheet(sheet.id)}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
 
       <Section
         icon={Sliders}
         title="Daily problem pace"
-        description="Configure maximum problems you want to solve each day by difficulty. The schedule redistributes your remaining problems according to these caps."
+        description="Choose how many problems you want to solve each day. Your tutor dynamically balances difficulty ratios across curriculum levels so your workload remains realistic."
       >
-        <div className="space-y-5 max-w-lg">
-          {/* Easy */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1.5 font-medium">
-                <span className="inline-block size-2 rounded-full bg-green-500" />
-                Easy problems / day
-              </Label>
-              <span className="w-6 text-center font-bold text-green-600 tabular-nums">{counts.easy}</span>
+        <div className="space-y-5 max-w-xl">
+          {/* Preset Cards */}
+          <div>
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+              Tutor-Recommended Paces
+            </Label>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              {(["casual", "balanced", "standard", "intensive"] as PaceTier[]).map((tierKey) => {
+                const p = TUTOR_PACE_PRESETS[tierKey];
+                const isSelected =
+                  (counts.tier === tierKey && counts.target === p.target) ||
+                  (counts.target === p.target && counts.tier !== "custom");
+                return (
+                  <button
+                    key={tierKey}
+                    type="button"
+                    onClick={() => {
+                      setCounts({
+                        target: p.target,
+                        tier: p.id,
+                        easy: p.levelRatios.level1.easy,
+                        medium: p.levelRatios.level2.medium,
+                        hard: p.levelRatios.level3.hard,
+                        levelRatios: p.levelRatios,
+                      });
+                      setCountsDirty(true);
+                    }}
+                    className={cn(
+                      "relative flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer",
+                      isSelected
+                        ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/30"
+                        : "border-border bg-card/60 hover:border-primary/40 hover:bg-muted/30"
+                    )}
+                  >
+                    <div className="flex w-full items-center justify-between gap-1 mb-1">
+                      <span className="text-xs font-bold text-foreground truncate">
+                        {p.label}
+                      </span>
+                      {p.badge && (
+                        <span className={cn(
+                          "text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0",
+                          tierKey === "balanced"
+                            ? "bg-primary/20 text-primary font-bold"
+                            : "bg-muted text-muted-foreground"
+                        )}>
+                          {tierKey === "balanced" ? "⭐ Rec" : p.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-extrabold text-foreground tabular-nums">
+                        {p.target}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">/ day</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2 leading-tight">
+                      ~{p.timeEstimateMin}–{p.timeEstimateMax}m/d
+                    </p>
+                  </button>
+                );
+              })}
             </div>
-            <Slider
-              min={1} max={10} step={1}
-              value={[counts.easy]}
-              onValueChange={([v]) => {
-                setCounts((c) => ({ ...c, easy: v }));
-                setCountsDirty(true);
-              }}
-              className="[&>[role=slider]]:bg-green-500"
-            />
-            <p className="text-[11px] text-muted-foreground">Max {counts.easy} Easy problems/day (~{counts.easy * 15} min at 15m/easy)</p>
           </div>
 
-          {/* Medium */}
-          <div className="space-y-2">
+          {/* Slider for Target */}
+          <div className="space-y-2 rounded-xl border border-border bg-muted/20 p-4">
             <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1.5 font-medium">
-                <span className="inline-block size-2 rounded-full bg-yellow-500" />
-                Medium pace limit / day
+              <Label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                <Sparkles className="size-3.5 text-primary" />
+                Target Problems Per Day
               </Label>
-              <span className="w-6 text-center font-bold text-yellow-600 tabular-nums">{counts.medium}</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-extrabold text-primary tabular-nums">
+                  {counts.target || 3}
+                </span>
+                <span className="text-xs text-muted-foreground">problems / day</span>
+              </div>
             </div>
             <Slider
-              min={1} max={8} step={1}
-              value={[counts.medium]}
+              min={1}
+              max={6}
+              step={1}
+              value={[counts.target || 3]}
               onValueChange={([v]) => {
-                setCounts((c) => ({ ...c, medium: v }));
+                const p = getPacePresetByTarget(v);
+                const tier = (["casual", "balanced", "standard", "intensive"] as PaceTier[]).find(
+                  (t) => TUTOR_PACE_PRESETS[t].target === v
+                ) || "custom";
+                setCounts({
+                  target: v,
+                  tier,
+                  easy: p.levelRatios.level1.easy,
+                  medium: p.levelRatios.level2.medium,
+                  hard: p.levelRatios.level3.hard,
+                  levelRatios: p.levelRatios,
+                });
                 setCountsDirty(true);
               }}
-              className="[&>[role=slider]]:bg-yellow-500"
+              className="py-1"
             />
-            <p className="text-[11px] text-muted-foreground">Max {counts.medium} Medium problems/day (~{counts.medium * 30} min at 30m/medium)</p>
+            <div className="flex justify-between text-[11px] text-muted-foreground font-mono">
+              <span>1 problem (Light habit)</span>
+              <span>3 problems (Tutor choice ⭐)</span>
+              <span>6 problems (Full sprint)</span>
+            </div>
           </div>
 
-          {/* Hard */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1.5 font-medium">
-                <span className="inline-block size-2 rounded-full bg-red-500" />
-                Hard pace limit / day
-              </Label>
-              <span className="w-6 text-center font-bold text-red-600 tabular-nums">{counts.hard}</span>
-            </div>
-            <Slider
-              min={1} max={5} step={1}
-              value={[counts.hard]}
-              onValueChange={([v]) => {
-                setCounts((c) => ({ ...c, hard: v }));
-                setCountsDirty(true);
-              }}
-              className="[&>[role=slider]]:bg-red-500"
-            />
-            <p className="text-[11px] text-muted-foreground">Max {counts.hard} Hard problems/day (~{counts.hard * 45} min at 45m/hard)</p>
+          {/* Tutor Pedagogical Workload Combinations Breakdown */}
+          <DailyCombinationsBreakdown target={counts.target || 3} days={days} />
+
+          {/* Schedule Impact Forecast Box */}
+          <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-1">
+            <p className="text-xs font-semibold text-foreground">
+              Schedule Impact Forecast
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {preview.remaining} remaining problems · <strong>{preview.need}</strong> estimated study days.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Projected completion date: <strong>{formatDate(preview.finish)}</strong> (based on {counts.target || 3} problems/day).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 pt-1">
+            <Button
+              disabled={!countsDirty || busy || !isCountsValid}
+              onClick={() => void applyCounts()}
+              className="gap-1.5"
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Redistributing...
+                </>
+              ) : (
+                "Apply & redistribute schedule"
+              )}
+            </Button>
+            {countsDirty && (
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                • Unsaved changes (click Apply to update schedule)
+              </span>
+            )}
           </div>
         </div>
-
-        {/* Pace Summary Box */}
-        <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 max-w-lg">
-          <p className="text-sm font-medium text-primary">
-            Dynamic daily study time: ~{Math.min(counts.easy * 15, counts.medium * 30, counts.hard * 45)} to {Math.max(counts.easy * 15, counts.medium * 30, counts.hard * 45)} min / day
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {preview.remaining} problems left → about <strong>{preview.need}</strong> more days. Workload is dynamically calculated per day from actual problem types (Easy: 15m, Medium: 30m, Hard: 45m). Leftover problems overflow to next day.
-          </p>
-        </div>
-
-        <Button className="mt-4" disabled={!countsDirty || busy || !isCountsValid} onClick={() => void applyCounts()}>
-          Apply &amp; redistribute
-        </Button>
       </Section>
 
       <Section
@@ -836,6 +1143,55 @@ export default function SettingsPage() {
           <Palette className="size-4" />
           Open Color Customizer
         </Button>
+      </Section>
+
+      {/* ── GitHub Auto-Sync Section ── */}
+      <Section
+        icon={FolderGit2}
+        title="GitHub Auto-Sync"
+        description="Automatically create a problem text file and commit every solution into your GitHub repository when saving code."
+      >
+        <div className="rounded-2xl border border-border bg-background/50 p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="size-10 rounded-2xl bg-zinc-900 dark:bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-sm">
+                <GitHubIcon className="size-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-display text-base font-bold text-foreground">
+                    {ghConfig?.enabled && ghConfig?.repo
+                      ? `${ghConfig.owner}/${ghConfig.repo}`
+                      : "No GitHub Repository Linked"}
+                  </h3>
+                  {ghConfig?.enabled && ghConfig?.repo ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold">
+                      <CheckCircle2 className="size-3" /> Auto-Sync Active
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted text-muted-foreground border border-border px-2 py-0.5 text-[10px] font-semibold">
+                      Not connected
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {ghConfig?.enabled && ghConfig?.repo
+                    ? `Commits each problem solution to branch "${ghConfig.branch || "main"}" in folder "${ghConfig.folderPath ? ghConfig.folderPath : "root"}" as a .txt file containing Key Patterns & Code.`
+                    : "Connect your GitHub account and repository to automatically push every solved problem (key patterns and solution code) directly to GitHub."}
+                </p>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("open-github-sync"))}
+              className="gap-2 shrink-0 rounded-xl text-xs font-bold"
+            >
+              <FolderGit2 className="size-4" />
+              {ghConfig?.enabled && ghConfig?.repo ? "Configure Repository" : "Link GitHub Repo"}
+            </Button>
+          </div>
+        </div>
       </Section>
 
       {/* ── Danger Zone ── */}

@@ -56,24 +56,6 @@ export const CODING_PLATFORMS: CodingPlatform[] = [
     color: "#2EC866",
     icon: "🏆",
   },
-  {
-    id: "github",
-    name: "github",
-    label: "GitHub",
-    baseUrl: "https://github.com/",
-    placeholder: "your-username",
-    color: "#333",
-    icon: "🐙",
-  },
-  {
-    id: "linkedin",
-    name: "linkedin",
-    label: "LinkedIn",
-    baseUrl: "https://www.linkedin.com/in/",
-    placeholder: "your-username",
-    color: "#0A66C2",
-    icon: "💼",
-  },
 ];
 
 export interface UserProfile {

@@ -14,6 +14,7 @@ import { DemoShell } from "@/components/demo/DemoShell";
 import { CORE_SECTIONS } from "@/lib/master-problems";
 import { ALL_PROBLEMS } from "@/lib/problems";
 import { seedDays, TOTAL_PROBLEMS } from "@/lib/plan";
+import { CURATED_SHEETS } from "@/lib/sheets-data";
 import { getChatGPTAiPromptUrl } from "@/lib/aiTutorPrompt";
 import { cn } from "@/lib/utils";
 import {
@@ -30,6 +31,7 @@ import {
   Laptop,
   Globe,
   Download,
+  FolderGit2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { InstallApkSection } from "@/components/InstallApkSection";
@@ -196,10 +198,10 @@ function StatsBar() {
       isSheetsCard: true,
       ref: cTotal,
       value: COMBINED_TOTAL_PROBLEMS,
-      label: "Curated Sheets & CP Rounds",
-      sub: `${REAL_TOTAL_PROBLEMS} Core 404 · ${REAL_PRACTICE_PROBLEMS_COUNT} Practice Sheet · CP rounds`,
+      label: "6 Curated Sheets & CP Rounds",
+      sub: "Striver A2Z · Striver SDE · NeetCode 150 · Love Babbar · RisingBrains · Core 404",
       prefix: "",
-      tag: "CORE_404",
+      tag: "6_SHEETS",
       tagColor: "text-amber-500 bg-amber-500/10 border-amber-500/30",
       icon: Trophy,
       iconColor: "text-amber-600 dark:text-amber-400",
@@ -261,6 +263,20 @@ function StatsBar() {
       iconColor: "text-green-600 dark:text-green-400",
       iconBg: "bg-green-500/10",
     },
+    {
+      id: "github_sync",
+      isSheetsCard: false,
+      ref: undefined,
+      value: "Auto-Push",
+      label: "GitHub Repo Auto-Sync",
+      sub: "Auto-commits solved code & key patterns into your selected GitHub repo as .txt files",
+      prefix: "",
+      tag: "REPO_SYNC",
+      tagColor: "text-emerald-500 bg-emerald-500/10 border-emerald-500/30",
+      icon: FolderGit2,
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      iconBg: "bg-emerald-500/10",
+    },
   ];
 
   return (
@@ -273,7 +289,7 @@ function StatsBar() {
           <div
             key={s.label}
             onClick={isSheets ? () => downloadCore404Sheets() : undefined}
-            title={isSheets ? "Click here to download Core 404 Sheet (PDF & Excel)" : undefined}
+            title={isSheets ? "Click here to download Curated Sheets (PDF & Excel)" : undefined}
             className={cn(
               "group relative overflow-hidden rounded-xl bg-card border border-border p-3.5 shadow-sm transition-all duration-200 hover:border-primary/60 hover:shadow-md flex flex-col justify-between h-full",
               isSheets && "hover:border-amber-500/70 dark:hover:border-amber-400/70 ring-1 ring-amber-500/20 cursor-pointer"
@@ -305,9 +321,9 @@ function StatsBar() {
               <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-2 leading-tight">{s.sub}</p>
             </div>
 
-            {/* If this is the Sheets Card: Prominent Download Action Section */}
+            {/* If this is the Sheets Card: Prominent Multi-Sheet Download Action Section */}
             {isSheets && (
-              <div className="mt-3 pt-2.5 border-t border-border/60">
+              <div className="mt-3 pt-2.5 border-t border-border/60 space-y-2">
                 <button
                   type="button"
                   onClick={(e) => downloadCore404Sheets(e)}
@@ -316,32 +332,24 @@ function StatsBar() {
                 >
                   <Download className="size-3.5 shrink-0 animate-bounce" />
                   <span className="font-sans font-bold text-[11px] leading-tight text-center">
-                    Click here to download core404 sheet
+                    Download Curated Excel Sheets
                   </span>
                 </button>
 
-                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1 text-[10px] text-muted-foreground">
-                  <span className="text-[10px] text-muted-foreground/90 font-medium">
-                    ⚡ Auto-downloads PDF &amp; Excel
-                  </span>
-                  <div className="flex items-center gap-1 font-mono text-[9px] shrink-0">
-                    <button
-                      type="button"
-                      onClick={(e) => downloadSingle(e, "pdf")}
-                      className="px-1.5 py-0.5 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 transition-colors cursor-pointer"
-                      title="Download PDF version only"
+                <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                  <span className="text-[9px] font-mono text-muted-foreground w-full">Quick Excel (.xlsx) Downloads:</span>
+                  {CURATED_SHEETS.map((cs) => (
+                    <a
+                      key={cs.id}
+                      href={cs.excelFile}
+                      download={cs.excelFileName}
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-1.5 py-0.5 rounded bg-muted hover:bg-primary/10 hover:text-primary font-mono text-[9px] font-bold border border-border/60 transition-colors"
+                      title={`Download ${cs.name} (.xlsx)`}
                     >
-                      PDF
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => downloadSingle(e, "excel")}
-                      className="px-1.5 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 transition-colors cursor-pointer"
-                      title="Download Excel (.xlsx) version only"
-                    >
-                      XLSX
-                    </button>
-                  </div>
+                      {cs.shortName}
+                    </a>
+                  ))}
                 </div>
               </div>
             )}

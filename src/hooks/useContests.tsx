@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   doc,
   getDoc,
@@ -9,6 +9,21 @@ import {
 } from "firebase/firestore";
 import { db } from "@/integrations/firebase/client";
 import { useAuth } from "./useAuth";
+import {
+  evaluateContestAttendance,
+  extractHandleFromInput,
+  type ContestAttendanceEvaluation,
+  type UserMark,
+  SUPPORTED_CONTEST_PLATFORMS,
+} from "@/lib/contest-platform-linker";
+import {
+  type CodingProfiles,
+  loadUserProfile,
+  saveUserProfile,
+  savePlatformStats,
+} from "@/lib/db";
+import { type NormalizedCodingProfile, type PlatformId } from "@/lib/coding-platforms/types";
+import { fetchBatchProfilesApi, fetchUserProfileApi } from "@/lib/coding-platforms/client-api";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -22,12 +37,13 @@ export interface Contest {
 }
 
 export type ContestStatus = "live" | "upcoming" | "missed";
-export type UserMark = "attended" | "missed_intentional" | null;
+export { type UserMark };
 
 export interface ContestWithStatus extends Contest {
   status: ContestStatus;
   endMs: number;
   mark: UserMark;
+  attendanceInfo?: ContestAttendanceEvaluation;
 }
 
 interface StoredData {
@@ -38,7 +54,6 @@ interface StoredData {
 
 const LOCAL_STORAGE_KEY_CONTESTS = "ldt_cached_contests_v3";
 const LOCAL_STORAGE_KEY_MARKS = "ldt_cached_marks_v3";
-
 
 function dedup(contests: Contest[]): Contest[] {
   const seen = new Set<string>();
@@ -52,9 +67,10 @@ function dedup(contests: Contest[]): Contest[] {
   });
 }
 
-async function fetchApiRoute(): Promise<Contest[]> {
+async function fetchApiRoute(force: boolean = false): Promise<Contest[]> {
   try {
-    const r = await fetch("/api/contests", { signal: AbortSignal.timeout(8000) });
+    const url = force ? "/api/contests?force=true" : "/api/contests";
+    const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!r.ok) return [];
     return await r.json();
   } catch {
@@ -62,8 +78,8 @@ async function fetchApiRoute(): Promise<Contest[]> {
   }
 }
 
-async function fetchAllContests(): Promise<Contest[]> {
-  const apiContests = await fetchApiRoute();
+async function fetchAllContests(force: boolean = false): Promise<Contest[]> {
+  const apiContests = await fetchApiRoute(force);
   if (apiContests.length > 0) {
     return dedup(apiContests).sort((a, b) => a.startMs - b.startMs);
   }
@@ -103,17 +119,23 @@ async function saveStored(uid: string, data: Partial<StoredData>) {
   }
 }
 
-function getLocalData(): { contests: Contest[]; marks: Record<string, UserMark>; lastFetchedMs: number } {
-  if (typeof window === "undefined") return { contests: [], marks: {}, lastFetchedMs: 0 };
+function getLocalData(): {
+  contests: Contest[];
+  marks: Record<string, UserMark>;
+  lastFetchedMs: number;
+  lastFetchedDate: string;
+} {
+  if (typeof window === "undefined") return { contests: [], marks: {}, lastFetchedMs: 0, lastFetchedDate: "" };
   try {
     const rawC = localStorage.getItem(LOCAL_STORAGE_KEY_CONTESTS);
     const rawM = localStorage.getItem(LOCAL_STORAGE_KEY_MARKS);
     const contests = rawC ? JSON.parse(rawC) : [];
     const marks = rawM ? JSON.parse(rawM) : {};
     const lastFetchedMs = parseInt(localStorage.getItem(`${LOCAL_STORAGE_KEY_CONTESTS}_ts`) || "0", 10);
-    return { contests, marks, lastFetchedMs };
+    const lastFetchedDate = localStorage.getItem(`${LOCAL_STORAGE_KEY_CONTESTS}_date`) || "";
+    return { contests, marks, lastFetchedMs, lastFetchedDate };
   } catch {
-    return { contests: [], marks: {}, lastFetchedMs: 0 };
+    return { contests: [], marks: {}, lastFetchedMs: 0, lastFetchedDate: "" };
   }
 }
 
@@ -124,12 +146,50 @@ function setLocalData(contests: Contest[], marks: Record<string, UserMark>, ts?:
       localStorage.setItem(LOCAL_STORAGE_KEY_CONTESTS, JSON.stringify(contests));
     }
     localStorage.setItem(LOCAL_STORAGE_KEY_MARKS, JSON.stringify(marks));
-    if (ts) {
-      localStorage.setItem(`${LOCAL_STORAGE_KEY_CONTESTS}_ts`, String(ts));
-    }
+    const nowMs = ts || Date.now();
+    localStorage.setItem(`${LOCAL_STORAGE_KEY_CONTESTS}_ts`, String(nowMs));
+    localStorage.setItem(`${LOCAL_STORAGE_KEY_CONTESTS}_date`, new Date(nowMs).toISOString().slice(0, 10));
   } catch {
     // ignore quota issues
   }
+}
+
+function getLocalCodingProfiles(uid?: string): CodingProfiles {
+  if (typeof window === "undefined") return {};
+  try {
+    const key = uid ? `dsa_coding_profiles_${uid}` : "dsa_coding_profiles_v2";
+    const raw = localStorage.getItem(key) || localStorage.getItem("dsa_coding_profiles_v2");
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function setLocalCodingProfiles(profiles: CodingProfiles, uid?: string) {
+  if (typeof window === "undefined") return;
+  try {
+    if (uid) localStorage.setItem(`dsa_coding_profiles_${uid}`, JSON.stringify(profiles));
+    localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(profiles));
+  } catch {}
+}
+
+function getLocalPlatformStats(uid?: string): Record<string, NormalizedCodingProfile> {
+  if (typeof window === "undefined") return {};
+  try {
+    const key = `dsa_platform_stats_${uid || "default"}`;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function setLocalPlatformStats(stats: Record<string, NormalizedCodingProfile>, uid?: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const key = `dsa_platform_stats_${uid || "default"}`;
+    localStorage.setItem(key, JSON.stringify(stats));
+  } catch {}
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -138,6 +198,9 @@ export function useContests() {
   const { user } = useAuth();
   const [contests, setContests] = useState<Contest[]>([]);
   const [marks, setMarks] = useState<Record<string, UserMark>>({});
+  const [codingProfiles, setCodingProfiles] = useState<CodingProfiles>(() => getLocalCodingProfiles(user?.uid));
+  const [platformStats, setPlatformStats] = useState<Record<string, NormalizedCodingProfile>>(() => getLocalPlatformStats(user?.uid));
+  const [isSyncingProfiles, setIsSyncingProfiles] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -162,6 +225,20 @@ export function useContests() {
     };
   }, []);
 
+  // Listen to coding profiles updates across components
+  useEffect(() => {
+    const handleProfilesEvent = (e: CustomEvent<{ codingProfiles: CodingProfiles }>) => {
+      if (e.detail?.codingProfiles) {
+        setCodingProfiles(e.detail.codingProfiles);
+        setLocalCodingProfiles(e.detail.codingProfiles, user?.uid);
+      }
+    };
+    window.addEventListener("ldt_coding_profiles_updated" as any, handleProfilesEvent as any);
+    return () => {
+      window.removeEventListener("ldt_coding_profiles_updated" as any, handleProfilesEvent as any);
+    };
+  }, [user?.uid]);
+
   // Load from local storage immediately (zero-lag), then hydrate/refresh asynchronously
   useEffect(() => {
     if (fetchedRef.current) return;
@@ -175,23 +252,50 @@ export function useContests() {
       setLoading(false);
     }
 
+    const localProfiles = getLocalCodingProfiles(user?.uid);
+    if (Object.keys(localProfiles).length > 0) {
+      setCodingProfiles(localProfiles);
+    }
+
+    const localStats = getLocalPlatformStats(user?.uid);
+    if (Object.keys(localStats).length > 0) {
+      setPlatformStats(localStats);
+    }
+
     (async () => {
       setError(null);
 
       try {
         let marksData = local.marks;
         let stored: StoredData | null = null;
+        let userProfilesData = localProfiles;
 
         if (user) {
           stored = await loadStored(user.uid);
           if (stored?.marks) {
             marksData = { ...marksData, ...stored.marks };
           }
+
+          // Load user profile & platformStats from Firestore
+          const profileDoc = await loadUserProfile(user.uid);
+          if (profileDoc.codingProfiles) {
+            userProfilesData = { ...userProfilesData, ...profileDoc.codingProfiles };
+            setCodingProfiles(userProfilesData);
+            setLocalCodingProfiles(userProfilesData, user.uid);
+          }
+          if (profileDoc.platformStats) {
+            setPlatformStats((prev) => {
+              const merged = { ...prev, ...profileDoc.platformStats };
+              setLocalPlatformStats(merged, user.uid);
+              return merged;
+            });
+          }
         }
 
         setMarks(marksData);
 
         const nowMs = Date.now();
+        const todayIso = new Date(nowMs).toISOString().slice(0, 10);
         const cachedList = stored?.cachedContests?.length ? stored.cachedContests : local.contests;
 
         if (cachedList.length > 0) {
@@ -199,20 +303,52 @@ export function useContests() {
           setLoading(false);
         }
 
-        // Always fetch fresh contests asynchronously to ensure latest contests (CodeChef, CF, LeetCode, etc.)
-        const fresh = await fetchAllContests();
-        if (fresh.length > 0) {
-          setContests(fresh);
-          setLocalData(fresh, marksData, nowMs);
-          if (user) {
-            await saveStored(user.uid, {
-              cachedContests: fresh,
-              lastFetchedMs: nowMs,
-              marks: marksData,
-            });
+        // Only fetch fresh contests if not yet fetched for today's starting day (or if cache is empty)
+        const alreadyFetchedToday = local.lastFetchedDate === todayIso && local.contests.length > 0;
+        if (!alreadyFetchedToday || cachedList.length === 0) {
+          const fresh = await fetchAllContests(false);
+          if (fresh.length > 0) {
+            setContests(fresh);
+            setLocalData(fresh, marksData, nowMs);
+            if (user) {
+              await saveStored(user.uid, {
+                cachedContests: fresh,
+                lastFetchedMs: nowMs,
+                marks: marksData,
+              });
+            }
           }
         }
         setLoading(false);
+
+        // Sync linked coding profiles in background to update contest participation & ratings
+        const profilesToSync: { platform: PlatformId; username: string }[] = [];
+        for (const p of SUPPORTED_CONTEST_PLATFORMS) {
+          const raw = userProfilesData[p.id as keyof CodingProfiles];
+          if (raw && typeof raw === "string" && raw.trim()) {
+            const clean = extractHandleFromInput(p.id, raw);
+            if (clean) profilesToSync.push({ platform: p.id, username: clean });
+          }
+        }
+
+        if (profilesToSync.length > 0) {
+          setIsSyncingProfiles(true);
+          fetchBatchProfilesApi(profilesToSync, false)
+            .then((res) => {
+              if (res && Object.keys(res).length > 0) {
+                setPlatformStats((prev) => {
+                  const next = { ...prev, ...res };
+                  setLocalPlatformStats(next, user?.uid);
+                  if (user?.uid) {
+                    void savePlatformStats(user.uid, next).catch(console.warn);
+                  }
+                  return next;
+                });
+              }
+            })
+            .catch((err) => console.warn("[useContests] Profile batch sync warning:", err))
+            .finally(() => setIsSyncingProfiles(false));
+        }
       } catch (e) {
         if (!contests.length && !local.contests.length) {
           setError("Could not load contests. Check your connection.");
@@ -222,12 +358,12 @@ export function useContests() {
     })();
   }, [user]);
 
-  // Manual refetch function
+  // Manual refetch function for contests (forces fresh sync)
   const refetch = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const fresh = await fetchAllContests();
+      const fresh = await fetchAllContests(true);
       if (fresh.length > 0) {
         setContests(fresh);
         setLocalData(fresh, marks, Date.now());
@@ -239,12 +375,12 @@ export function useContests() {
     }
   }, [marks]);
 
-  // Mark a contest as attended or missed-intentional
+  // Mark a contest as attended or missed-intentional (manual override)
   const markContest = useCallback(
     async (contestId: string, mark: UserMark) => {
       setMarks((prev) => {
         const next = { ...prev, [contestId]: mark };
-        
+
         // Defer side effects to next tick so they don't run during React's render phase
         setTimeout(() => {
           setLocalData(contests, next);
@@ -260,20 +396,141 @@ export function useContests() {
             );
           }
         }, 0);
-        
+
         return next;
       });
     },
     [user, contests]
   );
 
-  // Derive final list with statuses
-  const enriched: ContestWithStatus[] = contests.map((c) => ({
-    ...c,
-    endMs: c.startMs + c.durationMs,
-    status: getContestStatus(c, now),
-    mark: marks[c.id] ?? null,
-  }));
+  // Update or connect a coding platform handle/URL
+  const updateCodingProfile = useCallback(
+    async (platform: PlatformId, input: string) => {
+      const cleanHandle = extractHandleFromInput(platform, input);
+      const nextProfiles: CodingProfiles = {
+        ...codingProfiles,
+        [platform]: cleanHandle || undefined,
+      };
 
-  return { contests: enriched, loading, error, now, markContest, refetch };
+      setCodingProfiles(nextProfiles);
+      setLocalCodingProfiles(nextProfiles, user?.uid);
+
+      if (user?.uid) {
+        await saveUserProfile(user.uid, { codingProfiles: nextProfiles });
+      }
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("ldt_coding_profiles_updated", {
+            detail: { codingProfiles: nextProfiles },
+          })
+        );
+      }
+
+      // Immediately fetch fresh profile & contest history
+      if (cleanHandle) {
+        setIsSyncingProfiles(true);
+        try {
+          const freshData = await fetchUserProfileApi(platform, cleanHandle, true);
+          setPlatformStats((prev) => {
+            const next = { ...prev, [platform]: freshData };
+            setLocalPlatformStats(next, user?.uid);
+            if (user?.uid) {
+              void savePlatformStats(user.uid, next).catch(console.warn);
+            }
+            return next;
+          });
+        } catch (err) {
+          console.warn(`[useContests] Error fetching ${platform} profile:`, err);
+        } finally {
+          setIsSyncingProfiles(false);
+        }
+      } else {
+        // If unlinked, remove from stats
+        setPlatformStats((prev) => {
+          const next = { ...prev };
+          delete next[platform];
+          setLocalPlatformStats(next, user?.uid);
+          if (user?.uid) {
+            void savePlatformStats(user.uid, next).catch(console.warn);
+          }
+          return next;
+        });
+      }
+    },
+    [codingProfiles, user]
+  );
+
+  // Remove / unlink a coding platform profile
+  const removeCodingProfile = useCallback(
+    async (platform: PlatformId) => {
+      await updateCodingProfile(platform, "");
+    },
+    [updateCodingProfile]
+  );
+
+  // Force sync all connected platforms
+  const syncAllProfiles = useCallback(async () => {
+    const profilesToSync: { platform: PlatformId; username: string }[] = [];
+    for (const p of SUPPORTED_CONTEST_PLATFORMS) {
+      const raw = codingProfiles[p.id as keyof CodingProfiles];
+      if (raw && typeof raw === "string" && raw.trim()) {
+        const clean = extractHandleFromInput(p.id, raw);
+        if (clean) profilesToSync.push({ platform: p.id, username: clean });
+      }
+    }
+
+    if (profilesToSync.length === 0) return;
+
+    setIsSyncingProfiles(true);
+    try {
+      const res = await fetchBatchProfilesApi(profilesToSync, true);
+      if (res && Object.keys(res).length > 0) {
+        setPlatformStats((prev) => {
+          const next = { ...prev, ...res };
+          setLocalPlatformStats(next, user?.uid);
+          if (user?.uid) {
+            void savePlatformStats(user.uid, next).catch(console.warn);
+          }
+          return next;
+        });
+      }
+    } catch (err) {
+      console.warn("[useContests] Force sync error:", err);
+    } finally {
+      setIsSyncingProfiles(false);
+    }
+  }, [codingProfiles, user]);
+
+  // Derive final list with evaluated statuses and auto attendance
+  const enriched: ContestWithStatus[] = useMemo(() => {
+    return contests.map((c) => {
+      const status = getContestStatus(c, now);
+      const manualMark = marks[c.id] ?? null;
+      const attendanceInfo = evaluateContestAttendance(c, codingProfiles, platformStats, manualMark, now);
+
+      return {
+        ...c,
+        endMs: c.startMs + c.durationMs,
+        status,
+        mark: attendanceInfo.mark,
+        attendanceInfo,
+      };
+    });
+  }, [contests, now, marks, codingProfiles, platformStats]);
+
+  return {
+    contests: enriched,
+    loading,
+    error,
+    now,
+    markContest,
+    refetch,
+    codingProfiles,
+    platformStats,
+    updateCodingProfile,
+    removeCodingProfile,
+    syncAllProfiles,
+    isSyncingProfiles,
+  };
 }

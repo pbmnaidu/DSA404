@@ -58,6 +58,7 @@ export async function requestPushPermission(): Promise<PushState> {
 
 /**
  * Attempt to subscribe this device to FCM push.
+ * Creates an independent Firestore doc for each device's unique FCM token.
  * @param userId Firebase Auth User ID
  * @param force Force token generation even if recently subscribed in this session
  * @returns true if FCM subscription succeeded, false otherwise.
@@ -71,10 +72,13 @@ export async function subscribeDevice(userId: string, force = false): Promise<bo
     return false;
   }
 
-  // Session guard: if already subscribed for this user recently, skip redundant token fetch & Firestore write
+  const localStorageKey = `dsa:fcm-token-uid:${userId}`;
+  const storedSubTime = parseInt(typeof window !== "undefined" ? localStorage.getItem(`dsa:fcm-sub-time:${userId}`) || "0" : "0", 10);
   const now = Date.now();
-  if (!force && lastSubscribedUserId === userId && now - lastSubscribedTime < 5 * 60 * 1000) {
-    console.info(`[push] FCM token subscription already active for user ${userId.slice(0, 8)}... (Skipping duplicate generation)`);
+
+  // Session & localStorage guard: if already subscribed for this user on THIS device recently, skip duplicate work unless forced
+  if (!force && lastSubscribedUserId === userId && now - lastSubscribedTime < 5 * 60 * 1000 && now - storedSubTime < 24 * 60 * 60 * 1000) {
+    console.info(`[push] FCM token subscription already active on this device for user ${userId.slice(0, 8)}...`);
     return true;
   }
 
@@ -110,21 +114,51 @@ export async function subscribeDevice(userId: string, force = false): Promise<bo
 
     console.info(`[push] Stage A SUCCESS: Real FCM token obtained (${token.slice(0, 10)}...${token.slice(-6)})`);
 
-    // Save token to Firestore so backend can reach it
-    await setDoc(doc(pushSubscriptionsCol(userId), token), {
-      token,
-      createdAt: new Date().toISOString(),
-      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
-    });
+    // Detect device type for multi-device tracking
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "unknown";
+    const isMobile = typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent);
+    const isPWA = typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone);
+    const deviceType = isPWA ? (isMobile ? "mobile_pwa" : "desktop_pwa") : (isMobile ? "mobile_browser" : "desktop_browser");
+    const platform = typeof navigator !== "undefined" ? navigator.platform : "unknown";
 
-    console.info(`[push] Stage B SUCCESS: Saved token to users/${userId}/pushSubscriptions/${token.slice(0, 8)}...`);
+    // Save device token as unique doc in users/{userId}/pushSubscriptions/{token}
+    await setDoc(
+      doc(pushSubscriptionsCol(userId), token),
+      {
+        token,
+        userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastActiveAt: new Date().toISOString(),
+        userAgent,
+        deviceType,
+        platform,
+      },
+      { merge: true }
+    );
+
+    console.info(`[push] Stage B SUCCESS: Registered multi-device token in users/${userId}/pushSubscriptions/${token.slice(0, 8)}... (${deviceType})`);
+    
     lastSubscribedUserId = userId;
     lastSubscribedTime = now;
+    if (typeof window !== "undefined") {
+      localStorage.setItem(localStorageKey, token);
+      localStorage.setItem(`dsa:fcm-sub-time:${userId}`, String(now));
+    }
     return true;
   } catch (e: any) {
     console.error("[push] Stage A/B ERROR: FCM subscription failed:", e?.message || e);
     return false;
   }
+}
+
+/** Helper to request permission and subscribe the current device in one flow */
+export async function requestAndSubscribeDevice(userId: string): Promise<boolean> {
+  const perm = await requestPushPermission();
+  if (perm === "granted") {
+    return await subscribeDevice(userId, true);
+  }
+  return false;
 }
 
 /**

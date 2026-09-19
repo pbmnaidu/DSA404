@@ -31,15 +31,37 @@ export function ReminderRunner() {
   const daysRef = useRef(days);
   daysRef.current = days;
 
-  // 1. One-time FCM Push Setup (stable lifecycle, runs only when user UID or pushEnabled changes)
+  // 1. Multi-device FCM Push Setup (registers token for current device on load, focus, or permission grant)
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!user?.uid || !settings.pushEnabled) return;
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
 
-    void registerReminderWorker();
-    void subscribeDevice(user.uid);
-    void setupForegroundNotificationListener();
+    const checkAndSubscribe = async () => {
+      if (!("Notification" in window)) return;
+
+      if (Notification.permission === "granted") {
+        await registerReminderWorker();
+        await subscribeDevice(user.uid);
+        await setupForegroundNotificationListener();
+      }
+    };
+
+    void checkAndSubscribe();
+
+    // Re-check on tab focus / PWA visibility change to ensure device token is active
+    const handleFocusOrVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void checkAndSubscribe();
+      }
+    };
+
+    window.addEventListener("focus", handleFocusOrVisibility);
+    document.addEventListener("visibilitychange", handleFocusOrVisibility);
+
+    return () => {
+      window.removeEventListener("focus", handleFocusOrVisibility);
+      document.removeEventListener("visibilitychange", handleFocusOrVisibility);
+    };
   }, [user?.uid, settings.pushEnabled]);
 
   // 2. Scheduled Local In-Tab Reminders Loop (ticks every 30s)

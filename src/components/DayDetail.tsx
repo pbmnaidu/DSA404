@@ -24,6 +24,8 @@ import {
   Download,
   Trash2,
   RotateCcw,
+  Ban,
+  Undo2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -276,6 +278,28 @@ export function DayDetail({
                 </div>
               </HoverHint>
             )}
+
+            {/* Skip Topic */}
+            <HoverHint hint="Skip this topic — next scheduled topic immediately replaces it for today">
+              <div className="inline-block shrink-0">
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-7 text-[11px] px-2.5 rounded-lg font-semibold shrink-0 whitespace-nowrap text-amber-500 hover:text-amber-400"
+                    >
+                      <Ban className="size-3 mr-1" />
+                      <span>Skip Topic</span>
+                    </Button>
+                  }
+                  title={`Skip "${day.topic}"?`}
+                  description={`This topic will be marked as skipped. The next scheduled topic will immediately shift forward to take its place on today's calendar. You can un-skip it anytime from the Topics tab or using Restore.`}
+                  confirmLabel="Skip Topic"
+                  onConfirm={() => skipTopic(day.dayNumber, true)}
+                />
+              </div>
+            </HoverHint>
 
             {/* Restore / Revert Button — Appears ONLY when an operation (merge/postpone/skip/borrow/delete) was performed */}
             {hasActionToRestore && !locked && (
