@@ -57,6 +57,9 @@ export default function ReviewPage() {
                   <ProblemRow
                     problem={problem}
                     readOnly={!isToday}
+                    topic={day.topic}
+                    dayNumber={day.dayNumber}
+                    section={day.section}
                     onToggle={
                       isToday
                         ? (v) =>

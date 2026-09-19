@@ -67,6 +67,7 @@ import { Progress } from "@/components/ui/progress";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
 import { GitHubContributionHeatmap } from "@/components/GitHubContributionHeatmap";
 import { DailyCombinationsBreakdown } from "@/components/DailyCombinationsBreakdown";
+import { GitHubIcon } from "@/components/SocialIcons";
 
 const DEMO_NAV = [
   { key: "today", label: "Today's Workspace", icon: Sparkles },
@@ -851,7 +852,20 @@ function ProfilePanel() {
                   Pro Plan
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground font-mono">@aditisharma_codes · SDE-1 Aspirant</p>
+              <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                <a
+                  href="https://github.com/aditisharma_codes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/20 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-800/35 dark:hover:bg-zinc-700/60 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
+                  title="Open GitHub profile: https://github.com/aditisharma_codes"
+                >
+                  <GitHubIcon className="size-3.5 shrink-0" />
+                  <span className="font-mono">@aditisharma_codes</span>
+                  <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                </a>
+                <span className="text-xs text-muted-foreground font-mono">· SDE-1 Aspirant</span>
+              </div>
               <p className="text-xs text-foreground/80 mt-1">Final Year CS Undergrad @ IIT · Target: Top Tech SDE Roles</p>
             </div>
           </div>

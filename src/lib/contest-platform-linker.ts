@@ -119,7 +119,7 @@ export function extractHandleFromInput(platformId: PlatformId, input: string): s
     const m = clean.match(/codeforces\.com\/profile\/([a-zA-Z0-9_.-]+)/i);
     if (m && m[1]) return m[1];
   } else if (platformId === "codechef") {
-    const m = clean.match(/codechef\.com\/users\/([a-zA-Z0-9_.-]+)/i);
+    const m = clean.match(/codechef\.com\/(?:users|u|profile)\/([a-zA-Z0-9_.-]+)/i);
     if (m && m[1]) return m[1];
   } else if (platformId === "hackerrank") {
     const m = clean.match(/hackerrank\.com\/(?:profile\/)?([a-zA-Z0-9_.-]+)/i);
@@ -541,7 +541,12 @@ export function evaluateContestAttendance(
   }
 
   const platformKey = meta.id as keyof CodingProfiles;
-  const rawProfileInput = codingProfiles ? (codingProfiles[platformKey] as string | undefined) : undefined;
+  const rawProfileInput = codingProfiles
+    ? ((codingProfiles[platformKey] as string | undefined) ||
+       (codingProfiles[meta.id.toLowerCase() as keyof CodingProfiles] as string | undefined) ||
+       ((codingProfiles as any)[meta.contestPlatformName] as string | undefined) ||
+       ((codingProfiles as any)[meta.label] as string | undefined))
+    : undefined;
   const cleanHandle = rawProfileInput ? extractHandleFromInput(meta.id, rawProfileInput) : "";
 
   // CASE 1: Platform is NOT linked

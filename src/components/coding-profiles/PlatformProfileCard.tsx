@@ -41,9 +41,32 @@ function resolvePlatformUrl(platform: string, username: string, explicitUrl?: st
 
 export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isRefreshing }: PlatformProfileCardProps) {
   const [showHeatmapModal, setShowHeatmapModal] = useState(false);
-  const isFailed = profile.status === "FETCH_FAILED" || profile.status === "PROFILE_NOT_FOUND";
+
+  // If github or if platform doesn't give access / fetch failed / no stats returned, do NOT show card
+  if (profile.platform === "github") {
+    return null;
+  }
+
+  const isFailed =
+    profile.status === "FETCH_FAILED" ||
+    profile.status === "PROFILE_NOT_FOUND" ||
+    profile.status === "NOT_AVAILABLE" ||
+    profile.status === "RATE_LIMITED";
+
+  const hasAnyData =
+    (typeof profile.totalSolved === "number" && profile.totalSolved > 0) ||
+    (profile.rating !== null && profile.rating !== undefined) ||
+    (profile.easySolved !== null || profile.mediumSolved !== null || profile.hardSolved !== null) ||
+    (profile.contestsParticipated !== null && profile.contestsParticipated > 0) ||
+    Boolean(profile.submissionCalendar && Object.keys(profile.submissionCalendar).length > 0) ||
+    Boolean(profile.recentSubmissions && profile.recentSubmissions.length > 0);
+
+  // If fetch failed or platform gave no access to data, do not show card
+  if (isFailed || (!hasAnyData && profile.status !== "SUCCESS" && profile.platform !== "linkedin")) {
+    return null;
+  }
+
   const isStaleFallback = profile.status === "TEMPORARY_ERROR";
-  const isGithub = profile.platform === "github";
   const isLinkedin = profile.platform === "linkedin";
 
   const targetUrl = resolvePlatformUrl(profile.platform, profile.username, profile.profileUrl);
@@ -52,7 +75,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
   const hasDifficulty = profile.easySolved !== null || profile.mediumSolved !== null || profile.hardSolved !== null;
 
   const hasHeatmapData = useMemo(() => {
-    if (isFailed || isLinkedin) return false;
+    if (isLinkedin) return false;
     const cal = profile.submissionCalendar || profile.platformSpecificData?.submissionCalendar;
     const hasCal = Boolean(cal && typeof cal === "object" && Object.keys(cal).length > 0);
     const subs = profile.recentSubmissions || profile.acceptedSubmissions;
@@ -61,7 +84,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
     const hasSolved = Boolean(typeof profile.totalSolved === "number" && profile.totalSolved > 0);
 
     return hasCal || hasSubs || hasContests || hasSolved;
-  }, [profile, isFailed, isLinkedin]);
+  }, [profile, isLinkedin]);
 
   return (
     <>
@@ -125,39 +148,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
         )}
 
         {/* Main Content: Metrics & Difficulty */}
-        {isFailed ? (
-          <div className="p-3 sm:p-4 text-center text-[11px] sm:text-xs text-rose-400/90 rounded-2xl border border-rose-500/20 bg-rose-500/5">
-            {profile.errorDetails || "Fetch failed for this platform."}
-          </div>
-        ) : isGithub ? (
-          /* GitHub Specific Card */
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-2xl border border-white/10 bg-background/50 p-2 sm:p-2.5">
-              <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground block truncate">Repositories</span>
-              <span className="font-black text-xs sm:text-base text-foreground tabular-nums">
-                {profile.platformSpecificData?.publicRepos ?? 0}
-              </span>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-background/50 p-2 sm:p-2.5">
-              <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground block truncate">Followers</span>
-              <span className="font-black text-xs sm:text-base text-primary tabular-nums">
-                {profile.platformSpecificData?.followers ?? 0}
-              </span>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-background/50 p-2 sm:p-2.5">
-              <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground block truncate">Public Gists</span>
-              <span className="font-black text-xs sm:text-base text-emerald-400 tabular-nums">
-                {profile.platformSpecificData?.publicGists ?? 0}
-              </span>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-background/50 p-2 sm:p-2.5">
-              <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground block truncate">Following</span>
-              <span className="font-black text-xs sm:text-base text-amber-400 tabular-nums">
-                {profile.platformSpecificData?.following ?? 0}
-              </span>
-            </div>
-          </div>
-        ) : isLinkedin ? (
+        {isLinkedin ? (
           <div className="p-3 sm:p-4 text-center text-xs text-foreground/80 rounded-2xl border border-white/10 bg-background/40 space-y-1">
             <p className="font-bold text-sky-400 text-xs sm:text-sm">LinkedIn Profile Connected</p>
             <a

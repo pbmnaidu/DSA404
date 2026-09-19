@@ -7,8 +7,10 @@ import type { Day } from "@/lib/types";
 import { DayCard } from "@/components/DayCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { ChevronDown, CalendarDays, LayoutGrid, Calendar } from "lucide-react";
+import { ChevronDown, CalendarDays, LayoutGrid, Calendar, Code2 } from "lucide-react";
+import { SkippedTopicSolveModal } from "@/components/SkippedTopicSolveModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,16 +71,16 @@ export default function WeeksPage() {
   const { days, loading, skipTopic } = usePlan();
   const today = todayIso();
 
-  // Active and skipped memo helpers
-  const activeDays = useMemo(() => days.filter((d) => !d.skipped && !d.isRevisionDay), [days]);
+  // Scheduled days that form the active calendar timeline — includes content and weekly revision days
+  const scheduledDays = useMemo(() => days.filter((d) => !d.skipped), [days]);
   const skippedDays = useMemo(
     () => days.filter((d) => d.skipped).sort((a, b) => a.dayNumber - b.dayNumber),
     [days],
   );
 
-  // Keep ALL days in weeks and months so every single scheduled date is visible in every week
-  const weeks = useMemo(() => groupIntoWeeks(days), [days]);
-  const monthsMap = useMemo(() => groupIntoMonths(days), [days]);
+  // Group scheduled days into clean 7-calendar-day weeks so every single scheduled date is properly shown
+  const weeks = useMemo(() => groupIntoWeeks(scheduledDays), [scheduledDays]);
+  const monthsMap = useMemo(() => groupIntoMonths(scheduledDays), [scheduledDays]);
   const monthKeys = useMemo(() => Object.keys(monthsMap).sort(), [monthsMap]);
 
   // Find the current week index (the week that contains today, or the first upcoming week)
@@ -100,6 +102,7 @@ export default function WeeksPage() {
   const [selectedMonthKey, setSelectedMonthKey] = useState<string>(
     monthKeys.includes(currentMonthKey) ? currentMonthKey : monthKeys[0] ?? "",
   );
+  const [selectedSkippedDay, setSelectedSkippedDay] = useState<Day | null>(null);
 
   // Sync selectedWeekIdx safely whenever weeks array changes (e.g. after skips/unskips)
   useEffect(() => {
@@ -138,44 +141,82 @@ export default function WeeksPage() {
     list.length > 0 ? (
       <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h3 className="font-display font-semibold text-muted-foreground">Skipped</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-display font-semibold text-foreground">Skipped Topics</h3>
+            <span className="text-[11px] font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              Click to solve anytime
+            </span>
+          </div>
           <span className="text-xs tabular-nums text-muted-foreground">
-            {list.length} day{list.length === 1 ? "" : "s"}
+            {list.length} topic{list.length === 1 ? "" : "s"}
           </span>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((d) => {
             const total = d.problems.length;
             const done = d.problems.filter((p) => p.done).length;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            const isAllDone = done === total && total > 0;
             return (
               <div
                 key={d.id}
-                className="rounded-lg border border-dashed border-border bg-secondary/40 p-3"
+                onClick={() => setSelectedSkippedDay(d)}
+                className="group rounded-xl border border-dashed border-border bg-secondary/30 hover:bg-secondary/60 hover:border-primary/50 transition-all p-3.5 flex flex-col justify-between cursor-pointer"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">{d.section}</p>
-                    <h4 className="mt-0.5 truncate text-sm font-semibold">{d.topic}</h4>
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">{d.section}</p>
+                      <h4 className="mt-0.5 truncate text-sm font-bold text-foreground group-hover:text-primary transition-colors">{d.topic}</h4>
+                    </div>
+                    {total > 0 && (
+                      <span className={cn(
+                        "shrink-0 text-xs font-semibold tabular-nums px-2 py-0.5 rounded-md border",
+                        isAllDone
+                          ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
+                          : "bg-muted text-muted-foreground border-border"
+                      )}>
+                        {done}/{total}
+                      </span>
+                    )}
                   </div>
+                  {d.subtopics.length > 0 && (
+                    <p className="mt-1.5 line-clamp-1 text-xs text-muted-foreground">
+                      {d.subtopics.join(" · ")}
+                    </p>
+                  )}
                   {total > 0 && (
-                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                      {done}/{total}
-                    </span>
+                    <div className="mt-2.5 space-y-1">
+                      <Progress value={pct} className="h-1 bg-muted" />
+                    </div>
                   )}
                 </div>
-                {d.subtopics.length > 0 && (
-                  <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-                    {d.subtopics.join(" · ")}
-                  </p>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="mt-2 h-7 px-2 text-xs"
-                  onClick={() => void skipTopic(d.dayNumber, false)}
-                >
-                  Un-skip
-                </Button>
+
+                <div className="mt-3.5 flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                  <Button
+                    size="sm"
+                    className="h-7 px-2.5 text-xs bg-primary/15 hover:bg-primary/25 text-primary border border-primary/30 font-semibold gap-1.5 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSkippedDay(d);
+                    }}
+                  >
+                    <Code2 className="size-3.5" />
+                    <span>{isAllDone ? "Review Solutions" : "Solve Problems"}</span>
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void skipTopic(d.dayNumber, false);
+                    }}
+                  >
+                    Un-skip
+                  </Button>
+                </div>
               </div>
             );
           })}
@@ -400,6 +441,11 @@ export default function WeeksPage() {
           </Button>
         </div>
         <SkippedSection list={weekSkipped} />
+        <SkippedTopicSolveModal
+          open={!!selectedSkippedDay}
+          onOpenChange={(op) => !op && setSelectedSkippedDay(null)}
+          day={selectedSkippedDay}
+        />
       </div>
     );
   }
@@ -472,6 +518,11 @@ export default function WeeksPage() {
           </Button>
         </div>
         <SkippedSection list={monthSkipped} />
+        <SkippedTopicSolveModal
+          open={!!selectedSkippedDay}
+          onOpenChange={(op) => !op && setSelectedSkippedDay(null)}
+          day={selectedSkippedDay}
+        />
       </div>
     );
   }
@@ -525,6 +576,12 @@ export default function WeeksPage() {
           );
         })}
       </div>
+      <SkippedSection list={skippedDays} />
+      <SkippedTopicSolveModal
+        open={!!selectedSkippedDay}
+        onOpenChange={(op) => !op && setSelectedSkippedDay(null)}
+        day={selectedSkippedDay}
+      />
     </div>
   );
 }

@@ -250,12 +250,10 @@ export function seedDays(startDate = START_DATE, sheetId = "core404"): Day[] {
 
 /**
  * Re-derive dayNumber + date from array order. Sequence is the source of truth.
- * Ensures Sunday is ALWAYS fixed for Weekly Revision (unless start date is Thu-Sun,
- * in which case the first Sunday has no revision day).
+ * Guarantees every single active day has a strictly consecutive calendar date without leaving any date missing.
  *
- * If `isPaused` is true, all day and problem dates are completely frozen.
- * If `isPaused` is false, past completed days retain their dates, and open days flow from
- * the first open day's date.
+ * If `isPaused` is true, all day dates and numbers are frozen.
+ * If `isPaused` is false, active days flow consecutively day by day with zero gaps.
  */
 export function renumber(
   days: Day[],
@@ -276,76 +274,35 @@ export function renumber(
     });
   }
 
-  const firstOpenIdx = days.findIndex(
-    (d) => !d.skipped && !isDayComplete(d) && d.status !== "merged",
-  );
-
-  if (firstOpenIdx === -1) {
-    let seq = 0;
+  const firstActive = days.find((d) => !d.skipped);
+  if (!firstActive) {
     let skippedSeq = 0;
     return days.map((d) => {
-      if (d.skipped) {
-        skippedSeq += 1;
-        return { ...d, dayNumber: -skippedSeq };
-      }
-      seq += 1;
-      return { ...d, dayNumber: seq };
+      skippedSeq += 1;
+      return { ...d, dayNumber: -skippedSeq };
     });
   }
 
-  const baseDate =
-    days[firstOpenIdx]?.date || addDays(startDate, offset);
-
-  const startDow = new Date(`${baseDate}T00:00:00Z`).getUTCDay();
-  const isThuToSun = startDow === 4 || startDow === 5 || startDow === 6 || startDow === 0;
+  // Determine starting calendar anchor
+  // Must anchor on startDate + offset so every single calendar date is strictly covered without leaving any date missing
+  const baseDate = addDays(startDate, offset);
 
   let seq = 0;
   let skippedSeq = 0;
   let calOffset = 0;
-  let firstSundayHandled = firstOpenIdx > 0;
 
-  return days.map((d, idx) => {
+  return days.map((d) => {
     if (d.skipped) {
       skippedSeq += 1;
       return { ...d, dayNumber: -skippedSeq };
     }
 
     seq += 1;
+    // Strictly consecutive calendar date: diffDays between consecutive active days is always exactly 1
+    const calDate = addDays(baseDate, calOffset);
+    calOffset += 1;
 
-    if (idx < firstOpenIdx) {
-      return { ...d, dayNumber: seq };
-    }
-
-    while (true) {
-      const calDate = addDays(baseDate, calOffset);
-      const dow = new Date(`${calDate}T00:00:00Z`).getUTCDay();
-
-      let isSundayRevision = false;
-      if (dow === 0) {
-        if (!firstSundayHandled) {
-          firstSundayHandled = true;
-          isSundayRevision = !isThuToSun;
-        } else {
-          isSundayRevision = true;
-        }
-      }
-
-      if (d.isRevisionDay) {
-        if (isSundayRevision) {
-          calOffset += 1;
-          return { ...d, dayNumber: seq, date: calDate };
-        } else {
-          calOffset += 1;
-        }
-      } else {
-        if (isSundayRevision) {
-          calOffset += 1;
-        } else {
-          calOffset += 1;
-          return { ...d, dayNumber: seq, date: calDate };
-        }
-      }
-    }
+    return { ...d, dayNumber: seq, date: calDate };
   });
 }
 

@@ -30,7 +30,8 @@ import {
 } from "@/components/SocialIcons";
 import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
-import { GitHubContributionHeatmap } from "@/components/GitHubContributionHeatmap";
+import { GitHubContributionHeatmap, extractGitHubUsername, resolveGitHubUrl } from "@/components/GitHubContributionHeatmap";
+import { getLocalGitHubSyncConfig } from "@/lib/github-sync";
 import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { computeBadges, currentStreak } from "@/lib/gamification";
@@ -75,7 +76,9 @@ import {
   FileText,
   Link2,
   Eye,
+  Trophy,
 } from "lucide-react";
+import { extractHandleFromInput } from "@/lib/contest-platform-linker";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -86,7 +89,7 @@ import {
 
 // ── Platform metadata ────────────────────────────────────────────────────────
 const PLATFORMS: {
-  key: Exclude<keyof CodingProfiles, "customLinks">;
+  key: Exclude<keyof CodingProfiles, "customLinks" | "github">;
   label: string;
   placeholder: string;
   color: string;
@@ -98,7 +101,6 @@ const PLATFORMS: {
     { key: "atcoder", label: "AtCoder", placeholder: "https://atcoder.jp/users/yourname", color: "#8BC4E8", bgColor: "rgba(139,196,232,0.12)" },
     { key: "hackerrank", label: "HackerRank", placeholder: "https://www.hackerrank.com/profile/yourname", color: "#00EA64", bgColor: "rgba(0,234,100,0.12)" },
     { key: "gfg", label: "GeeksforGeeks", placeholder: "https://www.geeksforgeeks.org/user/yourname", color: "#2F8D46", bgColor: "rgba(47,141,70,0.12)" },
-    { key: "github", label: "GitHub", placeholder: "https://github.com/yourname", color: "#6E7681", bgColor: "rgba(110,118,129,0.12)" },
   ];
 
 // ── Image helpers ────────────────────────────────────────────────────────────
@@ -258,6 +260,7 @@ export function CoderProfilePage() {
         }
         if (p.bannerURL) setBannerURL(p.bannerURL);
         setCodingProfiles(p.codingProfiles ?? {});
+        setDraftProfiles(p.codingProfiles ?? {});
         setDraftCustomLinks(p.codingProfiles?.customLinks ?? []);
       })
       .finally(() => setLoadingProfile(false));
@@ -463,14 +466,31 @@ export function CoderProfilePage() {
     return { heatmapData: hData, detailMap: dMap };
   }, [days, submissions]);
 
-  // Auto-extract GitHub username/handle from profile links or connected profiles
-  const githubUsername = useMemo(() => {
-    if (github) return github;
+  // Auto-extract GitHub username/handle and profile URL from all available sources
+  const effectiveGithubRaw = useMemo(() => {
+    if (github && github.trim()) return github.trim();
     const fromSocial = socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url;
-    if (fromSocial) return fromSocial;
-    if (codingProfiles.github) return codingProfiles.github;
+    if (fromSocial && fromSocial.trim()) return fromSocial.trim();
+    if (codingProfiles.github && codingProfiles.github.trim()) return codingProfiles.github.trim();
+    if (typeof window !== "undefined" && user?.uid) {
+      try {
+        const syncCfg = getLocalGitHubSyncConfig(user.uid);
+        if (syncCfg?.owner && syncCfg.owner.trim()) return syncCfg.owner.trim();
+      } catch { }
+    }
+    if (username && username.trim()) return username.trim();
     return "";
-  }, [github, socialLinks, codingProfiles]);
+  }, [github, socialLinks, codingProfiles, user?.uid, username]);
+
+  const effectiveGithubUsername = useMemo(() => {
+    return extractGitHubUsername(effectiveGithubRaw) || effectiveGithubRaw.replace(/^@+/, "");
+  }, [effectiveGithubRaw]);
+
+  const githubProfileUrl = useMemo(() => {
+    return resolveGitHubUrl(effectiveGithubRaw);
+  }, [effectiveGithubRaw]);
+
+  const githubUsername = effectiveGithubUsername;
 
   // — Handlers
   const handleAvatarChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -538,6 +558,22 @@ export function CoderProfilePage() {
         }
       }
 
+      const cleanedDraftProfiles: CodingProfiles = { ...draftProfiles };
+      for (const [key, val] of Object.entries(cleanedDraftProfiles)) {
+        if (typeof val === "string" && val.trim()) {
+          const cleanVal = extractHandleFromInput(key as any, val);
+          (cleanedDraftProfiles as any)[key] = cleanVal || val.trim();
+        }
+      }
+
+      const mergedCodingProfiles: CodingProfiles = {
+        ...codingProfiles,
+        ...cleanedDraftProfiles,
+        customLinks: draftCustomLinks,
+      };
+      // Ensure github is not kept in codingProfiles (it has its own top-level field)
+      delete (mergedCodingProfiles as any).github;
+
       await updateProfile(auth.currentUser!, { displayName });
       await saveUserProfile(user.uid, {
         displayName,
@@ -548,18 +584,32 @@ export function CoderProfilePage() {
         github: github.trim(),
         portfolio: portfolio.trim(),
         socialLinks,
+        codingProfiles: mergedCodingProfiles,
         username: finalUsername,
         email: currentEmail || undefined,
         publicStats: { totalSolved: stats.total, byPlatform: stats.byPlatform, lastUpdated: new Date().toISOString() },
         completedProblems,
       });
-      toast.success("Profile details saved! 🎉");
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(mergedCodingProfiles));
+          localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(mergedCodingProfiles));
+          window.dispatchEvent(
+            new CustomEvent("ldt_coding_profiles_updated", {
+              detail: { codingProfiles: mergedCodingProfiles },
+            })
+          );
+        } catch {}
+      }
+      setCodingProfiles(mergedCodingProfiles);
+      toast.success("Profile details & contest links saved! 🎉");
     } catch (err) {
       toast.error("Save failed", { description: (err as Error).message });
     } finally {
       setSaving(false);
     }
-  }, [user, displayName, bio, aboutMe, notes, linkedin, github, portfolio, socialLinks, usernameDraft, username, currentEmail, stats, completedProblems]);
+  }, [user, displayName, bio, aboutMe, notes, linkedin, github, portfolio, socialLinks, draftProfiles, draftCustomLinks, codingProfiles, usernameDraft, username, currentEmail, stats, completedProblems]);
 
   const handleSaveNotes = useCallback(async () => {
     if (!user) return;
@@ -579,7 +629,15 @@ export function CoderProfilePage() {
   const saveCodingProfiles = useCallback(async () => {
     if (!user) return; setSaving(true);
     try {
-      const merged: CodingProfiles = { ...draftProfiles, customLinks: draftCustomLinks };
+      const cleaned: CodingProfiles = { ...draftProfiles };
+      for (const [key, val] of Object.entries(cleaned)) {
+        if (typeof val === "string" && val.trim()) {
+          const cleanVal = extractHandleFromInput(key as any, val);
+          (cleaned as any)[key] = cleanVal || val.trim();
+        }
+      }
+      delete (cleaned as any).github;
+      const merged: CodingProfiles = { ...cleaned, customLinks: draftCustomLinks };
       await saveUserProfile(user.uid, { codingProfiles: merged });
       setCodingProfiles(merged); setEditingProfiles(false);
       toast.success("Coding profiles saved!");
@@ -663,23 +721,31 @@ export function CoderProfilePage() {
                 )}
               </h1>
               <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                {username && <p className="text-xs font-semibold text-primary truncate">@{username}</p>}
-                {github && (
+                {username && username !== effectiveGithubUsername && (
+                  <Link
+                    href={`/profile/${username}`}
+                    className="text-xs font-semibold text-primary truncate hover:underline cursor-pointer"
+                    title={`View public profile for @${username}`}
+                  >
+                    @{username}
+                  </Link>
+                )}
+                {githubProfileUrl && (
                   <a
-                    href={github.startsWith("http") ? github : `https://${github}`}
+                    href={githubProfileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
-                    title={`Open GitHub profile: ${github}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/20 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-800/35 dark:hover:bg-zinc-700/60 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer group"
+                    title={`Open GitHub profile: ${githubProfileUrl}`}
                   >
-                    <GitHubIcon className="size-3 shrink-0" />
-                    <span>GitHub</span>
-                    <ExternalLink className="size-2.5 opacity-70" />
+                    <GitHubIcon className="size-3.5 shrink-0" />
+                    <span className="font-mono">{effectiveGithubUsername ? `@${effectiveGithubUsername}` : "GitHub"}</span>
+                    <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100 transition-opacity" />
                   </a>
                 )}
                 {linkedin && (
                   <a
-                    href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
+                    href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
@@ -1092,6 +1158,180 @@ export function CoderProfilePage() {
               </div>
             </div>
 
+            {/* Contest & Coding Platform Profiles (Auto-Tracks Contests) */}
+            <div className="space-y-3 rounded-2xl border border-amber-500/25 bg-amber-500/[0.03] dark:bg-amber-500/[0.05] p-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-white/10 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="size-6 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                    <Trophy className="size-3.5" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      Coding &amp; Contest Platform Profiles
+                    </Label>
+                    <p className="text-[10.5px] text-muted-foreground">
+                      Enter your profile URL or handle. Contests on these platforms will automatically sync and link your account.
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="self-start sm:self-auto text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                  ⚡ Auto-Tracks Contests
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                {/* LeetCode */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-amber-500 font-bold">⚡</span> LeetCode
+                    </span>
+                    {draftProfiles.leetcode && extractHandleFromInput('leetcode', draftProfiles.leetcode) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('leetcode', draftProfiles.leetcode)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.leetcode || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, leetcode: e.target.value }))}
+                    placeholder="leetcode.com/u/yourhandle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://leetcode.com/u/username
+                  </p>
+                </div>
+
+                {/* Codeforces */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-blue-500 font-bold">🔵</span> Codeforces
+                    </span>
+                    {draftProfiles.codeforces && extractHandleFromInput('codeforces', draftProfiles.codeforces) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('codeforces', draftProfiles.codeforces)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.codeforces || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, codeforces: e.target.value }))}
+                    placeholder="codeforces.com/profile/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://codeforces.com/profile/tourist
+                  </p>
+                </div>
+
+                {/* CodeChef */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-orange-500 font-bold">👨‍🍳</span> CodeChef
+                    </span>
+                    {draftProfiles.codechef && extractHandleFromInput('codechef', draftProfiles.codechef) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('codechef', draftProfiles.codechef)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.codechef || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, codechef: e.target.value }))}
+                    placeholder="codechef.com/users/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.codechef.com/users/username
+                  </p>
+                </div>
+
+                {/* HackerRank */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-emerald-500 font-bold">🏆</span> HackerRank
+                    </span>
+                    {draftProfiles.hackerrank && extractHandleFromInput('hackerrank', draftProfiles.hackerrank) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('hackerrank', draftProfiles.hackerrank)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.hackerrank || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, hackerrank: e.target.value }))}
+                    placeholder="hackerrank.com/profile/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.hackerrank.com/profile/username
+                  </p>
+                </div>
+
+                {/* HackerEarth */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-cyan-500 font-bold">🌐</span> HackerEarth
+                    </span>
+                    {draftProfiles.hackerearth && extractHandleFromInput('hackerearth', draftProfiles.hackerearth) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('hackerearth', draftProfiles.hackerearth)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.hackerearth || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, hackerearth: e.target.value }))}
+                    placeholder="hackerearth.com/@handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.hackerearth.com/@username
+                  </p>
+                </div>
+
+                {/* GeeksforGeeks */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-emerald-600 font-bold">💚</span> GeeksforGeeks
+                    </span>
+                    {draftProfiles.gfg ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        Connected ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.gfg || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, gfg: e.target.value }))}
+                    placeholder="geeksforgeeks.org/user/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.geeksforgeeks.org/user/username
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Public About Me */}
             <div className="space-y-1.5">
               <Label htmlFor="prof-about-me" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
@@ -1361,9 +1601,27 @@ export function CoderProfilePage() {
                 Connected Profiles &amp; Links
               </p>
               <div className="flex flex-wrap gap-2">
+                {githubProfileUrl ? (
+                  <a
+                    href={githubProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
+                    title={`Open GitHub: ${githubProfileUrl}`}
+                  >
+                    <GitHubIcon className="size-3.5 shrink-0" />
+                    <span>GitHub{effectiveGithubUsername ? ` (@${effectiveGithubUsername})` : ""}</span>
+                    <ExternalLink className="size-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
+                    <GitHubIcon className="size-3.5 opacity-40" /> No GitHub linked
+                  </span>
+                )}
+
                 {linkedin ? (
                   <a
-                    href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
+                    href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
@@ -1415,7 +1673,7 @@ export function CoderProfilePage() {
               </div>
             </div>
 
-            {(!linkedin && !portfolio && socialLinks.length === 0) && (
+            {(!githubProfileUrl && !linkedin && !portfolio && socialLinks.length === 0) && (
               <p className="text-[11px] text-muted-foreground">
                 Click <button type="button" onClick={() => setShowEditDetails(true)} className="text-primary hover:underline font-semibold cursor-pointer">Edit Profile Details</button> to add your LinkedIn, Portfolio, and other social profiles.
               </p>
@@ -1496,6 +1754,20 @@ export function CoderProfilePage() {
         userId={user?.uid}
         onSaveProfiles={async (updated) => {
           setCodingProfiles(updated);
+          setDraftProfiles((prev) => ({ ...prev, ...updated }));
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(updated));
+              if (user?.uid) {
+                localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(updated));
+              }
+              window.dispatchEvent(
+                new CustomEvent("ldt_coding_profiles_updated", {
+                  detail: { codingProfiles: updated },
+                })
+              );
+            } catch {}
+          }
           if (user) {
             saveUserProfile(user.uid, { codingProfiles: updated }).catch(console.error);
           }

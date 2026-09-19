@@ -214,6 +214,7 @@ export interface CodingProfiles {
   codechef?: string;
   atcoder?: string;
   hackerrank?: string;
+  hackerearth?: string;
   gfg?: string;
   github?: string;
   customLinks?: CustomLink[];

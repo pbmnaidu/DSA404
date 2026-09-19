@@ -7,7 +7,7 @@ import { analyzeCodingProfiles } from "@/lib/coding-platforms/analytics";
 import { PlatformProfileCard } from "./PlatformProfileCard";
 import { PlatformConnectCard } from "./PlatformConnectCard";
 import { ContestHistoryChart } from "./ContestHistoryChart";
-import { savePlatformStats } from "@/lib/db";
+import { savePlatformStats, saveUserProfile } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Globe, RefreshCw, Trophy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -66,7 +66,7 @@ export function UnifiedProfileDashboard({
   // Fetch initial profile stats only once per unique platform+username pair
   useEffect(() => {
     const list = Object.entries(connectedProfiles)
-      .filter(([k, u]) => k !== "customLinks" && k !== "platformStats" && typeof u === "string" && Boolean(u.trim()))
+      .filter(([k, u]) => k !== "customLinks" && k !== "platformStats" && k !== "github" && typeof u === "string" && Boolean(u.trim()))
       .map(([p, u]) => ({ platform: p as PlatformId, username: u as string }));
 
     if (list.length === 0) {
@@ -122,7 +122,28 @@ export function UnifiedProfileDashboard({
   const handleConnect = async (platform: PlatformId, username: string) => {
     const next = { ...connectedProfiles, [platform]: username };
     setConnectedProfiles(next);
+
+    // Sync to contest tracking local cache & broadcast update
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(next));
+        if (userId) {
+          localStorage.setItem(`dsa_coding_profiles_${userId}`, JSON.stringify(next));
+        }
+        window.dispatchEvent(
+          new CustomEvent("ldt_coding_profiles_updated", {
+            detail: { codingProfiles: next },
+          })
+        );
+      } catch {}
+    }
+
     if (onSaveProfiles) onSaveProfiles(next);
+
+    // Save coding profile directly to user doc in DB
+    if (userId) {
+      void saveUserProfile(userId, { codingProfiles: next }).catch(console.warn);
+    }
 
     setRefreshingPlatform(platform);
     try {
@@ -171,7 +192,7 @@ export function UnifiedProfileDashboard({
 
   const handleRefreshAll = async () => {
     const list = Object.entries(connectedProfiles)
-      .filter(([k, u]) => k !== "customLinks" && k !== "platformStats" && typeof u === "string" && Boolean(u.trim()))
+      .filter(([k, u]) => k !== "customLinks" && k !== "platformStats" && k !== "github" && typeof u === "string" && Boolean(u.trim()))
       .map(([p, u]) => ({ platform: p as PlatformId, username: u as string }));
 
     if (list.length === 0) return;
@@ -196,11 +217,11 @@ export function UnifiedProfileDashboard({
     }
   };
 
-  // Only calculate analytics and charts for platforms that are ACTUALLY linked in connectedProfiles
+  // Only calculate analytics and charts for platforms that are ACTUALLY linked in connectedProfiles (excluding github)
   const activeFetchedData = useMemo(() => {
     const active: Record<string, NormalizedCodingProfile> = {};
     for (const [k, u] of Object.entries(connectedProfiles)) {
-      if (k !== "customLinks" && k !== "platformStats" && typeof u === "string" && Boolean(u.trim())) {
+      if (k !== "customLinks" && k !== "platformStats" && k !== "github" && typeof u === "string" && Boolean(u.trim())) {
         if (fetchedData[k]) {
           active[k] = fetchedData[k];
         }
@@ -226,6 +247,33 @@ export function UnifiedProfileDashboard({
     }
     return items;
   }, [activeFetchedData]);
+
+  // Only display cards for platforms with accessible, successfully fetched data (excluding github)
+  const visibleProfiles = useMemo(() => {
+    return Object.entries(connectedProfiles)
+      .filter(([k, u]) => k !== "customLinks" && k !== "platformStats" && k !== "github" && typeof u === "string" && Boolean(u.trim()))
+      .filter(([platformKey]) => {
+        const profile = fetchedData[platformKey];
+        if (!profile) return false;
+        // If platform didn't give access, rate limited, or failed, do NOT show in cards
+        if (
+          profile.status === "FETCH_FAILED" ||
+          profile.status === "PROFILE_NOT_FOUND" ||
+          profile.status === "NOT_AVAILABLE" ||
+          profile.status === "RATE_LIMITED"
+        ) {
+          return false;
+        }
+        const hasStats =
+          (typeof profile.totalSolved === "number" && profile.totalSolved > 0) ||
+          (profile.rating !== null && profile.rating !== undefined) ||
+          (profile.easySolved !== null || profile.mediumSolved !== null || profile.hardSolved !== null) ||
+          (profile.contestsParticipated !== null && profile.contestsParticipated > 0) ||
+          Boolean(profile.submissionCalendar && Object.keys(profile.submissionCalendar).length > 0) ||
+          Boolean(profile.recentSubmissions && profile.recentSubmissions.length > 0);
+        return hasStats || profile.status === "SUCCESS";
+      });
+  }, [connectedProfiles, fetchedData]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -289,64 +337,26 @@ export function UnifiedProfileDashboard({
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(connectedProfiles)
-            .filter(([k, u]) => k !== "customLinks" && k !== "platformStats" && typeof u === "string" && Boolean(u.trim()))
-            .map(([platformKey, username]) => {
-              const profile = fetchedData[platformKey] || {
-                platform: platformKey as PlatformId,
-                username,
-                displayName: username,
-                profileUrl: null,
-                avatarUrl: null,
-                country: null,
-                rank: null,
-                rating: null,
-                maxRating: null,
-                totalSolved: null,
-                easySolved: null,
-                mediumSolved: null,
-                hardSolved: null,
-                contestsParticipated: null,
-                contestRating: null,
-                ratingHistory: null,
-                recentSubmissions: null,
-                acceptedSubmissions: null,
-                languages: null,
-                badges: null,
-                streak: null,
-                topicStats: null,
-                lastActivity: null,
-                fetchedAt: new Date().toISOString(),
-                status: "TEMPORARY_ERROR",
-                dataSource: "Official API",
-                capabilities: {
-                  profile: true,
-                  rating: true,
-                  ratingHistory: false,
-                  solvedProblems: true,
-                  difficultyStats: true,
-                  contestStats: true,
-                  contestHistory: false,
-                  recentSubmissions: false,
-                  languageStats: false,
-                  badges: false,
-                  streak: false,
-                  topicStats: false,
-                },
-              };
+          {visibleProfiles.map(([platformKey]) => {
+            const profile = fetchedData[platformKey];
+            if (!profile) return null;
 
-              return (
-                <PlatformProfileCard
-                  key={platformKey}
-                  profile={profile}
-                  onRefresh={() => handleRefreshSingle(platformKey as PlatformId)}
-                  isRefreshing={refreshingPlatform === platformKey}
-                />
-              );
-            })}
-          {Object.keys(connectedProfiles).filter((k) => k !== "customLinks" && k !== "platformStats" && typeof connectedProfiles[k] === "string" && Boolean(connectedProfiles[k].trim())).length === 0 && (
+            return (
+              <PlatformProfileCard
+                key={platformKey}
+                profile={profile}
+                onRefresh={() => handleRefreshSingle(platformKey as PlatformId)}
+                isRefreshing={refreshingPlatform === platformKey}
+              />
+            );
+          })}
+          {visibleProfiles.length === 0 && (
             <p className="col-span-full text-xs text-muted-foreground italic p-6 text-center border border-dashed border-white/10 rounded-2xl">
-              {readOnly ? "No coding platforms connected yet." : "No coding profiles connected yet. Connect your LeetCode, Codeforces, CodeChef, or AtCoder handles above!"}
+              {loading
+                ? "Syncing platform profile statistics..."
+                : readOnly
+                ? "No coding platform statistics available."
+                : "No active platform stats available. Connect your LeetCode, Codeforces, or CodeChef profiles above!"}
             </p>
           )}
         </div>

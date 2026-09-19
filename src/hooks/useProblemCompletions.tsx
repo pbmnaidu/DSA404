@@ -96,7 +96,16 @@ export function useProblemCompletions() {
 
   /** Submit code for a problem, marking it completed and persisting locally and in DB. */
   const submitCode = useCallback(
-    async (name: string, code: string, link: string = "", keyPoints: string = "") => {
+    async (
+      name: string,
+      code: string,
+      link: string = "",
+      keyPoints: string = "",
+      topic?: string,
+      dayNumber?: number,
+      section?: string,
+      difficulty?: string,
+    ) => {
       if (!user?.uid) return;
       const currentUid = user.uid;
 
@@ -142,6 +151,10 @@ export function useProblemCompletions() {
           code,
           keyPoints,
           link: effectiveLink,
+          topic,
+          dayNumber,
+          section,
+          difficulty,
         })
           .then((res) => {
             if (res.success) {

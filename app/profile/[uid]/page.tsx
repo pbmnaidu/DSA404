@@ -34,7 +34,7 @@ import {
 } from "recharts";
 import { ExternalLink, Globe, Code2, Flame, Sparkles, TrendingUp, BarChart3, CheckCircle2, Mail, UserCircle2 } from "lucide-react";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
-import { GitHubContributionHeatmap } from "@/components/GitHubContributionHeatmap";
+import { GitHubContributionHeatmap, extractGitHubUsername, resolveGitHubUrl } from "@/components/GitHubContributionHeatmap";
 import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { computeBadges, currentStreak, solvedTrend, difficultySplit } from "@/lib/gamification";
@@ -577,15 +577,26 @@ export default function PublicProfilePage() {
     return { heatmapData: hData, detailMap: dMap };
   }, [days]);
 
-  // Auto-extract GitHub username/handle from profile links or connected profiles
-  const githubUsername = useMemo(() => {
-    if (github) return github;
+  // Auto-extract GitHub username/handle and profile URL from all available sources
+  const effectiveGithubRaw = useMemo(() => {
+    if (github && github.trim()) return github.trim();
     const fromSocial = socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url;
-    if (fromSocial) return fromSocial;
-    if (codingProfiles.github) return codingProfiles.github;
-    if (isDemo) return "torvalds";
+    if (fromSocial && fromSocial.trim()) return fromSocial.trim();
+    if (codingProfiles.github && codingProfiles.github.trim()) return codingProfiles.github.trim();
+    if (isDemo) return "alexrivera-dev";
+    if (username && username.trim()) return username.trim();
     return "";
-  }, [github, socialLinks, codingProfiles, isDemo]);
+  }, [github, socialLinks, codingProfiles, isDemo, username]);
+
+  const effectiveGithubUsername = useMemo(() => {
+    return extractGitHubUsername(effectiveGithubRaw) || effectiveGithubRaw.replace(/^@+/, "");
+  }, [effectiveGithubRaw]);
+
+  const githubProfileUrl = useMemo(() => {
+    return resolveGitHubUrl(effectiveGithubRaw);
+  }, [effectiveGithubRaw]);
+
+  const githubUsername = effectiveGithubUsername;
 
   if (loading) {
     return <QuoteLoader fullScreen />;
@@ -710,23 +721,25 @@ export default function PublicProfilePage() {
                   )}
                 </h1>
                 <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                  {username && <p className="text-xs font-mono font-medium text-primary truncate">@{username}</p>}
-                  {github && (
+                  {username && username !== effectiveGithubUsername && (
+                    <p className="text-xs font-mono font-medium text-primary truncate">@{username}</p>
+                  )}
+                  {githubProfileUrl && (
                     <a
-                      href={github.startsWith("http") ? github : `https://${github}`}
+                      href={githubProfileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                      title={`Open GitHub profile: ${github}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/20 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-800/35 dark:hover:bg-zinc-700/60 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
+                      title={`Open GitHub profile: ${githubProfileUrl}`}
                     >
-                      <GitHubIcon className="size-3 shrink-0" />
-                      <span>GitHub</span>
-                      <ExternalLink className="size-2.5 opacity-70" />
+                      <GitHubIcon className="size-3.5 shrink-0" />
+                      <span className="font-mono">{effectiveGithubUsername ? `@${effectiveGithubUsername}` : "GitHub"}</span>
+                      <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100 transition-opacity" />
                     </a>
                   )}
                   {linkedin && (
                     <a
-                      href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
+                      href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
@@ -828,9 +841,23 @@ export default function PublicProfilePage() {
                   Verified Social &amp; Web Links
                 </p>
                 <div className="flex flex-wrap gap-2">
+                  {githubProfileUrl && (
+                    <a
+                      href={githubProfileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
+                      title={`Open GitHub: ${githubProfileUrl}`}
+                    >
+                      <GitHubIcon className="size-3.5 shrink-0" />
+                      <span>GitHub{effectiveGithubUsername ? ` (@${effectiveGithubUsername})` : ""}</span>
+                      <ExternalLink className="size-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  )}
+
                   {linkedin && (
                     <a
-                      href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
+                      href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
@@ -872,7 +899,7 @@ export default function PublicProfilePage() {
                     </a>
                   ))}
 
-                  {!linkedin && !portfolio && socialLinks.length === 0 && (
+                  {!githubProfileUrl && !linkedin && !portfolio && socialLinks.length === 0 && (
                     <span className="text-xs text-muted-foreground italic">No public social media links attached.</span>
                   )}
                 </div>

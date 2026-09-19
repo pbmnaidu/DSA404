@@ -346,64 +346,68 @@ export async function syncContestsToFirestore(): Promise<Contest[]> {
     const sorted = dedupContests(validated).sort((a, b) => a.startMs - b.startMs);
 
     if (sorted.length > 0) {
-      const db = getAdminDb();
-      const batchSize = 400;
-      const nowIso = new Date().toISOString();
-      const todayIso = nowIso.slice(0, 10);
-
-      // 1. Save fresh contests to DB
-      for (let i = 0; i < sorted.length; i += batchSize) {
-        const batch = db.batch();
-        const chunk = sorted.slice(i, i + batchSize);
-        for (const contest of chunk) {
-          const docRef = db.collection("contests").doc(contest.id);
-          batch.set(docRef, { ...contest, updatedAt: nowIso }, { merge: true });
-        }
-        await batch.commit();
-      }
-
-      // 2. Prune & remove contests older than 1 week from DB
       try {
-        const allDocsSnap = await db.collection("contests").get();
-        const nowMs = Date.now();
-        const expiredDocRefs: FirebaseFirestore.DocumentReference[] = [];
+        const db = getAdminDb();
+        const batchSize = 400;
+        const nowIso = new Date().toISOString();
+        const todayIso = nowIso.slice(0, 10);
 
-        for (const doc of allDocsSnap.docs) {
-          if (doc.id === "meta") continue;
-          const data = doc.data();
-          const startMs = Number(data.startMs) || 0;
-          const durationMs = Number(data.durationMs) || 0;
-          const endMs = startMs + durationMs;
-          // If ended more than 1 week ago, remove from DB
-          if (endMs > 0 && endMs < nowMs - CONTEST_RETENTION_MS) {
-            expiredDocRefs.push(doc.ref);
+        // 1. Save fresh contests to DB
+        for (let i = 0; i < sorted.length; i += batchSize) {
+          const batch = db.batch();
+          const chunk = sorted.slice(i, i + batchSize);
+          for (const contest of chunk) {
+            const docRef = db.collection("contests").doc(contest.id);
+            batch.set(docRef, { ...contest, updatedAt: nowIso }, { merge: true });
           }
+          await batch.commit();
         }
 
-        if (expiredDocRefs.length > 0) {
-          console.info(`[contests-service] Removing ${expiredDocRefs.length} contests older than 1 week from DB...`);
-          for (let i = 0; i < expiredDocRefs.length; i += batchSize) {
-            const delBatch = db.batch();
-            const chunk = expiredDocRefs.slice(i, i + batchSize);
-            for (const ref of chunk) {
-              delBatch.delete(ref);
+        // 2. Prune & remove contests older than 1 week from DB
+        try {
+          const allDocsSnap = await db.collection("contests").get();
+          const nowMs = Date.now();
+          const expiredDocRefs: FirebaseFirestore.DocumentReference[] = [];
+
+          for (const doc of allDocsSnap.docs) {
+            if (doc.id === "meta") continue;
+            const data = doc.data();
+            const startMs = Number(data.startMs) || 0;
+            const durationMs = Number(data.durationMs) || 0;
+            const endMs = startMs + durationMs;
+            // If ended more than 1 week ago, remove from DB
+            if (endMs > 0 && endMs < nowMs - CONTEST_RETENTION_MS) {
+              expiredDocRefs.push(doc.ref);
             }
-            await delBatch.commit().catch(() => {});
           }
-        }
-      } catch (pruneErr) {
-        console.warn("[contests-service] Contests 1-week pruning warning:", pruneErr);
-      }
 
-      // 3. Record lastFetchedDate for starting day tracking
-      await db.doc("contests/meta").set(
-        {
-          lastFetchedDate: todayIso,
-          lastFetchedAt: nowIso,
-          count: sorted.length,
-        },
-        { merge: true }
-      ).catch(() => {});
+          if (expiredDocRefs.length > 0) {
+            console.info(`[contests-service] Removing ${expiredDocRefs.length} contests older than 1 week from DB...`);
+            for (let i = 0; i < expiredDocRefs.length; i += batchSize) {
+              const delBatch = db.batch();
+              const chunk = expiredDocRefs.slice(i, i + batchSize);
+              for (const ref of chunk) {
+                delBatch.delete(ref);
+              }
+              await delBatch.commit().catch(() => {});
+            }
+          }
+        } catch (pruneErr) {
+          console.warn("[contests-service] Contests 1-week pruning warning:", pruneErr);
+        }
+
+        // 3. Record lastFetchedDate for starting day tracking
+        await db.doc("contests/meta").set(
+          {
+            lastFetchedDate: todayIso,
+            lastFetchedAt: nowIso,
+            count: sorted.length,
+          },
+          { merge: true }
+        ).catch(() => {});
+      } catch (adminErr) {
+        console.warn("[contests-service] Warning: Admin Firestore sync bypassed, returning fetched contests directly:", adminErr);
+      }
     }
 
     return sorted;

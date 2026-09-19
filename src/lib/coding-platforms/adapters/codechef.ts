@@ -30,12 +30,13 @@ export class CodeChefAdapter implements PlatformAdapter {
 
   extractUsername(input: string): string {
     if (!input) return "";
-    let str = (typeof input === "string" ? input : String(input || "")).trim().replace(/\/+$/, "");
+    let str = (typeof input === "string" ? input : String(input || "")).trim().split("?")[0].replace(/\/+$/, "");
     if (str.includes("codechef.com")) {
-      const match = str.match(/codechef\.com\/users\/([a-zA-Z0-9_-]+)/i);
-      if (match && match[1]) return match[1];
+      const match = str.match(/codechef\.com\/(?:users|u|profile)\/([a-zA-Z0-9_.-]+)/i);
+      if (match && match[1]) return match[1].replace(/^@+/, "");
     }
-    return str.split("/").pop() || str;
+    const cand = str.split("/").filter(Boolean).pop() || str;
+    return cand.replace(/^@+/, "").trim();
   }
 
   async fetchProfile(username: string): Promise<NormalizedCodingProfile> {

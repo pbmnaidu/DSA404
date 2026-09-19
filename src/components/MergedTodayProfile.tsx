@@ -152,28 +152,36 @@ export function MergedTodayProfile() {
     if (user?.uid) recordActivity(user.uid);
   }, [user]);
 
-  // Today's Day selection logic
-  // When paused, freeze the reference date to pausedFrom so Today's workspace doesn't advance forward in problems
+  // Strictly determine Today's Day:
+  // When paused, freeze reference date to pausedFrom
   const iso = settings.paused && settings.pausedFrom ? settings.pausedFrom : todayIso();
+  // 1. Look for active (non-skipped) day scheduled for today
   const todayDay = days.find((d) => d.date === iso && !d.skipped);
-  // When today's topic is skipped or deleted, the day that shifts forward fills its slot
-  // and fully replaces it as "today" — so Today immediately displays the replacing active day.
-  const firstOpenActive = days.find((d) => !d.skipped && !d.problems.every((p) => p.done) && d.status !== "merged");
-  const futureFallback = days.find((d) => d.date > iso && !d.skipped);
-  const pastFallback = days.filter((d) => d.date < iso && !d.skipped).at(-1);
+  // 2. If today has no exact date match (e.g. today was skipped or gap), find next active day on or after today
+  const upcomingActive = days.find((d) => d.date >= iso && !d.skipped);
+  // 3. If before plan start date, show first active day
   const firstActive = days.find((d) => !d.skipped);
-  const currentDay = todayDay ?? firstOpenActive ?? futureFallback ?? pastFallback ?? firstActive ?? days[0];
+  // 4. If after plan finish date, fallback to last active day
+  const lastActive = days.filter((d) => !d.skipped).at(-1);
+  // Strictly avoid falling back to old unfinished past days
+  const currentDay = todayDay ?? upcomingActive ?? firstActive ?? lastActive ?? days[0];
 
-  // Selected Day from Calendar click or default current day (guards against stale skipped selection)
-  const displayedDay = useMemo(() => {
-    if (!selectedCalendarDate) return currentDay;
-    const picked = days.find((d) => d.date === selectedCalendarDate);
-    if (!picked || picked.skipped) return currentDay;
-    return picked;
-  }, [days, selectedCalendarDate, currentDay]);
-
+  // In Today's workspace tab, strictly display Today's day only (never switch to past days)
+  const displayedDay = currentDay;
   const isExactlyToday = displayedDay?.date === iso;
-  const isPast = displayedDay ? displayedDay.date < iso : false;
+  const isPast = false;
+
+  // Strictly filter problems to ensure ONLY problems belonging to today are displayed
+  // (strictly exclude any problems carried over from earlier days)
+  const sanitizedDay = useMemo(() => {
+    if (!displayedDay) return null;
+    return {
+      ...displayedDay,
+      problems: displayedDay.problems.filter(
+        (p) => !p.carriedFromDay || p.carriedFromDay === displayedDay.dayNumber
+      ),
+    };
+  }, [displayedDay]);
 
   // Calculate user inactivity gap
   const inactivityInfo = useMemo(() => getInactivityDays(days, user?.uid), [days, user]);
@@ -414,11 +422,11 @@ export function MergedTodayProfile() {
           </div>
 
           {/* Today Topic Description Header Section (Topic info, status, Postpone/Merge/Borrow/Delete/Restore, progress bar) */}
-          {(displayedDay ?? currentDay) && (
+          {sanitizedDay && (
             <DayDetail
-              day={displayedDay ?? currentDay!}
-              readOnly={!isExactlyToday && !isPast}
-              lateMode={isPast && !isExactlyToday}
+              day={sanitizedDay}
+              readOnly={false}
+              lateMode={false}
               headerOnly
             />
           )}
@@ -426,7 +434,7 @@ export function MergedTodayProfile() {
 
         {/* Right (1/3): Activity Heatmap */}
         <div className="lg:col-span-1 h-full flex flex-col">
-          <div className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl shadow-xl p-4 sm:p-5 h-full flex flex-col justify-between gap-3">
+          <div className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/60 backdrop-blur-xl shadow-xl p-4 sm:p-5 h-full flex flex-col justify-between gap-3">
             <div className="flex items-center gap-2">
               <Flame className="size-4 text-emerald-400" />
               <h3 className="text-sm font-bold text-foreground">Activity Heatmap</h3>
@@ -439,11 +447,11 @@ export function MergedTodayProfile() {
       </section>
 
       {/* ── Full-Width Below: Today's Core Problems, Contests, Checklist, Notes ── */}
-      {(displayedDay ?? currentDay) && (
+      {sanitizedDay && (
         <DayDetail
-          day={displayedDay ?? currentDay!}
-          readOnly={!isExactlyToday && !isPast}
-          lateMode={isPast && !isExactlyToday}
+          day={sanitizedDay}
+          readOnly={false}
+          lateMode={false}
           hideHeader
         />
       )}

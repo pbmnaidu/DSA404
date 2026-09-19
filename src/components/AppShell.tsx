@@ -55,7 +55,7 @@ import { useThemeCustomizer } from "../../app/theme-customizer-context";
 import { ThemeCustomizerPanel } from "../../app/theme-customizer-panel";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 import { GitHubRepoLinkModal } from "@/components/GitHubRepoLinkModal";
-import { getLocalGitHubSyncConfig } from "@/lib/github-sync";
+import { getLocalGitHubSyncConfig, loadCloudGitHubSyncConfig } from "@/lib/github-sync";
 
 const NAV = [
   { to: "/today", label: "Today's Workspace", icon: Sparkles, hint: "Your daily topic, core problems, streak, and activity heatmap." },
@@ -456,6 +456,12 @@ export function AppShell({ email, children }: { email: string; children: React.R
       if (active && p?.username) {
         setUsername(p.username);
       }
+      if (active && p?.codingProfiles && typeof window !== "undefined") {
+        try {
+          localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(p.codingProfiles));
+          localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(p.codingProfiles));
+        } catch { }
+      }
     }).catch(() => { });
     return () => { active = false; };
   }, [user?.uid]);
@@ -501,21 +507,43 @@ export function AppShell({ email, children }: { email: string; children: React.R
   const [searchOpen, setSearchOpen] = useState(false);
   const [githubModalOpen, setGithubModalOpen] = useState(false);
 
-  // Auto popup for linking GitHub repository on initial start/data load
+  // Auto popup for linking GitHub repository on initial start/data load (checks Cloud DB first across devices)
   useEffect(() => {
     if (!user?.uid) return;
-    const cfg = getLocalGitHubSyncConfig(user.uid);
-    const dismissedSession = typeof window !== "undefined" ? sessionStorage.getItem("gh_link_prompt_dismissed") : null;
-    const dismissedLocal = cfg?.autoPromptDismissed;
-    const isConfigured = Boolean(cfg?.token && cfg?.repo);
+    let isCancelled = false;
 
-    // If not configured and not previously dismissed, trigger linking popup on startup
-    if (!isConfigured && !dismissedSession && !dismissedLocal) {
-      const timer = setTimeout(() => {
-        setGithubModalOpen(true);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
+    (async () => {
+      // 1. Check local storage
+      let cfg = getLocalGitHubSyncConfig(user.uid);
+
+      // 2. If not configured in local storage (e.g. new device/browser), check cloud Firestore first
+      if (!cfg?.token || !cfg?.repo) {
+        try {
+          const cloudCfg = await loadCloudGitHubSyncConfig(user.uid);
+          if (cloudCfg?.token && cloudCfg?.repo) {
+            cfg = cloudCfg;
+          }
+        } catch { }
+      }
+
+      if (isCancelled) return;
+
+      const dismissedSession = typeof window !== "undefined" ? sessionStorage.getItem("gh_link_prompt_dismissed") : null;
+      const dismissedLocal = cfg?.autoPromptDismissed;
+      const isConfigured = Boolean(cfg?.token && cfg?.repo);
+
+      // Only trigger linking popup on startup if genuinely NOT configured in cloud/local AND not dismissed
+      if (!isConfigured && !dismissedSession && !dismissedLocal) {
+        const timer = setTimeout(() => {
+          if (!isCancelled) setGithubModalOpen(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [user?.uid]);
 
   // Global listener to open GitHub sync modal from anywhere

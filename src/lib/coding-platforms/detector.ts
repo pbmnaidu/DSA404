@@ -9,7 +9,7 @@ export interface DetectionResult {
 const URL_PATTERNS: { platform: PlatformId; regex: RegExp; extractIndex: number }[] = [
   { platform: "leetcode", regex: /(?:https?:\/\/)?(?:www\.)?leetcode\.com\/(?:u\/)?([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
   { platform: "codeforces", regex: /(?:https?:\/\/)?(?:www\.)?codeforces\.com\/profile\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
-  { platform: "codechef", regex: /(?:https?:\/\/)?(?:www\.)?codechef\.com\/users\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
+  { platform: "codechef", regex: /(?:https?:\/\/)?(?:www\.)?codechef\.com\/(?:users|u|profile)\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
   { platform: "atcoder", regex: /(?:https?:\/\/)?atcoder\.jp\/users\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
   { platform: "hackerrank", regex: /(?:https?:\/\/)?(?:www\.)?hackerrank\.com\/(?:profile\/)?([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
   { platform: "gfg", regex: /(?:https?:\/\/)?(?:www\.)?geeksforgeeks\.org\/user\/([a-zA-Z0-9_.-]+)/i, extractIndex: 1 },
@@ -39,7 +39,7 @@ export function detectPlatformAndUsername(input: string): DetectionResult {
     if (match && match[item.extractIndex]) {
       return {
         platform: item.platform,
-        username: match[item.extractIndex],
+        username: match[item.extractIndex].replace(/^@+/, ""),
         confidence: 0.95,
       };
     }
@@ -47,7 +47,7 @@ export function detectPlatformAndUsername(input: string): DetectionResult {
 
   // If simple string handle without URL, return UNKNOWN platform with 0 confidence
   const parts = cleanInput.split("/").filter(Boolean);
-  const candidate = parts[parts.length - 1] || cleanInput;
+  const candidate = (parts[parts.length - 1] || cleanInput).replace(/^@+/, "");
 
   return {
     platform: "UNKNOWN",

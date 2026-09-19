@@ -229,8 +229,35 @@ export function useContests() {
   useEffect(() => {
     const handleProfilesEvent = (e: CustomEvent<{ codingProfiles: CodingProfiles }>) => {
       if (e.detail?.codingProfiles) {
-        setCodingProfiles(e.detail.codingProfiles);
-        setLocalCodingProfiles(e.detail.codingProfiles, user?.uid);
+        const next = e.detail.codingProfiles;
+        setCodingProfiles(next);
+        setLocalCodingProfiles(next, user?.uid);
+
+        // Instantly trigger background fetch for updated platforms
+        const toSync: { platform: PlatformId; username: string }[] = [];
+        for (const p of SUPPORTED_CONTEST_PLATFORMS) {
+          const raw = next[p.id as keyof CodingProfiles];
+          if (raw && typeof raw === "string" && raw.trim()) {
+            const clean = extractHandleFromInput(p.id, raw);
+            if (clean) toSync.push({ platform: p.id, username: clean });
+          }
+        }
+        if (toSync.length > 0) {
+          fetchBatchProfilesApi(toSync, false)
+            .then((res) => {
+              if (res && Object.keys(res).length > 0) {
+                setPlatformStats((prev) => {
+                  const merged = { ...prev, ...res };
+                  setLocalPlatformStats(merged, user?.uid);
+                  if (user?.uid) {
+                    void savePlatformStats(user.uid, merged).catch(console.warn);
+                  }
+                  return merged;
+                });
+              }
+            })
+            .catch((err) => console.warn("[useContests] Profile batch sync warning:", err));
+        }
       }
     };
     window.addEventListener("ldt_coding_profiles_updated" as any, handleProfilesEvent as any);
@@ -239,7 +266,74 @@ export function useContests() {
     };
   }, [user?.uid]);
 
-  // Load from local storage immediately (zero-lag), then hydrate/refresh asynchronously
+  // Hydrate user-specific data from Firestore whenever authenticated user is available
+  const userHydratedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    if (userHydratedRef.current === user.uid) return;
+    userHydratedRef.current = user.uid;
+
+    (async () => {
+      try {
+        const [stored, profileDoc] = await Promise.all([
+          loadStored(user.uid),
+          loadUserProfile(user.uid),
+        ]);
+
+        if (stored?.marks) {
+          setMarks((prev) => ({ ...prev, ...stored.marks }));
+        }
+
+        if (profileDoc?.codingProfiles && Object.keys(profileDoc.codingProfiles).length > 0) {
+          setCodingProfiles((prev) => {
+            const merged = { ...prev, ...profileDoc.codingProfiles };
+            setLocalCodingProfiles(merged, user.uid);
+            return merged;
+          });
+
+          // Instantly sync participation history & ratings for all linked platforms from DB
+          const profilesToSync: { platform: PlatformId; username: string }[] = [];
+          for (const p of SUPPORTED_CONTEST_PLATFORMS) {
+            const raw = profileDoc.codingProfiles[p.id as keyof CodingProfiles];
+            if (raw && typeof raw === "string" && raw.trim()) {
+              const clean = extractHandleFromInput(p.id, raw);
+              if (clean) profilesToSync.push({ platform: p.id, username: clean });
+            }
+          }
+
+          if (profilesToSync.length > 0) {
+            setIsSyncingProfiles(true);
+            fetchBatchProfilesApi(profilesToSync, false)
+              .then((res) => {
+                if (res && Object.keys(res).length > 0) {
+                  setPlatformStats((prev) => {
+                    const next = { ...prev, ...res };
+                    setLocalPlatformStats(next, user.uid);
+                    void savePlatformStats(user.uid, next).catch(console.warn);
+                    return next;
+                  });
+                }
+              })
+              .catch((err) => console.warn("[useContests] Profile batch sync warning:", err))
+              .finally(() => setIsSyncingProfiles(false));
+          }
+        }
+
+        if (profileDoc?.platformStats && Object.keys(profileDoc.platformStats).length > 0) {
+          setPlatformStats((prev) => {
+            const next = { ...prev, ...profileDoc.platformStats };
+            setLocalPlatformStats(next, user.uid);
+            return next;
+          });
+        }
+      } catch (err) {
+        console.warn("[useContests] Error hydrating user profile contest data:", err);
+      }
+    })();
+  }, [user?.uid]);
+
+  // Load contests from local storage immediately (zero-lag), then refresh asynchronously
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
@@ -268,27 +362,11 @@ export function useContests() {
       try {
         let marksData = local.marks;
         let stored: StoredData | null = null;
-        let userProfilesData = localProfiles;
 
         if (user) {
           stored = await loadStored(user.uid);
           if (stored?.marks) {
             marksData = { ...marksData, ...stored.marks };
-          }
-
-          // Load user profile & platformStats from Firestore
-          const profileDoc = await loadUserProfile(user.uid);
-          if (profileDoc.codingProfiles) {
-            userProfilesData = { ...userProfilesData, ...profileDoc.codingProfiles };
-            setCodingProfiles(userProfilesData);
-            setLocalCodingProfiles(userProfilesData, user.uid);
-          }
-          if (profileDoc.platformStats) {
-            setPlatformStats((prev) => {
-              const merged = { ...prev, ...profileDoc.platformStats };
-              setLocalPlatformStats(merged, user.uid);
-              return merged;
-            });
           }
         }
 
@@ -320,35 +398,6 @@ export function useContests() {
           }
         }
         setLoading(false);
-
-        // Sync linked coding profiles in background to update contest participation & ratings
-        const profilesToSync: { platform: PlatformId; username: string }[] = [];
-        for (const p of SUPPORTED_CONTEST_PLATFORMS) {
-          const raw = userProfilesData[p.id as keyof CodingProfiles];
-          if (raw && typeof raw === "string" && raw.trim()) {
-            const clean = extractHandleFromInput(p.id, raw);
-            if (clean) profilesToSync.push({ platform: p.id, username: clean });
-          }
-        }
-
-        if (profilesToSync.length > 0) {
-          setIsSyncingProfiles(true);
-          fetchBatchProfilesApi(profilesToSync, false)
-            .then((res) => {
-              if (res && Object.keys(res).length > 0) {
-                setPlatformStats((prev) => {
-                  const next = { ...prev, ...res };
-                  setLocalPlatformStats(next, user?.uid);
-                  if (user?.uid) {
-                    void savePlatformStats(user.uid, next).catch(console.warn);
-                  }
-                  return next;
-                });
-              }
-            })
-            .catch((err) => console.warn("[useContests] Profile batch sync warning:", err))
-            .finally(() => setIsSyncingProfiles(false));
-        }
       } catch (e) {
         if (!contests.length && !local.contests.length) {
           setError("Could not load contests. Check your connection.");
@@ -356,7 +405,7 @@ export function useContests() {
         setLoading(false);
       }
     })();
-  }, [user]);
+  }, []);
 
   // Manual refetch function for contests (forces fresh sync)
   const refetch = useCallback(async () => {

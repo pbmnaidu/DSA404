@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ProblemCardHorizontal } from "@/components/ProblemCardHorizontal";
 import { TodayContestsSection } from "@/components/ContestsSection";
+import { getChatGPTDayTopicPromptUrl } from "@/lib/aiTutorPrompt";
 import {
   AlertTriangle,
   Sparkles,
@@ -121,9 +122,9 @@ export function DayDetail({
   const lastActiveDay = activeDays.at(-1);
 
   const headerCard = (
-    <header className="rounded-3xl border border-white/10 bg-card/80 backdrop-blur-xl p-4 sm:p-5 shadow-xl space-y-3">
+    <header className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-4 sm:p-5 shadow-xl space-y-3">
       {/* Top Meta & Actions Row */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 dark:border-white/15 pb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
             Day {day.dayNumber} · Week {Math.ceil(day.dayNumber / 7)} · {formatDate(day.date)}
@@ -323,9 +324,22 @@ export function DayDetail({
       </div>
 
       {/* Topic Title & Subtopics Row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">{day.topic}</h2>
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">{day.topic}</h2>
+            <HoverHint hint="Ask ChatGPT to explain today's topic, patterns, intuition, and review all assigned problems">
+              <a
+                href={getChatGPTDayTopicPromptUrl(day)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 px-3 py-1 text-xs font-bold transition-all shadow-sm hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] shrink-0"
+              >
+                <Sparkles className="size-3.5 text-emerald-400" />
+                <span>ChatGPT</span>
+              </a>
+            </HoverHint>
+          </div>
           <p className="text-xs font-medium text-muted-foreground">{day.section}</p>
         </div>
 
@@ -366,17 +380,40 @@ export function DayDetail({
 
       {!hideHeader && headerCard}
 
-      {/* ── Today's Core Problems ── */}
-      <section aria-label="Problems" className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Sparkles className="size-5 text-primary" />
-            <span>Today's Core Problems</span>
-            <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-xs font-bold text-primary">
-              {total}
-            </span>
-          </h3>
+      {/* ── AREA 1: Today's Core Problems (Dedicated Particular Area) ── */}
+      <section
+        aria-label="Today's Core Problems"
+        className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-5 sm:p-6 shadow-xl space-y-5 relative overflow-hidden"
+      >
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/70 via-purple-500/50 to-emerald-500/40" />
+
+        {/* Problems Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 dark:border-white/15 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-primary/20 p-2.5 border border-primary/30 text-primary shrink-0">
+              <Sparkles className="size-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
+                  Today's Core Problems
+                </h3>
+                <span className="rounded-full bg-primary/20 border border-primary/30 px-2.5 py-0.5 text-xs font-bold text-primary">
+                  {done} / {total} Solved ({pct}%)
+                </span>
+                {done === total && total > 0 && (
+                  <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-xs font-bold text-emerald-400">
+                    All Complete ✨
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Curated problem set to practice and master today's patterns
+              </p>
+            </div>
+          </div>
         </div>
+
         {day.isRevisionDay ? (
           <div className="space-y-2.5 pt-1">
             {(!day.revisionDayNumbers || day.revisionDayNumbers.length === 0) ? (
@@ -422,6 +459,9 @@ export function DayDetail({
                 key={`${p.name}-${i}`}
                 problem={p}
                 readOnly={locked}
+                topic={day.topic}
+                dayNumber={day.dayNumber}
+                section={day.section}
                 onToggle={() =>
                   void updateDay(day.dayNumber, (d) => ({
                     ...d,
@@ -444,11 +484,11 @@ export function DayDetail({
         )}
       </section>
 
-      {/* ── Today's Live & Upcoming Contests Section (Above Checklist) ── */}
+      {/* ── AREA 2: Today's Live & Upcoming Contests Section (Dedicated Area Below Problems) ── */}
       <TodayContestsSection />
 
       {/* ── Reduced Height Completion Checklist UI ── */}
-      <section aria-label="Daily checklist" className="rounded-2xl border border-white/10 bg-card/80 backdrop-blur-xl p-3.5 shadow-md space-y-2.5">
+      <section aria-label="Daily checklist" className="rounded-2xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-3.5 shadow-md space-y-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <ListTodo className="size-4 text-emerald-400" />
@@ -466,7 +506,7 @@ export function DayDetail({
               className={`flex items-center gap-2.5 rounded-xl border px-3 py-1.5 transition-all ${
                 c.done
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 font-semibold"
-                  : "border-white/10 bg-white/5 text-foreground hover:bg-white/10"
+                  : "border-border/80 dark:border-white/15 bg-white/5 text-foreground hover:bg-white/10"
               }`}
             >
               <Checkbox
@@ -499,7 +539,7 @@ export function DayDetail({
 
       {/* ── Daily Notes & Revision Reminders ── */}
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="space-y-1.5 rounded-2xl border border-white/10 bg-card/80 backdrop-blur-xl p-3.5 shadow-md">
+        <div className="space-y-1.5 rounded-2xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-3.5 shadow-md">
           <Label htmlFor={`notes-${day.dayNumber}`} className="text-xs font-bold text-foreground">Topic Notes & Takeaways</Label>
           <Textarea
             id={`notes-${day.dayNumber}`}
@@ -507,11 +547,11 @@ export function DayDetail({
             defaultValue={day.notes}
             placeholder="Write key code snippets or intuition..."
             disabled={locked}
-            className="bg-background/40 border-white/10 rounded-xl text-xs"
+            className="bg-background/40 border-border/70 dark:border-white/10 rounded-xl text-xs"
             onBlur={(e) => void updateDay(day.dayNumber, (d) => ({ ...d, notes: e.target.value }))}
           />
         </div>
-        <div className="space-y-1.5 rounded-2xl border border-white/10 bg-card/80 backdrop-blur-xl p-3.5 shadow-md">
+        <div className="space-y-1.5 rounded-2xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-3.5 shadow-md">
           <Label htmlFor={`rev-${day.dayNumber}`} className="text-xs font-bold text-foreground">Revision Reminders</Label>
           <Textarea
             id={`rev-${day.dayNumber}`}
@@ -519,7 +559,7 @@ export function DayDetail({
             defaultValue={day.revisionNotes}
             placeholder="Important formulas or complexities to re-read..."
             disabled={locked}
-            className="bg-background/40 border-white/10 rounded-xl text-xs"
+            className="bg-background/40 border-border/70 dark:border-white/10 rounded-xl text-xs"
             onBlur={(e) =>
               void updateDay(day.dayNumber, (d) => ({ ...d, revisionNotes: e.target.value }))
             }

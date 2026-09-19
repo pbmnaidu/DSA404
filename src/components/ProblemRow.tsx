@@ -76,6 +76,9 @@ export function ProblemRow({
   readOnly,
   lateMode,
   index = 0,
+  topic,
+  dayNumber,
+  section,
 }: {
   problem: Problem;
   onToggle?: (done: boolean) => void;
@@ -87,6 +90,12 @@ export function ProblemRow({
   lateMode?: boolean;
   /** used only to stagger the entrance animation */
   index?: number;
+  /** Topic name of the day this problem belongs to */
+  topic?: string;
+  /** Day number in the plan */
+  dayNumber?: number;
+  /** Section / chapter of the plan */
+  section?: string;
 }) {
   const id = `p-${problem.name.replace(/\W+/g, "-")}`;
   const [justDone, setJustDone] = useState(false);
@@ -98,7 +107,7 @@ export function ProblemRow({
 
   const handleSaveCode = async (code: string, link: string, keyPoints: string) => {
     const effectiveLink = link.trim() || getCanonicalProblemLink(problem.name) || problem.link || "";
-    await submitCode(problem.name, code, effectiveLink, keyPoints);
+    await submitCode(problem.name, code, effectiveLink, keyPoints, topic, dayNumber, section, problem.difficulty);
     setJustDone(true);
     window.setTimeout(() => setJustDone(false), 400);
     onToggle?.(true);

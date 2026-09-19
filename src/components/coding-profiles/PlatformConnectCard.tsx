@@ -41,7 +41,18 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
       setSelectedPlatform(detection.platform);
       setDetectedText(`Auto-detected: ${detection.platform.toUpperCase()} (${detection.username})`);
     } else {
-      setDetectedText("");
+      // If user typed a URL for selected platform (e.g. CodeChef), filter URL through adapter
+      const adapter = registry.getAdapter(selectedPlatform);
+      if (adapter && val.trim()) {
+        const user = adapter.extractUsername(val);
+        if (user && user !== val) {
+          setDetectedText(`Filtered ${adapter.name} Handle: ${user}`);
+        } else {
+          setDetectedText("");
+        }
+      } else {
+        setDetectedText("");
+      }
     }
   };
 
@@ -53,11 +64,16 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputUrl.trim()) return;
+    const rawVal = inputUrl.trim();
+    if (!rawVal) return;
 
-    const detection = detectPlatformAndUsername(inputUrl);
+    const detection = detectPlatformAndUsername(rawVal);
     const finalPlatform = detection.platform !== "UNKNOWN" ? detection.platform : selectedPlatform;
-    const finalUsername = detection.username || inputUrl.trim();
+    const adapter = registry.getAdapter(finalPlatform);
+
+    // Apply URL filter to extract clean username handle
+    let finalUsername = adapter ? adapter.extractUsername(rawVal) : (detection.username || rawVal);
+    finalUsername = (finalUsername || "").replace(/^@+/, "").trim();
 
     if (!finalUsername) {
       toast.error("Please enter a valid username or profile URL");
@@ -66,7 +82,7 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
 
     onConnect(finalPlatform, finalUsername);
     setDetectedText("");
-    toast.success(`Saved ${finalPlatform.toUpperCase()} profile link!`);
+    toast.success(`Saved ${finalPlatform.toUpperCase()} profile link (${finalUsername})!`);
   };
 
   const existingLink = existingPlatforms[selectedPlatform];
@@ -103,7 +119,7 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
             <Input
               value={inputUrl}
               onChange={handleInputChange}
-              placeholder="e.g. leetcode.com/u/john_doe, codeforces.com/profile/john_doe, or handle"
+              placeholder="e.g. codechef.com/users/handle, leetcode.com/u/handle, or handle"
               className="bg-background/40 border-white/10 rounded-xl text-xs h-10"
             />
             <Button type="submit" size="sm" className="h-10 rounded-xl px-4 gap-1.5 shrink-0 font-bold">

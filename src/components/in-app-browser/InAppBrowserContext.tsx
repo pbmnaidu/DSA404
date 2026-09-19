@@ -235,20 +235,8 @@ export function InAppBrowserProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      // Rule 2: Coding platforms and search sites that forbid iframe embedding
-      // Browsers refuse to connect to these in an iframe (ERR_BLOCKED_BY_RESPONSE) due to X-Frame-Options / CSP.
-      // Open them directly in a new tab so users can view, code, and submit problems seamlessly without errors!
-      const frameCheck = isFrameRestrictedUrl(rawHref);
-      if (frameCheck.isRestricted) {
-        toast.info(`Opening ${frameCheck.platformName}...`, {
-          description: `Opening in full browser for coding, test execution & account access.`,
-          duration: 1800,
-        });
-        window.open(rawHref, '_blank', 'noopener,noreferrer');
-        return;
-      }
-
-      // Rule 3: All other embed-friendly links display in website (in application viewer)
+      // Rule 2: Open all external links in the in-app browser viewer first.
+      // Users can view inside the app or click "Try in Chrome" whenever preferred!
       const linkTitle =
         anchor.getAttribute('title') ||
         anchor.getAttribute('aria-label') ||

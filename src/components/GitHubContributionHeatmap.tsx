@@ -21,6 +21,29 @@ export function extractGitHubUsername(raw?: string | null): string {
   return "";
 }
 
+export function resolveGitHubUrl(raw?: string | null): string {
+  if (!raw) return "";
+  const cleaned = raw.trim();
+  if (!cleaned) return "";
+  // Check if it's already a full github.com url
+  const match = cleaned.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-]+(?:\/[a-zA-Z0-9_\-]+)?)/i);
+  if (match && match[1]) {
+    return `https://github.com/${match[1]}`;
+  }
+  const extracted = extractGitHubUsername(cleaned);
+  if (extracted) {
+    return `https://github.com/${extracted}`;
+  }
+  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+    return cleaned;
+  }
+  const handle = cleaned.replace(/^@+/, "").trim();
+  if (handle) {
+    return `https://github.com/${handle}`;
+  }
+  return "";
+}
+
 interface GitHubContributionHeatmapProps {
   username: string;
   className?: string;

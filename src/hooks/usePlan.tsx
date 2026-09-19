@@ -17,6 +17,7 @@ import {
   setSkippedById,
   shiftFrom,
   todayIso,
+  START_DATE,
   type DailyCounts,
 } from "@/lib/plan";
 import type { Day } from "@/lib/types";
@@ -28,7 +29,7 @@ interface PlanCtx {
   lastSynced: string | null;
   startDate: string;
   reload: () => void;
-  updateDay: (dayNumber: number, patch: (d: Day) => Day) => Promise<void>;
+  updateDay: (dayNumberOrId: number | string, patch: (d: Day) => Day) => Promise<void>;
   postpone: (dayNumber: number, newDate: string) => Promise<void>;
   mergeTomorrow: (dayNumber: number) => Promise<void>;
   /** Split a merged day back into its two original days, inserting the absorbed day after and extending the plan by 1. */
@@ -80,13 +81,39 @@ export function PlanProvider({
   const [activeSheet, setActiveSheet] = useState<string>("core404");
   const checkedGap = useRef(false);
 
+  // Keep a ref so load() can read startDate without it being a dep (avoids
+  // infinite reload: setStartDate → new load callback → useEffect → load again)
+  const startDateRef = useRef(startDate);
+  useEffect(() => { startDateRef.current = startDate; }, [startDate]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const { days: d, meta, sheetId } = await db.loadPlan(userId);
-      setDays(d);
-      setStartDate(meta.startDate);
+      const sDate = meta.startDate || startDateRef.current || START_DATE;
+
+      // Auto-heal missing dates: ensure no date is left missing across the active schedule
+      const activeDays = d.filter((day) => !day.skipped);
+      const hasStartGap = activeDays.length > 0 && activeDays[0].date !== sDate;
+      const hasConsecutiveGaps = activeDays.some((day, i) => {
+        if (i < activeDays.length - 1) {
+          return diffDays(day.date, activeDays[i + 1].date) !== 1;
+        }
+        return false;
+      });
+      const hasInvalidDates = d.some((day) => !day.date || isNaN(new Date(`${day.date}T00:00:00Z`).getTime()));
+
+      if (hasStartGap || hasConsecutiveGaps || hasInvalidDates) {
+        console.warn("[usePlan] Missing dates detected in plan schedule. Auto-healing plan dates...");
+        const healed = renumber(d, sDate, 0, paused);
+        setDays(healed);
+        void db.saveSequence(userId, healed);
+      } else {
+        setDays(d);
+      }
+
+      setStartDate(sDate);
       setLastSynced(meta.lastSyncedAt);
       if (sheetId) setActiveSheet(sheetId);
     } catch (e) {
@@ -94,7 +121,7 @@ export function PlanProvider({
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, paused]);
 
   useEffect(() => {
     void load();
@@ -133,11 +160,15 @@ export function PlanProvider({
 
   /** Optimistic single-day update, confirmed to the cloud in the background. */
   const updateDay = useCallback(
-    async (dayNumber: number, patch: (d: Day) => Day) => {
+    async (dayNumberOrId: number | string, patch: (d: Day) => Day) => {
       let next: Day | undefined;
       setDays((prev) =>
         prev.map((d) => {
-          if (d.dayNumber !== dayNumber) return d;
+          const isMatch =
+            typeof dayNumberOrId === "number"
+              ? d.dayNumber === dayNumberOrId
+              : d.id === dayNumberOrId;
+          if (!isMatch) return d;
           next = patch(d);
           return next;
         }),

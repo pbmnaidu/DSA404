@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   ExternalLink,
   Trophy,
@@ -13,6 +14,7 @@ import {
   BarChart3,
   AlertCircle,
   Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -229,7 +231,12 @@ function MarkBar({
             Missed
           </button>
         </div>
-        {onOpenLinkModal && attendanceInfo?.platformMeta && (
+        {attendanceInfo?.isLinked && attendanceInfo.handle ? (
+          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium inline-flex items-center gap-1">
+            <CheckCircle2 className="size-3 text-emerald-500" />
+            <span>Auto-tracking active for @{attendanceInfo.handle}</span>
+          </div>
+        ) : !attendanceInfo?.isLinked && onOpenLinkModal && attendanceInfo?.platformMeta ? (
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -239,7 +246,7 @@ function MarkBar({
           >
             <span>+ Link {contest.platform} account for auto-tracking</span>
           </button>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -649,10 +656,69 @@ export function TodayContestsSection() {
     setIsRefreshing(false);
   };
 
+  const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+  // 52-hour buffer covers standard 48h-50h weekend rounds (e.g. CodeChef Weekend Prep)
+  const TWO_DAYS_BUFFER_MS = 52 * 60 * 60 * 1000;
+
+  const todaysContests = contests.filter((c) => {
+    const totalDuration = c.durationMs || (c.endMs - c.startMs);
+
+    // CASE 1: Contest is LIVE right now
+    if (c.status === "live") {
+      const remainingMs = c.endMs - now;
+      const isShortDuration = totalDuration <= TWO_DAYS_BUFFER_MS;
+      const endsWithinTwoDays = remainingMs <= TWO_DAYS_MS;
+
+      // Show if duration is <= 2 days OR if it ends within 2 days
+      if (isShortDuration || endsWithinTwoDays) {
+        // Exclude massive 7+ day marathon hackathons that happen to end soon
+        if (totalDuration > 7 * 24 * 60 * 60 * 1000) return false;
+        return true;
+      }
+      return false;
+    }
+
+    // CASE 2: Contest is UPCOMING
+    if (c.status === "upcoming") {
+      if (totalDuration > TWO_DAYS_BUFFER_MS) return false;
+      if (c.endMs - now > TWO_DAYS_MS) return false;
+      return isToday(c.startMs);
+    }
+
+    // CASE 3: Contest ENDED earlier today
+    if (c.status === "missed") {
+      if (totalDuration > TWO_DAYS_BUFFER_MS) return false;
+      return isToday(c.startMs) || isToday(c.endMs);
+    }
+
+    return false;
+  });
+
+  const remainingContestsCount = contests.length - todaysContests.length;
+  const liveCount = todaysContests.filter((c) => c.status === "live").length;
+
   if (loading) {
     return (
-      <section className="mt-6">
-        <SectionHeader title="Today's Contests" count={0} />
+      <section
+        aria-label="Today's Contests & Competitions"
+        className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-5 sm:p-6 shadow-xl space-y-5 relative overflow-hidden mt-6"
+      >
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500/70 via-yellow-500/50 to-orange-500/40" />
+        <div className="flex items-center justify-between gap-3 border-b border-border/70 dark:border-white/15 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-amber-500/20 p-2.5 border border-amber-500/30 text-amber-400 shrink-0">
+              <Trophy className="size-5" />
+            </div>
+            <div>
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
+                Today's Contests & Competitions
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Fetching live schedules from LeetCode, Codeforces, CodeChef, and AtCoder...
+              </p>
+            </div>
+          </div>
+        </div>
         <LoadingGrid />
       </section>
     );
@@ -660,13 +726,25 @@ export function TodayContestsSection() {
 
   if (error) {
     return (
-      <section className="mt-6 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-        <div className="flex items-center justify-between">
-          <span>{error}</span>
+      <section
+        aria-label="Today's Contests & Competitions"
+        className="rounded-3xl border border-rose-500/30 bg-card/80 backdrop-blur-xl p-5 sm:p-6 shadow-xl space-y-4 relative overflow-hidden mt-6"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-rose-500/20 p-2.5 border border-rose-500/30 text-rose-400 shrink-0">
+              <AlertCircle className="size-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">Could not load today's contests</h3>
+              <p className="text-xs text-rose-400/80">{error}</p>
+            </div>
+          </div>
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-1 underline"
+            className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition-colors"
           >
+            <RefreshCw className={cn("size-3.5", isRefreshing && "animate-spin")} />
             Retry
           </button>
         </div>
@@ -674,45 +752,132 @@ export function TodayContestsSection() {
     );
   }
 
-  const todaysContests = contests.filter((c) => {
-    if (c.status === "live") return true;
-    if (c.status === "upcoming" && (isToday(c.startMs) || isToday(c.endMs))) return true;
-    // also show ended contests that started or ended today
-    if (c.status === "missed" && (isToday(c.startMs) || isToday(c.endMs))) return true;
-    return false;
-  });
-
   if (todaysContests.length === 0) {
     return (
-      <section className="mt-6 rounded-lg border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Trophy className="size-4" />
-            No contests today — great day for problems!
+      <section
+        aria-label="Today's Contests & Competitions"
+        className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-5 sm:p-6 shadow-xl space-y-5 relative overflow-hidden mt-6"
+      >
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500/70 via-yellow-500/50 to-orange-500/40" />
+
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 dark:border-white/15 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-amber-500/20 p-2.5 border border-amber-500/30 text-amber-400 shrink-0">
+              <Trophy className="size-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
+                  Today's Contests & Competitions
+                </h3>
+                <span className="rounded-full bg-white/10 border border-white/10 px-2.5 py-0.5 text-xs font-bold text-muted-foreground">
+                  0 Today
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Coding matches from LeetCode, Codeforces, CodeChef & AtCoder
+              </p>
+            </div>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <RefreshCw className={cn("size-3.5", isRefreshing && "animate-spin")} />
-            Refresh Contests
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={cn("size-3.5", isRefreshing && "animate-spin")} />
+              <span>Refresh</span>
+            </button>
+            <Link
+              href="/contests"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 text-xs font-semibold transition-all hover:scale-[1.02]"
+            >
+              <span>View All Contests ({contests.length})</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Empty state card inside the container */}
+        <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 sm:p-8 text-center space-y-2.5">
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-inner">
+            <Trophy className="size-6" />
+          </div>
+          <h4 className="text-sm sm:text-base font-bold text-foreground">No Short Contests Starting Today</h4>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+            No short rounds scheduled to start today and end within 2 days. Focus on mastering your Core DSA Problems above! You have {contests.length} upcoming rounds and multi-day challenges listed in the Contests tab.
+          </p>
+          <div className="pt-2 flex justify-center gap-3">
+            <Link
+              href="/contests"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors underline-offset-4 hover:underline"
+            >
+              <span>View All Contests in Contests Tab ({contests.length})</span>
+              <ArrowRight className="size-3" />
+            </Link>
+          </div>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="mt-6 space-y-4">
-      <SectionHeader
-        title="Today's Contests"
-        count={todaysContests.length}
-        icon={<Zap className="size-4 text-yellow-500" />}
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
-      />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <section
+      aria-label="Today's Contests & Competitions"
+      className="rounded-3xl border border-amber-500/20 bg-card/80 backdrop-blur-xl p-5 sm:p-6 shadow-xl space-y-5 relative overflow-hidden mt-6"
+    >
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500/80 via-yellow-500/60 to-orange-500/40" />
+
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 dark:border-white/15 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-amber-500/20 p-2.5 border border-amber-500/30 text-amber-400 shrink-0">
+            <Trophy className="size-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
+                Today's Contests & Competitions
+              </h3>
+              <span className="rounded-full bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-400">
+                {todaysContests.length} Today
+              </span>
+              {liveCount > 0 && (
+                <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-xs font-bold text-emerald-400 animate-pulse">
+                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                  {liveCount} Live Now
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Live & scheduled contests from LeetCode, Codeforces, CodeChef & AtCoder
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={cn("size-3.5", isRefreshing && "animate-spin")} />
+            <span>Refresh</span>
+          </button>
+          <Link
+            href="/contests"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 text-xs font-semibold transition-all hover:scale-[1.02]"
+          >
+            <span>All Contests</span>
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Grid of Contest Cards */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 pt-1">
         {todaysContests.map((c) => (
           <ContestCard
             key={c.id}
@@ -723,6 +888,31 @@ export function TodayContestsSection() {
           />
         ))}
       </div>
+
+      {/* Button to view all remaining contests in Contests tab */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-white/10 bg-white/[0.03] mt-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Trophy className="size-4 text-amber-400 shrink-0" />
+          <span>
+            Showing short rounds (starts today, ends within 2 days).
+            {remainingContestsCount > 0 && (
+              <strong className="text-foreground font-semibold">
+                {" "}{remainingContestsCount} more contest{remainingContestsCount === 1 ? "" : "s"}
+              </strong>
+            )}
+            {" "}listed in the Contests tab.
+          </span>
+        </div>
+        <Link
+          href="/contests"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 px-4 py-2 text-xs font-bold transition-all shrink-0 hover:scale-[1.01]"
+        >
+          <Trophy className="size-3.5" />
+          <span>View All Contests in Contests Tab ({contests.length})</span>
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+
       <SourceFooter />
 
       {/* Platform bar rendered in modal-only mode so accounts box is hidden from Today page */}

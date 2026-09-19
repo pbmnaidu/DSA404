@@ -86,6 +86,12 @@ interface ProblemCardHorizontalProps {
   onToggleReview?: () => void;
   onSkip?: () => void;
   readOnly?: boolean;
+  /** Topic name of the day this problem belongs to */
+  topic?: string;
+  /** Day number in the plan */
+  dayNumber?: number;
+  /** Section / chapter of the plan */
+  section?: string;
 }
 
 export function ProblemCardHorizontal({
@@ -94,6 +100,9 @@ export function ProblemCardHorizontal({
   onToggleReview,
   onSkip,
   readOnly = false,
+  topic,
+  dayNumber,
+  section,
 }: ProblemCardHorizontalProps) {
   const [codeModalOpen, setCodeModalOpen] = useState(false);
   const { submissions, submitCode, removeCode } = useProblemCompletions();
@@ -104,10 +113,10 @@ export function ProblemCardHorizontal({
     <>
       <div
         className={cn(
-          "group relative flex flex-col justify-between rounded-2xl border bg-card/80 backdrop-blur-md p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl w-full select-none min-h-[170px]",
+          "group relative flex flex-col justify-between rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl w-full select-none min-h-[170px]",
           problem.done
-            ? "border-emerald-500/40 bg-emerald-500/5 shadow-md shadow-emerald-500/5"
-            : "border-white/10 hover:border-primary/40"
+            ? "border-emerald-500/50 bg-emerald-500/5 shadow-md shadow-emerald-500/10 dark:border-emerald-500/40"
+            : "border-border/90 dark:border-white/35 bg-card/90 dark:bg-card/80 shadow-sm hover:border-primary/80 dark:hover:border-primary hover:shadow-xl"
         )}
       >
 
@@ -192,7 +201,7 @@ export function ProblemCardHorizontal({
                     }
                   }}
                   disabled={readOnly}
-                  className="size-5 rounded-md border-border text-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                  className="size-5 rounded-md border-border/90 dark:border-white/40 text-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 hover:border-primary transition-colors cursor-pointer"
                 />
               </div>
             </ThemedTooltip>
@@ -211,7 +220,7 @@ export function ProblemCardHorizontal({
         </div>
 
         {/* Card Footer: Links Dropdown & Action Buttons */}
-        <div className="flex items-center justify-between gap-1 pt-3 border-t border-white/10 text-xs">
+        <div className="flex items-center justify-between gap-1 pt-3 border-t border-border/80 dark:border-white/15 text-xs">
           <div className="flex items-center gap-1">
             {/* Links Dropdown Button */}
             <DropdownMenu>
@@ -225,7 +234,7 @@ export function ProblemCardHorizontal({
                   </ThemedTooltip>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 rounded-xl border border-white/10 bg-card/95 backdrop-blur-xl">
+              <DropdownMenuContent align="start" className="w-56 rounded-xl border border-border/80 dark:border-white/20 bg-card/95 backdrop-blur-xl">
                 <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">Resource Links</DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
@@ -291,7 +300,7 @@ export function ProblemCardHorizontal({
                   "inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium transition-colors text-xs",
                   hasSubmission
                     ? "bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30"
-                    : "bg-white/5 hover:bg-white/10 text-muted-foreground"
+                    : "border border-border/60 dark:border-white/15 bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Code2 className="size-3.5" />
@@ -321,7 +330,7 @@ export function ProblemCardHorizontal({
         problemName={problem.name}
         existingSubmission={submission}
         onSave={async (code, link, keyPoints) => {
-          await submitCode(problem.name, code, link, keyPoints);
+          await submitCode(problem.name, code, link, keyPoints, topic, dayNumber, section, problem.difficulty);
           // Mark completed automatically upon submitting code
           if (!problem.done && !readOnly) {
             onToggle();

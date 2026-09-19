@@ -17,11 +17,13 @@ import { Switch } from "@/components/ui/switch";
 import {
   getLocalGitHubSyncConfig,
   saveGitHubSyncConfig,
+  loadCloudGitHubSyncConfig,
   fetchUserRepositories,
   validateGitHubRepo,
   createGitHubRepository,
   type GitHubSyncConfig,
 } from "@/lib/github-sync";
+import { auth } from "@/integrations/firebase/client";
 import { GitHubIcon } from "./SocialIcons";
 import { CheckCircle2, ExternalLink, FolderGit2, Key, RefreshCw, Sparkles, AlertCircle, Plus, Lock, Globe } from "lucide-react";
 import { toast } from "sonner";
@@ -59,10 +61,12 @@ export function GitHubRepoLinkModal({
   const [newRepoPrivate, setNewRepoPrivate] = useState(false);
   const [creatingRepo, setCreatingRepo] = useState(false);
 
-  // Load existing configuration on open
+  // Load existing configuration on open (local storage + cloud Firestore sync)
   useEffect(() => {
     if (open) {
-      const cfg = getLocalGitHubSyncConfig(userId);
+      let active = true;
+      const targetUid = userId || auth?.currentUser?.uid || null;
+      const cfg = getLocalGitHubSyncConfig(targetUid);
       if (cfg) {
         setToken(cfg.token || "");
         setOwner(cfg.owner || "");
@@ -80,6 +84,24 @@ export function GitHubRepoLinkModal({
         setEnabled(true);
         setIsConnected(false);
       }
+
+      // If local token is empty or to verify cloud state, hydrate from Firestore
+      if (targetUid) {
+        loadCloudGitHubSyncConfig(targetUid).then((cloudCfg) => {
+          if (!active || !cloudCfg) return;
+          if (cloudCfg.token) {
+            setToken(cloudCfg.token || "");
+            setOwner(cloudCfg.owner || "");
+            setRepo(cloudCfg.repo || "");
+            setBranch(cloudCfg.branch || "main");
+            setFolderPath(cloudCfg.folderPath ?? "solutions");
+            setEnabled(cloudCfg.enabled ?? true);
+            setIsConnected(Boolean(cloudCfg.token && cloudCfg.repo));
+          }
+        }).catch(() => { });
+      }
+
+      return () => { active = false; };
     }
   }, [open, userId]);
 
@@ -101,7 +123,7 @@ export function GitHubRepoLinkModal({
           setBranch(repos[0].defaultBranch || "main");
         }
       } else {
-        toast.info("No repositories found on this account.");
+        toast.info("No repositories found with this token.");
       }
     } catch (err: any) {
       toast.error("Could not fetch repositories", { description: err.message });
@@ -121,40 +143,41 @@ export function GitHubRepoLinkModal({
 
   const handleCreateRepo = async () => {
     if (!token.trim()) {
-      toast.error("Please enter your GitHub Personal Access Token in Step 1 first.");
+      toast.error("Please enter your GitHub Personal Access Token first.");
       return;
     }
     if (!newRepoName.trim()) {
-      toast.error("Please enter a repository name.");
+      toast.error("Please provide a repository name.");
       return;
     }
 
     setCreatingRepo(true);
     try {
-      const res = await createGitHubRepository(token, newRepoName, newRepoPrivate);
-      if (!res.success) {
-        toast.error("Failed to create repository", { description: res.error });
-        return;
+      const created = await createGitHubRepository(token, newRepoName.trim(), newRepoPrivate);
+      if (!created.success) {
+        throw new Error(created.error || "Failed to create repository");
       }
+      const createdOwner = created.owner || "";
+      const createdName = created.name || newRepoName.trim();
+      const createdFullName = created.fullName || `${createdOwner}/${createdName}`;
+      const createdBranch = created.defaultBranch || "main";
 
-      const newEntry = {
-        fullName: res.fullName || `${res.owner}/${res.name}`,
-        owner: res.owner || "",
-        name: res.name || newRepoName,
-        defaultBranch: res.defaultBranch || "main",
+      toast.success(`Created GitHub repository "${createdFullName}"! 🚀`);
+      setOwner(createdOwner);
+      setRepo(createdName);
+      setBranch(createdBranch);
+      setShowCreateRepo(false);
+      // Add to list
+      const newRepoItem = {
+        fullName: createdFullName,
+        owner: createdOwner,
+        name: createdName,
+        defaultBranch: createdBranch,
         isPrivate: newRepoPrivate,
       };
-
-      setRepoList((prev) => [newEntry, ...prev]);
-      setOwner(newEntry.owner);
-      setRepo(newEntry.name);
-      setBranch(newEntry.defaultBranch);
-      setShowCreateRepo(false);
-      toast.success(`Repository "${newEntry.fullName}" created successfully on GitHub! 🎉`, {
-        description: "Selected as your target repository with initialized main branch.",
-      });
+      setRepoList((prev) => [newRepoItem, ...prev]);
     } catch (err: any) {
-      toast.error("Failed to create repository", { description: err.message });
+      toast.error("Repository creation failed", { description: err.message });
     } finally {
       setCreatingRepo(false);
     }
@@ -162,11 +185,11 @@ export function GitHubRepoLinkModal({
 
   const handleSave = async () => {
     if (!token.trim()) {
-      toast.error("Please enter a GitHub Personal Access Token.");
+      toast.error("GitHub Personal Access Token is required.");
       return;
     }
     if (!owner.trim() || !repo.trim()) {
-      toast.error("Please specify a target repository.");
+      toast.error("Please specify both the owner username and repository name.");
       return;
     }
 
@@ -174,7 +197,7 @@ export function GitHubRepoLinkModal({
     try {
       const check = await validateGitHubRepo(token, owner, repo);
       if (!check.valid) {
-        toast.error("Repository verification failed", { description: check.error });
+        toast.error("Could not access repository", { description: check.error || "Please verify credentials and repository." });
         setTesting(false);
         return;
       }
@@ -191,12 +214,13 @@ export function GitHubRepoLinkModal({
         autoPromptDismissed: true,
       };
 
-      await saveGitHubSyncConfig(userId, config);
+      const targetUid = userId || auth?.currentUser?.uid || null;
+      await saveGitHubSyncConfig(targetUid, config);
       setIsConnected(true);
       if (onConfigSaved) onConfigSaved(config);
 
-      toast.success("GitHub Repository linked successfully! 🚀", {
-        description: `Solutions will automatically push to ${owner}/${repo} as .txt files.`,
+      toast.success("GitHub Repository linked & securely encrypted in cloud! 🐙", {
+        description: `Solutions will automatically push to ${owner}/${repo}. Cloud sync keeps your key active across all devices!`,
       });
       onOpenChange(false);
     } catch (err: any) {
@@ -216,7 +240,8 @@ export function GitHubRepoLinkModal({
       folderPath: "solutions",
       autoPromptDismissed: true,
     };
-    await saveGitHubSyncConfig(userId, config);
+    const targetUid = userId || auth?.currentUser?.uid || null;
+    await saveGitHubSyncConfig(targetUid, config);
     setToken("");
     setOwner("");
     setRepo("");
@@ -226,10 +251,11 @@ export function GitHubRepoLinkModal({
   };
 
   const handleDismiss = () => {
-    const existing = getLocalGitHubSyncConfig(userId);
+    const targetUid = userId || auth?.currentUser?.uid || null;
+    const existing = getLocalGitHubSyncConfig(targetUid);
     if (!existing) {
       // Mark as dismissed so startup popup doesn't reappear repeatedly
-      saveGitHubSyncConfig(userId, {
+      saveGitHubSyncConfig(targetUid, {
         enabled: false,
         token: "",
         owner: "",

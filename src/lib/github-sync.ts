@@ -1,7 +1,7 @@
 // src/lib/github-sync.ts
 
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db as firestore } from "@/integrations/firebase/client";
+import { auth, db as firestore } from "@/integrations/firebase/client";
 
 export interface GitHubSyncConfig {
   enabled: boolean;
@@ -15,6 +15,84 @@ export interface GitHubSyncConfig {
 }
 
 const STORAGE_KEY_PREFIX = "dsa404_github_sync_config_";
+const PEPPER = "_DSA404_SECURE_KEY_ENC_v1_";
+
+/** Derive an AES-GCM key securely using PBKDF2 with user UID & internal pepper */
+async function getDerivedAesKey(uid: string): Promise<CryptoKey | null> {
+  if (typeof window === "undefined" || !window.crypto?.subtle) return null;
+  try {
+    const enc = new TextEncoder();
+    const keyMaterial = await window.crypto.subtle.importKey(
+      "raw",
+      enc.encode(`${uid}${PEPPER}`),
+      { name: "PBKDF2" },
+      false,
+      ["deriveKey"]
+    );
+    return await window.crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: enc.encode(`salt_${uid.slice(0, 8)}`),
+        iterations: 100000,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  } catch {
+    return null;
+  }
+}
+
+/** Encrypts the GitHub token using AES-GCM before storing to Firestore */
+export async function encryptSecret(secret: string, uid: string): Promise<string> {
+  if (!secret || typeof window === "undefined" || !window.crypto?.subtle) return secret;
+  try {
+    const key = await getDerivedAesKey(uid);
+    if (!key) return secret;
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const enc = new TextEncoder();
+    const ciphertext = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      enc.encode(secret)
+    );
+    const ivStr = btoa(String.fromCharCode(...iv));
+    const ctStr = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
+    return `enc:v1:${ivStr}:${ctStr}`;
+  } catch (err) {
+    console.warn("Could not encrypt secret:", err);
+    return secret;
+  }
+}
+
+/** Decrypts the encrypted token using AES-GCM on any device signed in as the user */
+export async function decryptSecret(encrypted: string, uid: string): Promise<string> {
+  if (!encrypted) return "";
+  if (!encrypted.startsWith("enc:v1:")) return encrypted; // legacy plaintext
+  if (typeof window === "undefined" || !window.crypto?.subtle) return "";
+  try {
+    const parts = encrypted.split(":");
+    const ivStr = parts[2];
+    const ctStr = parts[3];
+    if (!ivStr || !ctStr) return "";
+    const iv = new Uint8Array(atob(ivStr).split("").map((c) => c.charCodeAt(0)));
+    const ct = new Uint8Array(atob(ctStr).split("").map((c) => c.charCodeAt(0)));
+    const key = await getDerivedAesKey(uid);
+    if (!key) return "";
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      ct
+    );
+    return new TextDecoder().decode(decrypted);
+  } catch (err) {
+    console.warn("Could not decrypt secret:", err);
+    return "";
+  }
+}
 
 /** Safe Base64 encoding supporting Unicode characters */
 function utf8ToBase64(str: string): string {
@@ -42,7 +120,8 @@ export function sanitizeFileName(name: string): string {
 export function getLocalGitHubSyncConfig(userId?: string | null): GitHubSyncConfig | null {
   if (typeof window === "undefined") return null;
   try {
-    const key = `${STORAGE_KEY_PREFIX}${userId || "default"}`;
+    const targetUid = userId || auth?.currentUser?.uid || "default";
+    const key = `${STORAGE_KEY_PREFIX}${targetUid}`;
     const raw = localStorage.getItem(key) || localStorage.getItem("dsa404_github_sync_config_default");
     if (!raw) return null;
     return JSON.parse(raw) as GitHubSyncConfig;
@@ -51,42 +130,95 @@ export function getLocalGitHubSyncConfig(userId?: string | null): GitHubSyncConf
   }
 }
 
-/** Saves config to both localStorage and Firestore (if userId provided) */
+/** Saves config to both localStorage and Firestore (AES-GCM encrypted in private collection) */
 export async function saveGitHubSyncConfig(
   userId: string | null | undefined,
   config: GitHubSyncConfig,
 ): Promise<void> {
+  const targetUid = userId || auth?.currentUser?.uid || null;
+
   if (typeof window !== "undefined") {
-    const key = `${STORAGE_KEY_PREFIX}${userId || "default"}`;
+    const key = `${STORAGE_KEY_PREFIX}${targetUid || "default"}`;
     localStorage.setItem(key, JSON.stringify(config));
     localStorage.setItem("dsa404_github_sync_config_default", JSON.stringify(config));
   }
 
-  if (userId && firestore) {
+  if (targetUid && firestore) {
     try {
-      const ref = doc(firestore, "users", userId, "private", "githubSync");
-      await setDoc(ref, { ...config, updatedAt: new Date().toISOString() }, { merge: true });
+      const ref = doc(firestore, "users", targetUid, "private", "githubSync");
+      let encryptedToken = "";
+      if (config.token) {
+        encryptedToken = await encryptSecret(config.token, targetUid);
+      }
+      const maskedToken = config.token
+        ? `${config.token.slice(0, 4)}••••••••${config.token.slice(-4)}`
+        : "";
+
+      await setDoc(
+        ref,
+        {
+          enabled: config.enabled ?? true,
+          owner: config.owner || "",
+          repo: config.repo || "",
+          branch: config.branch || "main",
+          folderPath: config.folderPath ?? "solutions",
+          lastSyncedAt: config.lastSyncedAt || new Date().toISOString(),
+          autoPromptDismissed: config.autoPromptDismissed ?? false,
+          encryptedToken,
+          maskedToken,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
     } catch (err) {
       console.warn("Could not persist GitHub sync config to cloud:", err);
     }
   }
 }
 
-/** Loads sync config from cloud Firestore, falling back to local storage */
-export async function loadCloudGitHubSyncConfig(userId: string): Promise<GitHubSyncConfig | null> {
-  const local = getLocalGitHubSyncConfig(userId);
-  if (!userId || !firestore) return local;
+/** Loads sync config from cloud Firestore with automatic AES decryption, syncing to local storage */
+export async function loadCloudGitHubSyncConfig(userId?: string | null): Promise<GitHubSyncConfig | null> {
+  const targetUid = userId || auth?.currentUser?.uid || null;
+  const local = getLocalGitHubSyncConfig(targetUid);
+  if (!targetUid || !firestore) return local;
 
   try {
-    const ref = doc(firestore, "users", userId, "private", "githubSync");
+    const ref = doc(firestore, "users", targetUid, "private", "githubSync");
     const snap = await getDoc(ref);
     if (snap.exists()) {
-      const data = snap.data() as GitHubSyncConfig;
-      if (typeof window !== "undefined") {
-        const key = `${STORAGE_KEY_PREFIX}${userId}`;
-        localStorage.setItem(key, JSON.stringify(data));
+      const data = snap.data() as any;
+      let token = "";
+
+      if (data.encryptedToken) {
+        token = await decryptSecret(data.encryptedToken, targetUid);
+      } else if (data.token) {
+        // Legacy unencrypted token fallback
+        token = data.token;
       }
-      return data;
+
+      // If token decrypt produced nothing, fallback to local token
+      if (!token && local?.token) {
+        token = local.token;
+      }
+
+      const cloudConfig: GitHubSyncConfig = {
+        enabled: data.enabled ?? true,
+        token: token || "",
+        owner: data.owner || "",
+        repo: data.repo || "",
+        branch: data.branch || "main",
+        folderPath: data.folderPath ?? "solutions",
+        lastSyncedAt: data.lastSyncedAt,
+        autoPromptDismissed: data.autoPromptDismissed ?? false,
+      };
+
+      if (typeof window !== "undefined" && token) {
+        const key = `${STORAGE_KEY_PREFIX}${targetUid}`;
+        localStorage.setItem(key, JSON.stringify(cloudConfig));
+        localStorage.setItem("dsa404_github_sync_config_default", JSON.stringify(cloudConfig));
+      }
+
+      return cloudConfig;
     }
   } catch (err) {
     console.warn("Failed to load GitHub sync config from cloud:", err);
@@ -112,6 +244,11 @@ export async function fetchUserRepositories(
   if (!res.ok) {
     if (res.status === 401) {
       throw new Error("Invalid GitHub token. Please verify token permissions.");
+    }
+    if (res.status === 403) {
+      throw new Error(
+        "GitHub token lacks required permissions. Please ensure your Personal Access Token has the 'repo' scope enabled (Settings → Developer settings → Personal access tokens)."
+      );
     }
     throw new Error(`GitHub API error (${res.status}): ${res.statusText}`);
   }
@@ -149,6 +286,14 @@ export async function validateGitHubRepo(
       }
       if (res.status === 401) {
         return { valid: false, defaultBranch: "main", error: "Invalid GitHub personal access token." };
+      }
+      if (res.status === 403) {
+        return {
+          valid: false,
+          defaultBranch: "main",
+          error:
+            "GitHub token lacks required permissions. Please ensure your Personal Access Token has the 'repo' scope enabled (Settings → Developer settings → Personal access tokens).",
+        };
       }
       return { valid: false, defaultBranch: "main", error: `GitHub error: ${res.statusText}` };
     }
@@ -194,6 +339,13 @@ export async function createGitHubRepository(
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      if (res.status === 403) {
+        return {
+          success: false,
+          error:
+            "GitHub token lacks required permissions to create repositories. Please ensure your Personal Access Token has the 'repo' scope enabled (Settings → Developer settings → Personal access tokens).",
+        };
+      }
       const msg = err.message || (err.errors?.[0]?.message) || `Error ${res.status}: ${res.statusText}`;
       return { success: false, error: msg };
     }
@@ -217,6 +369,14 @@ export interface PushSolutionParams {
   keyPoints?: string;
   link?: string;
   date?: string;
+  /** Topic name from the Day (e.g. "Arrays", "Binary Search") */
+  topic?: string;
+  /** Section / chapter (e.g. "Step 3: Solve Problems on Arrays") */
+  section?: string;
+  /** Day number in the plan (e.g. 14) */
+  dayNumber?: number;
+  /** Problem difficulty */
+  difficulty?: string;
 }
 
 // Global deduplication & in-flight cache to prevent concurrent/rapid duplicate commits
@@ -225,13 +385,14 @@ const inFlightPushes = new Map<string, Promise<{ success: boolean; fileUrl?: str
 
 /**
  * Pushes a problem solution .txt file into the selected GitHub repository.
- * File contains Problem Link, Key Patterns and Code sections.
+ * File path: {folderPath}/{Topic}/{YYYY-MM-DD}_{ProblemName}.txt
+ * File header includes Topic, Section, Day #, Date, Difficulty.
  */
 export async function pushProblemSolutionToGitHub(
   config: GitHubSyncConfig,
   params: PushSolutionParams,
 ): Promise<{ success: boolean; fileUrl?: string; filePath: string; error?: string }> {
-  const { problemName, code, keyPoints = "", link = "", date } = params;
+  const { problemName, code, keyPoints = "", link = "", date, topic, section, dayNumber, difficulty } = params;
 
   if (!config.enabled) {
     return { success: false, filePath: "", error: "GitHub auto-sync is disabled in settings." };
@@ -242,9 +403,12 @@ export async function pushProblemSolutionToGitHub(
 
   const currentDate = date || new Date().toISOString().slice(0, 10);
   const cleanName = sanitizeFileName(problemName);
-  const fileName = `${cleanName}.txt`;
-  const folder = config.folderPath?.trim().replace(/^\/+|\/+$/g, "");
-  const fullFilePath = folder ? `${folder}/${fileName}` : fileName;
+  // File name: YYYY-MM-DD_ProblemName.txt
+  const fileName = `${currentDate}_${cleanName}.txt`;
+  const baseFolder = config.folderPath?.trim().replace(/^\/+|\/+$/g, "") || "solutions";
+  // Topic sub-folder: sanitize topic name, fallback to "General"
+  const topicFolder = topic ? sanitizeFileName(topic) : "General";
+  const fullFilePath = `${baseFolder}/${topicFolder}/${fileName}`;
 
   const cleanToken = config.token.trim();
   const owner = config.owner.trim();
@@ -263,7 +427,7 @@ export async function pushProblemSolutionToGitHub(
   }
 
   const executePush = async (): Promise<{ success: boolean; fileUrl?: string; filePath: string; error?: string }> => {
-    // Build the requested text file format containing Problem Link, Key Patterns, and Code
+    // Build the file content
     const problemLink = link.trim();
     const linkSection = problemLink
       ? `
@@ -274,10 +438,19 @@ ${problemLink}
 `
       : "";
 
+    const topicLine      = topic      ? `TOPIC:      ${topic}`      : "";
+    const sectionLine    = section    ? `SECTION:    ${section}`    : "";
+    const dayLine        = dayNumber  ? `DAY:        Day ${dayNumber}` : "";
+    const difficultyLine = difficulty ? `DIFFICULTY: ${difficulty}` : "";
+
+    const metaBlock = [topicLine, sectionLine, dayLine, difficultyLine]
+      .filter(Boolean)
+      .join("\n");
+
     const fileContent = `================================================================================
-PROBLEM: ${problemName}
-DATE: ${currentDate}
-TRACKER: DSA404 Milestone Tracker
+PROBLEM:    ${problemName}
+DATE:       ${currentDate}
+${metaBlock ? metaBlock + "\n" : ""}TRACKER:    DSA404 Milestone Tracker
 ================================================================================
 ${linkSection}
 --------------------------------------------------------------------------------
@@ -324,9 +497,10 @@ ${code.trim()}
 
       // Helper to commit the file
       const commitFile = async (sha?: string) => {
+        const topicTag = topic ? ` [${topic}]` : "";
         const commitMessage = sha
-          ? `Update solution for ${problemName} - DSA404`
-          : `Add solution for ${problemName} - DSA404`;
+          ? `Update solution: ${problemName}${topicTag} (${currentDate}) - DSA404`
+          : `Add solution: ${problemName}${topicTag} (${currentDate}) - DSA404`;
 
         return fetch(
           `https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}`,
@@ -362,6 +536,14 @@ ${code.trim()}
 
       if (!putRes.ok) {
         const errData = await putRes.json().catch(() => ({}));
+        if (putRes.status === 403) {
+          return {
+            success: false,
+            filePath: fullFilePath,
+            error:
+              "GitHub token lacks required permissions to push files. Please ensure your Personal Access Token has the 'repo' scope enabled (Settings → Developer settings → Personal access tokens).",
+          };
+        }
         const errMsg = errData.message || `GitHub error ${putRes.status}: ${putRes.statusText}`;
         return { success: false, filePath: fullFilePath, error: errMsg };
       }

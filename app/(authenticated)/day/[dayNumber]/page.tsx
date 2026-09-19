@@ -31,11 +31,15 @@ export default function DayPage() {
   // Past day (backlog): fully interactive so student can complete missed problems,
   // but scheduling actions (postpone/delete/merge) are hidden since the date already passed.
   const isPast = day.date < iso;
+  const isSkipped = Boolean(day.skipped);
+  const canSolve = isToday || isPast || isSkipped;
 
   return (
     <>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">Day {day.dayNumber}</h1>
-      {!isToday && !isPast && (
+      <h1 className="mb-4 text-2xl font-bold tracking-tight">
+        {isSkipped ? `Skipped Topic: ${day.topic}` : `Day ${day.dayNumber}`}
+      </h1>
+      {!canSolve && (
         <p className="mb-4 rounded-lg border border-dashed border-border bg-secondary/40 px-3 py-2 text-sm text-muted-foreground">
           View only — only today&apos;s problems can be checked off or rescheduled. Head to the{" "}
           <Link href="/today" className="font-medium text-primary underline">
@@ -44,7 +48,12 @@ export default function DayPage() {
           tab to make changes.
         </p>
       )}
-      <DayDetail day={day} readOnly={!isToday && !isPast} lateMode={isPast} />
+      {isSkipped && (
+        <p className="mb-4 rounded-lg border border-dashed border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+          This is a skipped topic. You can solve its problems anytime — progress is saved to your account and calculated in your overall stats.
+        </p>
+      )}
+      <DayDetail day={day} readOnly={!canSolve} lateMode={isPast || isSkipped} />
     </>
   );
 }

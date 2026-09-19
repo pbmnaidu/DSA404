@@ -13,6 +13,7 @@ import {
   getLocalGitHubSyncConfig,
   type GitHubSyncConfig,
 } from "@/lib/github-sync";
+import { useAuth } from "@/hooks/useAuth";
 import { GitHubRepoLinkModal } from "./GitHubRepoLinkModal";
 import { GitHubIcon } from "./SocialIcons";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ export function CodeModal({
   onDelete,
   readOnly = false,
 }: CodeModalProps) {
+  const { user } = useAuth();
   const [code, setCode] = useState("");
   const [link, setLink] = useState("");
   const [keyPoints, setKeyPoints] = useState("");
@@ -46,7 +48,7 @@ export function CodeModal({
   // Sync state whenever modal opens or existingSubmission changes
   useEffect(() => {
     if (open) {
-      setGhConfig(getLocalGitHubSyncConfig());
+      setGhConfig(getLocalGitHubSyncConfig(user?.uid));
       const draftCode = typeof window !== "undefined" ? localStorage.getItem(`draft_code_${problemName}`) : null;
       const draftKeyPoints = typeof window !== "undefined" ? localStorage.getItem(`draft_keypoints_${problemName}`) : null;
       const canonicalLink = getCanonicalProblemLink(problemName) || "";
@@ -292,6 +294,7 @@ export function CodeModal({
       <GitHubRepoLinkModal
         open={showGitHubModal}
         onOpenChange={setShowGitHubModal}
+        userId={user?.uid}
         onConfigSaved={(cfg) => setGhConfig(cfg)}
       />
     </Dialog>

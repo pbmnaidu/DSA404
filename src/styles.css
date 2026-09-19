@@ -2,7 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
  * Design system — Black / Brown / Cream / Gold palette
@@ -160,9 +160,9 @@
   --warning:          oklch(0.78 0.15 78);
   --warning-foreground: oklch(0.20 0.04 70);
 
-  /* Borders & inputs — warm dark brown borders */
-  --border:           oklch(0.24 0.022 55);
-  --input:            oklch(0.24 0.022 55);
+  /* Borders & inputs — warm dark brown borders with distinct contrast */
+  --border:           oklch(0.32 0.022 55);
+  --input:            oklch(0.32 0.022 55);
   --ring:             oklch(0.76 0.17 78);     /* bright gold focus ring */
 
   /* Difficulty */
