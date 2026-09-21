@@ -1,6 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { auth, db } from "@/integrations/firebase/client";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { doc, onSnapshot, setDoc, type DocumentSnapshot } from "firebase/firestore";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -245,16 +248,84 @@ function buildCssVars(colors: ThemeColors, mode: ColorMode): Record<string, stri
 
 export { buildCssVars, hexToOklch };
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+// ─── Storage Keys & Types ───────────────────────────────────────────────────
 
 export const THEME_CUSTOM_STORAGE_KEY = "dsa-tracker-theme-custom";
+export const FONT_STORAGE_KEY = "dsa-tracker-font";
+export const SIZE_STORAGE_KEY = "dsa-tracker-font-size";
+export const VIEW_STORAGE_KEY = "dsa-tracker-force-view";
 const STORAGE_KEY = THEME_CUSTOM_STORAGE_KEY;
 
-interface ThemeCustomizerCtx {
+export type ForceView = "auto" | "desktop" | "mobile";
+
+export function applyFontToDocument(font: string) {
+  if (typeof document === "undefined") return;
+  document.documentElement.style.setProperty("--font-sans", font);
+  const name = font.split("'")[1];
+  if (name && name !== "Inter" && name !== "Geist") {
+    const id = `gf-${name.replace(/\s/g, "")}`;
+    if (!document.getElementById(id)) {
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@400;500;600;700;900&display=swap`;
+      document.head.appendChild(link);
+    }
+  }
+  document.documentElement.style.fontFamily = font;
+}
+
+export function applySizeToDocument(size: string) {
+  if (typeof document === "undefined") return;
+  if (!size || size === "auto") {
+    document.documentElement.style.fontSize = "";
+  } else {
+    document.documentElement.style.fontSize = size;
+  }
+}
+
+export function applyViewModeToDocument(mode: ForceView) {
+  if (typeof document === "undefined") return;
+  const meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
+  if (!meta) return;
+  if (mode === "desktop") {
+    meta.content = "width=1280";
+  } else if (mode === "mobile") {
+    meta.content = "width=device-width, initial-scale=1, maximum-scale=1";
+  } else {
+    meta.content = "width=device-width, initial-scale=1";
+  }
+}
+
+export type ThemeMode = "light" | "dark" | "system";
+
+export function applyThemeModeToDocument(mode: ThemeMode) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  const media =
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-color-scheme: light)")
+      : null;
+  const prefersLight = media ? media.matches : false;
+  const isLight = mode === "light" || (mode === "system" && prefersLight);
+  root.classList.toggle("light", isLight);
+  root.classList.toggle("dark", !isLight);
+  root.style.colorScheme = isLight ? "light" : "dark";
+}
+
+export interface ThemeCustomizerCtx {
+  themeMode: ThemeMode;
   colors: ThemeCustom;
   activePreset: string | null;
+  font: string;
+  fontSize: string;
+  forceView: ForceView;
+  applyThemeMode: (mode: ThemeMode) => void;
   applyPreset: (key: string) => void;
   updateColor: (mode: ColorMode, key: keyof ThemeColors, value: string) => void;
+  applyFont: (font: string) => void;
+  applySize: (size: string) => void;
+  applyView: (mode: ForceView) => void;
   resetToDefault: () => void;
   panelOpen: boolean;
   openPanel: () => void;
@@ -264,6 +335,15 @@ interface ThemeCustomizerCtx {
 const Ctx = createContext<ThemeCustomizerCtx | null>(null);
 
 export function ThemeCustomizerProvider({ children }: { children: React.ReactNode }) {
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("dsa-theme-mode") as ThemeMode | null;
+        if (saved && ["light", "dark", "system"].includes(saved)) return saved;
+      } catch {}
+    }
+    return "light";
+  });
   const [colors, setColors] = useState<ThemeCustom>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -272,7 +352,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
           const parsed = JSON.parse(saved) as { colors: ThemeCustom; preset: string | null };
           if (parsed?.colors) return parsed.colors;
         }
-      } catch { }
+      } catch {}
     }
     return PRESETS.default.colors;
   });
@@ -285,34 +365,152 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
           const parsed = JSON.parse(saved) as { colors: ThemeCustom; preset: string | null };
           if (parsed?.preset !== undefined) return parsed.preset;
         }
-      } catch { }
+      } catch {}
     }
     return "default";
   });
+
+  const [font, setFont] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(FONT_STORAGE_KEY);
+        if (saved) return saved;
+      } catch {}
+    }
+    return "'Inter', sans-serif";
+  });
+
+  const [fontSize, setFontSize] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(SIZE_STORAGE_KEY);
+        if (saved) return saved;
+      } catch {}
+    }
+    return "auto";
+  });
+
+  const [forceView, setForceView] = useState<ForceView>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(VIEW_STORAGE_KEY) as ForceView | null;
+        if (saved) return saved;
+      } catch {}
+    }
+    return "auto";
+  });
+
+  const [userId, setUserId] = useState<string | null>(() => auth?.currentUser?.uid ?? null);
   const [panelOpen, setPanelOpen] = useState(false);
   const openPanel = useCallback(() => setPanelOpen(true), []);
   const closePanel = useCallback(() => setPanelOpen(false), []);
 
-  // Sync with persisted colors on mount
+  // Track authenticated user for Firestore sync
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { colors: ThemeCustom; preset: string | null };
-        if (parsed?.colors) setColors(parsed.colors);
-        if (parsed?.preset !== undefined) setActivePreset(parsed.preset);
-      }
-    } catch { }
+    if (!auth) return;
+    const unsub = onAuthStateChanged(auth, (u: User | null) => {
+      setUserId(u?.uid ?? null);
+    });
+    return () => unsub();
   }, []);
 
-  // Inject CSS vars on every color change
+  // Apply initial theme, font, size, view to document
+  useEffect(() => {
+    applyThemeModeToDocument(themeMode);
+    applyFontToDocument(font);
+    applySizeToDocument(fontSize);
+    applyViewModeToDocument(forceView);
+  }, []);
+
+  // Subscribe to real-time Firestore updates on user's theme settings
+  useEffect(() => {
+    if (!userId || !db) return;
+    let alive = true;
+
+    const ref = doc(db, "users", userId, "settings", "prefs");
+    const unsub = onSnapshot(
+      ref,
+      (snap: DocumentSnapshot) => {
+        if (!alive || !snap.exists()) return;
+        const data = snap.data();
+
+        // 1. Theme Mode (Light / Dark / System)
+        if (data.theme && typeof data.theme === "string") {
+          const m = data.theme as ThemeMode;
+          if (["light", "dark", "system"].includes(m)) {
+            setThemeMode(m);
+            applyThemeModeToDocument(m);
+            try {
+              localStorage.setItem("dsa-theme-mode", m);
+            } catch {}
+          }
+        }
+
+        // 2. Theme Custom (Preset & fine-tuned colors)
+        if (data.themeCustom) {
+          try {
+            const rawCustom =
+              typeof data.themeCustom === "string"
+                ? JSON.parse(data.themeCustom)
+                : data.themeCustom;
+            if (rawCustom?.colors) {
+              setColors(rawCustom.colors);
+              setActivePreset(rawCustom.preset ?? null);
+              localStorage.setItem(
+                THEME_CUSTOM_STORAGE_KEY,
+                JSON.stringify({ colors: rawCustom.colors, preset: rawCustom.preset ?? null })
+              );
+            }
+          } catch {}
+        }
+
+        // 3. Font
+        if (data.themeFont && typeof data.themeFont === "string") {
+          setFont(data.themeFont);
+          applyFontToDocument(data.themeFont);
+          try {
+            localStorage.setItem(FONT_STORAGE_KEY, data.themeFont);
+          } catch {}
+        }
+
+        // 4. Display Size
+        if (data.themeFontSize && typeof data.themeFontSize === "string") {
+          setFontSize(data.themeFontSize);
+          applySizeToDocument(data.themeFontSize);
+          try {
+            localStorage.setItem(SIZE_STORAGE_KEY, data.themeFontSize);
+          } catch {}
+        }
+
+        // 5. Force View Mode
+        if (data.themeForceView && typeof data.themeForceView === "string") {
+          const v = data.themeForceView as ForceView;
+          setForceView(v);
+          applyViewModeToDocument(v);
+          try {
+            localStorage.setItem(VIEW_STORAGE_KEY, v);
+          } catch {}
+        }
+      },
+      (err: unknown) => {
+        console.warn("[ThemeCustomizer] onSnapshot error:", err);
+      }
+    );
+
+    return () => {
+      alive = false;
+      unsub();
+    };
+  }, [userId]);
+
+  // Inject CSS vars on every color change or themeMode change
   useEffect(() => {
     const root = document.documentElement;
     const isDark = root.classList.contains("dark");
     const mode: ColorMode = isDark ? "dark" : "light";
     const vars = buildCssVars(isDark ? colors.dark : colors.light, mode);
     Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
-  }, [colors]);
+  }, [colors, themeMode]);
 
   // Also react to dark/light mode toggle
   useEffect(() => {
@@ -327,38 +525,174 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     return () => observer.disconnect();
   }, [colors]);
 
-  const persist = useCallback((next: ThemeCustom, preset: string | null) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ colors: next, preset }));
-    } catch { }
+  // Listen to cross-tab storage changes
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "dsa-theme-mode" && e.newValue) {
+        const m = e.newValue as ThemeMode;
+        if (["light", "dark", "system"].includes(m)) {
+          setThemeMode(m);
+          applyThemeModeToDocument(m);
+        }
+      } else if (e.key === THEME_CUSTOM_STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed?.colors) setColors(parsed.colors);
+          if (parsed?.preset !== undefined) setActivePreset(parsed.preset);
+        } catch {}
+      } else if (e.key === FONT_STORAGE_KEY && e.newValue) {
+        setFont(e.newValue);
+        applyFontToDocument(e.newValue);
+      } else if (e.key === SIZE_STORAGE_KEY && e.newValue) {
+        setFontSize(e.newValue);
+        applySizeToDocument(e.newValue);
+      } else if (e.key === VIEW_STORAGE_KEY && e.newValue) {
+        const v = e.newValue as ForceView;
+        setForceView(v);
+        applyViewModeToDocument(v);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const applyPreset = useCallback((key: string) => {
-    const preset = PRESETS[key];
-    if (!preset) return;
-    setColors(preset.colors);
-    setActivePreset(key);
-    persist(preset.colors, key);
-  }, [persist]);
+  const persistToFirestore = useCallback(
+    (patch: Record<string, any>) => {
+      if (!userId || !db) return;
+      void setDoc(
+        doc(db, "users", userId, "settings", "prefs"),
+        { ...patch, updatedAt: new Date().toISOString() },
+        { merge: true }
+      ).catch((err: unknown) => {
+        console.warn("[ThemeCustomizer] Failed to sync to Firestore:", err);
+      });
+    },
+    [userId]
+  );
 
-  const updateColor = useCallback((mode: ColorMode, key: keyof ThemeColors, value: string) => {
-    setColors((prev) => {
-      const next: ThemeCustom = {
-        ...prev,
-        [mode]: { ...prev[mode], [key]: value },
-      };
-      persist(next, null);
-      return next;
-    });
-    setActivePreset(null);
-  }, [persist]);
+  const applyThemeMode = useCallback(
+    (mode: ThemeMode) => {
+      setThemeMode(mode);
+      applyThemeModeToDocument(mode);
+      try {
+        localStorage.setItem("dsa-theme-mode", mode);
+      } catch {}
+      persistToFirestore({ theme: mode });
+    },
+    [persistToFirestore]
+  );
+
+  const applyPreset = useCallback(
+    (key: string) => {
+      const preset = PRESETS[key];
+      if (!preset) return;
+      setColors(preset.colors);
+      setActivePreset(key);
+      try {
+        localStorage.setItem(
+          THEME_CUSTOM_STORAGE_KEY,
+          JSON.stringify({ colors: preset.colors, preset: key })
+        );
+      } catch {}
+      persistToFirestore({
+        themeCustom: { colors: preset.colors, preset: key },
+      });
+    },
+    [persistToFirestore]
+  );
+
+  const updateColor = useCallback(
+    (mode: ColorMode, key: keyof ThemeColors, value: string) => {
+      setColors((prev) => {
+        const next: ThemeCustom = {
+          ...prev,
+          [mode]: { ...prev[mode], [key]: value },
+        };
+        try {
+          localStorage.setItem(
+            THEME_CUSTOM_STORAGE_KEY,
+            JSON.stringify({ colors: next, preset: null })
+          );
+        } catch {}
+        persistToFirestore({
+          themeCustom: { colors: next, preset: null },
+        });
+        return next;
+      });
+      setActivePreset(null);
+    },
+    [persistToFirestore]
+  );
+
+  const applyFont = useCallback(
+    (newFont: string) => {
+      setFont(newFont);
+      applyFontToDocument(newFont);
+      try {
+        localStorage.setItem(FONT_STORAGE_KEY, newFont);
+      } catch {}
+      persistToFirestore({ themeFont: newFont });
+    },
+    [persistToFirestore]
+  );
+
+  const applySize = useCallback(
+    (newSize: string) => {
+      setFontSize(newSize);
+      applySizeToDocument(newSize);
+      try {
+        if (!newSize || newSize === "auto") {
+          localStorage.removeItem(SIZE_STORAGE_KEY);
+        } else {
+          localStorage.setItem(SIZE_STORAGE_KEY, newSize);
+        }
+      } catch {}
+      persistToFirestore({ themeFontSize: newSize });
+    },
+    [persistToFirestore]
+  );
+
+  const applyView = useCallback(
+    (mode: ForceView) => {
+      setForceView(mode);
+      applyViewModeToDocument(mode);
+      try {
+        localStorage.setItem(VIEW_STORAGE_KEY, mode);
+      } catch {}
+      persistToFirestore({ themeForceView: mode });
+    },
+    [persistToFirestore]
+  );
 
   const resetToDefault = useCallback(() => {
+    applyThemeMode("light");
     applyPreset("default");
-  }, [applyPreset]);
+    applyFont("'Inter', sans-serif");
+    applySize("auto");
+    applyView("auto");
+  }, [applyThemeMode, applyPreset, applyFont, applySize, applyView]);
 
   return (
-    <Ctx.Provider value={{ colors, activePreset, applyPreset, updateColor, resetToDefault, panelOpen, openPanel, closePanel }}>
+    <Ctx.Provider
+      value={{
+        themeMode,
+        colors,
+        activePreset,
+        font,
+        fontSize,
+        forceView,
+        applyThemeMode,
+        applyPreset,
+        updateColor,
+        applyFont,
+        applySize,
+        applyView,
+        resetToDefault,
+        panelOpen,
+        openPanel,
+        closePanel,
+      }}
+    >
       {children}
     </Ctx.Provider>
   );

@@ -5,8 +5,31 @@ import { DEFAULT_DAILY_COUNTS, type DailyCounts, normalizeDailyCounts } from "./
 
 export type ThemeMode = "light" | "dark" | "system";
 
+export interface ThemeColors {
+  background: string;
+  foreground: string;
+  primary: string;
+  card: string;
+  muted: string;
+  border: string;
+}
+
+export interface ThemeCustom {
+  light: ThemeColors;
+  dark: ThemeColors;
+}
+
+export interface ThemeCustomizerData {
+  colors: ThemeCustom;
+  preset: string | null;
+}
+
 export interface UserSettings {
   theme: ThemeMode;
+  themeCustom?: ThemeCustomizerData | null;
+  themeFont?: string;
+  themeFontSize?: string;
+  themeForceView?: string;
   counts: DailyCounts;
   pushEnabled: boolean;
   emailEnabled: boolean;
@@ -24,6 +47,10 @@ export interface UserSettings {
 
 export const DEFAULT_SETTINGS: UserSettings = {
   theme: "light",
+  themeCustom: null,
+  themeFont: "'Inter', sans-serif",
+  themeFontSize: "auto",
+  themeForceView: "auto",
   counts: DEFAULT_DAILY_COUNTS,
   pushEnabled: false,
   emailEnabled: false,
@@ -39,8 +66,12 @@ export const DEFAULT_SETTINGS: UserSettings = {
   activeSheet: "core404",
 };
 
-type Fields = {
+export type Fields = {
   theme?: string;
+  themeCustom?: ThemeCustomizerData | string | null;
+  themeFont?: string;
+  themeFontSize?: string;
+  themeForceView?: string;
   dailyTarget?: number;
   paceTier?: string;
   easyPerDay?: number;
@@ -60,7 +91,7 @@ type Fields = {
   activeSheet?: string;
 };
 
-const fieldsToSettings = (f: Fields): UserSettings => {
+export const fieldsToSettings = (f: Fields): UserSettings => {
   const normCounts = normalizeDailyCounts({
     target: f.dailyTarget,
     tier: f.paceTier as any,
@@ -69,8 +100,23 @@ const fieldsToSettings = (f: Fields): UserSettings => {
     hard: f.hardPerDay,
   });
 
+  let parsedThemeCustom: ThemeCustomizerData | null = null;
+  if (f.themeCustom) {
+    if (typeof f.themeCustom === "string") {
+      try {
+        parsedThemeCustom = JSON.parse(f.themeCustom);
+      } catch {}
+    } else if (typeof f.themeCustom === "object") {
+      parsedThemeCustom = f.themeCustom as ThemeCustomizerData;
+    }
+  }
+
   return {
     theme: (f.theme as ThemeMode) ?? "light",
+    themeCustom: parsedThemeCustom,
+    themeFont: f.themeFont || undefined,
+    themeFontSize: f.themeFontSize || undefined,
+    themeForceView: f.themeForceView || undefined,
     counts: normCounts,
     pushEnabled: Boolean(f.pushEnabled),
     emailEnabled: Boolean(f.emailEnabled),
@@ -87,9 +133,13 @@ const fieldsToSettings = (f: Fields): UserSettings => {
   };
 };
 
-const settingsToFields = (s: Partial<UserSettings>): Fields => {
+export const settingsToFields = (s: Partial<UserSettings>): Fields => {
   const fields: Fields = {};
   if (s.theme !== undefined) fields.theme = s.theme;
+  if (s.themeCustom !== undefined) fields.themeCustom = s.themeCustom;
+  if (s.themeFont !== undefined) fields.themeFont = s.themeFont;
+  if (s.themeFontSize !== undefined) fields.themeFontSize = s.themeFontSize;
+  if (s.themeForceView !== undefined) fields.themeForceView = s.themeForceView;
   if (s.counts !== undefined) {
     const norm = normalizeDailyCounts(s.counts);
     fields.dailyTarget = norm.target;

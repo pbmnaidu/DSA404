@@ -4,10 +4,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
+import { onSnapshot } from "firebase/firestore";
+import { settingsDoc } from "@/lib/db";
 import {
   DEFAULT_SETTINGS,
+  fieldsToSettings,
   loadSettings,
   saveSettings,
+  type Fields,
   type ThemeMode,
   type UserSettings,
 } from "@/lib/settings";
@@ -37,27 +41,69 @@ export function SettingsProvider({ userId, children }: { userId: string; childre
   });
   const [loading, setLoading] = useState(true);
 
+  // Subscribe to real-time Firestore updates on user settings
   useEffect(() => {
+    if (!userId) return;
     let alive = true;
-    void loadSettings(userId)
-      .then((s) => {
-        if (alive) {
+
+    const ref = settingsDoc(userId);
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        if (!alive) return;
+        if (snap.exists()) {
+          const raw = snap.data() as Fields;
+          const s = fieldsToSettings(raw);
           setSettings(s);
+          setLoading(false);
           if (s.theme) {
             try {
               localStorage.setItem(THEME_MODE_STORAGE_KEY, s.theme);
             } catch {}
           }
+        } else {
+          void loadSettings(userId)
+            .then((s) => {
+              if (alive) {
+                setSettings(s);
+                setLoading(false);
+              }
+            })
+            .catch(() => {
+              if (alive) setLoading(false);
+            });
         }
-      })
-      .catch(() => {
-        /* fall back to defaults — settings must never block the app */
-      })
-      .finally(() => {
-        if (alive) setLoading(false);
-      });
+      },
+      (error) => {
+        console.warn("[useSettings] onSnapshot error, falling back to loadSettings:", error);
+        void loadSettings(userId)
+          .then((s) => {
+            if (alive) {
+              setSettings(s);
+              setLoading(false);
+            }
+          })
+          .catch(() => {
+            if (alive) setLoading(false);
+          });
+      }
+    );
+
+    // Also sync across tabs via local storage event
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === THEME_MODE_STORAGE_KEY && e.newValue) {
+        const val = e.newValue as ThemeMode;
+        if (["light", "dark", "system"].includes(val)) {
+          setSettings((prev) => (prev.theme === val ? prev : { ...prev, theme: val }));
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
     return () => {
       alive = false;
+      unsubscribe();
+      window.removeEventListener("storage", handleStorage);
     };
   }, [userId]);
 
@@ -84,14 +130,25 @@ export function SettingsProvider({ userId, children }: { userId: string; childre
   useEffect(() => {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
-    const prefersLight =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: light)").matches;
-    const light = settings.theme === "light" || (settings.theme === "system" && prefersLight);
-    root.classList.toggle("light", light);
-    root.classList.toggle("dark", !light);
-    root.style.colorScheme = light ? "light" : "dark";
+    const media =
+      typeof window !== "undefined" && window.matchMedia
+        ? window.matchMedia("(prefers-color-scheme: light)")
+        : null;
+
+    const apply = () => {
+      const prefersLight = media ? media.matches : false;
+      const light = settings.theme === "light" || (settings.theme === "system" && prefersLight);
+      root.classList.toggle("light", light);
+      root.classList.toggle("dark", !light);
+      root.style.colorScheme = light ? "light" : "dark";
+    };
+
+    apply();
+
+    if (media && settings.theme === "system") {
+      media.addEventListener("change", apply);
+      return () => media.removeEventListener("change", apply);
+    }
   }, [settings.theme]);
 
   const value = useMemo(

@@ -80,15 +80,66 @@ export function isFrameRestrictedUrl(url: string): { isRestricted: boolean; plat
 }
 
 /**
- * Opens ChatGPT in the native application if installed;
- * falls back to Chrome / web browser if not installed.
+ * Accurately detects whether the current environment is a mobile phone / tablet
+ * (Android or iOS) vs a Laptop / Desktop (Windows, macOS, Linux, Chrome OS).
+ */
+export function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  const isAndroid = /android/i.test(ua);
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isMobileUa = /Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  return isAndroid || isIOS || isMobileUa;
+}
+
+/**
+ * Opens ChatGPT:
+ * - On Mobile (Android / iOS): uses the native application or app intent if installed, with browser fallback.
+ * - On Laptop / Desktop: OpenAI's desktop application protocol (chatgpt://) does not support pre-filling prompts
+ *   via query parameters, leaving users with an empty chat box. Therefore on laptop/desktop,
+ *   we redirect directly to the ChatGPT website (https://chatgpt.com/?q=...) where the prompt is automatically
+ *   loaded into the input field, and also copy the prompt to the clipboard for instant access.
  */
 export function openChatGPTUrl(url: string): void {
   if (typeof window === 'undefined') return;
 
   try {
+    const isMobile = isMobileDevice();
+
+    // ─── LAPTOP / DESKTOP FLOW ──────────────────────────────────────────────
+    if (!isMobile) {
+      let promptText = '';
+      try {
+        const parsed = new URL(url, window.location.origin);
+        promptText = parsed.searchParams.get('q') || '';
+      } catch {
+        const match = url.match(/[?&]q=([^&]+)/);
+        if (match) promptText = decodeURIComponent(match[1]);
+      }
+
+      // Automatically copy prompt to user's clipboard for instant convenience
+      if (promptText && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(promptText).catch(() => {});
+      }
+
+      // Ensure URL is a web URL (https://)
+      let webUrl = url;
+      if (webUrl.startsWith('chatgpt://')) {
+        webUrl = webUrl.replace(/^chatgpt:\/\//i, 'https://');
+      }
+
+      // Open directly in a new browser tab
+      window.open(webUrl, '_blank', 'noopener,noreferrer');
+      toast.success('Opening ChatGPT in browser (Prompt loaded & copied to clipboard!)', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // ─── MOBILE FLOW (Android & iOS) ────────────────────────────────────────
     const isAndroid = /android/i.test(navigator.userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
     let pathAndQuery = '';
     try {
@@ -101,13 +152,14 @@ export function openChatGPTUrl(url: string): void {
     // Android Intent: Launches ChatGPT app package if installed,
     // otherwise Chrome automatically opens the S.browser_fallback_url!
     if (isAndroid) {
+      toast.info('Opening ChatGPT...', { duration: 1500 });
       const intentUrl = `intent://chatgpt.com${pathAndQuery}#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=${encodeURIComponent(url)};end`;
       window.location.href = intentUrl;
       return;
     }
 
-    // iOS and Windows/macOS Desktop:
-    // Try custom protocol chatgpt:// with blur/visibility fallback
+    // iOS: Try custom protocol chatgpt:// with blur/visibility fallback
+    toast.info('Opening ChatGPT...', { duration: 1500 });
     const appSchemeUrl = `chatgpt://chatgpt.com${pathAndQuery}`;
 
     let appLaunched = false;
@@ -228,9 +280,8 @@ export function InAppBrowserProvider({ children }: { children: React.ReactNode }
       event.preventDefault();
       event.stopPropagation();
 
-      // Rule 1: ChatGPT links redirect to application (if installed), else to Chrome
+      // Rule 1: ChatGPT links redirect to application (if on mobile), else to browser website
       if (isChatGPTUrl(rawHref)) {
-        toast.info('Opening ChatGPT...', { duration: 1500 });
         openChatGPTUrl(rawHref);
         return;
       }

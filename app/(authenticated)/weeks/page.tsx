@@ -367,8 +367,8 @@ export default function WeeksPage() {
           return `${s.done}/${s.total} problems · ${s.pct}% done`;
         })()}
         {viewMode === "all" && (() => {
-          const total = activeDays.reduce((s, d) => s + d.problems.length, 0);
-          const done = activeDays.reduce((s, d) => s + d.problems.filter((p) => p.done).length, 0);
+          const total = scheduledDays.reduce((s: number, d: Day) => s + d.problems.length, 0);
+          const done = scheduledDays.reduce((s: number, d: Day) => s + d.problems.filter((p) => p.done).length, 0);
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           return `${done}/${total} problems · ${pct}% done`;
         })()}

@@ -86,96 +86,27 @@ function SectionHeader({
 // ─── Main Panel ────────────────────────────────────────────────────────────────
 
 export function ThemeCustomizerPanel() {
-  const { colors, activePreset, applyPreset, updateColor, resetToDefault, panelOpen, closePanel } = useThemeCustomizer();
+  const {
+    themeMode,
+    applyThemeMode,
+    colors,
+    activePreset,
+    applyPreset,
+    updateColor,
+    resetToDefault,
+    panelOpen,
+    closePanel,
+    font,
+    fontSize,
+    forceView,
+    applyFont,
+    applySize,
+    applyView,
+  } = useThemeCustomizer();
+
   const [advancedMode, setAdvancedMode] = useState<ColorMode | null>(null);
   const [fontOpen, setFontOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
-
-  const [selectedFont, setSelectedFont] = useState(FONT_OPTIONS[0].value);
-  const [selectedSize, setSelectedSize] = useState("auto");
-  const [forceView, setForceView] = useState<ForceView>("auto");
-
-  // Load persisted font + size + view on mount
-  useEffect(() => {
-    try {
-      const f = localStorage.getItem(FONT_STORAGE_KEY);
-      const s = localStorage.getItem(SIZE_STORAGE_KEY);
-      const v = localStorage.getItem(VIEW_STORAGE_KEY) as ForceView | null;
-      if (f) { setSelectedFont(f); applyFont(f); }
-      const initialSize = s || "auto";
-      setSelectedSize(initialSize);
-      applySize(initialSize);
-      if (v) { setForceView(v); applyViewMode(v); }
-    } catch {}
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function applyFont(font: string) {
-    document.documentElement.style.setProperty("--font-sans", font);
-    // Also inject a Google Fonts link if not already there
-    const name = font.split("'")[1];
-    if (name && name !== "Inter" && name !== "Geist") {
-      const id = `gf-${name.replace(/\s/g, "")}`;
-      if (!document.getElementById(id)) {
-        const link = document.createElement("link");
-        link.id = id;
-        link.rel = "stylesheet";
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@400;500;600;700;900&display=swap`;
-        document.head.appendChild(link);
-      }
-    }
-    document.documentElement.style.fontFamily = font;
-  }
-
-  function applySize(size: string) {
-    if (!size || size === "auto") {
-      document.documentElement.style.fontSize = "";
-    } else {
-      document.documentElement.style.fontSize = size;
-    }
-  }
-
-  function applyViewMode(mode: ForceView) {
-    const meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
-    if (mode === "desktop") {
-      if (meta) meta.content = "width=1280";
-    } else if (mode === "mobile") {
-      if (meta) meta.content = "width=device-width, initial-scale=1, maximum-scale=1";
-    } else {
-      if (meta) meta.content = "width=device-width, initial-scale=1";
-    }
-  }
-
-  function handleFont(font: string) {
-    setSelectedFont(font);
-    applyFont(font);
-    try { localStorage.setItem(FONT_STORAGE_KEY, font); } catch {}
-  }
-
-  function handleSize(size: string) {
-    setSelectedSize(size);
-    applySize(size);
-    try {
-      if (size === "auto") {
-        localStorage.removeItem(SIZE_STORAGE_KEY);
-      } else {
-        localStorage.setItem(SIZE_STORAGE_KEY, size);
-      }
-    } catch {}
-  }
-
-  function handleView(mode: ForceView) {
-    setForceView(mode);
-    applyViewMode(mode);
-    try { localStorage.setItem(VIEW_STORAGE_KEY, mode); } catch {}
-  }
-
-  function handleReset() {
-    resetToDefault();
-    handleFont(FONT_OPTIONS[0].value);
-    handleSize("auto");
-    handleView("auto");
-  }
 
   return (
     <>
@@ -198,7 +129,7 @@ export function ThemeCustomizerPanel() {
             <span className="font-semibold text-sm">Theme & Display</span>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={handleReset} title="Reset all" aria-label="Reset all"
+            <button onClick={resetToDefault} title="Reset all" aria-label="Reset all"
               className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               <RotateCcw className="size-3.5" />
             </button>
@@ -210,6 +141,35 @@ export function ThemeCustomizerPanel() {
         </div>
 
         <div className="p-4 space-y-5">
+
+          {/* ── Mode (Light / Dark / System) ── */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">Theme Mode</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  { mode: "light" as const, label: "Light", icon: <Sun className="size-3.5" /> },
+                  { mode: "dark" as const, label: "Dark", icon: <Moon className="size-3.5" /> },
+                  { mode: "system" as const, label: "System", icon: <Monitor className="size-3.5" /> },
+                ] as const
+              ).map(({ mode, label, icon }) => (
+                <button
+                  key={mode}
+                  onClick={() => applyThemeMode(mode)}
+                  className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
+                    themeMode === mode
+                      ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
+                      : "border-border bg-muted/50 text-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {icon}
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-border" />
 
           {/* ── Color Presets ── */}
           <div>
@@ -285,16 +245,16 @@ export function ThemeCustomizerPanel() {
               {fontOpen && (
                 <div className="px-3 py-3 space-y-1.5">
                   {FONT_OPTIONS.map((f) => (
-                    <button key={f.value} onClick={() => handleFont(f.value)}
+                    <button key={f.value} onClick={() => applyFont(f.value)}
                       className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all ${
-                        selectedFont === f.value
+                        font === f.value
                           ? "bg-primary/10 text-primary font-semibold"
                           : "text-foreground hover:bg-muted"
                       }`}
                       style={{ fontFamily: f.value }}
                     >
                       <span>{f.label}</span>
-                      {selectedFont === f.value && <span className="size-2 rounded-full bg-primary" />}
+                      {font === f.value && <span className="size-2 rounded-full bg-primary" />}
                     </button>
                   ))}
                 </div>
@@ -309,9 +269,9 @@ export function ThemeCustomizerPanel() {
               </div>
               <div className="px-3 py-3 grid grid-cols-2 gap-2">
                 {SIZE_OPTIONS.map((s) => (
-                  <button key={s.value} onClick={() => handleSize(s.value)}
+                  <button key={s.value} onClick={() => applySize(s.value)}
                     className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
-                      selectedSize === s.value
+                      fontSize === s.value
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border text-foreground hover:border-primary/50"
                     }`}
@@ -344,7 +304,7 @@ export function ThemeCustomizerPanel() {
                       { mode: "mobile" as ForceView, label: "Mobile", icon: <Smartphone className="size-4" /> },
                     ] as const
                   ).map(({ mode, label, icon }) => (
-                    <button key={mode} onClick={() => handleView(mode)}
+                    <button key={mode} onClick={() => applyView(mode)}
                       className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
                         forceView === mode
                           ? "border-primary bg-primary/10 text-primary"
@@ -365,7 +325,7 @@ export function ThemeCustomizerPanel() {
 
           {/* Footer note */}
           <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-            All settings are saved to your browser automatically.
+            All settings are synced automatically across your devices.
           </p>
         </div>
       </div>

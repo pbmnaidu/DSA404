@@ -171,7 +171,7 @@ export default function TopicsPage() {
   }, [allCompletedNames]);
 
   // Toggle problem completion directly from Topic View and save to DB
-  const handleToggleProblem = async (problem: { name: string; link?: string; platform?: string }) => {
+  const handleToggleProblem = async (problem: { name: string; link?: string; platform?: string; difficulty?: string }) => {
     const isCurrentlyDone = allCompletedNames.has(problem.name);
     try {
       if (isCurrentlyDone) {
