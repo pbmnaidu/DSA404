@@ -277,6 +277,15 @@ export function ProblemCardHorizontal({
                   </a>
                 </DropdownMenuItem>
 
+                <DropdownMenuItem asChild>
+                  <a href="https://www.codechef.com/ide" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-orange-400 font-semibold">
+                    <Code2 className="size-3.5 text-orange-400" />
+                    <ThemedTooltip hint={`open CodeChef online IDE compiler for ${problem.name}`}>
+                      <span>CodeChef IDE Compiler 👨‍🍳</span>
+                    </ThemedTooltip>
+                  </a>
+                </DropdownMenuItem>
+
                 {hasSubmission && (
                   <>
                     <DropdownMenuSeparator />

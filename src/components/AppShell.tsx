@@ -56,6 +56,7 @@ import { ThemeCustomizerPanel } from "../../app/theme-customizer-panel";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 import { GitHubRepoLinkModal } from "@/components/GitHubRepoLinkModal";
 import { getLocalGitHubSyncConfig, loadCloudGitHubSyncConfig } from "@/lib/github-sync";
+import { useInAppBrowser } from "@/components/in-app-browser/InAppBrowserContext";
 
 const NAV = [
   { to: "/today", label: "Today's Workspace", icon: Sparkles, hint: "Your daily topic, core problems, streak, and activity heatmap." },
@@ -442,6 +443,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
   const { settings } = useSettings();
   const { user } = useAuth();
   const { openPanel } = useThemeCustomizer();
+  const { openInApp } = useInAppBrowser();
   const router = useRouter();
   const pathname = usePathname();
   const qc = useQueryClient();
@@ -698,6 +700,15 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
             {/* Right side desktop controls */}
             <div className="ml-auto flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => openInApp("https://www.codechef.com/ide", "CodeChef IDE")}
+                className="hidden xl:inline-flex items-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-bold px-3 py-1 text-xs transition-colors shadow-xs cursor-pointer"
+                title="Open CodeChef IDE Compiler (https://www.codechef.com/ide)"
+              >
+                <span>👨‍🍳 CodeChef IDE</span>
+              </button>
+
               {streak > 0 && (
                 <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                   <Flame className="size-3.5 animate-streak" />{streak}
@@ -714,6 +725,9 @@ export function AppShell({ email, children }: { email: string; children: React.R
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">{email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => openInApp("https://www.codechef.com/ide", "CodeChef IDE")}>
+                    <Code2 className="mr-2 size-4 text-orange-500" /> Open CodeChef IDE
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/progress"><Flame className="mr-2 size-4 text-orange-500" /> Progress</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/today"><Sparkles className="mr-2 size-4" /> Today's Workspace</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
