@@ -208,6 +208,18 @@ export function InAppBrowserProvider({ children }: { children: React.ReactNode }
 
   const openInApp = useCallback((targetUrl: string, targetTitle?: string) => {
     if (!targetUrl) return;
+
+    // Check if the target URL restricts iframe embedding (e.g. LeetCode, GFG, Codeforces, GitHub, etc.)
+    const restriction = isFrameRestrictedUrl(targetUrl);
+    if (restriction.isRestricted) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      toast.success(`Opening ${restriction.platformName} in Chrome...`, {
+        description: `${restriction.platformName} is configured to open directly in Chrome/browser.`,
+        duration: 3000,
+      });
+      return;
+    }
+
     setUrl(targetUrl);
     setTitle(targetTitle || '');
     setIsOpen(true);
@@ -286,8 +298,18 @@ export function InAppBrowserProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      // Rule 2: Open all external links in the in-app browser viewer first.
-      // Users can view inside the app or click "Try in Chrome" whenever preferred!
+      // Rule 2: If frame-restricted external site (LeetCode, GFG, Codeforces, GitHub, etc.), redirect directly to Chrome
+      const restriction = isFrameRestrictedUrl(rawHref);
+      if (restriction.isRestricted) {
+        window.open(rawHref, '_blank', 'noopener,noreferrer');
+        toast.success(`Opening ${restriction.platformName} in Chrome...`, {
+          description: `Automatically opened ${restriction.platformName} in Chrome/external browser.`,
+          duration: 3000,
+        });
+        return;
+      }
+
+      // Rule 3: For embeddable external links, open in in-app browser viewer
       const linkTitle =
         anchor.getAttribute('title') ||
         anchor.getAttribute('aria-label') ||
