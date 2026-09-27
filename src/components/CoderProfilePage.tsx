@@ -35,6 +35,7 @@ import { getLocalGitHubSyncConfig } from "@/lib/github-sync";
 import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { computeBadges, currentStreak } from "@/lib/gamification";
+import { SolvedProblemsArchive } from "@/components/SolvedProblemsArchive";
 import { CodeModal } from "@/components/CodeModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1816,63 +1817,7 @@ export function CoderProfilePage() {
       )}
 
       {/* ── Solved Problems Archive ── */}
-      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
-        <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="size-5 text-emerald-400" />
-            <h2 className="text-lg font-bold text-foreground">All Solved Problems Archive</h2>
-          </div>
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-400">
-            {completedProblems.length} Problems Solved
-          </span>
-        </div>
-
-        {completedProblems.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic p-4 text-center border border-dashed border-white/10 rounded-2xl">
-            No completed problems yet. Submit code solutions on your daily workspace to build your solved archive!
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {completedProblems.map((p, idx) => (
-              <div key={`${p.name}-${idx}`} className="flex flex-col justify-between rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-3.5 space-y-3 transition-all hover:-translate-y-0.5 hover:shadow-lg">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400 uppercase">
-                    {p.platform === "GFG" ? "GeeksforGeeks" : p.platform}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{p.difficulty}</span>
-                </div>
-                <h4 className="text-xs font-bold text-foreground line-clamp-2">{p.name}</h4>
-                <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs gap-2">
-                  {p.link && (
-                    <a href={p.link} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
-                      <ExternalLink className="size-3" /> Problem
-                    </a>
-                  )}
-                  {p.code ? (
-                    <button onClick={() => setSelectedProblemForModal(p.name)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 text-[11px] font-bold transition-colors ml-auto">
-                      <Code2 className="size-3.5" /> View Code
-                    </button>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground ml-auto">Marked Done</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Code Modal */}
-      <CodeModal
-        open={!!selectedProblemForModal}
-        onOpenChange={(open) => !open && setSelectedProblemForModal(null)}
-        problemName={selectedProblemForModal ?? ""}
-        existingSubmission={selectedProblemForModal ? submissions[selectedProblemForModal] : undefined}
-        onSave={async () => { }}
-        readOnly={true}
-      />
+      <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
     </div>
   );
 }

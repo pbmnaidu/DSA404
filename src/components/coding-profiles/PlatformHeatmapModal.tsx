@@ -101,8 +101,10 @@ export function PlatformHeatmapModal({
       }
     }
 
-    // 2. Process recentSubmissions
-    if (recentSubmissions && Array.isArray(recentSubmissions)) {
+    const hasRawCalendar = rawCalendar && typeof rawCalendar === "object" && Object.keys(rawCalendar).length > 0;
+
+    // 2. Process recentSubmissions if rawCalendar is empty
+    if (!hasRawCalendar && recentSubmissions && Array.isArray(recentSubmissions)) {
       recentSubmissions.forEach((sub) => {
         const val = sub.timestamp || sub.date;
         if (val) {
@@ -114,8 +116,8 @@ export function PlatformHeatmapModal({
       });
     }
 
-    // 3. Process ratingHistory
-    if (ratingHistory && Array.isArray(ratingHistory)) {
+    // 3. Process ratingHistory if rawCalendar is empty
+    if (!hasRawCalendar && ratingHistory && Array.isArray(ratingHistory)) {
       ratingHistory.forEach((contest) => {
         const val = contest.timestamp || contest.date;
         if (val) {
@@ -142,7 +144,7 @@ export function PlatformHeatmapModal({
       }
     });
 
-    const displayTotal = totalSolved && totalSolved > computedSubmissions ? totalSolved : computedSubmissions;
+    const displayTotal = typeof totalSolved === "number" && totalSolved > 0 ? totalSolved : computedSubmissions;
 
     // Generate weeks
     let curr = firstWeekMonday;
@@ -284,7 +286,7 @@ export function PlatformHeatmapModal({
                   )}
                 </DialogTitle>
                 <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
-                  Daily submission activity & consistency record
+                  Daily activity & solved problems record
                 </p>
               </div>
             </div>
@@ -292,7 +294,7 @@ export function PlatformHeatmapModal({
             {/* Quick Badges - XS text size default on mobile */}
             <div className="flex items-center gap-2 text-xs shrink-0">
               <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/60 px-2.5 py-1 sm:px-3 sm:py-1.5">
-                <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground">Solved</span>
+                <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground">Problems Solved</span>
                 <span className="font-black text-xs sm:text-sm text-foreground tabular-nums">{totalSubmissionsCount}</span>
               </div>
               <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 sm:px-3 sm:py-1.5 text-emerald-400">
@@ -466,7 +468,7 @@ export function PlatformHeatmapModal({
                               isSelected && "ring-2 ring-white border-white scale-125 z-10",
                               day.isFuture && "opacity-20 pointer-events-none"
                             )}
-                            title={`${day.dateStr}: ${count} submission${count === 1 ? "" : "s"}`}
+                            title={`${day.dateStr}: ${count} problem${count === 1 ? "" : "s"} solved`}
                           />
                         );
                       })}
@@ -485,7 +487,7 @@ export function PlatformHeatmapModal({
                   <Calendar className="size-3.5 text-emerald-400 shrink-0" />
                   <span>
                     <strong className="text-emerald-400 font-bold text-xs sm:text-sm">{activeDisplay.count}</strong>{" "}
-                    {activeDisplay.count === 1 ? "submission" : "submissions"} on {(() => {
+                    {activeDisplay.count === 1 ? "problem solved" : "problems solved"} on {(() => {
                       try {
                         const parts = activeDisplay.date.split("-");
                         if (parts.length === 3) {
@@ -501,7 +503,7 @@ export function PlatformHeatmapModal({
                 </div>
               ) : (
                 <span className="text-muted-foreground text-[11px] sm:text-xs truncate">
-                  Tap or hover any day block to inspect submissions
+                  Tap or hover any day block to inspect solved activity
                 </span>
               )}
             </div>

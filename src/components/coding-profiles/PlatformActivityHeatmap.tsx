@@ -77,8 +77,10 @@ export function PlatformActivityHeatmap({
       }
     }
 
-    // 2. Process recentSubmissions
-    if (recentSubmissions && Array.isArray(recentSubmissions)) {
+    const hasRawCalendar = rawCalendar && typeof rawCalendar === "object" && Object.keys(rawCalendar).length > 0;
+
+    // 2. Process recentSubmissions if rawCalendar is empty
+    if (!hasRawCalendar && recentSubmissions && Array.isArray(recentSubmissions)) {
       recentSubmissions.forEach((sub) => {
         const val = sub.timestamp || sub.date;
         if (val) {
@@ -90,8 +92,8 @@ export function PlatformActivityHeatmap({
       });
     }
 
-    // 3. Process ratingHistory
-    if (ratingHistory && Array.isArray(ratingHistory)) {
+    // 3. Process ratingHistory if rawCalendar is empty
+    if (!hasRawCalendar && ratingHistory && Array.isArray(ratingHistory)) {
       ratingHistory.forEach((contest) => {
         const val = contest.timestamp || contest.date;
         if (val) {
@@ -118,7 +120,7 @@ export function PlatformActivityHeatmap({
       }
     });
 
-    const displayTotal = totalSolved && totalSolved > computedSubmissions ? totalSolved : computedSubmissions;
+    const displayTotal = typeof totalSolved === "number" && totalSolved > 0 ? totalSolved : computedSubmissions;
 
     let curr = firstMonday;
     const weekCols: { dateStr: string; dayIndex: number; month: number; isFuture: boolean }[][] = [];
@@ -164,7 +166,7 @@ export function PlatformActivityHeatmap({
         <div className="flex items-center gap-1.5">
           <Flame className="size-3.5 text-amber-500" />
           <span className="font-bold text-foreground">
-            {totalSubmissionsCount} {totalSubmissionsCount === 1 ? "Submission" : "Submissions"}
+            {totalSubmissionsCount} {totalSubmissionsCount === 1 ? "Problem Solved" : "Problems Solved"}
           </span>
           <span className="text-muted-foreground">•</span>
           <span className="text-muted-foreground">{totalActiveDays} Active Days</span>
@@ -222,7 +224,7 @@ export function PlatformActivityHeatmap({
                         level === 4 && "bg-emerald-500 dark:bg-emerald-400 border border-emerald-400 hover:scale-125 hover:border-white/60 hover:z-10 shadow-sm",
                         day.isFuture && "opacity-20 pointer-events-none"
                       )}
-                      title={`${day.dateStr}: ${count} submission${count === 1 ? "" : "s"}`}
+                      title={`${day.dateStr}: ${count} problem${count === 1 ? "" : "s"} solved`}
                     />
                   );
                 })}
@@ -236,7 +238,7 @@ export function PlatformActivityHeatmap({
       <div className="flex items-center justify-between text-[11px] min-h-[20px] pt-1 border-t border-white/10 text-muted-foreground">
         {hoveredDay ? (
           <span className="font-medium text-foreground truncate animate-fade-in">
-            <strong className="text-emerald-400">{hoveredDay.count}</strong> {hoveredDay.count === 1 ? "submission" : "submissions"} on {(() => {
+            <strong className="text-emerald-400">{hoveredDay.count}</strong> {hoveredDay.count === 1 ? "problem solved" : "problems solved"} on {(() => {
               try {
                 const parts = hoveredDay.date.split("-");
                 if (parts.length === 3) {
