@@ -70,7 +70,6 @@ import { useThemeCustomizer } from "../../../app/theme-customizer-context";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { ChromeInstallModal } from "@/components/ChromeInstallModal";
 import { DailyCombinationsBreakdown } from "@/components/DailyCombinationsBreakdown";
-import { SolvedProblemsArchive } from "@/components/SolvedProblemsArchive";
 import { cn } from "@/lib/utils";
 
 function ChromeIcon({ className }: { className?: string }) {
@@ -523,13 +522,8 @@ export default function SettingsPage() {
 
       <h1 className="mb-1 text-2xl font-bold tracking-tight">Settings</h1>
       <p className="mb-6 text-sm text-muted-foreground">
-        Account, pace, customized sheet, solved problems archive, reminders and pause controls.
+        Account, pace, customized sheet, reminders and pause controls.
       </p>
-
-      {/* ── Solved Problems Archive ── */}
-      <div className="mb-6">
-        <SolvedProblemsArchive />
-      </div>
 
       {/* ── Customized Sheet Selector Section ── */}
       <Section

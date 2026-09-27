@@ -32,6 +32,17 @@ export const viewport: Viewport = {
 const antiFoucScript = `
 (function() {
   try {
+    if (typeof Element !== 'undefined' && Element.prototype.releasePointerCapture) {
+      var origRelease = Element.prototype.releasePointerCapture;
+      Element.prototype.releasePointerCapture = function(pointerId) {
+        try {
+          if (this.hasPointerCapture && this.hasPointerCapture(pointerId)) {
+            origRelease.call(this, pointerId);
+          }
+        } catch (e) {}
+      };
+    }
+
     var doc = document.documentElement;
     doc.classList.add('disable-transitions');
 

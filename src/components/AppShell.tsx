@@ -48,6 +48,7 @@ import {
   Megaphone,
   Globe,
   FolderGit2,
+  Bell,
 } from "lucide-react";
 import { loadUserProfile } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ import { useThemeCustomizer } from "../../app/theme-customizer-context";
 import { ThemeCustomizerPanel } from "../../app/theme-customizer-panel";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 import { GitHubRepoLinkModal } from "@/components/GitHubRepoLinkModal";
+import { NotificationPanel } from "@/components/NotificationPanel";
 import { getLocalGitHubSyncConfig, loadCloudGitHubSyncConfig } from "@/lib/github-sync";
 import { useInAppBrowser } from "@/components/in-app-browser/InAppBrowserContext";
 
@@ -508,6 +510,8 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [githubModalOpen, setGithubModalOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   // Auto popup for linking GitHub repository on initial start/data load (checks Cloud DB first across devices)
   useEffect(() => {
@@ -627,6 +631,20 @@ export function AppShell({ email, children }: { email: string; children: React.R
                     <Flame className="size-3.5 animate-streak" />{streak}
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen(true)}
+                  className="relative flex items-center justify-center size-8 rounded-lg border border-border bg-secondary/60 hover:bg-secondary text-foreground transition-all cursor-pointer shrink-0"
+                  title="Notifications & Alerts"
+                  aria-label="Open notifications panel"
+                >
+                  <Bell className="size-4 text-muted-foreground" />
+                  {unreadNotifCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground animate-pulse">
+                      {unreadNotifCount}
+                    </span>
+                  )}
+                </button>
                 <ThemeToggle />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -714,6 +732,22 @@ export function AppShell({ email, children }: { email: string; children: React.R
                   <Flame className="size-3.5 animate-streak" />{streak}
                 </span>
               )}
+
+              {/* Notification Bell Button (Top Right) */}
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen(true)}
+                className="relative flex items-center justify-center size-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-foreground transition-all cursor-pointer shadow-xs group shrink-0"
+                title="Notifications & Alerts"
+                aria-label="Open notifications panel"
+              >
+                <Bell className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                {unreadNotifCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm animate-pulse">
+                    {unreadNotifCount}
+                  </span>
+                )}
+              </button>
               <span className="hidden xl:flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Cloud className="size-3.5" />
                 {lastSynced ? `Synced ${new Date(lastSynced).toLocaleTimeString()}` : "Not synced yet"}
@@ -814,6 +848,13 @@ export function AppShell({ email, children }: { email: string; children: React.R
         open={githubModalOpen}
         onOpenChange={setGithubModalOpen}
         userId={user?.uid}
+      />
+
+      {/* Right Side Notification Panel */}
+      <NotificationPanel
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        onUnreadCountChange={setUnreadNotifCount}
       />
     </TooltipProvider>
   );
