@@ -14,7 +14,7 @@ interface PlatformProfileCardProps {
   isRefreshing?: boolean;
 }
 
-function resolvePlatformUrl(platform: string, username: string, explicitUrl?: string | null): string {
+export function resolvePlatformUrl(platform: string, username: string, explicitUrl?: string | null): string {
   if (explicitUrl && explicitUrl.trim()) return explicitUrl;
   const clean = username.trim().replace(/^@+/, "");
   const p = platform.toLowerCase();

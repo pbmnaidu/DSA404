@@ -23,7 +23,9 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, Check, X, User as UserIcon, AtSign, Mail, Lock, Sparkles } from "lucide-react";
+import { enableGuestMode } from "@/lib/guest-data";
 import {
   claimUsername,
   getEmailByUsername,
@@ -102,6 +104,14 @@ export function AuthPageContent() {
   >("idle");
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+
+  function handleGuestLogin() {
+    enableGuestMode();
+    toast.success("Welcome to Demo Mode! 🎉", {
+      description: "Logged in as Alex Rivera (3★ Coder Account).",
+    });
+    router.push(next || "/today");
+  }
 
   useEffect(() => {
     const raw = username.trim();
@@ -605,6 +615,33 @@ export function AuthPageContent() {
                 </Button>
               </TabsContent>
             </Tabs>
+
+            <div className="pt-2 border-t border-border/60">
+              <div className="relative my-2.5">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border/80" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-mono tracking-wider">
+                  <span className="bg-card px-2 text-muted-foreground">Demo / Instant Guest Access</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11 border-dashed border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-foreground font-bold text-xs gap-2 cursor-pointer shadow-xs transition-all hover:scale-[1.01]"
+                onClick={handleGuestLogin}
+              >
+                <Sparkles className="size-4 text-amber-500 animate-pulse shrink-0" />
+                <span className="truncate">Continue as Guest (3★ Coder Demo)</span>
+                <Badge variant="secondary" className="ml-auto text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono shrink-0">
+                  Instant Demo
+                </Badge>
+              </Button>
+              <p className="mt-1.5 text-center text-[11px] text-muted-foreground leading-tight">
+                Explore the workspace with an active 3★ coder profile, 348 solved questions, and live CP stats.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

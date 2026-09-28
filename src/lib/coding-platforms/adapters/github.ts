@@ -109,7 +109,7 @@ export class GitHubAdapter implements PlatformAdapter {
         country: data.location || null,
         rating: null,
         contestsParticipated: null,
-        totalSolved: totalSolvedCount > 0 ? totalSolvedCount : null,
+        totalSolved: null, // GitHub represents git contributions/commits, NOT solved problems
         rank: null,
         submissionCalendar: Object.keys(calendarMap).length > 0 ? calendarMap : null,
         recentSubmissions: recentSubs.length > 0 ? recentSubs : null,
@@ -117,6 +117,7 @@ export class GitHubAdapter implements PlatformAdapter {
         status: "SUCCESS",
         dataSource: "Official API",
         platformSpecificData: {
+          totalContributions: totalContributions > 0 ? totalContributions : 0,
           publicRepos: data.public_repos ?? 0,
           followers: data.followers ?? 0,
           publicGists: data.public_gists ?? 0,

@@ -58,6 +58,9 @@ const nextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ["firebase-admin"],
+  experimental: {
+    turbopackFileSystemCacheForDev: false,
+  },
 };
 
 export default nextConfig;

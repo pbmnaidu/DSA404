@@ -244,7 +244,7 @@ export const PLATFORM_CAPABILITIES_MAP: Record<PlatformId, PlatformCapabilities>
     profile: true,
     rating: false,
     ratingHistory: false,
-    solvedProblems: true,
+    solvedProblems: false,
     difficultyStats: false,
     contestStats: false,
     contestHistory: false,

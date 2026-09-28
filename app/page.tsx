@@ -17,6 +17,7 @@ import { seedDays, TOTAL_PROBLEMS } from "@/lib/plan";
 import { CURATED_SHEETS } from "@/lib/sheets-data";
 import { getChatGPTAiPromptUrl } from "@/lib/aiTutorPrompt";
 import { cn } from "@/lib/utils";
+import { enableGuestMode } from "@/lib/guest-data";
 import {
   BarChart3,
   Code2,
@@ -246,7 +247,7 @@ function StatsBar() {
 /* ═══════════════════════════════════════════════════════════
    HERO SECTION WITH FRIENDLY "TODAY'S PLAN" PREVIEW
 ═══════════════════════════════════════════════════════════ */
-function HeroSection() {
+function HeroSection({ onEnterDemo }: { onEnterDemo?: () => void }) {
   const { promptInstall } = usePWAInstall();
 
   return (
@@ -301,6 +302,18 @@ function HeroSection() {
                   <ArrowRight className="size-4 ml-1.5" />
                 </Link>
               </Button>
+              {onEnterDemo && (
+                <Button
+                  type="button"
+                  onClick={onEnterDemo}
+                  variant="outline"
+                  size="lg"
+                  className="font-mono justify-center text-center font-bold border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer gap-2"
+                >
+                  <Sparkles className="size-4 text-amber-500 animate-pulse" />
+                  <span>Live Demo (3★ Coder Account)</span>
+                </Button>
+              )}
               <Button asChild variant="outline" size="lg" className="font-mono justify-center text-center">
                 <a href="#how-it-works">See how it works</a>
               </Button>
@@ -1458,7 +1471,7 @@ function FaqSection() {
 /* ═══════════════════════════════════════════════════════════
    FINAL CALL TO ACTION BANNER
 ═══════════════════════════════════════════════════════════ */
-function FinalCtaSection() {
+function FinalCtaSection({ onEnterDemo }: { onEnterDemo?: () => void }) {
   return (
     <section className="py-12 border-t border-border/50">
       <div className="mx-auto max-w-4xl text-center">
@@ -1477,9 +1490,22 @@ function FinalCtaSection() {
                 <ArrowRight className="size-4 ml-2" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="font-mono text-xs sm:text-sm px-6 py-3 h-auto">
-              <a href="#explore">Explore the demo</a>
-            </Button>
+            {onEnterDemo ? (
+              <Button
+                type="button"
+                onClick={onEnterDemo}
+                size="lg"
+                variant="outline"
+                className="font-mono text-xs sm:text-sm px-6 py-3 h-auto cursor-pointer gap-2 border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold"
+              >
+                <Sparkles className="size-4 text-amber-500" />
+                <span>Launch Live 3★ Coder Demo</span>
+              </Button>
+            ) : (
+              <Button asChild size="lg" variant="outline" className="font-mono text-xs sm:text-sm px-6 py-3 h-auto">
+                <a href="#explore">Explore the demo</a>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -1495,6 +1521,14 @@ export default function Home() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { promptInstall, isModalOpen, setIsModalOpen, isIOS, isStandalone } = usePWAInstall();
+
+  const handleEnterDemo = useCallback(() => {
+    enableGuestMode();
+    toast.success("Welcome to Demo Mode! 🎉", {
+      description: "Directly logging into Alex Rivera's 3★ Coder Account...",
+    });
+    router.push("/today");
+  }, [router]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -1536,7 +1570,13 @@ export default function Home() {
             <a href="#features" className="hover:text-primary transition-colors">Features</a>
             <a href="#roadmap" className="hover:text-primary transition-colors">Roadmap</a>
             <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
-            <a href="#explore" className="hover:text-primary transition-colors text-primary font-bold">Demo</a>
+            <button
+              type="button"
+              onClick={handleEnterDemo}
+              className="hover:text-primary transition-colors text-primary font-bold cursor-pointer"
+            >
+              Demo
+            </button>
           </nav>
 
           {/* Right Action Buttons */}
@@ -1552,11 +1592,15 @@ export default function Home() {
                 Install App
               </Button>
             )}
-            <Button asChild variant="outline" size="sm" className="font-mono text-xs gap-1.5 hidden sm:inline-flex border-primary/30 hover:bg-primary/10 cursor-pointer">
-              <a href="#explore">
-                <Play className="size-3 text-primary fill-current" />
-                <span>Demo</span>
-              </a>
+            <Button
+              type="button"
+              onClick={handleEnterDemo}
+              variant="outline"
+              size="sm"
+              className="font-mono text-xs gap-1.5 hidden sm:inline-flex border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 cursor-pointer font-bold"
+            >
+              <Sparkles className="size-3 text-amber-500" />
+              <span>3★ Demo</span>
             </Button>
             <Button asChild variant="ghost" size="sm" className="font-mono text-xs hidden sm:inline-flex">
               <Link href="/auth?mode=signin">Login</Link>
@@ -1616,13 +1660,16 @@ export default function Home() {
             >
               FAQ
             </a>
-            <a
-              href="#explore"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-1.5 text-primary font-bold"
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleEnterDemo();
+              }}
+              className="block w-full text-left py-1.5 text-primary font-bold cursor-pointer"
             >
-              ▶ Interactive Demo
-            </a>
+              ▶ Live 3★ Coder Demo (Guest Mode)
+            </button>
             <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2">
               <Link href="/auth?mode=signin" className="text-muted-foreground hover:text-foreground">
                 Login
@@ -1637,7 +1684,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-6xl px-4">
-        <HeroSection />
+        <HeroSection onEnterDemo={handleEnterDemo} />
         <IsThisForYouSection />
         <ExplainDsaSection />
         <HowItWorksSection />
@@ -1648,7 +1695,7 @@ export default function Home() {
 
         {/* Interactive Demo Shell Section */}
         <div id="explore" className="py-12 border-t border-border/50">
-          <div className="mb-8 text-center max-w-2xl mx-auto">
+          <div className="mb-8 text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="outline" className="font-mono text-xs text-primary mb-2">
               Interactive Live Demo
             </Badge>
@@ -1656,8 +1703,19 @@ export default function Home() {
               Test drive the complete workspace below
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Explore real curriculum topics, problem lists, daily checklists, and analytics.
+              Explore real curriculum topics, problem lists, daily checklists, and analytics. Or jump directly into the full live website as a 3★ Coder!
             </p>
+            <div className="pt-2 flex justify-center">
+              <Button
+                type="button"
+                onClick={handleEnterDemo}
+                size="lg"
+                className="font-mono font-bold text-xs sm:text-sm bg-primary hover:bg-primary/90 text-primary-foreground gap-2 cursor-pointer shadow-lg shadow-primary/25"
+              >
+                <Play className="size-4 fill-current" />
+                <span>Directly Log In With 3★ Coder Guest Mode →</span>
+              </Button>
+            </div>
           </div>
 
           <StatsBar />
@@ -1667,7 +1725,7 @@ export default function Home() {
         </div>
 
         <InstallApkSection />
-        <FinalCtaSection />
+        <FinalCtaSection onEnterDemo={handleEnterDemo} />
       </main>
 
       {/* Footer */}

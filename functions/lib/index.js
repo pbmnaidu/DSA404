@@ -1,0 +1,197 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FieldValue = exports.deleteUserData = exports.sendReminders = void 0;
+/**
+ * Port of supabase/functions/send-reminders/index.ts to a Firebase Cloud
+ * Function, plus the Firestore cascade-delete that used to be implicit via
+ * Postgres `ON DELETE CASCADE` (Firestore has no equivalent, so it's done
+ * explicitly here, triggered right before the Auth user is removed).
+ *
+ * Required secret (set with `firebase functions:secrets:set GMAIL_APP_PASSWORD`):
+ *   GMAIL_APP_PASSWORD    - Gmail SMTP app password, for email delivery
+ * GMAIL_USER is not sensitive and can stay a plain env var.
+ * FCM push uses the Admin SDK's default service-account credentials — no
+ * separate secret needed (unlike the old raw VAPID web-push keys).
+ */
+const app_1 = require("firebase-admin/app");
+const firestore_1 = require("firebase-admin/firestore");
+Object.defineProperty(exports, "FieldValue", { enumerable: true, get: function () { return firestore_1.FieldValue; } });
+const messaging_1 = require("firebase-admin/messaging");
+const scheduler_1 = require("firebase-functions/v2/scheduler");
+const v1_1 = require("firebase-functions/v1");
+const v2_1 = require("firebase-functions/v2");
+const params_1 = require("firebase-functions/params");
+(0, app_1.initializeApp)();
+const db = (0, firestore_1.getFirestore)();
+// Resend secrets removed – using Gmail SMTP via Nodemailer.
+// GMAIL_APP_PASSWORD is sensitive, so it's declared as a proper Firebase
+// Functions v2 secret (set with `firebase functions:secrets:set GMAIL_APP_PASSWORD`)
+// instead of a plain .env value. GMAIL_USER isn't sensitive, so it stays a
+// regular env var (set in functions/.env).
+const GMAIL_APP_PASSWORD = (0, params_1.defineSecret)("GMAIL_APP_PASSWORD");
+function nowMinutesInTz(timeZone) {
+    try {
+        const parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone,
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        }).formatToParts(new Date());
+        const h = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+        const m = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+        return h * 60 + m;
+    }
+    catch {
+        const d = new Date();
+        return d.getUTCHours() * 60 + d.getUTCMinutes();
+    }
+}
+function todayIsoInTz(timeZone) {
+    try {
+        return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date());
+    }
+    catch {
+        return new Date().toISOString().slice(0, 10);
+    }
+}
+/**
+ * Runs every 15 minutes (same cadence as the old pg_cron job). For each user
+ * whose local reminder time has just passed today, who hasn't been reminded
+ * yet today, who isn't paused, and who still has incomplete problems/
+ * checklist items for today's Day: send an email (Resend) and/or FCM push,
+ * then stamp lastReminderSentOn so they aren't reminded twice.
+ */
+exports.sendReminders = (0, scheduler_1.onSchedule)({
+    schedule: "every 15 minutes",
+    secrets: [GMAIL_APP_PASSWORD],
+}, async () => {
+    const settingsSnap = await db
+        .collectionGroup("settings")
+        .where("paused", "==", false)
+        .get();
+    const candidates = settingsSnap.docs
+        .filter((d) => d.id === "prefs")
+        .map((d) => ({ uid: d.ref.parent.parent.id, ...d.data() }))
+        .filter((row) => row.pushEnabled || row.emailEnabled);
+    const due = candidates.filter((row) => {
+        const tz = row.timezone || "UTC";
+        const today = todayIsoInTz(tz);
+        if (row.lastReminderSentOn === today)
+            return false;
+        const [h, m] = String(row.reminderTime ?? "19:00").split(":").map(Number);
+        const targetMinutes = (h || 0) * 60 + (m || 0);
+        return nowMinutesInTz(tz) >= targetMinutes;
+    });
+    let sent = 0;
+    const errors = [];
+    // No Resend API key needed
+    for (const row of due) {
+        if (row.paused)
+            continue;
+        const uid = row.uid;
+        try {
+            const tz = row.timezone || "UTC";
+            const today = todayIsoInTz(tz);
+            const settingsRef = db.doc(`users/${uid}/settings/prefs`);
+            const daySnap = await db
+                .collection(`users/${uid}/days`)
+                .where("date", "==", today)
+                .limit(1)
+                .get();
+            if (daySnap.empty)
+                continue;
+            const day = daySnap.docs[0].data();
+            const problems = (day.problems ?? []);
+            const checklist = (day.checklist ?? []);
+            const total = problems.length;
+            const done = problems.filter((p) => p.done).length;
+            const allChecked = checklist.length > 0 && checklist.every((c) => c.done);
+            // Fully done already — nothing to remind about, but still stamp so
+            // we don't re-check this user again today.
+            if (total > 0 && done >= total && allChecked) {
+                await settingsRef.set({ lastReminderSentOn: today }, { merge: true });
+                continue;
+            }
+            const remaining = Math.max(total - done, 0);
+            const subject = `Daily DSA Reminder: ${day.topic}`;
+            const body = `You have not solved the daily problem yet, please login and complete it.`;
+            if (row.pushEnabled) {
+                const subsSnap = await db.collection(`users/${uid}/pushSubscriptions`).get();
+                const tokens = subsSnap.docs.map((d) => d.data().token ?? d.id).filter(Boolean);
+                const uniqueTokens = Array.from(new Set(tokens));
+                if (uniqueTokens.length > 0) {
+                    const result = await (0, messaging_1.getMessaging)().sendEachForMulticast({
+                        tokens: uniqueTokens,
+                        // Data-only payload (no top-level `notification` key). This is
+                        // required for reliable closed-app delivery: when a
+                        // `notification` key is present, the browser's push service
+                        // auto-displays it *before* our JS ever runs, which bypasses
+                        // firebase-messaging-sw.js's onBackgroundMessage handler
+                        // entirely — we lose control of the icon, click target, and
+                        // any dedupe/tag logic, and can't verify it actually fired.
+                        // With a data-only message, the push event always reaches our
+                        // service worker, which explicitly calls showNotification().
+                        data: {
+                            title: "Today's DSA plan is waiting",
+                            body,
+                            link: "/today",
+                        },
+                        webpush: {
+                            // High urgency asks the browser/OS push service to wake the
+                            // device promptly instead of coalescing/delaying delivery —
+                            // important specifically for the "app fully closed" case.
+                            headers: { Urgency: "high" },
+                            fcmOptions: { link: "/today" },
+                        },
+                    });
+                    // Prune tokens Firebase reports as dead so we stop retrying them.
+                    await Promise.all(result.responses.map((r, i) => {
+                        if (r.success)
+                            return Promise.resolve();
+                        const code = r.error?.code ?? "";
+                        if (code === "messaging/registration-token-not-registered" ||
+                            code === "messaging/invalid-registration-token") {
+                            return db.doc(`users/${uid}/pushSubscriptions/${uniqueTokens[i]}`).delete().catch(() => { });
+                        }
+                        return Promise.resolve();
+                    }));
+                }
+            }
+            await settingsRef.set({ lastReminderSentOn: today }, { merge: true });
+            sent += 1;
+        }
+        catch (e) {
+            errors.push(`${uid}: ${e instanceof Error ? e.message : String(e)}`);
+        }
+    }
+    // ── Contest Reminders ──────────────────────────────────────────────────
+    v2_1.logger.info(`sendReminders: checked=${due.length} sent=${sent} errors=${errors.length}`, {
+        errors,
+    });
+});
+/**
+ * Firestore doesn't cascade-delete, so wipe everything under users/{uid}
+ * when the Auth user record is removed.
+ */
+exports.deleteUserData = v1_1.auth.user().onDelete(async (user) => {
+    const uid = user.uid;
+    const subcollections = [
+        "days",
+        "meta",
+        "revisionEvents",
+        "settings",
+        "achievements",
+        "pushSubscriptions",
+    ];
+    for (const name of subcollections) {
+        const snap = await db.collection(`users/${uid}/${name}`).get();
+        const batchSize = 400;
+        for (let i = 0; i < snap.docs.length; i += batchSize) {
+            const batch = db.batch();
+            snap.docs.slice(i, i + batchSize).forEach((d) => batch.delete(d.ref));
+            await batch.commit();
+        }
+    }
+    await db.doc(`users/${uid}`).delete().catch(() => { });
+    v2_1.logger.info(`deleteUserData: wiped Firestore data for uid=${uid}`);
+});

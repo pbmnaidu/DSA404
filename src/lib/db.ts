@@ -16,9 +16,22 @@ import {
 import { db as firestore, auth } from "@/integrations/firebase/client";
 import type { Day } from "./types";
 import { SCHEMA_VERSION } from "./types";
-import { DEFAULT_DAILY_COUNTS, type DailyCounts, rebalanceRemaining, seedDays, START_DATE } from "./plan";
+import { DEFAULT_DAILY_COUNTS, type DailyCounts, rebalanceRemaining, seedDays, START_DATE, todayIso } from "./plan";
+import { getCanonicalProblemLink, normalizePlatformName, getProblemMetadata } from "./problems";
 import { loadSettings } from "./settings";
-import { getCanonicalProblemLink } from "./problems";
+import {
+  isGuestUser,
+  getGuestPlan,
+  saveGuestPlan,
+  saveGuestDay,
+  getGuestProfile,
+  saveGuestProfile,
+  getGuestProblemCompletions,
+  getGuestCodeSubmissions,
+  saveGuestCodeSubmission,
+  removeGuestCodeSubmission,
+  getGuestScheduleEvents,
+} from "./guest-data";
 
 // ---- Firestore layout (mirrors the old Postgres tables) ----
 // users/{uid}                          <- profile doc (was `profiles`)
@@ -234,6 +247,10 @@ export interface CompletedProblemSnapshot {
   code?: string;
   submissionLink?: string;
   keyPoints?: string;
+  completedAt?: string;
+  submittedAt?: string;
+  topic?: string;
+  section?: string;
 }
 
 export interface UserProfile {
@@ -261,6 +278,7 @@ export interface UserProfile {
   publicStats: PublicStats;
   platformStats?: Record<string, any>;
   completedProblems: CompletedProblemSnapshot[];
+  activityHeatmap?: Record<string, number>;
 }
 
 /** Username rules: 3-20 chars, lowercase letters/numbers/underscore/hyphen only. */
@@ -278,6 +296,7 @@ export function normalizeUsername(raw: string): string {
  * Private `notes` are kept in users/{uid}/private/profile and never returned here.
  */
 export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>> {
+  if (isGuestUser(uid)) return getGuestProfile();
   const snap = await getDoc(userDoc(uid));
   if (!snap.exists()) return {};
   const data = snap.data();
@@ -297,6 +316,7 @@ export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>
     publicStats: (data.publicStats as PublicStats) ?? { totalSolved: 0, byPlatform: {}, lastUpdated: "" },
     platformStats: (data.platformStats as Record<string, any>) ?? {},
     completedProblems: (data.completedProblems as CompletedProblemSnapshot[]) ?? [],
+    activityHeatmap: (data.activityHeatmap as Record<string, number>) ?? {},
   };
 }
 
@@ -307,6 +327,7 @@ export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>
  * (CoderProfilePage, Settings) — never on the public profile route.
  */
 export async function loadOwnerProfile(uid: string): Promise<Partial<UserProfile>> {
+  if (isGuestUser(uid)) return getGuestProfile();
   const [pub, privSnap] = await Promise.all([
     loadUserProfile(uid),
     getDoc(privateProfileDoc(uid)),
@@ -329,11 +350,15 @@ export async function loadOwnerProfile(uid: string): Promise<Partial<UserProfile
  * remains strictly owner-only.
  */
 export async function saveUserProfile(uid: string, patch: Partial<UserProfile>) {
+  if (isGuestUser(uid)) {
+    saveGuestProfile(patch);
+    return;
+  }
   const { notes, ...publicPatch } = patch;
   const writes: Promise<unknown>[] = [];
   if (Object.keys(publicPatch).length > 0) {
     writes.push(
-      setDoc(userDoc(uid), { ...publicPatch, updatedAt: serverTimestamp() }, { merge: true }),
+      setDoc(userDoc(uid), stripUndefined({ ...publicPatch, updatedAt: serverTimestamp() }), { merge: true }),
     );
   }
   if (notes !== undefined) {
@@ -348,6 +373,10 @@ export async function saveUserProfile(uid: string, patch: Partial<UserProfile>) 
  * Persists cached coding platform statistics on the user document in Firestore.
  */
 export async function savePlatformStats(uid: string, platformStats: Record<string, any>): Promise<void> {
+  if (isGuestUser(uid)) {
+    saveGuestProfile({ platformStats });
+    return;
+  }
   await setDoc(userDoc(uid), { platformStats, statsUpdatedAt: serverTimestamp() }, { merge: true });
 }
 
@@ -463,12 +492,38 @@ export async function resolveProfileIdentifier(identifier: string): Promise<stri
  * (Firestore security rules must allow reads on `users/{uid}/days`).
  */
 export async function loadPublicDays(uid: string): Promise<Day[]> {
-  const snap = await getDocs(query(daysCol(uid), orderBy("seqIndex", "asc")));
-  if (snap.empty) return [];
-  return snap.docs.map((d) => fieldsToDay(d.data()));
+  try {
+    let snap = await getDocs(query(daysCol(uid), orderBy("seqIndex", "asc")));
+    if (snap.empty) {
+      snap = await getDocs(daysCol(uid));
+    }
+    if (snap.empty) return [];
+    const days = snap.docs.map((d) => fieldsToDay(d.data()));
+    return days.sort((a, b) => {
+      const aIdx = (a as any).seqIndex ?? a.dayNumber ?? 0;
+      const bIdx = (b as any).seqIndex ?? b.dayNumber ?? 0;
+      return aIdx - bIdx;
+    });
+  } catch (err) {
+    console.warn("Failed to load public days with orderBy, falling back to direct collection fetch:", err);
+    try {
+      const snap = await getDocs(daysCol(uid));
+      if (snap.empty) return [];
+      const days = snap.docs.map((d) => fieldsToDay(d.data()));
+      return days.sort((a, b) => {
+        const aIdx = (a as any).seqIndex ?? a.dayNumber ?? 0;
+        const bIdx = (b as any).seqIndex ?? b.dayNumber ?? 0;
+        return aIdx - bIdx;
+      });
+    } catch (e) {
+      console.error("Failed to load public days:", e);
+      return [];
+    }
+  }
 }
 
 export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: PlanMeta; sheetId?: string }> {
+  if (isGuestUser(userId)) return getGuestPlan();
   await ensureProfile(userId);
 
   const metaSnap = await getDoc(planMetaDoc(userId));
@@ -569,6 +624,7 @@ export async function switchUserSheet(
 
 /** Returns true if this user has never had a plan seeded (first login). */
 export async function hasExistingPlan(userId: string): Promise<boolean> {
+  if (isGuestUser(userId)) return true;
   const metaSnap = await getDoc(planMetaDoc(userId));
   return metaSnap.exists();
 }
@@ -579,6 +635,10 @@ export async function changeStartDate(userId: string, newStartDate: string): Pro
 }
 
 export async function saveDay(userId: string, day: Day) {
+  if (isGuestUser(userId)) {
+    saveGuestDay(day);
+    return;
+  }
   // For single-day saves we don't have the full sequence so we can't set
   // a correct seqIndex — use the dayDoc by id but preserve any existing seqIndex.
   await setDoc(dayDocById(userId, day.id), dayToFields(day, day.dayNumber), { merge: false });
@@ -588,12 +648,17 @@ export async function saveDay(userId: string, day: Day) {
 
 /** Rewrites the entire ordered sequence (used by postpone / merge / delete / revision insert). */
 export async function saveSequence(userId: string, days: Day[]) {
+  if (isGuestUser(userId)) {
+    saveGuestPlan(days);
+    return;
+  }
   await deleteAllDays(userId);
   await writeAllDays(userId, days);
   await touchSync(userId);
 }
 
 export async function touchSync(userId: string) {
+  if (isGuestUser(userId)) return;
   const now = new Date();
   await setDoc(
     planMetaDoc(userId),
@@ -739,7 +804,7 @@ export async function logEvent(
   detail: string,
   snapshotDays?: Day[],
 ) {
-  if (!userId) return;
+  if (!userId || isGuestUser(userId)) return;
   const ref = doc(revisionEventsCol(userId));
   const nowIso = new Date().toISOString();
   let snapshotStr: string | null = null;
@@ -761,6 +826,7 @@ export async function logEvent(
 
 export async function listEvents(userId: string): Promise<ScheduleEventRow[]> {
   if (!userId) return [];
+  if (isGuestUser(userId)) return getGuestScheduleEvents();
   const colRef = revisionEventsCol(userId);
   const snap = await getDocs(query(colRef, orderBy("createdAt", "desc")));
   const now = Date.now();
@@ -923,10 +989,27 @@ const problemCompletionsDoc = (uid: string) =>
   doc(firestore, "users", uid, "settings", "problemCompletions");
 
 export async function loadProblemCompletions(uid: string): Promise<Set<string>> {
+  if (isGuestUser(uid)) return getGuestProblemCompletions();
   try {
+    const set = new Set<string>();
     const snap = await getDoc(problemCompletionsDoc(uid));
-    if (!snap.exists()) return new Set();
-    return new Set<string>((snap.data().completed as string[]) ?? []);
+    if (snap.exists()) {
+      const data = snap.data();
+      const compArr = (data.completed as string[]) ?? [];
+      for (const name of compArr) if (name) set.add(name);
+      const subMap = (data.submissions as Record<string, CodeSubmission>) ?? {};
+      for (const name of Object.keys(subMap)) if (name) set.add(name);
+    }
+    // Also check world-readable userDoc for any completed problems snapshots
+    const uSnap = await getDoc(userDoc(uid)).catch(() => null);
+    if (uSnap?.exists()) {
+      const uData = uSnap.data();
+      const cpList = (uData.completedProblems as CompletedProblemSnapshot[]) ?? [];
+      for (const cp of cpList) {
+        if (cp?.name) set.add(cp.name);
+      }
+    }
+    return set;
   } catch (e) {
     console.warn("Failed to fetch problem completions:", e);
     return new Set();
@@ -939,10 +1022,30 @@ export async function saveProblemCompletions(uid: string, completed: Set<string>
 
 /** Load the full code submission map (name → CodeSubmission). */
 export async function loadCodeSubmissions(uid: string): Promise<Record<string, CodeSubmission>> {
+  if (isGuestUser(uid)) return getGuestCodeSubmissions();
   try {
     const snap = await getDoc(problemCompletionsDoc(uid));
-    if (!snap.exists()) return {};
-    const submissions = (snap.data().submissions as Record<string, CodeSubmission>) ?? {};
+    const submissions = snap.exists()
+      ? ((snap.data().submissions as Record<string, CodeSubmission>) ?? {})
+      : {};
+
+    // Also fallback to any code stored in userDoc completedProblems
+    const uSnap = await getDoc(userDoc(uid)).catch(() => null);
+    if (uSnap?.exists()) {
+      const uData = uSnap.data();
+      const cpList = (uData.completedProblems as CompletedProblemSnapshot[]) ?? [];
+      for (const cp of cpList) {
+        if (cp?.name && !submissions[cp.name] && (cp.code || cp.link)) {
+          submissions[cp.name] = {
+            code: cp.code || "",
+            link: cp.submissionLink || cp.link || getCanonicalProblemLink(cp.name) || "",
+            keyPoints: cp.keyPoints || "",
+            submittedAt: cp.submittedAt || cp.completedAt || new Date().toISOString(),
+          };
+        }
+      }
+    }
+
     for (const [name, sub] of Object.entries(submissions)) {
       if (!sub.link || !sub.link.trim()) {
         const canonical = getCanonicalProblemLink(name);
@@ -957,6 +1060,302 @@ export async function loadCodeSubmissions(uid: string): Promise<Record<string, C
 }
 
 /**
+ * Recursively strips undefined fields from an object so Firestore setDoc never throws
+ * "Unsupported field value: undefined".
+ */
+export function stripUndefined<T>(value: T): T {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => item !== undefined)
+      .map((item) => stripUndefined(item)) as unknown as T;
+  }
+  if (typeof value === "object" && !(value instanceof Date) && typeof (value as any).toMillis !== "function") {
+    const cleaned: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v !== undefined) {
+        cleaned[k] = stripUndefined(v);
+      }
+    }
+    return cleaned as T;
+  }
+  return value;
+}
+
+/**
+ * Synchronizes all solved problems across daily plan days and problem completions
+ * into the world-readable `users/{uid}` document (`completedProblems`, `publicStats`, `activityHeatmap`).
+ * This ensures the public profile always has up-to-date solved problems and activity heatmap,
+ * even for unauthenticated visitors or when subcollections are restricted.
+ */
+export async function syncPublicSolvedProblems(
+  uid: string,
+  providedDays?: Day[],
+  providedCompletedSet?: Set<string>,
+  providedSubmissions?: Record<string, CodeSubmission>,
+): Promise<CompletedProblemSnapshot[]> {
+  if (!uid) return [];
+  try {
+    let days = providedDays;
+    if (!days || days.length === 0) {
+      days = await loadPublicDays(uid).catch(() => []);
+    }
+
+    let completedSet = providedCompletedSet;
+    let submissions = providedSubmissions;
+    if (!completedSet || !submissions) {
+      if (auth.currentUser?.uid === uid) {
+        const [comp, subs] = await Promise.all([
+          loadProblemCompletions(uid).catch(() => new Set<string>()),
+          loadCodeSubmissions(uid).catch(() => ({} as Record<string, CodeSubmission>)),
+        ]);
+        if (!completedSet) completedSet = comp;
+        if (!submissions) submissions = subs;
+      } else {
+        if (!completedSet) completedSet = new Set<string>();
+        if (!submissions) submissions = {};
+      }
+    }
+
+    // Merge from local storage if running in browser to recover any unsynced completions
+    if (typeof window !== "undefined") {
+      try {
+        const rawComp = localStorage.getItem(`dsa_completed_problems_${uid}`);
+        if (rawComp) {
+          const parsed = JSON.parse(rawComp);
+          if (Array.isArray(parsed)) {
+            if (!completedSet) completedSet = new Set<string>();
+            for (const item of parsed) {
+              if (item) completedSet.add(item);
+            }
+          }
+        }
+        const rawSubs = localStorage.getItem(`dsa_code_submissions_${uid}`);
+        if (rawSubs) {
+          const parsedSubs = JSON.parse(rawSubs);
+          if (parsedSubs && typeof parsedSubs === "object") {
+            submissions = { ...parsedSubs, ...(submissions || {}) };
+          }
+        }
+      } catch (err) {
+        console.warn("syncPublicSolvedProblems local storage merge skipped:", err);
+      }
+    }
+
+    // Load existing user doc to preserve existing snapshots/code
+    const userSnap = await getDoc(userDoc(uid)).catch(() => null);
+    const existingSnapshots: CompletedProblemSnapshot[] = userSnap?.exists()
+      ? ((userSnap.data()?.completedProblems as CompletedProblemSnapshot[]) ?? [])
+      : [];
+
+    const problemMap = new Map<string, CompletedProblemSnapshot>();
+    const today = todayIso();
+
+    // 1. Seed from existing snapshots in userDoc (preserves code, notes, etc.)
+    for (const snap of existingSnapshots) {
+      if (snap?.name) {
+        const meta = getProblemMetadata(snap.name);
+        const effectiveLink = snap.link || meta.link || getCanonicalProblemLink(snap.name) || "";
+        const normPlat = normalizePlatformName(snap.platform || meta.platform, effectiveLink);
+        const completedAt = snap.completedAt?.slice(0, 10) || snap.submittedAt?.slice(0, 10) || today;
+        problemMap.set(snap.name, {
+          ...snap,
+          platform: normPlat,
+          difficulty: snap.difficulty || meta.difficulty || "Medium",
+          link: effectiveLink,
+          completedAt,
+          submittedAt: snap.submittedAt || snap.completedAt || new Date().toISOString(),
+        });
+      }
+    }
+
+    // 2. Merge from days (daily plan records)
+    for (const d of days ?? []) {
+      for (const p of d.problems ?? []) {
+        if (p.done && p.name) {
+          const meta = getProblemMetadata(p.name);
+          const effectiveLink = p.link || meta.link || getCanonicalProblemLink(p.name) || "";
+          const normPlat = normalizePlatformName(p.platform || meta.platform, effectiveLink);
+          const sub = submissions?.[p.name];
+          const existing = problemMap.get(p.name);
+          const completedAt =
+            p.completedAt?.slice(0, 10) ||
+            existing?.completedAt ||
+            sub?.submittedAt?.slice(0, 10) ||
+            d.date ||
+            today;
+
+          const codeVal = sub?.code || existing?.code;
+          const subLinkVal = sub?.link || existing?.submissionLink || effectiveLink;
+          const keyPointsVal = sub?.keyPoints || existing?.keyPoints;
+          const topicVal = d.topic || meta.topic || existing?.topic;
+          const sectionVal = d.section || existing?.section;
+
+          problemMap.set(p.name, {
+            name: p.name,
+            platform: normPlat,
+            difficulty: p.difficulty || meta.difficulty || existing?.difficulty || "Medium",
+            link: effectiveLink,
+            completedAt,
+            submittedAt: sub?.submittedAt || existing?.submittedAt || completedAt,
+            ...(codeVal ? { code: codeVal } : {}),
+            ...(subLinkVal ? { submissionLink: subLinkVal } : {}),
+            ...(keyPointsVal ? { keyPoints: keyPointsVal } : {}),
+            ...(topicVal ? { topic: topicVal } : {}),
+            ...(sectionVal ? { section: sectionVal } : {}),
+          });
+        }
+      }
+    }
+
+    // 3. Merge from completedSet / submissions (Problems tab, problem completions)
+    for (const name of Array.from(completedSet ?? [])) {
+      if (!name) continue;
+      const meta = getProblemMetadata(name);
+      const sub = submissions?.[name];
+      const existing = problemMap.get(name);
+      const effectiveLink = sub?.link || meta.link || existing?.link || getCanonicalProblemLink(name) || "";
+      const normPlat = normalizePlatformName(meta.platform || existing?.platform, effectiveLink);
+      const completedAt =
+        sub?.submittedAt?.slice(0, 10) ||
+        existing?.completedAt ||
+        today;
+
+      const codeVal = sub?.code || existing?.code;
+      const subLinkVal = sub?.link || existing?.submissionLink || effectiveLink;
+      const keyPointsVal = sub?.keyPoints || existing?.keyPoints;
+      const topicVal = meta.topic || existing?.topic;
+      const sectionVal = existing?.section;
+
+      problemMap.set(name, {
+        name,
+        platform: normPlat,
+        difficulty: meta.difficulty || existing?.difficulty || "Medium",
+        link: effectiveLink,
+        completedAt,
+        submittedAt: sub?.submittedAt || existing?.submittedAt || new Date().toISOString(),
+        ...(codeVal ? { code: codeVal } : {}),
+        ...(subLinkVal ? { submissionLink: subLinkVal } : {}),
+        ...(keyPointsVal ? { keyPoints: keyPointsVal } : {}),
+        ...(topicVal ? { topic: topicVal } : {}),
+        ...(sectionVal ? { section: sectionVal } : {}),
+      });
+    }
+
+    // Also include any submissions that might not have been in completedSet
+    for (const [name, sub] of Object.entries(submissions ?? {})) {
+      if (!name || problemMap.has(name)) continue;
+      const meta = getProblemMetadata(name);
+      const effectiveLink = sub.link || meta.link || getCanonicalProblemLink(name) || "";
+      const normPlat = normalizePlatformName(meta.platform, effectiveLink);
+      const completedAt = sub.submittedAt?.slice(0, 10) || today;
+      const codeVal = sub.code;
+      const subLinkVal = sub.link || effectiveLink;
+      const keyPointsVal = sub.keyPoints;
+      const topicVal = meta.topic;
+
+      problemMap.set(name, {
+        name,
+        platform: normPlat,
+        difficulty: meta.difficulty || "Medium",
+        link: effectiveLink,
+        completedAt,
+        submittedAt: sub.submittedAt || new Date().toISOString(),
+        ...(codeVal ? { code: codeVal } : {}),
+        ...(subLinkVal ? { submissionLink: subLinkVal } : {}),
+        ...(keyPointsVal ? { keyPoints: keyPointsVal } : {}),
+        ...(topicVal ? { topic: topicVal } : {}),
+      });
+    }
+
+    const mergedList = Array.from(problemMap.values());
+
+    // Calculate platform counts & date-based activity heatmap
+    const byPlatform: Record<string, number> = {};
+    const existingHeatmap: Record<string, number> = userSnap?.exists()
+      ? ((userSnap.data()?.activityHeatmap as Record<string, number>) ?? {})
+      : {};
+    const activityHeatmap: Record<string, number> = { ...existingHeatmap };
+    const dateCounts: Record<string, number> = {};
+
+    for (const p of mergedList) {
+      if (p.platform?.toLowerCase() === "github") continue;
+      const plat = p.platform || "DSA";
+      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
+
+      const dStr = p.completedAt?.slice(0, 10);
+      if (dStr && /^\d{4}-\d{2}-\d{2}$/.test(dStr)) {
+        dateCounts[dStr] = (dateCounts[dStr] ?? 0) + 1;
+      }
+    }
+
+    for (const [dStr, cnt] of Object.entries(dateCounts)) {
+      activityHeatmap[dStr] = Math.max(activityHeatmap[dStr] ?? 0, cnt);
+    }
+
+    // Merge external connected platform stats if present on user document
+    // Explicitly exclude GitHub: contributions/commits are displayed in the contribution heatmap, not solved problems
+    const userPlatformStats = userSnap?.exists() ? (userSnap.data()?.platformStats as Record<string, any>) : undefined;
+    if (userPlatformStats && typeof userPlatformStats === "object") {
+      for (const [rawKey, prof] of Object.entries(userPlatformStats)) {
+        const lk = rawKey.toLowerCase();
+        if (lk === "github" || lk === "linkedin") continue;
+        if (prof && typeof prof === "object" && typeof prof.totalSolved === "number" && prof.totalSolved > 0) {
+          const normKey =
+            lk === "leetcode"
+              ? "LeetCode"
+              : lk === "gfg" || lk.includes("geeks")
+              ? "GeeksforGeeks"
+              : lk === "codeforces"
+              ? "Codeforces"
+              : lk === "codechef"
+              ? "CodeChef"
+              : lk === "hackerrank"
+              ? "HackerRank"
+              : lk === "atcoder"
+              ? "AtCoder"
+              : rawKey;
+
+          byPlatform[normKey] = Math.max(byPlatform[normKey] ?? 0, prof.totalSolved);
+        }
+      }
+    }
+    delete byPlatform["GitHub"];
+    delete byPlatform["github"];
+
+    const platformsSum = Object.values(byPlatform).reduce((a, b) => a + b, 0);
+    const trackerProblemsCount = mergedList.filter((p) => p.platform?.toLowerCase() !== "github").length;
+    const totalSolved = Math.max(trackerProblemsCount, platformsSum);
+
+    if (platformsSum < trackerProblemsCount) {
+      byPlatform["DSA"] = (byPlatform["DSA"] ?? 0) + (trackerProblemsCount - platformsSum);
+    }
+
+    // Write back to userDoc so public profile has instant access
+    await setDoc(
+      userDoc(uid),
+      stripUndefined({
+        completedProblems: mergedList,
+        publicStats: {
+          totalSolved,
+          byPlatform,
+          lastUpdated: new Date().toISOString(),
+        },
+        activityHeatmap,
+      }),
+      { merge: true },
+    );
+
+    return mergedList;
+  } catch (err) {
+    console.warn("syncPublicSolvedProblems error:", err);
+    return [];
+  }
+}
+
+/**
  * Save a code submission for a problem and simultaneously mark it complete.
  * This is the only way to mark a Problems-tab problem done — the UI gates
  * the checkbox behind this submission.
@@ -966,22 +1365,43 @@ export async function saveCodeSubmission(
   problemName: string,
   submission: CodeSubmission,
   currentCompleted: Set<string>,
+  difficulty?: string,
+  platform?: string,
+  section?: string,
+  topic?: string,
 ): Promise<void> {
+  if (isGuestUser(uid)) {
+    saveGuestCodeSubmission(problemName, submission);
+    return;
+  }
   const next = new Set(currentCompleted);
   next.add(problemName);
-  const effectiveLink = submission.link?.trim() || getCanonicalProblemLink(problemName) || "";
+  const meta = getProblemMetadata(problemName);
+  const effectiveLink = submission.link?.trim() || meta.link || getCanonicalProblemLink(problemName) || "";
+  const normPlat = normalizePlatformName(platform || meta.platform, effectiveLink);
+  const diff = difficulty || meta.difficulty || "Medium";
+  const completedAt = submission.submittedAt?.slice(0, 10) || todayIso();
+  const submittedAt = submission.submittedAt || new Date().toISOString();
+
   const finalSub: CodeSubmission = {
     ...submission,
     link: effectiveLink,
   };
   await setDoc(
     problemCompletionsDoc(uid),
-    {
+    stripUndefined({
       completed: [...next],
       submissions: { [problemName]: finalSub },
-    },
+    }),
     { merge: true },
   );
+
+  // Sync to world-readable userDoc so public profile displays this solved problem, heatmap, and external platform stats
+  try {
+    await syncPublicSolvedProblems(uid, undefined, next, { [problemName]: finalSub });
+  } catch (err) {
+    console.warn("Best-effort public snapshot sync skipped:", err);
+  }
 }
 
 /** Remove a code submission and unmark the problem. */
@@ -990,6 +1410,10 @@ export async function removeCodeSubmission(
   problemName: string,
   currentCompleted: Set<string>,
 ): Promise<void> {
+  if (isGuestUser(uid)) {
+    removeGuestCodeSubmission(problemName);
+    return;
+  }
   const next = new Set(currentCompleted);
   next.delete(problemName);
   // We use merge: true and set the key to deleteField equivalent by rebuilding without it.
@@ -999,10 +1423,19 @@ export async function removeCodeSubmission(
     ? ((snap.data().submissions as Record<string, CodeSubmission>) ?? {})
     : {};
   delete existing[problemName];
-  await setDoc(problemCompletionsDoc(uid), {
-    completed: [...next],
-    submissions: existing,
-  });
+  await setDoc(
+    problemCompletionsDoc(uid),
+    stripUndefined({
+      completed: [...next],
+      submissions: existing,
+    }),
+  );
+
+  try {
+    await syncPublicSolvedProblems(uid, undefined, next, existing);
+  } catch (err) {
+    console.warn("Best-effort public snapshot sync removal skipped:", err);
+  }
 }
 
 // ── Fast avatar (base64 in Firestore, no Storage round-trip) ──────────────────
@@ -1013,6 +1446,10 @@ export async function removeCodeSubmission(
  * No Firebase Storage upload = instant save.
  */
 export async function saveAvatarBase64(uid: string, dataUrl: string): Promise<void> {
+  if (isGuestUser(uid)) {
+    saveGuestProfile({ photoURL: dataUrl });
+    return;
+  }
   await setDoc(
     userDoc(uid),
     { photoURL: dataUrl, updatedAt: serverTimestamp() },
@@ -1021,6 +1458,10 @@ export async function saveAvatarBase64(uid: string, dataUrl: string): Promise<vo
 }
 
 export async function saveBannerBase64(uid: string, dataUrl: string): Promise<void> {
+  if (isGuestUser(uid)) {
+    saveGuestProfile({ bannerURL: dataUrl });
+    return;
+  }
   await setDoc(
     userDoc(uid),
     { bannerURL: dataUrl, updatedAt: serverTimestamp() },

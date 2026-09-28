@@ -128,3 +128,72 @@ export function getCanonicalProblemLink(name: string): string | undefined {
   if (!name) return undefined;
   return CANONICAL_MAP.get(name.toLowerCase().trim());
 }
+
+export function normalizePlatformName(rawPlatform?: string, link?: string): string {
+  if (link) {
+    const l = link.toLowerCase();
+    if (l.includes("leetcode.com")) return "LeetCode";
+    if (l.includes("geeksforgeeks.org")) return "GeeksforGeeks";
+    if (l.includes("codeforces.com")) return "Codeforces";
+    if (l.includes("codechef.com")) return "CodeChef";
+    if (l.includes("hackerrank.com")) return "HackerRank";
+    if (l.includes("atcoder.jp")) return "AtCoder";
+    if (l.includes("naukri.com") || l.includes("codingninjas.com")) return "CodeStudio";
+  }
+  if (!rawPlatform) return "DSA";
+  const p = rawPlatform.trim();
+  const lower = p.toLowerCase();
+  if (lower === "lc" || lower.includes("leetcode")) return "LeetCode";
+  if (lower === "gfg" || lower.includes("geeks")) return "GeeksforGeeks";
+  if (lower === "cf" || lower.includes("codeforces")) return "Codeforces";
+  if (lower === "cc" || lower.includes("codechef")) return "CodeChef";
+  if (lower === "hr" || lower.includes("hackerrank")) return "HackerRank";
+  if (lower === "ac" || lower.includes("atcoder")) return "AtCoder";
+  if (lower.includes("ninja") || lower.includes("studio")) return "CodeStudio";
+
+  if (
+    lower.includes("array") ||
+    lower.includes("string") ||
+    lower.includes("tree") ||
+    lower.includes("graph") ||
+    lower.includes("dp") ||
+    lower.includes("dynamic") ||
+    lower.includes("pointer") ||
+    lower.includes("search") ||
+    lower.includes("sort") ||
+    lower.includes("stack") ||
+    lower.includes("queue") ||
+    lower.includes("heap") ||
+    lower.includes("hash") ||
+    lower.includes("recursion")
+  ) {
+    return "DSA";
+  }
+  return p;
+}
+
+export function getProblemMetadata(name: string): {
+  link?: string;
+  platform?: string;
+  difficulty?: Difficulty;
+  topic?: string;
+  sheet?: SheetFilter;
+} {
+  if (!name) return {};
+  const cleanName = name.toLowerCase().trim();
+  const match = ALL_PROBLEMS.find((p) => p.name.toLowerCase().trim() === cleanName);
+  if (match) {
+    const rawPlat = match.platform === "GFG" ? "GeeksforGeeks" : match.platform;
+    return {
+      link: match.link || getCanonicalProblemLink(name),
+      platform: normalizePlatformName(rawPlat, match.link),
+      difficulty: match.difficulty,
+      topic: match.topic,
+      sheet: match.sheet,
+    };
+  }
+  return {
+    link: getCanonicalProblemLink(name),
+  };
+}
+

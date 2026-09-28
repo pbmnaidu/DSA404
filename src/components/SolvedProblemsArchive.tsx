@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { usePlan } from "@/hooks/usePlan";
+import { useOptionalPlan } from "@/hooks/usePlan";
 import { useProblemCompletions } from "@/hooks/useProblemCompletions";
-import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
+import { ALL_PROBLEMS, getCanonicalProblemLink, getProblemMetadata } from "@/lib/problems";
+import { todayIso } from "@/lib/plan";
 import { type CompletedProblemSnapshot } from "@/lib/db";
 import { CodeModal } from "@/components/CodeModal";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,8 @@ export function SolvedProblemsArchive({
   className,
   isProfileTheme = false,
 }: SolvedProblemsArchiveProps) {
-  const { days } = usePlan();
+  const planCtx = useOptionalPlan();
+  const days = planCtx?.days ?? [];
   const { submissions, completed: pbCompleted } = useProblemCompletions();
 
   const [selectedProblemForModal, setSelectedProblemForModal] = useState<string | null>(null);
@@ -41,11 +43,42 @@ export function SolvedProblemsArchive({
 
   // Compute completed problems list if not provided directly via props
   const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
-    if (providedProblems) return providedProblems;
+    if (providedProblems) {
+      const seen = new Set<string>();
+      const list: CompletedProblemSnapshot[] = [];
+      const today = todayIso();
+      for (const p of providedProblems) {
+        if (!p?.name || seen.has(p.name)) continue;
+        seen.add(p.name);
+        const meta = getProblemMetadata(p.name);
+        const sub = submissions[p.name];
+        const effectiveLink = p.link || meta.link || getCanonicalProblemLink(p.name) || sub?.link || "";
+        const rawPlat = p.platform || meta.platform || (sub as any)?.platform || "DSA";
+        const normPlat =
+          rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")
+            ? "GeeksforGeeks"
+            : rawPlat;
+        list.push({
+          ...p,
+          platform: normPlat,
+          difficulty: p.difficulty || meta.difficulty || "Medium",
+          link: effectiveLink,
+          completedAt: p.completedAt || sub?.submittedAt?.slice(0, 10) || today,
+          submittedAt: p.submittedAt || sub?.submittedAt || new Date().toISOString(),
+          topic: p.topic || meta.topic || (sub as any)?.topic || "DSA Sheet",
+          section: p.section || meta.sheet || (sub as any)?.section || "Core Problems",
+          code: p.code || sub?.code,
+          submissionLink: p.submissionLink || sub?.link || effectiveLink,
+          keyPoints: p.keyPoints || sub?.keyPoints,
+        });
+      }
+      return list;
+    }
 
     const seen = new Set<string>();
     const list: CompletedProblemSnapshot[] = [];
 
+    const today = todayIso();
     // 1. Collect completed problems from plan days
     for (const day of days) {
       for (const p of day.problems) {
@@ -58,11 +91,17 @@ export function SolvedProblemsArchive({
             rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")
               ? "GeeksforGeeks"
               : rawPlat;
+          const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
+          const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
           list.push({
             name: p.name,
             platform: normPlat,
             difficulty: p.difficulty || "Medium",
             link: platLink,
+            completedAt,
+            submittedAt,
+            topic: day.topic,
+            section: day.section,
             ...(sub
               ? {
                   code: sub.code,
@@ -86,11 +125,17 @@ export function SolvedProblemsArchive({
           rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")
             ? "GeeksforGeeks"
             : rawPlat;
+        const completedAt = sub?.submittedAt?.slice(0, 10) || today;
+        const submittedAt = sub?.submittedAt || new Date().toISOString();
         list.push({
           name: fp.name,
           platform: normPlat,
           difficulty: fp.difficulty || "Medium",
           link: platLink,
+          completedAt,
+          submittedAt,
+          topic: fp.topic,
+          section: fp.sheet,
           ...(sub
             ? {
                 code: sub.code,
@@ -100,6 +145,37 @@ export function SolvedProblemsArchive({
             : {}),
         });
       }
+    }
+
+    // 3. Collect completed problems from submissions that might not have been in days or pbCompleted
+    for (const [probName, sub] of Object.entries(submissions ?? {})) {
+      if (!probName || seen.has(probName)) continue;
+      seen.add(probName);
+      const platLink = getCanonicalProblemLink(probName) || sub.link || "";
+      const rawPlat = (sub as any).platform || "DSA";
+      const normPlat =
+        rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")
+          ? "GeeksforGeeks"
+          : rawPlat;
+      const completedAt = sub?.submittedAt?.slice(0, 10) || today;
+      const submittedAt = sub?.submittedAt || new Date().toISOString();
+      list.push({
+        name: probName,
+        platform: normPlat,
+        difficulty: ((sub as any).difficulty || "Medium") as any,
+        link: platLink,
+        completedAt,
+        submittedAt,
+        topic: (sub as any).topic || "Problems",
+        section: (sub as any).section || "Problems Tab",
+        ...(sub.code
+          ? {
+              code: sub.code,
+              submissionLink: sub.link || platLink,
+              keyPoints: sub.keyPoints,
+            }
+          : {}),
+      });
     }
 
     return list;
@@ -366,7 +442,19 @@ export function SolvedProblemsArchive({
         onOpenChange={(open) => !open && setSelectedProblemForModal(null)}
         problemName={selectedProblemForModal ?? ""}
         existingSubmission={
-          selectedProblemForModal ? submissions[selectedProblemForModal] : undefined
+          selectedProblemForModal
+            ? submissions[selectedProblemForModal] || (() => {
+                const sp = completedProblems.find((p) => p.name === selectedProblemForModal);
+                return sp?.code
+                  ? {
+                      code: sp.code,
+                      link: sp.submissionLink || sp.link || "",
+                      keyPoints: sp.keyPoints || "",
+                      submittedAt: sp.submittedAt || sp.completedAt || "",
+                    }
+                  : undefined;
+              })()
+            : undefined
         }
         onSave={async () => {}}
         readOnly={true}

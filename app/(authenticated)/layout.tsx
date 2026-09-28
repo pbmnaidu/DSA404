@@ -16,13 +16,20 @@ import { useInactivityLogout } from '@/hooks/useInactivityLogout'
 import type { DailyCounts } from '@/lib/plan'
 
 
+import { isGuestMode, getGuestUser } from '@/lib/guest-data'
+
 export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<any>(() => {
+    if (typeof window !== 'undefined' && isGuestMode()) {
+      return getGuestUser()
+    }
+    return null
+  })
   const [loading, setLoading] = useState(true)
 
   // Auto-logout only after 7 days of no visits at all. A normal user who
@@ -33,6 +40,8 @@ export default function AuthenticatedLayout({
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser)
+      } else if (isGuestMode()) {
+        setUser(getGuestUser())
       } else {
         router.push('/auth?next=/today')
       }

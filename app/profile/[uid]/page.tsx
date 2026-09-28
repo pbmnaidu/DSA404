@@ -3,12 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@/integrations/firebase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   loadUserProfile,
   loadPublicDays,
+  loadProblemCompletions,
+  loadCodeSubmissions,
+  syncPublicSolvedProblems,
   resolveProfileIdentifier,
   type CodingProfiles,
   type CompletedProblemSnapshot,
+  type CodeSubmission,
   type PublicStats,
   type SocialLinkItem,
   type UserProfile,
@@ -32,14 +38,19 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ExternalLink, Globe, Code2, Flame, Sparkles, TrendingUp, BarChart3, CheckCircle2, Mail, UserCircle2 } from "lucide-react";
+import { ExternalLink, Globe, Code2, Flame, Sparkles, TrendingUp, BarChart3, CheckCircle2, Mail, UserCircle2, Search, BookOpen } from "lucide-react";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
 import { GitHubContributionHeatmap, extractGitHubUsername, resolveGitHubUrl } from "@/components/GitHubContributionHeatmap";
 import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { computeBadges, currentStreak, solvedTrend, difficultySplit } from "@/lib/gamification";
-import { CodeModal } from "@/components/CodeModal";
+import { SolvedProblemsArchive } from "@/components/SolvedProblemsArchive";
 import { QuoteLoader } from "@/components/QuoteLoader";
+import {
+  getCanonicalProblemLink,
+  normalizePlatformName,
+  getProblemMetadata,
+} from "@/lib/problems";
 import type { Day } from "@/lib/types";
 
 // Difficulty color mapping for public profile UI
@@ -47,6 +58,17 @@ const diffColor: Record<string, string> = {
   Easy: "#22c55e",
   Medium: "#f97316",
   Hard: "#ef4444",
+};
+
+const PLATFORM_BADGE_STYLE: Record<string, { color: string; bg: string }> = {
+  LeetCode: { color: "#FFA116", bg: "rgba(255,161,22,0.12)" },
+  GeeksforGeeks: { color: "#2F8D46", bg: "rgba(47,141,70,0.12)" },
+  GFG: { color: "#2F8D46", bg: "rgba(47,141,70,0.12)" },
+  Codeforces: { color: "#1F8ACB", bg: "rgba(31,138,203,0.12)" },
+  CodeChef: { color: "#a87146", bg: "rgba(168,113,70,0.12)" },
+  HackerRank: { color: "#00EA64", bg: "rgba(0,234,100,0.12)" },
+  AtCoder: { color: "#8BC4E8", bg: "rgba(139,196,232,0.12)" },
+  CodeStudio: { color: "#f2711c", bg: "rgba(242,113,28,0.12)" },
 };
 
 const CODING_PLATFORM_META: Partial<
@@ -378,7 +400,7 @@ function getDemoProfileData(): {
           rank: "Pro Developer",
           rating: null,
           maxRating: null,
-          totalSolved: 48,
+          totalSolved: null, // GitHub represents git contributions, NOT solved problems
           easySolved: null,
           mediumSolved: null,
           hardSolved: null,
@@ -403,6 +425,7 @@ function getDemoProfileData(): {
             difficultyStats: false,
             contestStats: false,
             contestHistory: false,
+            solvedProblems: false,
           },
         },
       },
@@ -429,9 +452,9 @@ export default function PublicProfilePage() {
   // can now be either a chosen username (new links) or a raw Firebase uid
   // (links shared before usernames existed) — resolved below.
   const identifier = params?.uid ?? "";
+  const { user: authUser } = useAuth();
 
   const [notFound, setNotFound] = useState(false);
-  const [selectedProb, setSelectedProb] = useState<ExtendedCompletedSnapshot | null>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -454,9 +477,43 @@ export default function PublicProfilePage() {
     lastUpdated: "",
   });
   const [completedProblems, setCompletedProblems] = useState<ExtendedCompletedSnapshot[]>([]);
-  const [platformFilter, setPlatformFilter] = useState("All");
+  const [activityHeatmap, setActivityHeatmap] = useState<Record<string, number>>({});
   const [days, setDays] = useState<Day[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Real-time synchronization when viewing user is confirmed as the profile owner
+  useEffect(() => {
+    if (!resolvedUid || !authUser || authUser.uid !== resolvedUid) return;
+    let isCancelled = false;
+
+    async function syncOwnerData() {
+      try {
+        const [userCompletions, userSubmissions] = await Promise.all([
+          loadProblemCompletions(resolvedUid).catch(() => new Set<string>()),
+          loadCodeSubmissions(resolvedUid).catch(() => ({} as Record<string, CodeSubmission>)),
+        ]);
+        const syncedList = await syncPublicSolvedProblems(
+          resolvedUid,
+          days.length > 0 ? days : undefined,
+          userCompletions,
+          userSubmissions,
+        );
+        if (!isCancelled && syncedList && syncedList.length > 0) {
+          setCompletedProblems(syncedList);
+          const fresh = await loadUserProfile(resolvedUid);
+          if (fresh.publicStats) setPublicStats(fresh.publicStats);
+          if (fresh.activityHeatmap) setActivityHeatmap(fresh.activityHeatmap);
+        }
+      } catch (e) {
+        console.warn("Real-time profile sync error:", e);
+      }
+    }
+
+    void syncOwnerData();
+    return () => {
+      isCancelled = true;
+    };
+  }, [authUser, resolvedUid, days]);
 
   useEffect(() => {
     if (!identifier) return;
@@ -481,6 +538,11 @@ export default function PublicProfilePage() {
       if (demo.profile.platformStats) {
         setPlatformStats(demo.profile.platformStats);
       }
+      setActivityHeatmap({
+        "2024-03-01": 3,
+        "2024-03-02": 5,
+        "2024-03-03": 4,
+      });
       setPublicStats(
         demo.profile.publicStats ?? { totalSolved: 0, byPlatform: {}, lastUpdated: "" }
       );
@@ -491,91 +553,479 @@ export default function PublicProfilePage() {
     }
 
     resolveProfileIdentifier(identifier)
-      .then((uid) => {
+      .then(async (uid) => {
         if (!uid) {
           setNotFound(true);
           return;
         }
         setResolvedUid(uid);
-        return Promise.all([loadUserProfile(uid), loadPublicDays(uid)]).then(([p, loadedDays]) => {
-          if (!p.displayName && !p.bio && !p.photoURL && loadedDays.length === 0) {
-            setNotFound(true);
-            return;
+
+        let [p, loadedDays] = await Promise.all([
+          loadUserProfile(uid),
+          loadPublicDays(uid),
+        ]);
+
+        // If authenticated user is viewing their own profile, ensure latest completions & code submissions sync
+        const isOwnerViewing = Boolean(
+          (auth.currentUser?.uid && auth.currentUser.uid === uid) ||
+          (authUser?.uid && authUser.uid === uid)
+        );
+        if (isOwnerViewing) {
+          try {
+            const [userCompletions, userSubmissions] = await Promise.all([
+              loadProblemCompletions(uid).catch(() => new Set<string>()),
+              loadCodeSubmissions(uid).catch(() => ({} as Record<string, CodeSubmission>)),
+            ]);
+            await syncPublicSolvedProblems(uid, loadedDays, userCompletions, userSubmissions);
+            p = await loadUserProfile(uid);
+          } catch (syncErr) {
+            console.warn("Auto-sync of public solved problems skipped:", syncErr);
           }
-          setDisplayName(p.displayName ?? "");
-          setUsername(p.username ?? "");
-          setPhotoURL(p.photoURL ?? "");
-          setBannerURL(p.bannerURL ?? "");
-          setBio(p.bio ?? "");
-          setAboutMe(p.aboutMe ?? "");
-          setEmail(p.email ?? "");
-          setLinkedin(p.linkedin ?? "");
-          setGithub(p.github ?? (p.socialLinks?.find((s) => s.platform.toLowerCase() === "github")?.url ?? ""));
-          setPortfolio(p.portfolio ?? "");
-          setSocialLinks(p.socialLinks ?? []);
-          setCodingProfiles(p.codingProfiles ?? {});
-          if (p.platformStats) setPlatformStats(p.platformStats);
-          setPublicStats(
-            p.publicStats ?? { totalSolved: 0, byPlatform: {}, lastUpdated: "" }
-          );
-          setCompletedProblems((p.completedProblems as ExtendedCompletedSnapshot[]) ?? []);
-          setDays(loadedDays);
+        } else if ((!p.completedProblems || p.completedProblems.length === 0) && typeof window !== "undefined") {
+          // If public document completedProblems is still empty, check local storage for recovery
+          try {
+            const localCompRaw = localStorage.getItem(`dsa_completed_problems_${uid}`);
+            const localSubsRaw = localStorage.getItem(`dsa_code_submissions_${uid}`);
+            if (localCompRaw) {
+              const compArr = JSON.parse(localCompRaw);
+              if (Array.isArray(compArr) && compArr.length > 0) {
+                const subsObj = localSubsRaw ? JSON.parse(localSubsRaw) : {};
+                await syncPublicSolvedProblems(uid, loadedDays, new Set(compArr), subsObj);
+                p = await loadUserProfile(uid);
+              }
+            }
+          } catch (localErr) {
+            console.warn("Local storage fallback skipped:", localErr);
+          }
+        }
+
+        if (
+          !p.displayName &&
+          !p.username &&
+          !p.bio &&
+          !p.photoURL &&
+          loadedDays.length === 0 &&
+          (!p.completedProblems || p.completedProblems.length === 0)
+        ) {
+          setNotFound(true);
+          return;
+        }
+
+        setDisplayName(p.displayName ?? "");
+        setUsername(p.username ?? "");
+        setPhotoURL(p.photoURL ?? "");
+        setBannerURL(p.bannerURL ?? "");
+        setBio(p.bio ?? "");
+        setAboutMe(p.aboutMe ?? "");
+        setEmail(p.email ?? "");
+        setLinkedin(p.linkedin ?? "");
+        setGithub(p.github ?? (p.socialLinks?.find((s) => s.platform.toLowerCase() === "github")?.url ?? ""));
+        setPortfolio(p.portfolio ?? "");
+        setSocialLinks(p.socialLinks ?? []);
+        setCodingProfiles(p.codingProfiles ?? {});
+        if (p.platformStats) setPlatformStats(p.platformStats);
+        if (p.activityHeatmap) setActivityHeatmap(p.activityHeatmap);
+
+        // Extract and merge all solved problems from user profile and loadedDays
+        const profileCompleted: ExtendedCompletedSnapshot[] =
+          (p.completedProblems as ExtendedCompletedSnapshot[]) ?? [];
+
+        // Build index of dates & metadata from loadedDays to heal any snapshot missing date/platform
+        const dayProblemMap = new Map<string, { date: string; platform?: string; difficulty?: string; link?: string }>();
+        for (const day of loadedDays ?? []) {
+          for (const prob of day.problems ?? []) {
+            if (prob.done && prob.name) {
+              dayProblemMap.set(prob.name, {
+                date: prob.completedAt || day.date,
+                platform: prob.platform,
+                difficulty: prob.difficulty,
+                link: prob.link || undefined,
+              });
+            }
+          }
+        }
+
+        const seen = new Set<string>();
+        const allMergedCompleted: ExtendedCompletedSnapshot[] = [];
+        const fallbackDate = p.publicStats?.lastUpdated?.slice(0, 10) || new Date().toISOString().slice(0, 10);
+
+        // 1. Add all from profile doc first (preserves user code snippets, key points, submissions)
+        for (const prob of profileCompleted) {
+          if (!prob?.name || seen.has(prob.name)) continue;
+          seen.add(prob.name);
+
+          const dayInfo = dayProblemMap.get(prob.name);
+          const rawDate = prob.completedAt || (prob as any).submittedAt || dayInfo?.date || fallbackDate;
+          const platLink = prob.link || dayInfo?.link || getCanonicalProblemLink(prob.name) || "";
+          const meta = getProblemMetadata(prob.name);
+          const normPlat = normalizePlatformName(prob.platform || dayInfo?.platform || meta?.platform, platLink);
+          const difficulty = prob.difficulty && prob.difficulty !== "DSA" ? prob.difficulty : (dayInfo?.difficulty || meta?.difficulty || "Medium");
+
+          allMergedCompleted.push({
+            ...prob,
+            platform: normPlat,
+            difficulty: difficulty as any,
+            link: platLink,
+            completedAt: rawDate,
+          });
+        }
+
+        // 2. Add all done problems from loadedDays that aren't already included
+        for (const day of loadedDays ?? []) {
+          for (const prob of day.problems ?? []) {
+            if (prob.done && prob.name && !seen.has(prob.name)) {
+              seen.add(prob.name);
+              const platLink = prob.link || getCanonicalProblemLink(prob.name) || "";
+              const meta = getProblemMetadata(prob.name);
+              const normPlat = normalizePlatformName(prob.platform || meta?.platform, platLink);
+              const difficulty = prob.difficulty && prob.difficulty !== "DSA" ? prob.difficulty : (meta?.difficulty || "Medium");
+
+              allMergedCompleted.push({
+                name: prob.name,
+                platform: normPlat,
+                difficulty: difficulty as any,
+                link: platLink,
+                completedAt: prob.completedAt || day.date || fallbackDate,
+              });
+            }
+          }
+        }
+
+        // Always check local storage for any solved problems/submissions not yet in allMergedCompleted
+        if (typeof window !== "undefined") {
+          try {
+            const localCompRaw = localStorage.getItem(`dsa_completed_problems_${uid}`);
+            const localSubsRaw = localStorage.getItem(`dsa_code_submissions_${uid}`);
+            if (localSubsRaw) {
+              const subsObj = JSON.parse(localSubsRaw);
+              for (const [probName, sub] of Object.entries(subsObj as Record<string, any>)) {
+                if (probName && !seen.has(probName)) {
+                  seen.add(probName);
+                  const platLink = getCanonicalProblemLink(probName) || sub.link || "";
+                  const meta = getProblemMetadata(probName);
+                  const normPlat = normalizePlatformName(sub.platform || meta?.platform || "DSA", platLink);
+                  const completedAt = sub.submittedAt?.slice(0, 10) || fallbackDate;
+                  allMergedCompleted.push({
+                    name: probName,
+                    platform: normPlat,
+                    difficulty: (sub.difficulty || meta?.difficulty || "Medium") as any,
+                    link: platLink,
+                    completedAt,
+                    submittedAt: sub.submittedAt || new Date().toISOString(),
+                    code: sub.code,
+                    submissionLink: sub.link || platLink,
+                    keyPoints: sub.keyPoints,
+                  });
+                }
+              }
+            }
+            if (localCompRaw) {
+              const compArr = JSON.parse(localCompRaw);
+              if (Array.isArray(compArr)) {
+                for (const name of compArr) {
+                  if (name && !seen.has(name)) {
+                    seen.add(name);
+                    const platLink = getCanonicalProblemLink(name) || "";
+                    const meta = getProblemMetadata(name);
+                    const normPlat = normalizePlatformName(meta?.platform || "DSA", platLink);
+                    allMergedCompleted.push({
+                      name,
+                      platform: normPlat,
+                      difficulty: (meta?.difficulty || "Medium") as any,
+                      link: platLink,
+                      completedAt: fallbackDate,
+                    });
+                  }
+                }
+              }
+            }
+          } catch (localErr) {
+            console.warn("Local storage check skipped:", localErr);
+          }
+        }
+
+
+        // Compute accurate publicStats breakdown
+        const statsByPlatform: Record<string, number> = {};
+        for (const cp of allMergedCompleted) {
+          const plat = cp.platform || "DSA";
+          statsByPlatform[plat] = (statsByPlatform[plat] ?? 0) + 1;
+        }
+
+        // Merge with existing profile publicStats if any platform had higher count
+        if (p.publicStats?.byPlatform) {
+          for (const [k, v] of Object.entries(p.publicStats.byPlatform)) {
+            const norm = normalizePlatformName(k);
+            if (!statsByPlatform[norm] || statsByPlatform[norm] < v) {
+              statsByPlatform[norm] = Math.max(statsByPlatform[norm] ?? 0, v);
+            }
+          }
+        }
+
+        // Merge with external connected platform stats (LeetCode, GFG, Codeforces, etc.)
+        // Exclude GitHub: Git contributions/commits are not solved coding problems
+        if (p.platformStats && typeof p.platformStats === "object") {
+          for (const [rawKey, prof] of Object.entries(p.platformStats)) {
+            const lk = rawKey.toLowerCase();
+            if (lk === "github" || lk === "linkedin") continue;
+            if (prof && typeof prof === "object" && typeof (prof as any).totalSolved === "number" && (prof as any).totalSolved > 0) {
+              const norm = normalizePlatformName(rawKey);
+              const solved = (prof as any).totalSolved;
+              statsByPlatform[norm] = Math.max(statsByPlatform[norm] ?? 0, solved);
+            }
+          }
+        }
+        delete statsByPlatform["GitHub"];
+        delete statsByPlatform["github"];
+
+        const allPlatformsTotal = Object.values(statsByPlatform).reduce((a, b) => a + b, 0);
+        const trackerProblemsCount = allMergedCompleted.filter((cp) => cp.platform?.toLowerCase() !== "github").length;
+        const totalSolved = Math.max(trackerProblemsCount, allPlatformsTotal);
+
+        if (allPlatformsTotal < trackerProblemsCount) {
+          statsByPlatform["DSA"] = (statsByPlatform["DSA"] ?? 0) + (trackerProblemsCount - allPlatformsTotal);
+        }
+
+        setPublicStats({
+          totalSolved,
+          byPlatform:
+            Object.keys(statsByPlatform).length > 0
+              ? statsByPlatform
+              : p.publicStats?.byPlatform ?? {},
+          lastUpdated: p.publicStats?.lastUpdated || new Date().toISOString(),
         });
+        setCompletedProblems(allMergedCompleted);
+        setDays(loadedDays);
       })
-      .catch(() => setNotFound(true))
+      .catch((err) => {
+        console.error("Failed to load profile:", err);
+        setNotFound(true);
+      })
       .finally(() => setLoading(false));
   }, [identifier]);
 
-  const platformOptions = useMemo(
-    () => ["All", ...Array.from(new Set(completedProblems.map((p) => p.platform))).sort()],
-    [completedProblems]
-  );
 
-  const filteredCompleted = useMemo(
-    () =>
-      platformFilter === "All"
-        ? completedProblems
-        : completedProblems.filter((p) => p.platform === platformFilter),
-    [completedProblems, platformFilter]
-  );
+  // Synthesize virtual days or merge completed problems into days for roadmap graph, badges, streak, difficulty split
+  const effectiveDays = useMemo<Day[]>(() => {
+    if (days.length === 0) {
+      if (completedProblems.length === 0) return [];
+
+      const byDate = new Map<string, ExtendedCompletedSnapshot[]>();
+      for (const p of completedProblems) {
+        const d = p.completedAt?.slice(0, 10) || new Date().toISOString().slice(0, 10);
+        const list = byDate.get(d) ?? [];
+        list.push(p);
+        byDate.set(d, list);
+      }
+
+      const sortedDates = Array.from(byDate.keys()).sort();
+      return sortedDates.map((dateStr, idx) => {
+        const probs = byDate.get(dateStr) ?? [];
+        return {
+          id: `virtual-day-${idx + 1}`,
+          dayNumber: idx + 1,
+          date: dateStr,
+          section: probs[0]?.platform || "DSA Milestone",
+          topic: "Problems Solved",
+          subtopics: [],
+          problems: probs.map((p) => {
+            const diff = (p.difficulty as any) || "Medium";
+            return {
+              name: p.name,
+              platform: p.platform,
+              difficulty: diff,
+              link: p.link,
+              linkVerified: true,
+              takeUForwardLink: null,
+              estTime: 30,
+              done: true,
+              isHard: diff === "Hard" || diff === "Advanced" || diff === "Expert",
+              completedAt: dateStr,
+            };
+          }),
+          checklist: [],
+          status: "completed" as const,
+          notes: "",
+          revisionNotes: "",
+          skipped: false,
+        };
+      });
+    }
+
+    if (completedProblems.length === 0) return days;
+    const completedMap = new Map(completedProblems.map((cp) => [cp.name, cp]));
+    const matchedNames = new Set<string>();
+
+    const updatedDays = days.map((day) => {
+      let dayModified = false;
+      const updatedProblems = (day.problems ?? []).map((prob) => {
+        const match = completedMap.get(prob.name);
+        if (match) {
+          matchedNames.add(prob.name);
+          if (!prob.done) {
+            dayModified = true;
+            return {
+              ...prob,
+              done: true,
+              completedAt: match.completedAt || prob.completedAt || day.date,
+            };
+          }
+        }
+        return prob;
+      });
+      return dayModified ? { ...day, problems: updatedProblems } : day;
+    });
+
+    const unmatched = completedProblems.filter((cp) => !matchedNames.has(cp.name));
+    if (unmatched.length === 0) return updatedDays;
+
+    const unmatchedByDate = new Map<string, ExtendedCompletedSnapshot[]>();
+    for (const p of unmatched) {
+      const d = p.completedAt?.slice(0, 10) || new Date().toISOString().slice(0, 10);
+      const list = unmatchedByDate.get(d) ?? [];
+      list.push(p);
+      unmatchedByDate.set(d, list);
+    }
+
+    const resultDays = [...updatedDays];
+    const dayByDate = new Map<string, Day>();
+    resultDays.forEach((d) => dayByDate.set(d.date, d));
+
+    let virtualDayIdx = resultDays.length + 1;
+    unmatchedByDate.forEach((probs, dateStr) => {
+      const existingDay = dayByDate.get(dateStr);
+      const newProbs = probs.map((p) => {
+        const diff = (p.difficulty as any) || "Medium";
+        return {
+          name: p.name,
+          platform: p.platform,
+          difficulty: diff,
+          link: p.link,
+          linkVerified: true,
+          takeUForwardLink: null,
+          estTime: 30,
+          done: true,
+          isHard: diff === "Hard" || diff === "Advanced" || diff === "Expert",
+          completedAt: dateStr,
+        };
+      });
+
+      if (existingDay) {
+        existingDay.problems = [...existingDay.problems, ...newProbs];
+      } else {
+        resultDays.push({
+          id: `virtual-day-${virtualDayIdx++}`,
+          dayNumber: virtualDayIdx,
+          date: dateStr,
+          section: probs[0]?.platform || "DSA Milestone",
+          topic: "Problems Solved",
+          subtopics: [],
+          problems: newProbs,
+          checklist: [],
+          status: "completed" as const,
+          notes: "",
+          revisionNotes: "",
+          skipped: false,
+        });
+      }
+    });
+
+    return resultDays;
+  }, [days, completedProblems]);
 
   const initials = (displayName || "?")[0]?.toUpperCase() ?? "?";
 
-  // Badges & streak calculation from public days
-  const badges = useMemo(() => computeBadges(days), [days]);
-  const streakCount = useMemo(() => currentStreak(days), [days]);
+  // Badges & streak calculation from public days or effective days
+  const badges = useMemo(() => computeBadges(effectiveDays), [effectiveDays]);
+  const streakCount = useMemo(() => currentStreak(effectiveDays), [effectiveDays]);
 
   // 404 DSA Roadmap Graph data
-  const trend = useMemo(() => solvedTrend(days), [days]);
-  const diffSplit = useMemo(() => difficultySplit(days), [days]);
+  const trend = useMemo(() => solvedTrend(effectiveDays), [effectiveDays]);
+  const diffSplit = useMemo(() => difficultySplit(effectiveDays), [effectiveDays]);
 
-  // Heatmap calculations — grouped by the date each problem was actually
-  // marked done (not the day it was originally assigned to), so a backlog
-  // problem solved today shows up on today's square. Falls back to the
-  // day's own date for rows completed before this field existed.
+  // Heatmap calculations — checking plan days, effective days, completed problem snapshots, and user activityHeatmap
   const { heatmapData, detailMap } = useMemo(() => {
     const dateMap = new Map<string, any[]>();
-    for (const day of days ?? []) {
-      const doneProbs = day.problems.filter((p) => p.done);
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const daysToUse = days.length > 0 ? days : effectiveDays;
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    // 1. From days or effectiveDays
+    for (const day of daysToUse ?? []) {
+      const doneProbs = (day.problems ?? []).filter((p) => p.done);
       for (const p of doneProbs) {
-        const dateStr = p.completedAt || day.date;
-        const existing = dateMap.get(dateStr) ?? [];
-        dateMap.set(dateStr, [...existing, p]);
+        const rawDate = p.completedAt || day.date;
+        const dateStr = rawDate && typeof rawDate === "string" ? rawDate.slice(0, 10) : "";
+        if (dateStr && dateRegex.test(dateStr) && dateStr <= todayStr) {
+          const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+          const item = {
+            ...p,
+            platform: normalizePlatformName(p.platform, platLink),
+            submissionLink: (p as any).submissionLink || platLink,
+            code: (p as any).code,
+            keyPoints: (p as any).keyPoints,
+            done: true,
+          };
+          const existing = dateMap.get(dateStr) ?? [];
+          if (!existing.some((x) => x.name === p.name)) {
+            dateMap.set(dateStr, [...existing, item]);
+          }
+        }
       }
     }
+
+    // 2. From completed problems list
+    for (const p of completedProblems ?? []) {
+      const rawDate = p.completedAt || (p as any).submittedAt || todayStr;
+      const dateStr = rawDate && typeof rawDate === "string" ? rawDate.slice(0, 10) : todayStr;
+      if (dateStr && dateRegex.test(dateStr) && dateStr <= todayStr) {
+        const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+        const item = {
+          name: p.name,
+          platform: normalizePlatformName(p.platform, platLink),
+          difficulty: p.difficulty || "Medium",
+          link: platLink,
+          submissionLink: p.submissionLink || platLink,
+          code: p.code,
+          keyPoints: p.keyPoints,
+          done: true,
+        };
+        const existing = dateMap.get(dateStr) ?? [];
+        if (!existing.some((x) => x.name === p.name)) {
+          dateMap.set(dateStr, [...existing, item]);
+        }
+      }
+    }
+
+    // 3. Register any additional dates from activityHeatmap
+    if (activityHeatmap) {
+      for (const dateStr of Object.keys(activityHeatmap)) {
+        if (dateStr && dateRegex.test(dateStr) && dateStr <= todayStr && !dateMap.has(dateStr)) {
+          dateMap.set(dateStr, []);
+        }
+      }
+    }
+
     const hData: { date: string; solved: number }[] = [];
     const dMap: Record<string, any[]> = {};
     dateMap.forEach((probs, dateStr) => {
-      hData.push({ date: dateStr, solved: probs.length });
-      dMap[dateStr] = probs;
+      if (dateStr <= todayStr) {
+        const syncedCount = activityHeatmap?.[dateStr] ?? 0;
+        const count = Math.max(probs.length, syncedCount);
+        hData.push({ date: dateStr, solved: count });
+        dMap[dateStr] = probs;
+      }
     });
-    for (const day of days ?? []) {
-      if (!day.skipped && !dateMap.has(day.date)) {
+
+    // Only populate non-future days up to today with 0 count
+    for (const day of daysToUse ?? []) {
+      if (day.date && dateRegex.test(day.date) && day.date <= todayStr && !day.skipped && !dateMap.has(day.date)) {
         hData.push({ date: day.date, solved: 0 });
       }
     }
+
     return { heatmapData: hData, detailMap: dMap };
-  }, [days]);
+  }, [days, effectiveDays, completedProblems, activityHeatmap]);
 
   // Auto-extract GitHub username/handle and profile URL from all available sources
   const effectiveGithubRaw = useMemo(() => {
@@ -597,6 +1047,70 @@ export default function PublicProfilePage() {
   }, [effectiveGithubRaw]);
 
   const githubUsername = effectiveGithubUsername;
+
+  // Unified statistics aggregating problems solved across all platforms (DSA Tracker + LeetCode + GFG + Codeforces + CodeChef + HackerRank, etc.)
+  const allPlatformsStats = useMemo(() => {
+    const byPlatform: Record<string, number> = {};
+
+    // 1. Count from completed problems in DSA tracker (exclude GitHub)
+    for (const cp of completedProblems) {
+      if (cp.platform?.toLowerCase() === "github") continue;
+      const plat = normalizePlatformName(cp.platform) || "DSA";
+      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
+    }
+
+    // 2. External connected platforms (LeetCode, GFG, Codeforces, CodeChef, HackerRank, etc.)
+    // Explicitly exclude GitHub: contributions/commits are displayed in the contribution heatmap, not solved problems
+    let externalPlatformsTotal = 0;
+    const statsObj = platformStats && typeof platformStats === "object" ? platformStats : {};
+    for (const [rawKey, prof] of Object.entries(statsObj)) {
+      const lk = rawKey.toLowerCase();
+      if (lk === "github" || lk === "linkedin") continue;
+      if (prof && typeof prof === "object" && typeof (prof as any).totalSolved === "number" && (prof as any).totalSolved > 0) {
+        const norm = normalizePlatformName(rawKey);
+        const solved = (prof as any).totalSolved;
+        externalPlatformsTotal += solved;
+        byPlatform[norm] = Math.max(byPlatform[norm] ?? 0, solved);
+      }
+    }
+
+    // 3. Merge publicStats.byPlatform if recorded higher
+    if (publicStats?.byPlatform) {
+      for (const [k, v] of Object.entries(publicStats.byPlatform)) {
+        if (k.toLowerCase() === "github" || k.toLowerCase() === "linkedin") continue;
+        if (typeof v === "number" && v > 0) {
+          const norm = normalizePlatformName(k);
+          if (!byPlatform[norm] || byPlatform[norm] < v) {
+            byPlatform[norm] = v;
+          }
+        }
+      }
+    }
+    delete byPlatform["GitHub"];
+    delete byPlatform["github"];
+
+    // 4. Heatmap total solved count & tracker total (problems completed within 404 DSA milestone)
+    const heatmapTotal = heatmapData.reduce((acc, d) => acc + (d.solved > 0 ? d.solved : 0), 0);
+    const trackerProblemsCount = completedProblems.filter((p) => p.platform?.toLowerCase() !== "github").length;
+    const trackerTotal = Math.max(trackerProblemsCount, heatmapTotal);
+
+    // 5. Grand total solved across all platforms is the sum of each platform's solved count
+    const platformsSum = Object.values(byPlatform).reduce((acc, count) => acc + count, 0);
+    const grandTotalSolved = Math.max(platformsSum, trackerTotal);
+
+    // If platformsSum < trackerTotal (e.g. untagged DSA problems not in byPlatform), balance it
+    if (platformsSum < trackerTotal) {
+      const diff = trackerTotal - platformsSum;
+      byPlatform["DSA"] = (byPlatform["DSA"] ?? 0) + diff;
+    }
+
+    return {
+      grandTotalSolved,
+      trackerTotal,
+      externalPlatformsTotal,
+      byPlatform,
+    };
+  }, [completedProblems, publicStats, heatmapData, platformStats]);
 
   if (loading) {
     return <QuoteLoader fullScreen />;
@@ -687,9 +1201,21 @@ export default function PublicProfilePage() {
                 <Flame className="size-3.5 text-orange-500" />
                 {streakCount} Day Streak
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-background/85 backdrop-blur px-2 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary border border-border/50 shadow-sm">
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full bg-background/85 backdrop-blur px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary border border-border/50 shadow-sm"
+                title={
+                  allPlatformsStats.externalPlatformsTotal > 0
+                    ? `Total solved across all platforms: ${allPlatformsStats.grandTotalSolved} (${allPlatformsStats.trackerTotal} in 404 DSA Tracker)`
+                    : `Total solved across all platforms: ${allPlatformsStats.grandTotalSolved}`
+                }
+              >
                 <Sparkles className="size-3.5" />
-                {publicStats.totalSolved} Solved
+                <span>{allPlatformsStats.grandTotalSolved} Solved</span>
+                {allPlatformsStats.externalPlatformsTotal > 0 && (
+                  <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                    (All Platforms)
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -1013,7 +1539,7 @@ export default function PublicProfilePage() {
         )}
 
         {/* ── DSA 404 Solving Trend & Roadmap Progression Graph (from Progress Tab) ── */}
-        {days.length > 0 && (
+        {effectiveDays.length > 0 && (
           <section className="space-y-6 rounded-3xl border border-border bg-card p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-4">
               <div className="flex items-center gap-2.5">
@@ -1027,10 +1553,10 @@ export default function PublicProfilePage() {
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-bold text-primary">
-                  {days.reduce((acc, d) => acc + (d.problems?.filter((p) => p.done).length || 0), 0)} Plan Solved
+                  {effectiveDays.reduce((acc, d) => acc + (d.problems?.filter((p) => p.done).length || 0), 0)} Plan Solved
                 </span>
                 <span className="rounded-full border border-border bg-background px-3 py-1 font-bold text-foreground">
-                  {days.filter((d) => !d.skipped && d.problems.every((p) => p.done)).length} Days Completed
+                  {effectiveDays.filter((d) => !d.skipped && d.problems.every((p) => p.done)).length} Days Completed
                 </span>
               </div>
             </div>
@@ -1112,15 +1638,18 @@ export default function PublicProfilePage() {
         )}
 
         {/* ── Submission Heatmap ── */}
-        {days.length > 0 && (
-          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 font-display text-lg font-semibold flex items-center gap-2">
+        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-4">
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2 text-foreground">
               <Flame className="size-5 text-orange-500" />
               Submission Heatmap
             </h2>
-            <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
-          </section>
-        )}
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Daily problem consistency and active solving timeline
+            </p>
+          </div>
+          <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
+        </section>
 
         {/* ── GitHub Contribution Activity Heatmap ── */}
         {githubUsername ? (
@@ -1128,7 +1657,7 @@ export default function PublicProfilePage() {
         ) : null}
 
         {/* ── Badges & Achievements Section ── */}
-        {days.length > 0 && (
+        {effectiveDays.length > 0 && (
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <BadgesGrid badges={badges} />
           </section>
@@ -1140,13 +1669,15 @@ export default function PublicProfilePage() {
 
           <div className="mb-4 flex items-end gap-2">
             <span className="font-display text-5xl font-bold tabular-nums text-primary">
-              {publicStats.totalSolved}
+              {allPlatformsStats.grandTotalSolved}
             </span>
-            <span className="mb-1 text-sm text-muted-foreground">problems solved</span>
+            <span className="mb-1 text-sm text-muted-foreground">
+              problems solved across all platforms
+            </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {Object.entries(publicStats.byPlatform)
+            {Object.entries(allPlatformsStats.byPlatform)
               .sort((a, b) => b[1] - a[1])
               .map(([platform, count]) => (
                 <div key={platform} className="rounded-xl border border-border bg-background p-3">
@@ -1154,7 +1685,7 @@ export default function PublicProfilePage() {
                   <p className="mt-1 font-display text-2xl font-semibold tabular-nums">{count}</p>
                 </div>
               ))}
-            {Object.keys(publicStats.byPlatform).length === 0 && (
+            {Object.keys(allPlatformsStats.byPlatform).length === 0 && (
               <p className="col-span-full text-sm text-muted-foreground">
                 No solved problems recorded yet.
               </p>
@@ -1168,94 +1699,8 @@ export default function PublicProfilePage() {
           )}
         </section>
 
-        {/* ── Completed Problems ── */}
-        {completedProblems.length > 0 && (
-          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-lg font-semibold">
-                Completed Problems
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({filteredCompleted.length})
-                </span>
-              </h2>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {platformOptions.map((pl) => (
-                  <button
-                    key={pl}
-                    onClick={() => setPlatformFilter(pl)}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${platformFilter === pl
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-background text-muted-foreground hover:bg-muted"
-                      }`}
-                  >
-                    {pl}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="divide-y divide-border">
-              {filteredCompleted.map((p) => (
-                <div
-                  key={`${p.name}|${p.link}`}
-                  className="flex items-center gap-3 py-2.5 hover:bg-muted/30 px-2 rounded-lg cursor-pointer transition-colors"
-                  onClick={() => setSelectedProb(p)}
-                >
-                  <div className="flex-1 min-w-0 flex items-center gap-2">
-                    <span className="text-sm font-medium hover:text-primary line-clamp-1">
-                      {p.name}
-                    </span>
-                    {p.code && (
-                      <span className="flex items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                        <Code2 className="size-3" /> Code
-                      </span>
-                    )}
-                  </div>
-                  <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                    style={{ color: "#6366f1", background: "rgba(99,102,241,0.1)" }}
-                  >
-                    {p.platform}
-                  </span>
-                  <span
-                    className="shrink-0 text-xs font-medium"
-                    style={{ color: diffColor[p.difficulty] ?? "#6366f1" }}
-                  >
-                    {p.difficulty}
-                  </span>
-                  <a
-                    href={p.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`Open ${p.name}`}
-                    className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <ExternalLink className="size-3.5" />
-                  </a>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {selectedProb && (
-          <CodeModal
-            open={Boolean(selectedProb)}
-            onOpenChange={(v) => {
-              if (!v) setSelectedProb(null);
-            }}
-            problemName={selectedProb.name}
-            existingSubmission={
-              selectedProb.code
-                ? { code: selectedProb.code, link: selectedProb.submissionLink ?? "", submittedAt: "" }
-                : undefined
-            }
-            readOnly={true}
-            onSave={async () => { }}
-          />
-        )}
+        {/* ── Solved Problems Archive ── */}
+        <SolvedProblemsArchive completedProblems={completedProblems} />
 
         {/* ── Footer ── */}
         <footer className="pb-8 text-center text-xs text-muted-foreground">

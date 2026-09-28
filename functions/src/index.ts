@@ -14,7 +14,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { beforeUserDeleted, AuthBlockingEvent } from "firebase-functions/v2/identity";
+import { auth } from "firebase-functions/v1";
 import { logger } from "firebase-functions/v2";
 import { defineSecret } from "firebase-functions/params";
 
@@ -107,6 +107,7 @@ export const sendReminders = onSchedule(
     // No Resend API key needed
 
     for (const row of due) {
+      if (row.paused) continue;
       const uid = row.uid;
       try {
         const tz = row.timezone || "UTC";
@@ -201,10 +202,10 @@ export const sendReminders = onSchedule(
 
 /**
  * Firestore doesn't cascade-delete, so wipe everything under users/{uid}
- * right before the Auth user record is removed.
+ * when the Auth user record is removed.
  */
-export const deleteUserData = beforeUserDeleted(async (event: AuthBlockingEvent) => {
-  const uid = event.data.uid;
+export const deleteUserData = auth.user().onDelete(async (user) => {
+  const uid = user.uid;
   const subcollections = [
     "days",
     "meta",

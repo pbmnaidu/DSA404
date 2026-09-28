@@ -11,6 +11,7 @@ interface CodeModalProps {
   onSave: (code: string, link: string, keyPoints: string) => Promise<void>;
   onDelete?: () => Promise<void>;
   readOnly?: boolean;
+  initialTab?: "solution" | "compiler" | "codechef_ide";
 }
 
 export function CodeModal({
@@ -21,6 +22,7 @@ export function CodeModal({
   onSave,
   onDelete,
   readOnly = false,
+  initialTab = "solution",
 }: CodeModalProps) {
   return (
     <CodeChefCompilerModal
@@ -31,7 +33,8 @@ export function CodeModal({
       onSave={onSave}
       onDelete={onDelete}
       readOnly={readOnly}
-      initialTab="compiler"
+      initialTab={initialTab}
     />
   );
 }
+

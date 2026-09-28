@@ -50,6 +50,8 @@ export function analyzeCodingProfiles(profiles: Record<string, NormalizedCodingP
 
   for (const [platformKey, profile] of Object.entries(profiles)) {
     if (!profile || profile.status === "FETCH_FAILED" || profile.status === "PROFILE_NOT_FOUND") continue;
+    // GitHub represents VCS code contributions/commits, not competitive programming / DSA problems
+    if (platformKey.toLowerCase() === "github" || profile.platform === "github") continue;
 
     activePlatformsCount++;
 

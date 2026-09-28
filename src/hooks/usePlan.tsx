@@ -116,6 +116,8 @@ export function PlanProvider({
       setStartDate(sDate);
       setLastSynced(meta.lastSyncedAt);
       if (sheetId) setActiveSheet(sheetId);
+      // Auto-sync public solved problems and heatmap to userDoc in background
+      void db.syncPublicSolvedProblems(userId, d).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load your progress.");
     } finally {
@@ -146,6 +148,7 @@ export function PlanProvider({
         setActiveSheet(sheetId);
         setStartDate(meta.startDate);
         setLastSynced(meta.lastSyncedAt);
+        void db.syncPublicSolvedProblems(userId, newDays).catch(() => {});
         toast.success("DSA Sheet Switched!", {
           description: "Your daily plan and problems are now loaded from your chosen sheet.",
         });
@@ -177,6 +180,8 @@ export function PlanProvider({
       try {
         await db.saveDay(userId, next);
         markSynced();
+        // Immediately sync public snapshot & heatmap for the public profile
+        void db.syncPublicSolvedProblems(userId).catch(() => {});
       } catch (e) {
         fail(e);
       }
@@ -800,4 +805,8 @@ export const usePlan = () => {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("usePlan must be used inside PlanProvider");
   return ctx;
+};
+
+export const useOptionalPlan = () => {
+  return useContext(Ctx);
 };

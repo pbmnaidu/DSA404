@@ -59,6 +59,8 @@ import { GitHubRepoLinkModal } from "@/components/GitHubRepoLinkModal";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { getLocalGitHubSyncConfig, loadCloudGitHubSyncConfig } from "@/lib/github-sync";
 import { useInAppBrowser } from "@/components/in-app-browser/InAppBrowserContext";
+import { DemoHelperBanner } from "@/components/DemoHelperBanner";
+import { isGuestMode, disableGuestMode } from "@/lib/guest-data";
 
 const NAV = [
   { to: "/today", label: "Today's Workspace", icon: Sparkles, hint: "Your daily topic, core problems, streak, and activity heatmap." },
@@ -83,11 +85,12 @@ const SIDEBAR_STORAGE_KEY = "dsa-sidebar-width";
 
 // ─── Desktop Sidebar (resizable) ──────────────────────────────────────────────
 function DesktopSidebar({
-  pathname, email, streak, lastSynced, displayName, initials, photoURL, username, onSignOut, width, onWidthChange,
+  pathname, email, streak, lastSynced, displayName, initials, photoURL, username, onSignOut, width, onWidthChange, paused,
 }: {
   pathname: string; email: string; streak: number; lastSynced: string | null;
   displayName: string; initials: string; photoURL?: string | null; username?: string;
   onSignOut: () => void; width: number; onWidthChange: (w: number) => void;
+  paused?: boolean;
 }) {
   const { openPanel } = useThemeCustomizer();
   const dragging = useRef(false);
@@ -207,7 +210,12 @@ function DesktopSidebar({
                   >
                     <n.icon className={cn("size-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
                     {!collapsed && <span className="truncate flex-1">{n.label}</span>}
-                    {!collapsed && isActive && <span className="ml-auto size-1.5 rounded-full bg-primary shrink-0" />}
+                    {!collapsed && n.to === "/today" && paused && (
+                      <span className="ml-auto rounded-full bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 text-[9px] font-mono font-bold text-amber-400">
+                        Paused
+                      </span>
+                    )}
+                    {!collapsed && isActive && (!paused || n.to !== "/today") && <span className="ml-auto size-1.5 rounded-full bg-primary shrink-0" />}
                   </Link>
                 </li>
               );
@@ -292,11 +300,12 @@ function DesktopSidebar({
 
 // ─── Mobile Drawer ─────────────────────────────────────────────────────────────
 function MobileDrawer({
-  open, onClose, pathname, email, streak, lastSynced, displayName, initials, photoURL, username, onSignOut,
+  open, onClose, pathname, email, streak, lastSynced, displayName, initials, photoURL, username, onSignOut, paused,
 }: {
   open: boolean; onClose: () => void; pathname: string; email: string; streak: number;
   lastSynced: string | null; displayName: string; initials: string; photoURL?: string | null; username?: string;
   onSignOut: () => void;
+  paused?: boolean;
 }) {
   const { openPanel } = useThemeCustomizer();
   return (
@@ -371,7 +380,14 @@ function MobileDrawer({
                       <n.icon className={cn("size-4", isActive ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className={cn("text-sm font-medium", isActive && "font-semibold text-primary")}>{n.label}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className={cn("text-sm font-medium", isActive && "font-semibold text-primary")}>{n.label}</p>
+                        {n.to === "/today" && paused && (
+                          <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 text-[9px] font-mono font-bold text-amber-400">
+                            Paused
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] opacity-60 line-clamp-1 mt-0.5">{n.hint}</p>
                     </div>
                     {isActive && <span className="shrink-0 size-1.5 rounded-full bg-primary" />}
@@ -515,7 +531,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
   // Auto popup for linking GitHub repository on initial start/data load (checks Cloud DB first across devices)
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!user?.uid || isGuestMode()) return;
     let isCancelled = false;
 
     (async () => {
@@ -575,13 +591,19 @@ export function AppShell({ email, children }: { email: string; children: React.R
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
-    await firebaseSignOut(auth);
+    if (isGuestMode()) {
+      disableGuestMode();
+    }
+    try {
+      await firebaseSignOut(auth);
+    } catch {}
     router.push("/auth?next=/today");
   }
 
   const sharedProps = {
     pathname, email, streak, lastSynced, displayName, initials, photoURL, username,
     onSignOut: () => void signOut(),
+    paused: settings.paused,
   };
 
   return (
@@ -777,17 +799,22 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
           {/* Pause banner */}
           {settings.paused && (
-            <div role="status" className="border-b border-warning/40 bg-warning/10">
-              <div className="flex flex-wrap items-center gap-2 px-4 py-2 text-sm text-warning">
-                <PauseCircle className="size-4" />
-                <span>Preparation paused since {formatDate(settings.pausedFrom ?? "")}. Missed-week checks are off.</span>
-                <Link href="/settings" className="ml-auto font-semibold underline underline-offset-4">Resume</Link>
+            <div role="status" className="border-b border-amber-500/40 bg-amber-500/10">
+              <div className="flex flex-wrap items-center gap-2 px-4 py-2 text-sm text-amber-300">
+                <PauseCircle className="size-4 shrink-0 text-amber-400" />
+                <span>Preparation paused since {formatDate(settings.pausedFrom ?? "")}. Your daily workspace is held at the paused day.</span>
+                <Link href="/today" className="ml-auto font-semibold underline underline-offset-4 text-amber-400 hover:text-amber-200">
+                  View Paused Day / Resume
+                </Link>
               </div>
             </div>
           )}
 
           {/* Main content */}
-          <main className="w-full min-w-0 px-4 pb-24 pt-6 md:pb-8 md:px-6">{children}</main>
+          <main className="w-full min-w-0 px-4 pb-24 pt-6 md:pb-8 md:px-6">
+            <DemoHelperBanner />
+            {children}
+          </main>
 
           {/* Theme customizer */}
           <ThemeCustomizerPanel />
@@ -799,7 +826,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
               <li>
                 <Link href="/today" className={cn("flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors", pathname === "/today" ? "text-primary font-bold" : "text-muted-foreground")}>
                   <Sparkles className="size-4.5" />
-                  <span>Today's Workspace</span>
+                  <span>{settings.paused ? "Today (Paused)" : "Today's Workspace"}</span>
                 </Link>
               </li>
 

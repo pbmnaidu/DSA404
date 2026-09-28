@@ -8,6 +8,7 @@ import { useProblemCompletions } from "@/hooks/useProblemCompletions";
 import {
   loadOwnerProfile,
   saveUserProfile,
+  syncPublicSolvedProblems,
   type CodingProfiles,
   type CustomLink,
   type CompletedProblemSnapshot,
@@ -23,6 +24,9 @@ import {
   recordActivity,
   type MotivationalQuote,
 } from "@/lib/userActivity";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { formatDate, diffDays, todayIso } from "@/lib/plan";
 import {
   Camera,
   Check,
@@ -48,6 +52,8 @@ import {
   HeartHandshake,
   X,
   RotateCcw,
+  PauseCircle,
+  PlayCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -111,7 +117,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { todayIso } from "@/lib/plan";
 
 function ThemedTooltip({ hint, children }: { hint: string; children: React.ReactNode }) {
   return (
@@ -128,9 +133,39 @@ function ThemedTooltip({ hint, children }: { hint: string; children: React.React
 
 export function MergedTodayProfile() {
   const { user } = useAuth();
-  const { days, loading } = usePlan();
-  const { settings } = useSettings();
+  const { days, loading, shiftSchedule } = usePlan();
+  const { settings, update: updateSettings } = useSettings();
   const { completed: pbCompleted, submissions } = useProblemCompletions();
+  const [resumingPlan, setResumingPlan] = useState(false);
+
+  const handleResumePlan = useCallback(async () => {
+    setResumingPlan(true);
+    toast.info("Resuming preparation...", {
+      description: "Shifting schedule to today where you left off.",
+    });
+    try {
+      const from = settings.pausedFrom ?? todayIso();
+      const today = todayIso();
+      const finish = await shiftSchedule(from);
+      const gap = Math.max(0, diffDays(from, today));
+      await updateSettings({
+        paused: false,
+        pausedFrom: null,
+        pausedDays: (settings.pausedDays ?? 0) + gap,
+        resumeDate: today,
+      });
+      toast.success("Welcome back!", {
+        description:
+          gap > 0
+            ? `Preparation resumed from today! Schedule shifted forward by ${gap} day(s). New finish date: ${formatDate(finish ?? "")}.`
+            : "Preparation resumed right on schedule.",
+      });
+    } catch (err: any) {
+      toast.error("Failed to resume plan", { description: err?.message || "Please try again." });
+    } finally {
+      setResumingPlan(false);
+    }
+  }, [settings.pausedFrom, settings.pausedDays, shiftSchedule, updateSettings]);
 
   // Selected date from calendar click
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
@@ -151,6 +186,17 @@ export function MergedTodayProfile() {
   useEffect(() => {
     if (user?.uid) recordActivity(user.uid);
   }, [user]);
+
+  // Keep public profile solved problems & activity heatmap automatically in sync
+  useEffect(() => {
+    if (!user?.uid || loading) return;
+    const timer = setTimeout(() => {
+      void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions).catch((err) => {
+        console.warn("Background public solved problems sync failed:", err);
+      });
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [user?.uid, loading, days, pbCompleted, submissions]);
 
   // Strictly determine Today's Day:
   // When paused, freeze reference date to pausedFrom
@@ -221,6 +267,7 @@ export function MergedTodayProfile() {
   const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
     const seen = new Set<string>();
     const list: CompletedProblemSnapshot[] = [];
+    const today = new Date().toISOString().slice(0, 10);
 
     for (const day of days) {
       for (const p of day.problems) {
@@ -230,11 +277,17 @@ export function MergedTodayProfile() {
           const platLink = getCanonicalProblemLink(p.name) || p.link || "";
           const rawPlat = p.platform || "DSA";
           const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+          const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
+          const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
           list.push({
             name: p.name,
             platform: normPlat,
             difficulty: p.difficulty || "Medium",
             link: platLink,
+            completedAt,
+            submittedAt,
+            topic: day.topic,
+            section: day.section,
             ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
           });
         }
@@ -248,14 +301,42 @@ export function MergedTodayProfile() {
         const platLink = getCanonicalProblemLink(fp.name) || fp.link || "";
         const rawPlat = fp.platform || "DSA";
         const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+        const completedAt = sub?.submittedAt?.slice(0, 10) || today;
+        const submittedAt = sub?.submittedAt || new Date().toISOString();
         list.push({
           name: fp.name,
           platform: normPlat,
           difficulty: fp.difficulty || "Medium",
           link: platLink,
+          completedAt,
+          submittedAt,
+          topic: fp.topic,
+          section: fp.sheet,
           ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
         });
       }
+    }
+
+    // Also include any submissions that were submitted on Problems tab or CodeModal
+    for (const [probName, sub] of Object.entries(submissions ?? {})) {
+      if (!probName || seen.has(probName)) continue;
+      seen.add(probName);
+      const platLink = getCanonicalProblemLink(probName) || sub.link || "";
+      const rawPlat = (sub as any).platform || "DSA";
+      const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+      const completedAt = sub.submittedAt?.slice(0, 10) || today;
+      const submittedAt = sub.submittedAt || new Date().toISOString();
+      list.push({
+        name: probName,
+        platform: normPlat,
+        difficulty: ((sub as any).difficulty || "Medium") as any,
+        link: platLink,
+        completedAt,
+        submittedAt,
+        topic: (sub as any).topic || "Problems",
+        section: (sub as any).section || "Problems Tab",
+        ...(sub.code ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+      });
     }
 
     return list;
@@ -322,8 +403,9 @@ export function MergedTodayProfile() {
       dMap[dateStr] = probs;
     });
 
+    const todayStr = todayIso();
     for (const day of days) {
-      if (!day.skipped && !dateMap.has(day.date)) {
+      if (!day.skipped && !dateMap.has(day.date) && day.date <= todayStr) {
         hData.push({ date: day.date, solved: 0 });
       }
     }
@@ -333,6 +415,40 @@ export function MergedTodayProfile() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* ── Paused Mode Indicator & Resume Action Banner ── */}
+      {settings.paused && (
+        <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 p-5 sm:p-6 backdrop-blur-md shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start md:items-center gap-3.5">
+            <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30 text-amber-400">
+              <PauseCircle className="size-6 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-amber-300">
+                  Plan is Paused — Held at Day {displayedDay?.dayNumber}
+                </h2>
+                <span className="rounded-full bg-amber-500/25 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-300">
+                  FROZEN AT PAUSED DAY
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-amber-200/90 leading-relaxed">
+                Your preparation was paused on <strong>{formatDate(settings.pausedFrom ?? "")}</strong>. To protect your streak and ensure you never miss any problems, this workspace is held at <strong>Day {displayedDay?.dayNumber}</strong> instead of advancing to today&apos;s calendar date.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 self-end md:self-center shrink-0">
+            <Button
+              onClick={handleResumePlan}
+              disabled={resumingPlan}
+              className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <PlayCircle className="size-4" />
+              <span>{resumingPlan ? "Resuming..." : "Resume & Catch Up to Today"}</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* ── Top Row: Greeting + Topic Header (left) | Heatmap (right) ── */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
         {/* Left (2/3): Highlighted Greeting Card + Today's Topic Description Header Card */}
@@ -340,16 +456,22 @@ export function MergedTodayProfile() {
           {/* Greeting Card — expanded height & text to level top row perfectly */}
           <div className={cn(
             "rounded-3xl border p-5 sm:p-6 backdrop-blur-md shadow-xl flex-1 flex flex-col justify-center min-h-[135px]",
-            inactivityInfo.isLongAbsence
-              ? "border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-rose-500/10"
-              : streakCount >= 7
-                ? "border-emerald-500/40 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-primary/10"
-                : "border-primary/30 bg-gradient-to-r from-primary/15 via-purple-500/10 to-emerald-500/10"
+            settings.paused
+              ? "border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5"
+              : inactivityInfo.isLongAbsence
+                ? "border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-rose-500/10"
+                : streakCount >= 7
+                  ? "border-emerald-500/40 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-primary/10"
+                  : "border-primary/30 bg-gradient-to-r from-primary/15 via-purple-500/10 to-emerald-500/10"
           )}>
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3.5">
                 {/* Dynamic icon */}
-                {inactivityInfo.isLongAbsence ? (
+                {settings.paused ? (
+                  <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30">
+                    <PauseCircle className="size-7 text-amber-400" />
+                  </div>
+                ) : inactivityInfo.isLongAbsence ? (
                   <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30">
                     <Rocket className="size-7 text-amber-400 animate-pulse" />
                   </div>
@@ -363,7 +485,16 @@ export function MergedTodayProfile() {
                   </div>
                 )}
                 <div className="space-y-1">
-                  {inactivityInfo.daysInactive >= 14 ? (
+                  {settings.paused ? (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
+                        ⏸️ Preparation Paused, {userNameDisplay}!
+                      </h2>
+                      <p className="text-sm text-amber-200/80 font-medium">
+                        Workspace held at Day {displayedDay?.dayNumber} (paused since {formatDate(settings.pausedFrom ?? "")}). Missed-week checks &amp; streak decay are off. Practice at your own pace or resume anytime!
+                      </p>
+                    </>
+                  ) : inactivityInfo.daysInactive >= 14 ? (
                     <>
                       <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
                         It's been {inactivityInfo.daysInactive} days, {userNameDisplay}! Time to reclaim your streak! 🔥
@@ -409,15 +540,22 @@ export function MergedTodayProfile() {
                 </div>
               </div>
               {/* Streak pill */}
-              <div className={cn(
-                "flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold shrink-0 shadow-sm",
-                streakCount > 0
-                  ? "border border-orange-500/30 bg-orange-500/10 text-orange-400"
-                  : "border border-white/10 bg-white/5 text-muted-foreground"
-              )}>
-                <Flame className="size-4 text-orange-500 animate-pulse" />
-                <span>{streakCount > 0 ? `${streakCount} Day Streak` : "Start your streak!"}</span>
-              </div>
+              {settings.paused ? (
+                <div className="flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold shrink-0 shadow-sm border border-amber-500/40 bg-amber-500/15 text-amber-300">
+                  <PauseCircle className="size-4 text-amber-400" />
+                  <span>Plan Paused</span>
+                </div>
+              ) : (
+                <div className={cn(
+                  "flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold shrink-0 shadow-sm",
+                  streakCount > 0
+                    ? "border border-orange-500/30 bg-orange-500/10 text-orange-400"
+                    : "border border-white/10 bg-white/5 text-muted-foreground"
+                )}>
+                  <Flame className="size-4 text-orange-500 animate-pulse" />
+                  <span>{streakCount > 0 ? `${streakCount} Day Streak` : "Start your streak!"}</span>
+                </div>
+              )}
             </div>
           </div>
 

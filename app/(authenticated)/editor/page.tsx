@@ -94,58 +94,8 @@ function saveSubmission(submission: SavedSubmission) {
   }
 }
 
-/* ------------------------------------------------------------------ */
+import { CodeEditor } from "@/components/CodeEditor";
 
-function CodeEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const lineCount = value.split("\n").length;
-  const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const gutterRef = useRef<HTMLDivElement>(null);
-
-  const syncScroll = () => {
-    if (gutterRef.current && textareaRef.current) {
-      gutterRef.current.scrollTop = textareaRef.current.scrollTop;
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const el = textareaRef.current!;
-      const start = el.selectionStart;
-      const end = el.selectionEnd;
-      const next = value.slice(0, start) + "    " + value.slice(end);
-      onChange(next);
-      requestAnimationFrame(() => {
-        el.selectionStart = el.selectionEnd = start + 4;
-      });
-    }
-  };
-
-  return (
-    <div className="flex flex-1 min-h-0 bg-[#0D0D0D]">
-      <div
-        ref={gutterRef}
-        className="select-none overflow-hidden text-right px-3 py-4 text-[13px] leading-[22px] font-mono text-[#4B5563] border-r border-[#1F1F1F] bg-[#0D0D0D]"
-        style={{ minWidth: 48 }}
-      >
-        {lineNumbers.map((n) => (
-          <div key={n}>{n}</div>
-        ))}
-      </div>
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onScroll={syncScroll}
-        onKeyDown={handleKeyDown}
-        spellCheck={false}
-        className="flex-1 resize-none bg-[#0D0D0D] text-[#E5E5E5] font-mono text-[13px] leading-[22px] px-4 py-4 outline-none"
-        style={{ tabSize: 4 }}
-      />
-    </div>
-  );
-}
 
 function EditorPageInner() {
   const router = useRouter();
@@ -264,7 +214,12 @@ function EditorPageInner() {
           </div>
         </div>
 
-        <CodeEditor value={code} onChange={setCode} />
+        <CodeEditor
+          value={code}
+          onChange={setCode}
+          language={language}
+          className="flex-1 rounded-none border-x-0 border-b-0"
+        />
 
         <div className="h-14 shrink-0 flex items-center justify-end gap-2 px-3 border-t border-border bg-card">
           <button

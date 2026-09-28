@@ -20,7 +20,10 @@ import {
   type CustomLink,
   type SocialLinkItem,
   type CompletedProblemSnapshot,
+  type PublicStats,
+  syncPublicSolvedProblems,
 } from "@/lib/db";
+import { todayIso } from "@/lib/plan";
 import {
   LinkedInIcon,
   GitHubIcon,
@@ -199,6 +202,8 @@ export function CoderProfilePage() {
   const [bannerURL, setBannerURL] = useState("");
   const [codingProfiles, setCodingProfiles] = useState<CodingProfiles>({});
   const [platformStats, setPlatformStats] = useState<Record<string, any>>({});
+  const [firestoreCompletedProblems, setFirestoreCompletedProblems] = useState<CompletedProblemSnapshot[]>([]);
+  const [publicStats, setPublicStats] = useState<PublicStats | null>(null);
   const [editingProfiles, setEditingProfiles] = useState(false);
   const [draftProfiles, setDraftProfiles] = useState<CodingProfiles>({});
   const [draftCustomLinks, setDraftCustomLinks] = useState<CustomLink[]>([]);
@@ -250,6 +255,12 @@ export function CoderProfilePage() {
           setProfileEmail(user.email);
         }
         if (p.platformStats) setPlatformStats(p.platformStats);
+        if (p.completedProblems && Array.isArray(p.completedProblems)) {
+          setFirestoreCompletedProblems(p.completedProblems);
+        }
+        if (p.publicStats) {
+          setPublicStats(p.publicStats);
+        }
         // Auto-fill from the Google account photo the first time there's no
         // avatar saved yet (no Firestore photoURL and nothing cached
         // locally/uploaded above) — never overrides a photo the user chose.
@@ -374,6 +385,7 @@ export function CoderProfilePage() {
   const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
     const seen = new Set<string>();
     const list: CompletedProblemSnapshot[] = [];
+    const today = todayIso();
     for (const day of days) {
       for (const p of day.problems) {
         if (p.done && !seen.has(p.name)) {
@@ -382,11 +394,17 @@ export function CoderProfilePage() {
           const platLink = getCanonicalProblemLink(p.name) || p.link || "";
           const rawPlat = p.platform || "DSA";
           const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+          const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
+          const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
           list.push({
             name: p.name,
             platform: normPlat,
             difficulty: p.difficulty || "Medium",
             link: platLink,
+            completedAt,
+            submittedAt,
+            topic: day.topic,
+            section: day.section,
             ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
           });
         }
@@ -399,26 +417,102 @@ export function CoderProfilePage() {
         const platLink = getCanonicalProblemLink(fp.name) || fp.link || "";
         const rawPlat = fp.platform || "DSA";
         const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+        const completedAt = sub?.submittedAt?.slice(0, 10) || today;
+        const submittedAt = sub?.submittedAt || new Date().toISOString();
         list.push({
           name: fp.name,
           platform: normPlat,
           difficulty: fp.difficulty || "Medium",
           link: platLink,
+          completedAt,
+          submittedAt,
+          topic: fp.topic,
+          section: fp.sheet,
           ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
         });
       }
     }
-    return list;
-  }, [days, pbCompleted, submissions]);
-
-  const stats = useMemo(() => {
-    const byPlatform: Record<string, number> = {};
-    for (const p of completedProblems) {
-      const plat = (p.platform === "GFG" || p.platform?.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : (p.platform || "DSA");
-      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
+    // Also include any submissions that were submitted on Problems tab or CodeModal
+    for (const [probName, sub] of Object.entries(submissions ?? {})) {
+      if (!probName || seen.has(probName)) continue;
+      seen.add(probName);
+      const platLink = getCanonicalProblemLink(probName) || sub.link || "";
+      const rawPlat = (sub as any).platform || "DSA";
+      const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+      const completedAt = sub.submittedAt?.slice(0, 10) || today;
+      const submittedAt = sub.submittedAt || new Date().toISOString();
+      list.push({
+        name: probName,
+        platform: normPlat,
+        difficulty: ((sub as any).difficulty || "Medium") as any,
+        link: platLink,
+        completedAt,
+        submittedAt,
+        topic: (sub as any).topic || "Problems",
+        section: (sub as any).section || "Problems Tab",
+        ...(sub.code ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+      });
     }
-    return { total: completedProblems.length, byPlatform };
-  }, [completedProblems]);
+    // Include Firestore completedProblems snapshots
+    for (const fp of firestoreCompletedProblems) {
+      if (!fp?.name || seen.has(fp.name)) continue;
+      seen.add(fp.name);
+      const sub = submissions[fp.name];
+      const platLink = fp.link || getCanonicalProblemLink(fp.name) || sub?.link || "";
+      const rawPlat = fp.platform || "DSA";
+      const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+      const completedAt = fp.completedAt || sub?.submittedAt?.slice(0, 10) || today;
+      const submittedAt = fp.submittedAt || sub?.submittedAt || new Date().toISOString();
+      list.push({
+        name: fp.name,
+        platform: normPlat,
+        difficulty: (fp.difficulty || "Medium") as any,
+        link: platLink,
+        completedAt,
+        submittedAt,
+        topic: fp.topic || (fp as any).sheet || "DSA Sheet",
+        section: fp.section || "Core Problems",
+        ...(fp.code || sub?.code ? { code: fp.code || sub?.code, submissionLink: fp.submissionLink || sub?.link || platLink, keyPoints: fp.keyPoints || sub?.keyPoints } : {}),
+      });
+    }
+    // Fallback: check local storage completed problems for user
+    if (typeof window !== "undefined" && user?.uid) {
+      try {
+        const localCompRaw = localStorage.getItem(`dsa_completed_problems_${user.uid}`);
+        if (localCompRaw) {
+          const compArr = JSON.parse(localCompRaw);
+          if (Array.isArray(compArr)) {
+            for (const name of compArr) {
+              if (name && !seen.has(name)) {
+                seen.add(name);
+                const sub = submissions[name];
+                const platLink = getCanonicalProblemLink(name) || "";
+                list.push({
+                  name,
+                  platform: "DSA",
+                  difficulty: "Medium",
+                  link: platLink,
+                  completedAt: sub?.submittedAt?.slice(0, 10) || today,
+                  submittedAt: sub?.submittedAt || new Date().toISOString(),
+                  topic: "DSA Sheet",
+                  section: "Core Problems",
+                  ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+                });
+              }
+            }
+          }
+        }
+      } catch { }
+    }
+    return list;
+  }, [days, pbCompleted, submissions, user?.uid, firestoreCompletedProblems]);
+
+  // Auto-sync solved problems to world-readable userDoc in the background
+  useEffect(() => {
+    if (user?.uid && completedProblems.length > 0) {
+      void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions);
+    }
+  }, [user?.uid, completedProblems.length, days, pbCompleted, submissions]);
 
   const { heatmapData, detailMap } = useMemo(() => {
     const dateMap = new Map<string, any[]>();
@@ -466,6 +560,90 @@ export function CoderProfilePage() {
     }
     return { heatmapData: hData, detailMap: dMap };
   }, [days, submissions]);
+
+  const stats = useMemo(() => {
+    const byPlatform: Record<string, number> = {};
+    for (const p of completedProblems) {
+      // Exclude GitHub: Git contributions/commits are not solved coding problems
+      if (p.platform?.toLowerCase() === "github") continue;
+      const plat = (p.platform === "GFG" || p.platform?.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : (p.platform || "DSA");
+      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
+    }
+
+    // Include external connected platforms from platformStats (LeetCode, GFG, Codeforces, CodeChef, HackerRank, etc.)
+    // Explicitly exclude GitHub: contributions/commits are displayed in the contribution heatmap, not solved problems
+    let externalPlatformsTotal = 0;
+    if (platformStats && typeof platformStats === "object") {
+      for (const [rawKey, prof] of Object.entries(platformStats)) {
+        const lk = rawKey.toLowerCase();
+        if (lk === "github" || lk === "linkedin") continue;
+        if (prof && typeof prof === "object" && typeof prof.totalSolved === "number" && prof.totalSolved > 0) {
+          const normKey =
+            lk === "leetcode"
+              ? "LeetCode"
+              : lk === "gfg" || lk.includes("geeks")
+              ? "GeeksforGeeks"
+              : lk === "codeforces"
+              ? "Codeforces"
+              : lk === "codechef"
+              ? "CodeChef"
+              : lk === "hackerrank"
+              ? "HackerRank"
+              : lk === "atcoder"
+              ? "AtCoder"
+              : rawKey;
+
+          externalPlatformsTotal += prof.totalSolved;
+          byPlatform[normKey] = Math.max(byPlatform[normKey] ?? 0, prof.totalSolved);
+        }
+      }
+    }
+
+    // Merge with publicStats.byPlatform if recorded higher
+    if (publicStats?.byPlatform) {
+      for (const [k, v] of Object.entries(publicStats.byPlatform)) {
+        if (k.toLowerCase() === "github" || k.toLowerCase() === "linkedin") continue;
+        if (typeof v === "number" && v > 0) {
+          const lk = k.toLowerCase();
+          const normKey =
+            lk === "leetcode"
+              ? "LeetCode"
+              : lk === "gfg" || lk.includes("geeks")
+              ? "GeeksforGeeks"
+              : lk === "codeforces"
+              ? "Codeforces"
+              : lk === "codechef"
+              ? "CodeChef"
+              : lk === "hackerrank"
+              ? "HackerRank"
+              : lk === "atcoder"
+              ? "AtCoder"
+              : k;
+          byPlatform[normKey] = Math.max(byPlatform[normKey] ?? 0, v);
+        }
+      }
+    }
+    delete byPlatform["GitHub"];
+    delete byPlatform["github"];
+
+    const heatmapSubmissionsTotal = heatmapData.reduce((acc, d) => acc + (d.solved > 0 ? d.solved : 0), 0);
+    const trackerProblemsCount = completedProblems.filter((p) => p.platform?.toLowerCase() !== "github").length;
+    const trackerTotal = Math.max(trackerProblemsCount, heatmapSubmissionsTotal);
+
+    const platformsSum = Object.values(byPlatform).reduce((acc, count) => acc + count, 0);
+    const grandTotal = Math.max(platformsSum, trackerTotal);
+
+    if (platformsSum < trackerTotal) {
+      byPlatform["DSA"] = (byPlatform["DSA"] ?? 0) + (trackerTotal - platformsSum);
+    }
+
+    return {
+      total: grandTotal,
+      trackerTotal,
+      externalTotal: externalPlatformsTotal,
+      byPlatform,
+    };
+  }, [completedProblems, platformStats, heatmapData, publicStats]);
 
   // Auto-extract GitHub username/handle and profile URL from all available sources
   const effectiveGithubRaw = useMemo(() => {
@@ -776,8 +954,19 @@ export function CoderProfilePage() {
                 <span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-400">
                   <Flame className="size-3.5 animate-pulse" /> {streakCount} Day Streak
                 </span>
-                <span className="flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-400">
-                  <CheckCircle2 className="size-3.5" /> {stats.total} Solved
+                <span
+                  className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-400"
+                  title={
+                    stats.externalTotal > 0
+                      ? `Total solved across all platforms: ${stats.total} (${stats.trackerTotal} in 404 DSA Tracker)`
+                      : `Total problems solved across all platforms: ${stats.total}`
+                  }
+                >
+                  <CheckCircle2 className="size-3.5" />
+                  <span>{stats.total} Solved</span>
+                  {stats.externalTotal > 0 && (
+                    <span className="text-[10px] font-normal text-emerald-400/80 ml-0.5">(All Platforms)</span>
+                  )}
                 </span>
               </div>
             </div>
@@ -1775,19 +1964,31 @@ export function CoderProfilePage() {
         }}
       />
 
-      {/* ── Platform Stats ── */}
+      {/* ── Statistics ── */}
       <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
         <div className="flex items-center gap-2">
           <Globe className="size-5 text-primary" />
-          <h2 className="text-lg font-bold text-foreground">Platform Problem Breakdown</h2>
+          <h2 className="text-lg font-bold text-foreground">Statistics</h2>
         </div>
+
+        <div className="mb-2 flex items-end gap-2">
+          <span className="font-display text-5xl font-bold tabular-nums text-primary">
+            {stats.total}
+          </span>
+          <span className="mb-1 text-sm text-muted-foreground">
+            problems solved across all platforms
+          </span>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.entries(stats.byPlatform).map(([platform, count]) => (
-            <div key={platform} className="rounded-2xl border border-white/10 bg-background/40 p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{platform}</p>
-              <p className="mt-1 font-extrabold text-2xl tabular-nums text-primary">{count}</p>
-            </div>
-          ))}
+          {Object.entries(stats.byPlatform)
+            .sort((a, b) => b[1] - a[1])
+            .map(([platform, count]) => (
+              <div key={platform} className="rounded-2xl border border-white/10 bg-background/40 p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{platform}</p>
+                <p className="mt-1 font-extrabold text-2xl tabular-nums text-primary">{count}</p>
+              </div>
+            ))}
           {Object.keys(stats.byPlatform).length === 0 && (
             <p className="col-span-full text-xs text-muted-foreground italic">No problems completed yet. Mark problems done on your daily workspace to build your stats!</p>
           )}

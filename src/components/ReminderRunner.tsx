@@ -128,9 +128,53 @@ export function ReminderRunner() {
         console.error("Error processing topic reminders:", err);
       }
 
-      if (!settings.pushEnabled || settings.paused) return;
+      if (!settings.pushEnabled) return;
 
-      // --- 2. Morning Browser Notification (Topic & Problems) ---
+      // --- 2. Contest Starts in 1 Hour / 10 Minutes Browser Notification ---
+      // IMPORTANT: Contest reminders MUST run even when preparation is paused!
+      // (The user specified: only contests & reminders in reminder section when paused)
+      if (settings.contestReminderEnabled && contests && contests.length > 0) {
+        let contestDelay = 0;
+        for (const contest of contests) {
+          const diffMs = contest.startMs - nowMs;
+          // Check if contest is starting between 50 and 70 minutes from now (~1 hour)
+          if (diffMs > 50 * 60 * 1000 && diffMs <= 70 * 60 * 1000) {
+            const contestStorageKey = `${STORAGE_KEY_CONTEST}:${contest.id}`;
+            if (!window.localStorage.getItem(contestStorageKey)) {
+              window.localStorage.setItem(contestStorageKey, "true");
+              const delay = contestDelay;
+              contestDelay += 4000;
+              setTimeout(() => {
+                void showLocalReminder(
+                  `🏆 Contest Starting Soon!`,
+                  `"${contest.title}" on ${contest.platform} starts in 1 hour!`
+                );
+              }, delay);
+            }
+          }
+          // Check if contest is starting between 5 and 15 minutes from now (~10 mins)
+          if (diffMs > 5 * 60 * 1000 && diffMs <= 15 * 60 * 1000) {
+            const contestStorageKey10 = `${STORAGE_KEY_CONTEST}_10m:${contest.id}`;
+            if (!window.localStorage.getItem(contestStorageKey10)) {
+              window.localStorage.setItem(contestStorageKey10, "true");
+              const delay = contestDelay;
+              contestDelay += 4000;
+              setTimeout(() => {
+                void showLocalReminder(
+                  `🏆 Contest in 10 mins!`,
+                  `"${contest.title}" on ${contest.platform} is starting soon. Don't miss it!`
+                );
+              }, delay);
+            }
+          }
+        }
+      }
+
+      // --- 3. STRICT GUARD: PLAN & DAILY PROBLEMS REMINDERS ---
+      // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
+      if (settings.paused) return;
+
+      // --- 4. Morning Browser Notification (Topic & Problems) ---
       // Only fire within a reasonable window after morningReminderTime (4h).
       // Without this, opening the app for the first time that day late in
       // the evening still fires a "Good morning" nudge — stale and, combined
@@ -165,44 +209,6 @@ export function ReminderRunner() {
           const morningStorageVal = `${today}-${settings.morningReminderTime}`;
           if (window.localStorage.getItem(STORAGE_KEY_MORNING) !== morningStorageVal) {
             window.localStorage.setItem(STORAGE_KEY_MORNING, morningStorageVal);
-          }
-        }
-      }
-
-      // --- 3. Contest Starts in 1 Hour Browser Notification ---
-      if (settings.contestReminderEnabled && contests && contests.length > 0) {
-        let contestDelay = 0;
-        for (const contest of contests) {
-          const diffMs = contest.startMs - nowMs;
-          // Check if contest is starting between 50 and 70 minutes from now (~1 hour)
-          if (diffMs > 50 * 60 * 1000 && diffMs <= 70 * 60 * 1000) {
-            const contestStorageKey = `${STORAGE_KEY_CONTEST}:${contest.id}`;
-            if (!window.localStorage.getItem(contestStorageKey)) {
-              window.localStorage.setItem(contestStorageKey, "true");
-              const delay = contestDelay;
-              contestDelay += 4000;
-              setTimeout(() => {
-                void showLocalReminder(
-                  `🏆 Contest Starting Soon!`,
-                  `"${contest.title}" on ${contest.platform} starts in 1 hour!`
-                );
-              }, delay);
-            }
-          }
-          // Check if contest is starting between 5 and 15 minutes from now (~10 mins)
-          if (diffMs > 5 * 60 * 1000 && diffMs <= 15 * 60 * 1000) {
-            const contestStorageKey10 = `${STORAGE_KEY_CONTEST}_10m:${contest.id}`;
-            if (!window.localStorage.getItem(contestStorageKey10)) {
-              window.localStorage.setItem(contestStorageKey10, "true");
-              const delay = contestDelay;
-              contestDelay += 4000;
-              setTimeout(() => {
-                void showLocalReminder(
-                  `🏆 Contest in 10 mins!`,
-                  `"${contest.title}" on ${contest.platform} is starting soon. Don't miss it!`
-                );
-              }, delay);
-            }
           }
         }
       }

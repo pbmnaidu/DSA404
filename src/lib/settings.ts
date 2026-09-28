@@ -1,7 +1,7 @@
-/** Upgrade 2/3/5: per-user settings persisted in Firestore. */
 import { getDoc, setDoc } from "firebase/firestore";
 import { settingsDoc } from "./db";
 import { DEFAULT_DAILY_COUNTS, type DailyCounts, normalizeDailyCounts } from "./plan";
+import { isGuestUser, getGuestSettings, saveGuestSettings } from "./guest-data";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -164,6 +164,9 @@ export const settingsToFields = (s: Partial<UserSettings>): Fields => {
 };
 
 export async function loadSettings(userId: string): Promise<UserSettings> {
+  if (isGuestUser(userId)) {
+    return getGuestSettings();
+  }
   const ref = settingsDoc(userId);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
@@ -192,6 +195,10 @@ export async function loadSettings(userId: string): Promise<UserSettings> {
 }
 
 export async function saveSettings(userId: string, patch: Partial<UserSettings>) {
+  if (isGuestUser(userId)) {
+    saveGuestSettings(patch);
+    return;
+  }
   const ref = settingsDoc(userId);
   await setDoc(
     ref,

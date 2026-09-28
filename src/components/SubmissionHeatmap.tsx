@@ -34,7 +34,6 @@ const LEVEL_CLASSES: Record<number, string> = {
 export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>("All");
-  const [windowOffset, setWindowOffset] = useState<number>(0);
 
   // Available years in data
   const availableYears = useMemo(() => {
@@ -68,24 +67,46 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
     return map;
   }, [filteredData]);
 
-  // Construct calendar weeks grid
+  // Month chunks / sliding window (12 months desktop, 3 months mobile)
+  const isMobile = useIsMobile();
+
+  // Construct calendar weeks grid (guaranteed 52 weeks or full selected year)
   const allWeeksData = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) {
-      return { weeks: [], monthHeaders: [] };
+    const today = new Date();
+    let firstDate: Date;
+    let lastDate: Date;
+
+    // Filter valid YYYY-MM-DD dates only
+    const validDates = (filteredData || [])
+      .map((d) => d?.date)
+      .filter((dateStr): dateStr is string => typeof dateStr === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateStr))
+      .sort();
+
+    if (selectedYear !== "All") {
+      const yrNum = parseInt(selectedYear, 10);
+      firstDate = new Date(yrNum, 0, 1);
+      lastDate = yrNum === today.getFullYear() ? today : new Date(yrNum, 11, 31);
+    } else {
+      lastDate = today;
+      // Rolling 52 weeks back from today
+      const defaultStartDate = addDays(today, -51 * 7);
+      if (validDates.length > 0) {
+        const earliest = parseISO(validDates[0]);
+        firstDate = !isNaN(earliest.getTime()) && earliest < defaultStartDate ? earliest : defaultStartDate;
+      } else {
+        firstDate = defaultStartDate;
+      }
     }
 
-    const sortedDates = filteredData.map((d) => d.date).sort();
-    const firstDate = parseISO(sortedDates[0]);
-    const lastDate = parseISO(sortedDates[sortedDates.length - 1]);
-
     let curr = startOfWeek(firstDate, { weekStartsOn: 1 });
+    const endLimit = addDays(lastDate, 6);
     const weeksList: { dateStr: string; dayIndex: number; month: number }[][] = [];
     const months: { name: string; weekIndex: number; year: number }[] = [];
 
     let lastMonth = -1;
     let weekIdx = 0;
 
-    while (curr <= lastDate || weeksList.length < 24) {
+    while ((curr <= endLimit || weeksList.length < 52) && weeksList.length < 104) {
       const week: { dateStr: string; dayIndex: number; month: number }[] = [];
       const monthOfFirstDay = getMonth(curr);
       const yearOfFirstDay = getYear(curr);
@@ -102,19 +123,20 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
       }
       weeksList.push(week);
       weekIdx++;
-      if (weeksList.length >= 104) break;
     }
 
     return { weeks: weeksList, monthHeaders: months };
-  }, [filteredData]);
+  }, [filteredData, selectedYear]);
 
-  // Month chunks / sliding window (12 months desktop, 3 months mobile)
-  const isMobile = useIsMobile();
+  const totalWeeks = allWeeksData.weeks.length;
   const visibleWeeksWindow = isMobile ? 13 : 52;
-  const maxOffset = Math.max(0, Math.ceil((allWeeksData.weeks.length - visibleWeeksWindow) / 4));
+  const maxStartWeek = Math.max(0, totalWeeks - visibleWeeksWindow);
 
-  const currentWindowStartWeek = Math.max(0, windowOffset * 4);
-  const currentWindowEndWeek = currentWindowStartWeek + visibleWeeksWindow;
+  const [windowStartWeek, setWindowStartWeek] = useState<number | null>(null);
+  const currentWindowStartWeek = windowStartWeek !== null
+    ? Math.min(maxStartWeek, Math.max(0, windowStartWeek))
+    : maxStartWeek;
+  const currentWindowEndWeek = Math.min(totalWeeks, currentWindowStartWeek + visibleWeeksWindow);
 
   const visibleWeeks = useMemo(() => {
     return allWeeksData.weeks.slice(currentWindowStartWeek, currentWindowEndWeek);
@@ -132,14 +154,6 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
         relWeekIndex: m.weekIndex - currentWindowStartWeek,
       }));
   }, [allWeeksData.monthHeaders, currentWindowStartWeek, currentWindowEndWeek]);
-
-  if (allWeeksData.weeks.length === 0) {
-    return (
-      <div className="py-6 text-center text-sm text-muted-foreground">
-        No submission data recorded for this period.
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -162,7 +176,7 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
                 key={yr}
                 onClick={() => {
                   setSelectedYear(yr);
-                  setWindowOffset(0);
+                  setWindowStartWeek(null);
                 }}
                 className={`rounded-md px-2 py-0.5 sm:py-1 text-xs font-medium transition-all ${selectedYear === yr
                     ? "bg-background text-foreground shadow-sm font-semibold"
@@ -180,8 +194,8 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
               variant="outline"
               size="icon"
               className="size-7 rounded-lg"
-              onClick={() => setWindowOffset((prev) => Math.max(0, prev - 1))}
-              disabled={windowOffset <= 0}
+              onClick={() => setWindowStartWeek(Math.max(0, currentWindowStartWeek - 4))}
+              disabled={currentWindowStartWeek <= 0}
               title="Previous months"
             >
               <ChevronLeft className="size-3.5 sm:size-4" />
@@ -190,8 +204,8 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
               variant="outline"
               size="icon"
               className="size-7 rounded-lg"
-              onClick={() => setWindowOffset((prev) => Math.min(maxOffset, prev + 1))}
-              disabled={currentWindowEndWeek >= allWeeksData.weeks.length}
+              onClick={() => setWindowStartWeek(Math.min(maxStartWeek, currentWindowStartWeek + 4))}
+              disabled={currentWindowStartWeek >= maxStartWeek}
               title="Next months"
             >
               <ChevronRight className="size-3.5 sm:size-4" />
@@ -239,7 +253,15 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
                   {week.map(({ dateStr }) => {
                     const count = countMap.get(dateStr) ?? 0;
                     const level = getHeatmapLevel(count);
-                    const formattedDate = format(parseISO(dateStr), "MMM d, yyyy");
+                    let formattedDate = dateStr;
+                    try {
+                      const parsed = parseISO(dateStr);
+                      if (!isNaN(parsed.getTime())) {
+                        formattedDate = format(parsed, "MMM d, yyyy");
+                      }
+                    } catch {
+                      formattedDate = dateStr;
+                    }
                     return (
                       <button
                         key={dateStr}

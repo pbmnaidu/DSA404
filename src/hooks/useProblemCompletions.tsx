@@ -78,7 +78,16 @@ export function useProblemCompletions() {
             if (canonical) subObj.link = canonical;
           }
         }
-        const mergedComp = new Set([...Array.from(localComp), ...Array.from(set)]);
+        const mergedComp = new Set([
+          ...Array.from(localComp),
+          ...Array.from(set),
+          ...Object.keys(mergedSubs),
+        ]);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(getLocalCompletionsKey(currentUid), JSON.stringify(Array.from(mergedComp)));
+          } catch {}
+        }
         setCompleted(mergedComp);
         setSubmissions(mergedSubs);
       })
@@ -139,7 +148,7 @@ export function useProblemCompletions() {
       // fails — but the user should know their submission hasn't synced to
       // their account yet (e.g. won't show on another device or the public
       // profile) rather than silently believing it's fully saved.
-      await saveCodeSubmission(currentUid, name, sub, completed).catch(() => {
+      await saveCodeSubmission(currentUid, name, sub, completed, difficulty, undefined, section, topic).catch(() => {
         toast.error("Saved on this device, but couldn't sync to your account. Check your connection.");
       });
 

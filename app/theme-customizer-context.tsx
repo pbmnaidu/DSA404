@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { doc, onSnapshot, setDoc, type DocumentSnapshot } from "firebase/firestore";
+import { isGuestMode } from "@/lib/guest-data";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -424,7 +425,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
 
   // Subscribe to real-time Firestore updates on user's theme settings
   useEffect(() => {
-    if (!userId || !db) return;
+    if (!userId || !db || isGuestMode()) return;
     let alive = true;
 
     const ref = doc(db, "users", userId, "settings", "prefs");
@@ -558,7 +559,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
 
   const persistToFirestore = useCallback(
     (patch: Record<string, any>) => {
-      if (!userId || !db) return;
+      if (!userId || !db || isGuestMode()) return;
       void setDoc(
         doc(db, "users", userId, "settings", "prefs"),
         { ...patch, updatedAt: new Date().toISOString() },

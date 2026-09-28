@@ -14,6 +14,7 @@
 import * as React from "react";
 import { useState } from "react";
 import Link from "next/link";
+import { enableGuestMode } from "@/lib/guest-data";
 import {
   Sparkles,
   Code2,
@@ -1429,6 +1430,19 @@ export function DemoShell() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={() => {
+              enableGuestMode();
+              window.location.href = "/today";
+            }}
+            size="sm"
+            className="h-7 text-xs font-mono font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 cursor-pointer shadow-xs"
+          >
+            <Sparkles className="size-3" />
+            <span className="hidden sm:inline">Enter Full Workspace (Guest Mode)</span>
+            <span className="sm:hidden">Full Demo →</span>
+          </Button>
           <Badge variant="outline" className="font-mono text-[10px] bg-primary/10 text-primary border-primary/30">
             DEMO MODE
           </Badge>

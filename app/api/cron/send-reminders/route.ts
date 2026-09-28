@@ -143,7 +143,6 @@ export async function GET(req: Request) {
 
   const settingsSnap = await db
     .collectionGroup("settings")
-    .where("paused", "==", false)
     .get();
 
   const candidates: UserSettingsRow[] = settingsSnap.docs
@@ -153,6 +152,8 @@ export async function GET(req: Request) {
 
   // ── 1. Compulsory Evening 9:30 PM Unresolved Problem Reminder ───────────
   const eveningDue = candidates.filter((row) => {
+    // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
+    if (row.paused) return false;
     const tz = row.timezone || "Asia/Kolkata";
     const today = todayIsoInTz(tz);
     if (row.lastReminderSentOn === today) return false;
@@ -206,6 +207,8 @@ export async function GET(req: Request) {
 
   // ── 1b. Compulsory 10:00 PM Unresolved Problem Follow-up Reminder ────────
   const lateEveningDue = candidates.filter((row) => {
+    // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
+    if (row.paused) return false;
     const tz = row.timezone || "Asia/Kolkata";
     const today = todayIsoInTz(tz);
     if (row.lastLateReminderSentOn === today) return false;
@@ -259,6 +262,8 @@ export async function GET(req: Request) {
 
   // ── 2. Morning reminder (once/day, at morningReminderTime) ───────────────
   const morningDue = candidates.filter((row) => {
+    // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
+    if (row.paused) return false;
     if (!row.morningReminderEnabled) return false;
     const tz = row.timezone || "Asia/Kolkata";
     const today = todayIsoInTz(tz);
@@ -393,6 +398,7 @@ export async function GET(req: Request) {
 
   // ── 4. Motivational Quotes (Backend FCM Delivery - Closed-App Support) ────
   for (const row of candidates) {
+    if (row.paused) continue;
     const uid = row.uid;
     try {
       const tz = row.timezone || "Asia/Kolkata";

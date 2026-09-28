@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/hooks/useAuth";
+import { useTopicReminders } from "@/hooks/useTopicReminders";
+import { useContests } from "@/hooks/useContests";
 import { todayIso, formatDate } from "@/lib/plan";
 import { currentStreak } from "@/lib/gamification";
 import { Button } from "@/components/ui/button";
@@ -26,11 +28,12 @@ import {
   ChevronRight,
   ExternalLink,
   Smartphone,
+  PauseCircle,
 } from "lucide-react";
 
 export interface AppNotification {
   id: string;
-  category: "plan" | "contest" | "streak" | "review" | "system";
+  category: "plan" | "contest" | "streak" | "review" | "reminder" | "system";
   title: string;
   message: string;
   time: string;
@@ -48,14 +51,32 @@ interface NotificationPanelProps {
 const READ_STORAGE_KEY = "dsa_read_notifications_v1";
 const DISMISSED_STORAGE_KEY = "dsa_dismissed_notifications_v1";
 
+function format12HourTime(t: string) {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const period = (h || 0) >= 12 ? "PM" : "AM";
+  const displayHour = (h || 0) % 12 === 0 ? 12 : (h || 0) % 12;
+  return `${displayHour}:${(m ?? 0).toString().padStart(2, "0")} ${period}`;
+}
+
 export function NotificationPanel({ open, onClose, onUnreadCountChange }: NotificationPanelProps) {
   const router = useRouter();
   const { days } = usePlan();
   const { settings } = useSettings();
   const { user } = useAuth();
+  const { reminders } = useTopicReminders();
+  const { contests } = useContests();
   const streak = useMemo(() => currentStreak(days), [days]);
 
-  const [filter, setFilter] = useState<"all" | "plan" | "contest" | "streak" | "system">("all");
+  const [filter, setFilter] = useState<"all" | "plan" | "contest" | "reminder" | "streak" | "system">("all");
+
+  // Reset tab filter if current tab is plan/streak when paused
+  useEffect(() => {
+    if (settings.paused && (filter === "plan" || filter === "streak")) {
+      setFilter("all");
+    }
+  }, [settings.paused, filter]);
+
   const [readIds, setReadIds] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
     try {
@@ -89,80 +110,159 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
     } catch {}
   }, [dismissedIds]);
 
-  // Generate dynamic notification list based on real plan state, streak & contests
+  // Generate dynamic notification list based on real plan state, streak, contests, and topic reminders
   const allNotifications = useMemo<AppNotification[]>(() => {
     const list: AppNotification[] = [];
     const todayStr = todayIso();
 
-    // 1. Today's Topic & Workload Notification
-    const todayDay = days.find((d) => d.date === todayStr) || days[0];
-    if (todayDay) {
-      const remainingCount = todayDay.problems.filter((p) => !p.done).length;
-      const solvedCount = todayDay.problems.filter((p) => p.done).length;
-      const topicName = todayDay.topic || "Core DSA";
+    // ──────────────────────────────────────────────────────────────────────────
+    // 1. LIVE & UPCOMING CONTESTS (Always active, even when plan is paused)
+    // ──────────────────────────────────────────────────────────────────────────
+    const nowMs = Date.now();
+    const upcomingOrLiveContests = (contests || [])
+      .filter((c) => {
+        const diffMs = c.startMs - nowMs;
+        const isLive = c.startMs <= nowMs && c.startMs + c.durationMs > nowMs;
+        const isUpcomingSoon = diffMs > 0 && diffMs <= 48 * 60 * 60 * 1000;
+        return isLive || isUpcomingSoon;
+      })
+      .slice(0, 3);
 
-      if (remainingCount > 0) {
+    if (upcomingOrLiveContests.length > 0) {
+      upcomingOrLiveContests.forEach((c) => {
+        const diffMs = c.startMs - nowMs;
+        const isLive = c.startMs <= nowMs && c.startMs + c.durationMs > nowMs;
+        let timeLabel = "Soon";
+        if (isLive) {
+          timeLabel = "LIVE NOW";
+        } else if (diffMs <= 60 * 60 * 1000) {
+          const mins = Math.max(1, Math.round(diffMs / 60000));
+          timeLabel = `In ${mins}m`;
+        } else if (diffMs <= 24 * 60 * 60 * 1000) {
+          const hrs = Math.round(diffMs / 3600000);
+          timeLabel = `In ${hrs}h`;
+        } else {
+          timeLabel = new Date(c.startMs).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        }
+
         list.push({
-          id: `today-topic-${todayStr}`,
-          category: "plan",
-          title: `Today's Topic: ${topicName}`,
-          message: `${remainingCount} problem(s) remaining for today. ${solvedCount} already solved!`,
-          time: "Today",
-          link: "/today",
-          priority: "high",
+          id: `contest-${c.id}`,
+          category: "contest",
+          title: `${isLive ? "🔴 LIVE: " : "🏆 Upcoming: "}${c.title}`,
+          message: `${c.platform} contest ${isLive ? "is live right now!" : `starts ${timeLabel}.`} Click to view details and compete.`,
+          time: timeLabel,
+          link: "/contests",
+          priority: isLive || diffMs <= 60 * 60 * 1000 ? "high" : "normal",
         });
-      } else if (todayDay.problems.length > 0) {
+      });
+    } else {
+      list.push({
+        id: `contest-weekly-alert`,
+        category: "contest",
+        title: "🏆 Live CP Contests",
+        message: "Check live & upcoming coding contests on LeetCode, Codeforces, CodeChef & AtCoder.",
+        time: "Contests Hub",
+        link: "/contests",
+        priority: "normal",
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 2. TOPIC REVISION REMINDERS (Reminder Section - Always active, even if paused)
+    // ──────────────────────────────────────────────────────────────────────────
+    if (reminders && reminders.length > 0) {
+      reminders.forEach((rem) => {
+        const isPastOrToday = rem.date <= todayStr;
         list.push({
-          id: `today-completed-${todayStr}`,
-          category: "plan",
-          title: `🎉 Day Complete: ${topicName}`,
-          message: `Awesome work! All ${todayDay.problems.length} problems for today are completed.`,
-          time: "Today",
-          link: "/today",
+          id: `topic-rem-${rem.id}`,
+          category: "reminder",
+          title: `🔔 Revision: ${rem.topic}`,
+          message: rem.note
+            ? `${rem.note} (Scheduled for ${formatDate(rem.date)} at ${format12HourTime(rem.time)})`
+            : `Scheduled topic revision reminder for ${rem.topic} on ${formatDate(rem.date)} at ${format12HourTime(rem.time)}.`,
+          time: rem.date === todayStr ? `Today ${format12HourTime(rem.time)}` : formatDate(rem.date),
+          link: "/review",
+          priority: isPastOrToday && !rem.triggered ? "high" : "normal",
+        });
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 3. PLAN & DAILY PROBLEMS: STRICTLY SUPPRESSED WHEN PREPARATION IS PAUSED!
+    // ──────────────────────────────────────────────────────────────────────────
+    if (settings.paused) {
+      // Explicit informational item indicating that daily plan notifications are frozen
+      list.push({
+        id: `plan-paused-info-${settings.pausedFrom || todayStr}`,
+        category: "system",
+        title: "⏸️ Preparation Paused",
+        message: `Plan & daily problem notifications are frozen${settings.pausedFrom ? ` since ${formatDate(settings.pausedFrom)}` : ""}. Contest alerts and custom revision reminders remain active.`,
+        time: "Paused",
+        link: "/settings",
+        priority: "normal",
+      });
+    } else {
+      // 3a. Today's Topic & Workload Notification
+      const todayDay = days.find((d) => d.date === todayStr) || days[0];
+      if (todayDay) {
+        const remainingCount = todayDay.problems.filter((p) => !p.done).length;
+        const solvedCount = todayDay.problems.filter((p) => p.done).length;
+        const topicName = todayDay.topic || "Core DSA";
+
+        if (remainingCount > 0) {
+          list.push({
+            id: `today-topic-${todayStr}`,
+            category: "plan",
+            title: `Today's Topic: ${topicName}`,
+            message: `${remainingCount} problem(s) remaining for today. ${solvedCount} already solved!`,
+            time: "Today",
+            link: "/today",
+            priority: "high",
+          });
+        } else if (todayDay.problems.length > 0) {
+          list.push({
+            id: `today-completed-${todayStr}`,
+            category: "plan",
+            title: `🎉 Day Complete: ${topicName}`,
+            message: `Awesome work! All ${todayDay.problems.length} problems for today are completed.`,
+            time: "Today",
+            link: "/today",
+            priority: "normal",
+          });
+        }
+      }
+
+      // 3b. Streak Milestone Notification
+      if (streak > 0) {
+        list.push({
+          id: `streak-active-${streak}`,
+          category: "streak",
+          title: `🔥 ${streak}-Day Streak Active!`,
+          message: `You're on a ${streak}-day solving streak. Keep your momentum going today!`,
+          time: "Active Streak",
+          link: "/progress",
+          priority: streak >= 3 ? "high" : "normal",
+        });
+      }
+
+      // 3c. Review & Bookmark Nudge
+      const reviewCount = days.flatMap((d) => d.problems.filter((p) => p.forReview)).length;
+      if (reviewCount > 0) {
+        list.push({
+          id: `review-bookmarked-${reviewCount}`,
+          category: "review",
+          title: `🔖 ${reviewCount} Bookmarked Problem(s)`,
+          message: `You have ${reviewCount} problem(s) saved in your Review tab for recap.`,
+          time: "Revision Ready",
+          link: "/review",
           priority: "normal",
         });
       }
     }
 
-    // 2. Streak Milestone Notification
-    if (streak > 0) {
-      list.push({
-        id: `streak-active-${streak}`,
-        category: "streak",
-        title: `🔥 ${streak}-Day Streak Active!`,
-        message: `You're on a ${streak}-day solving streak. Keep your momentum going today!`,
-        time: "Active Streak",
-        link: "/progress",
-        priority: streak >= 3 ? "high" : "normal",
-      });
-    }
-
-    // 3. Review & Bookmark Nudge
-    const reviewCount = days.flatMap((d) => d.problems.filter((p) => p.forReview)).length;
-    if (reviewCount > 0) {
-      list.push({
-        id: `review-bookmarked-${reviewCount}`,
-        category: "review",
-        title: `🔖 ${reviewCount} Bookmarked Problem(s)`,
-        message: `You have ${reviewCount} problem(s) saved in your Review tab for recap.`,
-        time: "Revision Ready",
-        link: "/review",
-        priority: "normal",
-      });
-    }
-
-    // 4. Contest Announcement / Nudge
-    list.push({
-      id: `contest-weekly-alert`,
-      category: "contest",
-      title: "🏆 Live CP Contests",
-      message: "Check live & upcoming coding contests on LeetCode, Codeforces, CodeChef & AtCoder.",
-      time: "Scheduled Today",
-      link: "/contests",
-      priority: "normal",
-    });
-
-    // 5. GitHub Auto-Sync Reminder
+    // ──────────────────────────────────────────────────────────────────────────
+    // 4. SYSTEM UTILITIES
+    // ──────────────────────────────────────────────────────────────────────────
     list.push({
       id: `github-sync-info`,
       category: "system",
@@ -173,13 +273,12 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
       priority: "normal",
     });
 
-    // 6. Chrome PWA / Browser Notification Setting
     if (!settings.pushEnabled) {
       list.push({
         id: `push-enable-nudge`,
         category: "system",
         title: "🔔 Enable Browser Push Reminders",
-        message: "Turn on browser notifications in Settings to get morning topic alerts & contest start nudges.",
+        message: "Turn on browser notifications in Settings to get contest start nudges & revision alerts.",
         time: "System Tip",
         link: "/settings",
         priority: "normal",
@@ -187,7 +286,7 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
     }
 
     return list;
-  }, [days, streak, settings.pushEnabled]);
+  }, [days, streak, settings.pushEnabled, settings.paused, settings.pausedFrom, contests, reminders]);
 
   // Active notifications (not dismissed)
   const activeNotifications = useMemo(() => {
@@ -244,6 +343,8 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
         return <Sparkles className="size-4 text-primary" />;
       case "contest":
         return <Trophy className="size-4 text-amber-500" />;
+      case "reminder":
+        return <Bell className="size-4 text-primary" />;
       case "streak":
         return <Flame className="size-4 text-orange-500" />;
       case "review":
@@ -312,17 +413,25 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pb-1">
               {(
-                [
-                  { id: "all", label: "All" },
-                  { id: "plan", label: "Plan" },
-                  { id: "contest", label: "Contests" },
-                  { id: "streak", label: "Streak" },
-                  { id: "system", label: "System" },
-                ] as const
+                settings.paused
+                  ? [
+                      { id: "all", label: "All" },
+                      { id: "contest", label: "Contests" },
+                      { id: "reminder", label: "Reminders" },
+                      { id: "system", label: "System" },
+                    ]
+                  : [
+                      { id: "all", label: "All" },
+                      { id: "plan", label: "Plan" },
+                      { id: "contest", label: "Contests" },
+                      { id: "reminder", label: "Reminders" },
+                      { id: "streak", label: "Streak" },
+                      { id: "system", label: "System" },
+                    ]
               ).map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setFilter(tab.id)}
+                  onClick={() => setFilter(tab.id as any)}
                   className={cn(
                     "rounded-lg px-2.5 py-1 text-xs font-semibold transition-all shrink-0 cursor-pointer",
                     filter === tab.id
