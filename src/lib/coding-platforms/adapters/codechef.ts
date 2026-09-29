@@ -180,43 +180,10 @@ export class CodeChefAdapter implements PlatformAdapter {
         } catch (e) {}
       }
 
-      // If explicit daily submission calendar was not found in HTML scripts,
-      // distribute all solved problems across active days (including contest dates & active study days)
+      // If explicit daily submission calendar was not found, we no longer generate fake dates
+      // because it causes inaccurate active days metrics and fake heatmaps.
       const recentSubs: any[] = [];
-      if (Object.keys(calendarMap).length === 0 && effectiveSolvedCount && effectiveSolvedCount > 0) {
-        const today = new Date();
-        let remaining = effectiveSolvedCount;
-        let dayOffset = 0;
 
-        const contestDates = formattedHistory ? formattedHistory.map((h: any) => h.date).filter(Boolean) : [];
-        let contestIdx = 0;
-
-        while (remaining > 0 && dayOffset < 365) {
-          let dateStr = "";
-          if (contestIdx < contestDates.length && dayOffset % 3 === 0) {
-            dateStr = contestDates[contestIdx];
-            contestIdx++;
-          } else {
-            const d = new Date(today.getTime() - dayOffset * 86400000);
-            dateStr = d.toISOString().slice(0, 10);
-          }
-
-          const countForDay = Math.min(remaining, (dayOffset % 2 === 0 ? 2 : 1));
-          calendarMap[dateStr] = (calendarMap[dateStr] || 0) + countForDay;
-
-          recentSubs.push({
-            id: `codechef-${cleanUsername}-${dateStr}-${dayOffset}`,
-            problemId: `prob-${effectiveSolvedCount - remaining + 1}`,
-            problemName: Array.from(extractedProblems)[effectiveSolvedCount - remaining] || `Problem ${effectiveSolvedCount - remaining + 1}`,
-            platform: "codechef",
-            verdict: "Accepted",
-            timestamp: new Date(dateStr).toISOString(),
-          });
-
-          remaining -= countForDay;
-          dayOffset += (dayOffset % 3 === 0 ? 1 : 2);
-        }
-      }
 
       const rankStr = stars ? `${stars} Star` : (rating ? `${rating} Rating` : null);
 

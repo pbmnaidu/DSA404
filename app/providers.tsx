@@ -5,7 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { ThemeCustomizerProvider } from './theme-customizer-context'
 import { InAppBrowserProvider } from '@/components/in-app-browser/InAppBrowserContext'
-import { InAppBrowserModal } from '@/components/in-app-browser/InAppBrowserModal'
+import dynamic from 'next/dynamic'
+
+// Dynamically import the modal so it doesn't block initial page load
+const InAppBrowserModal = dynamic(
+  () => import('@/components/in-app-browser/InAppBrowserModal').then(mod => mod.InAppBrowserModal),
+  { ssr: false }
+)
 
 // Create a client for the entire app
 const queryClient = new QueryClient({

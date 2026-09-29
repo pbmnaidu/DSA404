@@ -412,7 +412,7 @@ export function UnifiedProfileDashboard({
                 {analytics.activePlatformsCount > 0 ? analytics.activePlatformsCount : connectedPlatformsList.length}
               </p>
               {connectedPlatformsList.length > 0 && (
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
                   {connectedPlatformsList.length} linked
                 </span>
               )}
@@ -420,11 +420,11 @@ export function UnifiedProfileDashboard({
           </button>
           <div className="rounded-2xl border border-white/10 bg-background/50 p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Solved</p>
-            <p className="font-black text-2xl tabular-nums text-emerald-400 mt-1">{analytics.totalSolvedAcrossPlatforms}</p>
+            <p className="font-black text-2xl tabular-nums text-emerald-600 dark:text-emerald-400 mt-1">{analytics.totalSolvedAcrossPlatforms}</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-background/50 p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Peak Platform Rating</p>
-            <p className="font-black text-2xl tabular-nums text-amber-400 mt-1">
+            <p className="font-black text-2xl tabular-nums text-amber-600 dark:text-amber-400 mt-1">
               {analytics.highestReportedRating
                 ? `${analytics.highestReportedRating.rating} (${analytics.highestReportedRating.platform.toUpperCase()})`
                 : "N/A"}
@@ -432,7 +432,7 @@ export function UnifiedProfileDashboard({
           </div>
           <div className="rounded-2xl border border-white/10 bg-background/50 p-4">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Contests</p>
-            <p className="font-black text-2xl tabular-nums text-purple-400 mt-1">{analytics.totalContestsAcrossPlatforms}</p>
+            <p className="font-black text-2xl tabular-nums text-purple-600 dark:text-purple-400 mt-1">{analytics.totalContestsAcrossPlatforms}</p>
           </div>
         </div>
       </section>
@@ -443,7 +443,7 @@ export function UnifiedProfileDashboard({
       {/* ── Platform Profile Cards ── */}
       <section className="space-y-4">
         <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <CheckCircle2 className="size-5 text-emerald-400" />
+          <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
           Connected Platform Stats
         </h3>
 
@@ -482,7 +482,7 @@ export function UnifiedProfileDashboard({
       {activeContestHistories.length > 0 && (
         <section className="space-y-4 rounded-3xl border border-white/10 bg-card/60 p-6 backdrop-blur-xl shadow-xl">
           <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-            <Trophy className="size-5 text-amber-400" />
+            <Trophy className="size-5 text-amber-600 dark:text-amber-400" />
             <h3 className="text-base font-bold text-foreground">Contest Rating Progression</h3>
           </div>
           <div className="space-y-4">
@@ -569,19 +569,19 @@ export function UnifiedProfileDashboard({
 
                           {/* Status Badge */}
                           {isRefreshing ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                               <RefreshCw className="size-2.5 animate-spin" /> Syncing
                             </span>
                           ) : item.profile?.status === "SUCCESS" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                               <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Synced
                             </span>
                           ) : item.profile?.status === "PROFILE_NOT_FOUND" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full">
                               Not Found
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-600 dark:text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full">
                               Connected
                             </span>
                           )}
@@ -599,7 +599,7 @@ export function UnifiedProfileDashboard({
                     {/* Stats pills */}
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
                       {hasSolved && (
-                        <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs tabular-nums">
+                        <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs tabular-nums">
                           {item.profile!.totalSolved} solved
                         </span>
                       )}
@@ -609,17 +609,17 @@ export function UnifiedProfileDashboard({
                         </span>
                       )}
                       {hasRating && (
-                        <span className="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs tabular-nums">
+                        <span className="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs tabular-nums">
                           ★ {item.profile!.rating}
                         </span>
                       )}
                       {hasContests && (
-                        <span className="px-2.5 py-1 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold text-xs tabular-nums">
+                        <span className="px-2.5 py-1 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 font-bold text-xs tabular-nums">
                           🏆 {item.profile!.contestsParticipated}
                         </span>
                       )}
                       {hasStreak && (
-                        <span className="px-2.5 py-1 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold text-xs tabular-nums">
+                        <span className="px-2.5 py-1 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 font-bold text-xs tabular-nums">
                           🔥 {item.profile!.streak}d
                         </span>
                       )}
@@ -674,10 +674,10 @@ export function UnifiedProfileDashboard({
           <div className="p-4 px-6 border-t border-white/10 bg-background/60 flex flex-wrap items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span>
-                Total Solved: <strong className="text-emerald-400 font-mono font-bold">{analytics.totalSolvedAcrossPlatforms}</strong>
+                Total Solved: <strong className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">{analytics.totalSolvedAcrossPlatforms}</strong>
               </span>
               <span>
-                Contests: <strong className="text-purple-400 font-mono font-bold">{analytics.totalContestsAcrossPlatforms}</strong>
+                Contests: <strong className="text-purple-600 dark:text-purple-400 font-mono font-bold">{analytics.totalContestsAcrossPlatforms}</strong>
               </span>
             </div>
             <Button

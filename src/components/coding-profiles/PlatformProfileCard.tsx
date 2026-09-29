@@ -80,10 +80,8 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
     const hasCal = Boolean(cal && typeof cal === "object" && Object.keys(cal).length > 0);
     const subs = profile.recentSubmissions || profile.acceptedSubmissions;
     const hasSubs = Boolean(subs && Array.isArray(subs) && subs.length > 0);
-    const hasContests = Boolean(profile.ratingHistory && Array.isArray(profile.ratingHistory) && profile.ratingHistory.length > 0);
-    const hasSolved = Boolean(typeof profile.totalSolved === "number" && profile.totalSolved > 0);
 
-    return hasCal || hasSubs || hasContests || hasSolved;
+    return hasCal || hasSubs;
   }, [profile, isLinkedin]);
 
   return (
@@ -150,7 +148,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
         {/* Main Content: Metrics & Difficulty */}
         {isLinkedin ? (
           <div className="p-3 sm:p-4 text-center text-xs text-foreground/80 rounded-2xl border border-white/10 bg-background/40 space-y-1">
-            <p className="font-bold text-sky-400 text-xs sm:text-sm">LinkedIn Profile Connected</p>
+            <p className="font-bold text-sky-600 dark:text-sky-400 text-xs sm:text-sm">LinkedIn Profile Connected</p>
             <a
               href={profile.profileUrl || `https://www.linkedin.com/in/${profile.username}/`}
               target="_blank"
@@ -175,7 +173,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
               {rankOrStar && (
                 <div className="rounded-2xl border border-white/10 bg-background/50 p-2 sm:p-2.5">
                   <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground block truncate">Rank / Stars</span>
-                  <span className="font-extrabold text-xs sm:text-sm text-amber-400 truncate block">
+                  <span className="font-extrabold text-xs sm:text-sm text-amber-600 dark:text-amber-400 truncate block">
                     {rankOrStar}
                   </span>
                 </div>
@@ -184,7 +182,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
               {profile.totalSolved !== null && (
                 <div className="rounded-2xl border border-white/10 bg-background/50 p-2 sm:p-2.5">
                   <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground block truncate">Total Solved</span>
-                  <span className="font-black text-xs sm:text-base text-emerald-400 tabular-nums">
+                  <span className="font-black text-xs sm:text-base text-emerald-600 dark:text-emerald-400 tabular-nums">
                     {profile.totalSolved}
                   </span>
                 </div>

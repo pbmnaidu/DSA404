@@ -297,7 +297,7 @@ export function PlatformHeatmapModal({
                 <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground">Problems Solved</span>
                 <span className="font-black text-xs sm:text-sm text-foreground tabular-nums">{totalSubmissionsCount}</span>
               </div>
-              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 sm:px-3 sm:py-1.5 text-emerald-400">
+              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 sm:px-3 sm:py-1.5 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="size-3 sm:size-3.5" />
                 <span className="text-[10px] sm:text-[11px] uppercase font-bold">Active</span>
                 <span className="font-black text-xs sm:text-sm tabular-nums">{totalActiveDays}d</span>
@@ -460,11 +460,11 @@ export function PlatformHeatmapModal({
                             onMouseLeave={() => setHoveredDay(null)}
                             className={cn(
                               "size-3 sm:size-3.5 rounded-[3px] transition-all cursor-pointer",
-                              level === 0 && "bg-muted/70 dark:bg-white/10 border border-border/50 dark:border-white/5 hover:bg-muted-foreground/20 hover:border-emerald-500/50",
-                              level === 1 && "bg-emerald-500/30 dark:bg-emerald-600/35 border border-emerald-500/30 hover:scale-125 hover:border-white hover:z-10 shadow-sm",
-                              level === 2 && "bg-emerald-500/55 dark:bg-emerald-500/60 border border-emerald-500/40 hover:scale-125 hover:border-white hover:z-10 shadow-sm",
-                              level === 3 && "bg-emerald-500/80 dark:bg-emerald-500/85 border border-emerald-500/50 hover:scale-125 hover:border-white hover:z-10 shadow-sm",
-                              level === 4 && "bg-emerald-500 dark:bg-emerald-400 border border-emerald-400 hover:scale-125 hover:border-white hover:z-10 shadow-sm",
+                              level === 0 && "bg-muted/40 dark:bg-[#161b22] border border-border/20 dark:border-white/5 hover:bg-muted-foreground/20 hover:border-emerald-500/50",
+                              level === 1 && "bg-[#9be9a8] dark:bg-[#0e4429] border border-[#7bc98a]/30 dark:border-[#0e4429] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
+                              level === 2 && "bg-[#40c463] dark:bg-[#006d32] border border-[#34a853]/30 dark:border-[#006d32] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
+                              level === 3 && "bg-[#30a14e] dark:bg-[#26a641] border border-[#238636]/30 dark:border-[#26a641] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
+                              level === 4 && "bg-[#216e39] dark:bg-[#39d353] border border-[#1b5e20]/30 dark:border-[#39d353] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
                               isSelected && "ring-2 ring-white border-white scale-125 z-10",
                               day.isFuture && "opacity-20 pointer-events-none"
                             )}
@@ -484,9 +484,9 @@ export function PlatformHeatmapModal({
             <div className="min-h-[22px] flex items-center">
               {activeDisplay ? (
                 <div className="flex items-center gap-2 font-medium text-foreground animate-fade-in text-xs">
-                  <Calendar className="size-3.5 text-emerald-400 shrink-0" />
+                  <Calendar className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>
-                    <strong className="text-emerald-400 font-bold text-xs sm:text-sm">{activeDisplay.count}</strong>{" "}
+                    <strong className="text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm">{activeDisplay.count}</strong>{" "}
                     {activeDisplay.count === 1 ? "problem solved" : "problems solved"} on {(() => {
                       try {
                         const parts = activeDisplay.date.split("-");
@@ -511,11 +511,11 @@ export function PlatformHeatmapModal({
             {/* Intensity Legend */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto shrink-0">
               <span className="text-[10px] sm:text-[11px]">Less</span>
-              <div className="size-2.5 sm:size-3 rounded-[2px] bg-muted/70 dark:bg-white/10 border border-border/50 dark:border-white/5" />
-              <div className="size-2.5 sm:size-3 rounded-[2px] bg-emerald-500/30 dark:bg-emerald-600/35 border border-emerald-500/30" />
-              <div className="size-2.5 sm:size-3 rounded-[2px] bg-emerald-500/55 dark:bg-emerald-500/60 border border-emerald-500/40" />
-              <div className="size-2.5 sm:size-3 rounded-[2px] bg-emerald-500/80 dark:bg-emerald-500/85 border border-emerald-500/50" />
-              <div className="size-2.5 sm:size-3 rounded-[2px] bg-emerald-500 dark:bg-emerald-400 border border-emerald-400" />
+              <div className="size-2.5 sm:size-3 rounded-[2px] bg-muted/40 dark:bg-[#161b22] border border-border/20 dark:border-white/5" />
+              <div className="size-2.5 sm:size-3 rounded-[2px] bg-[#9be9a8] dark:bg-[#0e4429] border border-[#7bc98a]/30 dark:border-[#0e4429]" />
+              <div className="size-2.5 sm:size-3 rounded-[2px] bg-[#40c463] dark:bg-[#006d32] border border-[#34a853]/30 dark:border-[#006d32]" />
+              <div className="size-2.5 sm:size-3 rounded-[2px] bg-[#30a14e] dark:bg-[#26a641] border border-[#238636]/30 dark:border-[#26a641]" />
+              <div className="size-2.5 sm:size-3 rounded-[2px] bg-[#216e39] dark:bg-[#39d353] border border-[#1b5e20]/30 dark:border-[#39d353]" />
               <span className="text-[10px] sm:text-[11px]">More</span>
             </div>
           </div>

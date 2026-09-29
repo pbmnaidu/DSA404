@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import { Providers } from './providers'
 import './globals.css'
 
@@ -180,7 +181,7 @@ export default function RootLayout({
         <meta name="msapplication-navbutton-color" content="#000000" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         {/* Synchronous anti-FOUC script — applies saved theme, custom colors, and typography before paint */}
-        <script dangerouslySetInnerHTML={{ __html: antiFoucScript }} />
+        <Script id="anti-fouc" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: antiFoucScript }} />
       </head>
       <body className="antialiased bg-background text-foreground min-h-screen">
         <Providers>{children}</Providers>

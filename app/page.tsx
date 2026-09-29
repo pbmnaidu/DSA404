@@ -14,8 +14,6 @@ import { DemoShell } from "@/components/demo/DemoShell";
 import { CORE_SECTIONS } from "@/lib/master-problems";
 import { ALL_PROBLEMS } from "@/lib/problems";
 import { seedDays, TOTAL_PROBLEMS } from "@/lib/plan";
-import { CURATED_SHEETS } from "@/lib/sheets-data";
-import { getChatGPTAiPromptUrl } from "@/lib/aiTutorPrompt";
 import { cn } from "@/lib/utils";
 import { enableGuestMode } from "@/lib/guest-data";
 import {
@@ -54,8 +52,8 @@ import {
   FileText,
 } from "lucide-react";
 import { toast } from "sonner";
-import { InstallApkSection } from "@/components/InstallApkSection";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { InstallApkSection } from "@/components/InstallApkSection";
 import { ChromeInstallModal } from "@/components/ChromeInstallModal";
 
 function ChromeIcon({ className }: { className?: string }) {
@@ -1519,6 +1517,7 @@ function FinalCtaSection({ onEnterDemo }: { onEnterDemo?: () => void }) {
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { promptInstall, isModalOpen, setIsModalOpen, isIOS, isStandalone } = usePWAInstall();
 
@@ -1538,14 +1537,15 @@ export default function Home() {
         router.replace("/today");
       } else {
         setUser(null);
+        setIsCheckingAuth(false);
       }
     });
     return unsub;
   }, [router]);
 
-  if (user === undefined) {
-    return <QuoteLoader fullScreen />;
-  }
+  // To make the website load instantly, we will just render the landing page content.
+  // Logged-in users will be redirected to /today by the useEffect.
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
