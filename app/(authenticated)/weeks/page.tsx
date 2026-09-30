@@ -68,6 +68,16 @@ function monthLabel(yearMonth: string) {
   });
 }
 
+function formatDayDate(date: string) {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export default function WeeksPage() {
   const { days, loading, skipTopic } = usePlan();
   const today = todayIso();
@@ -315,6 +325,7 @@ export default function WeeksPage() {
                     const dDone = d.problems.filter(p => p.done).length;
                     const dPct = dTotal > 0 ? Math.round((dDone / dTotal) * 100) : 0;
                     const dCompleted = dTotal > 0 && dDone === dTotal;
+                    const isToday = d.date === today;
 
                     return (
                       <div 
@@ -322,7 +333,9 @@ export default function WeeksPage() {
                         onClick={() => router.push(`/day/${d.dayNumber}`)}
                         className={cn(
                           "group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border p-4 sm:p-5 transition-all cursor-pointer shadow-sm hover:shadow-md",
-                          dCompleted 
+                          isToday
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/20 hover:border-primary"
+                            : dCompleted 
                             ? "border-border bg-card hover:border-emerald-500/30" 
                             : isCurrent 
                               ? "border-border bg-card hover:border-primary/50"
@@ -337,10 +350,19 @@ export default function WeeksPage() {
                             <span className="text-xs text-muted-foreground border-l border-border pl-2">
                               {d.section}
                             </span>
+                            {isToday && (
+                              <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                                Current
+                              </span>
+                            )}
                           </div>
                           <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                             {d.topic}
                           </h3>
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-primary">
+                            <CalendarDays className="size-4" aria-hidden="true" />
+                            <span>{formatDayDate(d.date)}</span>
+                          </div>
                           {d.subtopics.length > 0 && (
                             <p className="text-sm text-muted-foreground line-clamp-1">
                               {d.subtopics.join(" · ")}

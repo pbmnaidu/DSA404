@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Target, BookOpen, CheckCircle2, Flame, TrendingUp } from "lucide-react";
+import { Target, BookOpen, CheckCircle2, Flame, Cat } from "lucide-react";
 
 interface TodayMissionOrbitProps {
   topic?: string;
@@ -144,6 +144,21 @@ export function TodayMissionOrbit({
         "absolute size-1 rounded-full bg-primary/40 blur-[1px] transition-all duration-[5000ms] ease-in-out delay-500",
         mounted ? "translate-y-[40px] translate-x-[-50px] opacity-100" : "translate-y-0 translate-x-0 opacity-0"
       )} />
+
+      {/* ── PET MASCOT ── */}
+      <div className={cn(
+        "absolute -bottom-2 -left-4 z-20 flex flex-col items-center transition-all duration-[2000ms] delay-700",
+        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      )}>
+        {/* Speech Bubble */}
+        <div className="bg-popover text-popover-foreground text-[10px] font-bold px-2 py-1 rounded-lg border border-border shadow-md mb-1 animate-bounce">
+          Meow! You got this!
+        </div>
+        {/* Pet Icon */}
+        <div className="size-10 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center shadow-lg relative overflow-hidden">
+          <Cat className="size-5 text-primary relative z-10" />
+        </div>
+      </div>
 
     </div>
   );
