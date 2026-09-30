@@ -1,4 +1,8 @@
-"use client";
+const fs = require('fs');
+const path = 'p:/DSA404-chatBot/app/page.tsx';
+
+// We will construct the file in parts.
+const imports = `"use client";
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
@@ -42,7 +46,9 @@ const REAL_PATTERNS_COUNT = Array.from(new Set(CORE_SECTIONS.flatMap((s) => s.su
 const REAL_TOTAL_PROBLEMS = TOTAL_PROBLEMS;
 const REAL_PRACTICE_PROBLEMS_COUNT = ALL_PROBLEMS.length - TOTAL_PROBLEMS;
 const COMBINED_TOTAL_PROBLEMS = REAL_TOTAL_PROBLEMS + REAL_PRACTICE_PROBLEMS_COUNT;
+`;
 
+const components = `
 // --- 1. Announcement Bar ---
 function AnnouncementBar() {
   return (
@@ -409,7 +415,9 @@ function FinalCTA({ onEnterDemo }: { onEnterDemo: () => void }) {
   );
 }
 
+`;
 
+const footer = `
 export default function LandingPage() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -490,3 +498,7 @@ export default function LandingPage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(path, imports + components + footer, 'utf8');
+console.log("Landing page generated!");

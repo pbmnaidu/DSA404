@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { Undo2, History, Calendar, Clock, CheckCircle2 } from "lucide-react";
+import { Undo2, History, Calendar, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import {
   Area,

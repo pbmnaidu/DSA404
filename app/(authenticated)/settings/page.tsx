@@ -42,6 +42,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CURATED_SHEETS, getSheetMeta, type SheetMeta } from "@/lib/sheets-data";
 import {
   Bell,
+  Settings,
   CalendarDays,
   Palette,
   PauseCircle,

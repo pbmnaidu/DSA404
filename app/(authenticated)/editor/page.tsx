@@ -259,7 +259,6 @@ function EditorPageInner() {
               onChange={setCode}
               language={language}
               className="absolute inset-0 rounded-none border-0"
-              theme="vs-dark"
             />
           </div>
         </div>
