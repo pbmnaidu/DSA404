@@ -896,6 +896,6 @@ export default function TopicsPage() {
         onOpenChange={(op) => !op && setSelectedSkippedDay(null)}
         day={selectedSkippedDay}
       />
-    </>
+    </div>
   );
 }

@@ -1306,6 +1306,6 @@ export default function SettingsPage() {
           </a>
         </p>
       </div>
-    </>
+    </div>
   );
 }
