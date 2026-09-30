@@ -9,8 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { ChevronDown, CalendarDays, LayoutGrid, Calendar, Code2 } from "lucide-react";
+import { ChevronDown, CalendarDays, LayoutGrid, Calendar, Code2, Map, Target, BookOpen, Clock, PlayCircle } from "lucide-react";
 import { SkippedTopicSolveModal } from "@/components/SkippedTopicSolveModal";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -224,374 +225,161 @@ export default function WeeksPage() {
       </div>
     ) : null;
 
+  const router = useRouter();
+
   if (loading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-64 w-full" />
+      <div className="space-y-4 max-w-4xl mx-auto pt-10">
+        <Skeleton className="h-16 w-3/4" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
       </div>
     );
   }
 
-  const PageHeader = () => (
-    <div className="mb-6">
-      <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
-      <p className="text-sm text-muted-foreground mt-1">Your entire DSA preparation timeline. Track progress week by week.</p>
-    </div>
-  );
+  // Calculate overall stats for the header
+  const totalProbs = scheduledDays.reduce((s, d) => s + d.problems.length, 0);
+  const doneProbs = scheduledDays.reduce((s, d) => s + d.problems.filter((p) => p.done).length, 0);
+  const totalPct = totalProbs > 0 ? Math.round((doneProbs / totalProbs) * 100) : 0;
 
-  const FilterBar = () => (
-    <div className="sticky top-0 z-10 -mx-1 mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background/95 px-4 py-3 shadow-sm backdrop-blur">
-      {/* View mode pills */}
-      <div className="flex rounded-lg border border-border bg-muted/40 p-0.5">
-        {(
-          [
-            { mode: "week" as ViewMode, icon: CalendarDays, label: "Week" },
-            { mode: "month" as ViewMode, icon: Calendar, label: "Month" },
-            { mode: "all" as ViewMode, icon: LayoutGrid, label: "All Weeks" },
-          ] as const
-        ).map(({ mode, icon: Icon, label }) => (
-          <button
-            key={mode}
-            onClick={() => setViewMode(mode)}
-            className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-              viewMode === mode
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Icon className="size-3.5" />
-            {label}
-          </button>
-        ))}
-      </div>
+  return (
+    <div className="min-h-screen bg-background text-foreground pb-20 animate-fade-in">
+      <div className="mx-auto max-w-4xl space-y-12">
+        
+        {/* ── EDITORIAL HEADER ── */}
+        <header className="space-y-6 pt-4">
+          <div className="flex items-center gap-3 text-primary font-semibold text-sm tracking-widest uppercase">
+            <Map className="size-4" />
+            <span>Curriculum Map</span>
+          </div>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight leading-none">
+              Your Learning Journey
+            </h1>
+            <div className="text-right shrink-0">
+              <div className="text-3xl font-black text-foreground tabular-nums leading-none mb-1">{totalPct}%</div>
+              <div className="text-xs font-mono text-muted-foreground uppercase tracking-widest">{doneProbs} / {totalProbs} Completed</div>
+            </div>
+          </div>
+          <Progress value={totalPct} className="h-2 w-full bg-secondary" />
+        </header>
 
-      {/* Week picker (only when viewMode === "week") */}
-      {viewMode === "week" && weeks.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 text-sm">
-              <span>
-                {safeWeekIdx === currentWeekIdx ? "This Week · " : ""}
-                Week {safeWeekIdx + 1}{" "}
-                {weeks[safeWeekIdx] && weeks[safeWeekIdx].length > 0 && (
-                  <span className="hidden sm:inline text-muted-foreground">
-                    ({formatDate(weeks[safeWeekIdx][0]?.date ?? "")} –{" "}
-                    {formatDate(weeks[safeWeekIdx][weeks[safeWeekIdx].length - 1]?.date ?? "")})
-                  </span>
-                )}
-              </span>
-              <ChevronDown className="size-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto min-w-[260px]">
-            {weeks.map((week, idx) => {
-              const stats = weekStats(week);
-              const isCurrent = idx === currentWeekIdx;
-              return (
-                <DropdownMenuItem
-                  key={idx}
-                  onSelect={() => setSelectedWeekIdx(idx)}
-                  className={cn(
-                    "flex items-center justify-between gap-4 cursor-pointer",
-                    idx === safeWeekIdx && "bg-accent",
-                  )}
-                >
-                  <span className="flex items-center gap-1.5">
+        {/* ── PROGRESSION TIMELINE ── */}
+        <div className="relative pl-6 sm:pl-10 space-y-16 before:absolute before:inset-y-0 before:left-[11px] sm:before:left-[19px] before:w-[2px] before:bg-border">
+          {weeks.map((week, weekIdx) => {
+            const stats = weekStats(week);
+            const isCurrent = weekIdx === currentWeekIdx;
+            const isCompleted = stats.pct === 100 && week.length > 0;
+            const isFuture = weekIdx > currentWeekIdx;
+
+            return (
+              <div key={weekIdx} className="relative">
+                {/* Timeline Node Indicator */}
+                <div className={cn(
+                  "absolute -left-[31px] sm:-left-[39px] top-1.5 flex size-5 items-center justify-center rounded-full border-2 bg-background z-10 transition-colors",
+                  isCompleted ? "border-emerald-500" : isCurrent ? "border-primary" : "border-border"
+                )}>
+                  {isCompleted && <div className="size-2 rounded-full bg-emerald-500" />}
+                  {isCurrent && <div className="size-2 rounded-full bg-primary animate-pulse" />}
+                </div>
+
+                {/* Week Header */}
+                <div className="mb-6 space-y-1">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h2 className={cn(
+                      "font-display text-2xl font-bold tracking-tight",
+                      isFuture ? "text-muted-foreground" : "text-foreground"
+                    )}>
+                      Milestone {weekIdx + 1}
+                    </h2>
                     {isCurrent && (
-                      <span className="inline-block size-1.5 rounded-full bg-primary shrink-0" />
-                    )}
-                    <span className="font-medium">Week {idx + 1}</span>
-                    {week[0]?.date && (
-                      <span className="text-xs text-muted-foreground hidden sm:inline">
-                        {formatDate(week[0].date)}
+                      <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-0.5 text-xs font-bold text-primary">
+                        Current Focus
                       </span>
                     )}
-                  </span>
-                  <span className={cn(
-                    "text-xs tabular-nums shrink-0",
-                    stats.pct === 100 ? "text-emerald-500" : "text-muted-foreground",
-                  )}>
-                    {stats.done}/{stats.total}
-                  </span>
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      {/* Month picker (only when viewMode === "month") */}
-      {viewMode === "month" && monthKeys.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 text-sm">
-              <span>{monthLabel(selectedMonthKey)}</span>
-              <ChevronDown className="size-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto min-w-[200px]">
-            {monthKeys.map((mk) => {
-              const stats = monthStats(monthsMap[mk]);
-              const isCurrent = mk === currentMonthKey;
-              return (
-                <DropdownMenuItem
-                  key={mk}
-                  onSelect={() => setSelectedMonthKey(mk)}
-                  className={cn(
-                    "flex items-center justify-between gap-4 cursor-pointer",
-                    mk === selectedMonthKey && "bg-accent",
-                  )}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {isCurrent && (
-                      <span className="inline-block size-1.5 rounded-full bg-primary shrink-0" />
+                    {isCompleted && (
+                      <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-0.5 text-xs font-bold text-emerald-500">
+                        Mastered
+                      </span>
                     )}
-                    <span className="font-medium">{monthLabel(mk)}</span>
-                  </span>
-                  <span className={cn(
-                    "text-xs tabular-nums shrink-0",
-                    stats.pct === 100 ? "text-emerald-500" : "text-muted-foreground",
-                  )}>
-                    {stats.done}/{stats.total}
-                  </span>
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+                  </div>
+                  <p className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+                    {formatDate(week[0].date)} — {formatDate(week[week.length - 1].date)}
+                  </p>
+                </div>
 
-      {/* Summary badge */}
-      <span className="ml-auto text-xs text-muted-foreground hidden sm:block">
-        {viewMode === "week" && weeks[safeWeekIdx] && (() => {
-          const s = weekStats(weeks[safeWeekIdx]);
-          return `${s.done}/${s.total} problems · ${s.pct}% done`;
-        })()}
-        {viewMode === "month" && monthsMap[selectedMonthKey] && (() => {
-          const s = monthStats(monthsMap[selectedMonthKey]);
-          return `${s.done}/${s.total} problems · ${s.pct}% done`;
-        })()}
-        {viewMode === "all" && (() => {
-          const total = scheduledDays.reduce((s: number, d: Day) => s + d.problems.length, 0);
-          const done = scheduledDays.reduce((s: number, d: Day) => s + d.problems.filter((p) => p.done).length, 0);
-          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-          return `${done}/${total} problems · ${pct}% done`;
-        })()}
-      </span>
-    </div>
-  );
+                {/* Day Items (Vertical Stack instead of Card Grid) */}
+                <div className="space-y-4">
+                  {week.map((d, i) => {
+                    const dTotal = d.problems.length;
+                    const dDone = d.problems.filter(p => p.done).length;
+                    const dPct = dTotal > 0 ? Math.round((dDone / dTotal) * 100) : 0;
+                    const dCompleted = dTotal > 0 && dDone === dTotal;
 
-  /* ────────── WEEK VIEW ────────── */
-  if (viewMode === "week") {
-    const week = weeks[safeWeekIdx] ?? [];
-    const stats = weekStats(week);
-    const weekStart = week[0]?.date ?? "";
-    const weekEnd = week[week.length - 1]?.date ?? "";
-    const weekSkipped = skippedDays.filter((d) => d.date >= weekStart && d.date <= weekEnd);
+                    return (
+                      <div 
+                        key={d.id} 
+                        onClick={() => router.push(`/day/${d.dayNumber}`)}
+                        className={cn(
+                          "group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border p-4 sm:p-5 transition-all cursor-pointer shadow-sm hover:shadow-md",
+                          dCompleted 
+                            ? "border-border bg-card hover:border-emerald-500/30" 
+                            : isCurrent 
+                              ? "border-border bg-card hover:border-primary/50"
+                              : "border-border/50 bg-card/30 hover:bg-card hover:border-border"
+                        )}
+                      >
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-mono font-bold text-muted-foreground uppercase">
+                              Day {d.dayNumber}
+                            </span>
+                            <span className="text-xs text-muted-foreground border-l border-border pl-2">
+                              {d.section}
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                            {d.topic}
+                          </h3>
+                          {d.subtopics.length > 0 && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {d.subtopics.join(" · ")}
+                            </p>
+                          )}
+                        </div>
 
-    return (
-      <div className="space-y-6">
-        <PageHeader />
-        <FilterBar />
-        <div className="flex items-center gap-3">
-          <div>
-            <h2 className="text-lg font-semibold">
-              Week {safeWeekIdx + 1}
-              {safeWeekIdx === currentWeekIdx && (
-                <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                  Current
-                </span>
-              )}
-            </h2>
-            {week.length > 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {formatDate(week[0]?.date ?? "")} – {formatDate(week[week.length - 1]?.date ?? "")}
-              </p>
-            ) : (
-              <p className="text-sm text-muted-foreground">No active days scheduled in this week.</p>
-            )}
-          </div>
-          <div className="ml-auto text-right">
-            <div className="text-2xl font-bold tabular-nums">{stats.pct}%</div>
-            <div className="text-xs text-muted-foreground">{stats.done}/{stats.total} done</div>
-          </div>
-        </div>
-        {week.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground text-sm">
-            All days in this week are currently skipped. You can un-skip topics anytime from the Topics tab or below.
-          </div>
-        ) : (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {week.map((d, i) => (
-              <DayCard key={`${d.date}-${d.dayNumber}-${i}`} day={d} showSkipAction />
-            ))}
-          </div>
-        )}
-        {/* Prev / Next week navigation */}
-        <div className="flex justify-between pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={safeWeekIdx === 0}
-            onClick={() => setSelectedWeekIdx(safeWeekIdx - 1)}
-          >
-            ← Previous week
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={safeWeekIdx >= weeks.length - 1}
-            onClick={() => setSelectedWeekIdx(safeWeekIdx + 1)}
-          >
-            Next week →
-          </Button>
-        </div>
-        <SkippedSection list={weekSkipped} />
-        <SkippedTopicSolveModal
-          open={!!selectedSkippedDay}
-          onOpenChange={(op) => !op && setSelectedSkippedDay(null)}
-          day={selectedSkippedDay}
-        />
-      </div>
-    );
-  }
+                        <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 shrink-0 sm:w-32">
+                          <div className={cn(
+                            "text-sm font-bold tabular-nums",
+                            dCompleted ? "text-emerald-500" : "text-foreground"
+                          )}>
+                            {dDone} / {dTotal}
+                          </div>
+                          <Progress value={dPct} className="h-1.5 w-24" />
+                        </div>
 
-  /* ────────── MONTH VIEW ────────── */
-  if (viewMode === "month") {
-    const mDays = monthsMap[selectedMonthKey] ?? [];
-    const monthWeeks = groupIntoWeeks(mDays);
-    const stats = monthStats(mDays);
-    const monthIdx = monthKeys.indexOf(selectedMonthKey);
-    const monthSkipped = skippedDays.filter((d) => d.date.startsWith(selectedMonthKey));
-
-    return (
-      <div className="space-y-6">
-        <PageHeader />
-        <FilterBar />
-        <div className="flex items-center gap-3">
-          <div>
-            <h2 className="text-lg font-semibold">
-              {monthLabel(selectedMonthKey)}
-              {selectedMonthKey === currentMonthKey && (
-                <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                  Current
-                </span>
-              )}
-            </h2>
-            <p className="text-sm text-muted-foreground">{stats.done}/{stats.total} problems completed</p>
-          </div>
-          <div className="ml-auto text-right">
-            <div className="text-2xl font-bold tabular-nums">{stats.pct}%</div>
-            <div className="text-xs text-muted-foreground">completion</div>
-          </div>
-        </div>
-        <div className="space-y-8">
-          {monthWeeks.map((week, wIdx) => {
-            const ws = weekStats(week);
-            return (
-              <div key={wIdx} className="space-y-2">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                  <span>
-                    {formatDate(week[0].date)} – {formatDate(week[week.length - 1].date)}
-                  </span>
-                  <span className="ml-auto text-xs tabular-nums">{ws.done}/{ws.total}</span>
-                </h3>
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {week.map((d, i) => (
-                    <DayCard key={`${d.date}-${d.dayNumber}-${i}`} day={d} showSkipAction />
-                  ))}
+                        <div className="hidden sm:flex shrink-0 items-center justify-center pl-2">
+                          <div className="rounded-full bg-secondary p-2 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <PlayCircle className="size-4" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
           })}
         </div>
-        {/* Prev / Next month navigation */}
-        <div className="flex justify-between pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={monthIdx <= 0}
-            onClick={() => setSelectedMonthKey(monthKeys[monthIdx - 1])}
-          >
-            ← Previous month
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={monthIdx >= monthKeys.length - 1}
-            onClick={() => setSelectedMonthKey(monthKeys[monthIdx + 1])}
-          >
-            Next month →
-          </Button>
-        </div>
-        <SkippedSection list={monthSkipped} />
+
+        {/* ── SKIPPED TOPICS ── */}
+        <SkippedSection list={skippedDays} />
         <SkippedTopicSolveModal
           open={!!selectedSkippedDay}
           onOpenChange={(op) => !op && setSelectedSkippedDay(null)}
           day={selectedSkippedDay}
         />
       </div>
-    );
-  }
-
-  /* ────────── ALL WEEKS VIEW ────────── */
-  return (
-    <div className="space-y-6">
-      <PageHeader />
-      <FilterBar />
-      <div className="space-y-8">
-        {weeks.map((week, weekIdx) => {
-          const stats = weekStats(week);
-          const isCurrent = weekIdx === currentWeekIdx;
-          return (
-            <div key={weekIdx} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold">
-                  Week {weekIdx + 1}
-                  {isCurrent && (
-                    <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                      Current
-                    </span>
-                  )}
-                </h3>
-                <span className="text-xs text-muted-foreground">
-                  {formatDate(week[0].date)} – {formatDate(week[week.length - 1].date)}
-                </span>
-                <span className={cn(
-                  "ml-auto text-xs tabular-nums",
-                  stats.pct === 100 ? "text-emerald-500 font-medium" : "text-muted-foreground",
-                )}>
-                  {stats.done}/{stats.total} · {stats.pct}%
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => {
-                    setSelectedWeekIdx(weekIdx);
-                    setViewMode("week");
-                  }}
-                >
-                  View →
-                </Button>
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {week.map((d, i) => (
-                  <DayCard key={`${d.date}-${d.dayNumber}-${i}`} day={d} showSkipAction />
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <SkippedSection list={skippedDays} />
-      <SkippedTopicSolveModal
-        open={!!selectedSkippedDay}
-        onOpenChange={(op) => !op && setSelectedSkippedDay(null)}
-        day={selectedSkippedDay}
-      />
     </div>
   );
 }

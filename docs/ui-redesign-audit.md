@@ -1,21 +1,25 @@
 # UI Redesign Audit — DSA⁴⁰⁴ Platform
 
-> Generated: 2026-09-30 — Phase 0 Repository Audit
+> Generated: 2026-09-30 — Phase 0 Repository Audit (REVISED)
 > Branch: `redesign/frontend-overhaul`
+
+## 0. PREVIOUS REDESIGN CRITIQUE & NEW MANDATE
+The previous redesign failed because it preserved the existing UI structure, grid logic, and card layouts, merely updating CSS styles (colors, spacing, borders).
+**New Mandate:** Replace the visual interface with a genuinely new structural UI ("DSA Learning Workspace"). We must create entirely new visual compositions, information hierarchies, and interaction patterns while strictly preserving backend data and hooks. No generic SaaS dashboard look. No simple restyling.
 
 ---
 
-## 1. Route Structure
+## 1. Route Structure & Unchanged Layouts to Overhaul
 
 | Route | Page File | Visual Purpose | Mapped IA Concept |
 |-------|-----------|----------------|-------------------|
 | `/` | `app/page.tsx` | Landing / marketing page | Entry |
 | `/auth` | `app/auth/page.tsx` → `auth-page-content.tsx` | Login / Register / Guest | Auth |
 | `/reset-password` | `app/reset-password/` | Password reset | Auth |
-| `/today` | `app/(authenticated)/today/page.tsx` → `MergedTodayProfile` | Daily learning dashboard | Learn → Today |
-| `/problems` | `app/(authenticated)/problems/page.tsx` | Problem browser + filters | Practice → Problems |
+| `/today` | `app/(authenticated)/today/page.tsx` → `MergedTodayProfile` | REDESIGNED (Mission Split Workspace) | Learn → Today |
+| `/problems` | `app/(authenticated)/problems/page.tsx` | REDESIGNED (Sidebar Filter + Grid) | Practice → Problems |
 | `/topics` | `app/(authenticated)/topics/page.tsx` | Topic taxonomy & progress | Learn → Topics |
-| `/weeks` | `app/(authenticated)/weeks/page.tsx` | Week/month roadmap view | Learn → Roadmap |
+| `/weeks` | `app/(authenticated)/weeks/page.tsx` | REDESIGNED (Curriculum Vertical Timeline) | Learn → Roadmap |
 | `/progress` | `app/(authenticated)/progress/page.tsx` | Charts, streaks, stats | Track → Progress |
 | `/review` | `app/(authenticated)/review/page.tsx` | Flagged-for-review problems | Practice → Review Queue |
 | `/backlog` | `app/(authenticated)/backlog/page.tsx` | Incomplete past days | Practice → Backlog |
@@ -170,34 +174,28 @@
 
 ---
 
-## 5. Planned New Visual Direction
+## 5. Planned New Visual Direction ("DSA Learning Workspace")
 
 ### Design Philosophy
-- **Calm Scholar**: Dark-mode-first, muted tones with strategic accent use
-- **Editorial clarity**: Strong typography hierarchy, generous whitespace
-- **Progress-centric**: Every view answers "what should I do next?"
-- **Spatial depth**: Subtle shadows and layering, no glassmorphism overuse
+- **Premium Editorial Environment**: Focus on reading, concentration, and structural clarity, discarding the typical SaaS app look.
+- **Purposeful Workspaces**: Move away from standard "row of generic cards". Every screen is a specialized workspace (e.g., "Today's Mission" workspace, distinct curriculum timelines).
+- **Strong Typography**: Heavy emphasis on typographic scale and editorial hierarchy over borders and backgrounds.
+- **Calm Themes**: Minimalist light and dark themes, completely removing unnecessary gradients, excessive glassmorphism, and neon.
+- **Architectural Shift**: Complete overhaul of grids, column structures, and section orders for every single page.
 
-### Key Changes
-1. **Navigation**: Collapsible icon rail (desktop) + bottom tab bar with 5 items (mobile)
-2. **Dashboard**: Learning command center with today's focus, streak ring, continue-learning CTA
-3. **Roadmap**: Vertical progression rail with milestone markers
-4. **Problems**: Card-based grid (mobile) / compact table (desktop) with learning context
-5. **Editor**: Full-screen split workspace with problem context panel
-6. **Progress**: Meaningful analytics with student-focused interpretations
-7. **Color**: Ink-on-paper philosophy — near-white backgrounds, deep foregrounds, emerald/blue accents for success/info
+### Key Structural Changes
+1. **App Shell**: A completely new workspace navigation model. Dropping standard sidebars for a focused layout (possibly a top utility bar with a hidden/overlay command palette, or a minimalist icon rail that does not look like a standard SaaS sidebar).
+2. **Dashboard (Today)**: Transformed into "Today's Mission". Not a dashboard of metrics, but a focused timeline/queue: "Current Objective", "Continue Learning Action", and "Daily Queue".
+3. **Roadmap**: Replaced standard lists with a distinctive visual curriculum timeline / progression curve that feels like an educational path.
+4. **Problems**: A dedicated learning-focused workspace with split views or masonry layouts, replacing standard data tables.
+5. **Editor**: Immersive split-pane layout without traditional modal wrappers.
 
 ### New Reusable Components (Planned)
-- `ProgressRing` — Circular progress indicator
-- `StreakBadge` — Animated streak display
-- `MilestoneRail` — Vertical progression visualization
-- `LearningCard` — Problem card with context
-- `MetricTile` — Stat display with interpretation
-- `EmptyState` — Consistent empty state pattern
-- `LoadingPulse` — Consistent skeleton pattern
-- `PageHeader` — Consistent page header with breadcrumb
-- `NavigationRail` — Icon-only sidebar for desktop
-- `BottomNav` — 5-item mobile navigation
+- `MissionObjective` — Focus hero for the daily goal
+- `CurriculumTimeline` — Architectural replacement for standard roadmap lists
+- `LearningWorkspace` — Container for split-view problem solving
+- `EditorialHeader` — Replacing standard dashboard top-bars with magazine-style titles
+- `ProgressStory` — Analytical views that answer questions rather than just show charts
 
 ---
 
@@ -217,9 +215,16 @@
 
 ---
 
-## 7. Initial Git Status
+## 7. Current Progress Log
+
+- **Phase 0:** Audit (Completed)
+- **Phase 1:** Global Design System / CSS Variables updated (Completed)
+- **Phase 2 (Current):** Structural redesign of core vertical slices.
+  - ✅ **Today (`/today`)**: Restructured from generic card grid to "Mission Workspace" with split layout and prominent hero greeting.
+  - ✅ **Roadmap (`/weeks`)**: Restructured from dropdown + card grid to a vertical "Curriculum Timeline" sequence.
+  - ✅ **Problems (`/problems`)**: Restructured from top-filter + wide row list to a "Practice Workspace" with sticky sidebar filters and a responsive grid layout.
+- **Next Steps:** Proceed to structurally redesign remaining screens: Review, Backlog, Topics, Contests, Progress, Profile.
 
 ```
-Branch: redesign/frontend-overhaul (created from master)
-Working tree: Clean (only .agents/ untracked)
+Branch: redesign/frontend-overhaul
 ```

@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { SECTIONS } from "@/lib/a2z-data";
 import { EXTRA_PROBLEMS, type Sheet } from "@/lib/extra-problems-data";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -218,155 +219,113 @@ function ProblemItem({
     color: "text-purple-600 dark:text-purple-400",
     bg: "bg-purple-500/10",
   };
-  const pm = PLATFORM_META[problem.platform] ?? PLATFORM_META["All"];
   const sm = SHEET_META[problem.sheet] ?? SHEET_META["Core 404"];
   const checkId = `pb-${problem.id}-${problem.name.replace(/\W+/g, "-")}`;
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
-      <li
+      <div
         className={cn(
-          "flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 sm:px-4 sm:py-3 transition-colors shadow-sm hover:shadow-md",
-          done && "border-emerald-500/30 bg-emerald-500/5",
+          "flex flex-col justify-between gap-4 rounded-2xl border bg-card p-5 transition-all shadow-sm hover:shadow-md",
+          done ? "border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/50" : "border-border hover:border-primary/50",
         )}
       >
-        {/* Left Side: Checkbox, ID, Name */}
-        <div className="flex items-start sm:items-center gap-3 min-w-0">
-          <Checkbox
-            id={checkId}
-            checked={done}
-            onCheckedChange={() => setModalOpen(true)}
-            aria-label={`Mark ${problem.name} as ${done ? "incomplete" : "complete"}`}
-            className="mt-0.5 sm:mt-0 size-4.5 shrink-0 transition-all"
-          />
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={checkId}
+                checked={done}
+                onCheckedChange={() => setModalOpen(true)}
+                className="size-5 transition-all"
+              />
+              <span className="text-xs font-mono text-muted-foreground uppercase">
+                #{problem.id}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-bold", sm.bg, sm.color, "border-border")}>
+                {problem.sheet}
+              </span>
+              <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", diff.bg, diff.color)}>
+                {problem.difficulty}
+              </span>
+            </div>
+          </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2.5 min-w-0">
-            <span className="w-auto sm:w-8 shrink-0 text-[10px] sm:text-xs text-muted-foreground font-mono">
-              #{problem.id}
-            </span>
-            <label
-              htmlFor={checkId}
-              className={cn(
-                "truncate cursor-pointer text-sm font-semibold transition-colors",
-                done ? "text-muted-foreground line-through" : "text-foreground hover:text-primary",
-              )}
-            >
-              {problem.name}
-            </label>
+          <label
+            htmlFor={checkId}
+            className={cn(
+              "block cursor-pointer font-display text-lg font-bold leading-tight transition-colors line-clamp-2",
+              done ? "text-muted-foreground line-through" : "text-foreground hover:text-primary",
+            )}
+          >
+            {problem.name}
+          </label>
+          
+          <div className="text-xs font-medium text-muted-foreground line-clamp-1">
+            {problem.topic}
           </div>
         </div>
 
-        {/* Right Side / Bottom (Mobile): Meta badges and Actions */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0 pl-7 sm:pl-0 w-full sm:w-auto">
-          {/* Metadata badges */}
-          <span
-            className={cn(
-              "rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold",
-              sm.bg,
-              sm.color,
-            )}
-          >
-            {problem.sheet}
-          </span>
-
-          <span className="hidden sm:inline rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {problem.topic}
-          </span>
-
-          <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", diff.bg, diff.color)}>
-            {problem.difficulty}
-          </span>
-
-          {/* Spacer to push actions to the right on mobile */}
-          <div className="flex-1 sm:hidden"></div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1.5 shrink-0 sm:ml-2">
-
-          {/* Links Dropdown Menu */}
+        {/* Actions Row */}
+        <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-2 py-1 text-xs font-semibold text-foreground transition-colors"                >
+                className="flex items-center gap-1.5 rounded-lg border border-border bg-card hover:bg-secondary px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors"
+              >
                 <Link2 className="size-3.5 text-sky-400" />
-                <ThemedTooltip hint="Some resources related to this problem">
-                  <span>Links</span>
-                </ThemedTooltip>
-                <ChevronDown className="size-3 text-muted-foreground" />
+                <span>Resources</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-2xl border border-white/15 bg-card/95 backdrop-blur-2xl p-1 shadow-2xl">
+            <DropdownMenuContent align="start" className="w-56 rounded-xl border border-border bg-card p-1 shadow-xl">
               {problem.link && (
                 <DropdownMenuItem asChild>
-                  <a href={problem.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                  <a href={problem.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                     <ExternalLink className="size-3.5 text-sky-400" />
-                    <ThemedTooltip hint={`${problem.platform === "GFG" ? "GeeksforGeeks" : problem.platform} Official Page Link if it shows 404 erros then try solve btn`}>
-                      <span>{problem.platform === "GFG" ? "GeeksforGeeks" : problem.platform} Official Page</span>
-                    </ThemedTooltip>
+                    <span>Official Problem Page</span>
                   </a>
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem asChild>
-                <a href={youtubeSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium text-foreground">
+                <a href={youtubeSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                   <Video className="size-3.5 text-rose-500" />
-                  <ThemedTooltip hint={`redirect to youtube search results for ${problem.name} solution intuition explained`}>
-                    <span>YouTube Solution Video</span>
-                  </ThemedTooltip>
+                  <span>YouTube Solutions</span>
                 </a>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a href={googleSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium text-foreground">
-                  <Search className="size-3.5 text-sky-400" />
-                  <ThemedTooltip hint={`redirect to google search results for ${problem.name} solution intuition explained`}>
-                    <span>Google Search Solution</span>
-                  </ThemedTooltip>
-                </a>
-              </DropdownMenuItem>
-              {submission?.code && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setModalOpen(true)} className="flex items-center gap-2 text-xs text-emerald-400 font-bold">
-                    <Code2 className="size-3.5 text-emerald-400" />
-                    <ThemedTooltip hint={`View or edit your keypoints or submitted code for this problem`}>
-                      <span>View Submitted Code</span>
-                    </ThemedTooltip>
-                  </DropdownMenuItem>
-                </>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* Solve Button */}
-          <ThemedTooltip hint="Solve with Interactive ChatGPT DSA AI Tutor it explains the problem statement & hints for solving the problem same as coding platforms"><a
-            href={getChatGPTAiPromptUrl(problem.name)}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20"
-          >
-            <Sparkles className="size-3 text-emerald-400" />
-            Solve
-          </a>
-          </ThemedTooltip>
 
-          {/* Code Button */}
-          <ThemedTooltip hint={done ? "View or edit your submitted code for this problem" : "Add code solution to mark problem as completed"}>
+          <div className="flex items-center gap-2">
+            <a
+              href={getChatGPTAiPromptUrl(problem.name)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-semibold text-emerald-500 transition-colors hover:bg-emerald-500/20"
+            >
+              <Sparkles className="size-3.5" />
+              <span>AI Tutor</span>
+            </a>
+
             <button
               type="button"
               onClick={() => setModalOpen(true)}
               className={cn(
-                "flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors",
+                "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors border",
                 done
-                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
-                  : "border border-border text-muted-foreground hover:border-primary hover:text-primary",
+                  ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/25"
+                  : "border-border text-foreground hover:border-primary hover:text-primary",
               )}
             >
-              <Code2 className="size-3" />
+              <Code2 className="size-3.5" />
               <span>Code</span>
             </button>
-          </ThemedTooltip>
           </div>
         </div>
-      </li>
+      </div>
 
       <CodeModal
         open={modalOpen}
@@ -566,307 +525,255 @@ export default function ProblemsPage() {
   const endItem = Math.min(currentPage * pageSize, sortedAndFiltered.length);
 
   return (
-    <>
-      {/* Header */}
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Problems</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {ALL_PROBLEMS.length} verified problems from {SHEET_FILTERS.length} sheets —{" "}
-            <span className="font-medium text-green-600 dark:text-green-400">
-              {totalDone} completed
-            </span>
-            {" • "}
-            <span className="font-medium text-amber-600 dark:text-amber-400">
-              {ALL_PROBLEMS.length - totalDone} remaining
-            </span>
+    <div className="min-h-screen bg-background text-foreground pb-16 pt-8 animate-fade-in">
+      <div className="mx-auto max-w-[1400px] px-4 md:px-8">
+        
+        {/* ── EDITORIAL HEADER ── */}
+        <header className="mb-12 border-b border-border pb-6">
+          <div className="flex items-center gap-3 text-primary font-semibold text-sm tracking-widest uppercase mb-3">
+            <Code2 className="size-4" />
+            <span>Practice Workspace</span>
+          </div>
+          <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight leading-none text-foreground">
+            Problem Library
+          </h1>
+          <p className="mt-3 text-muted-foreground text-sm sm:text-base max-w-2xl leading-relaxed">
+            Discover, filter, and master algorithmic challenges. Your completed problems are automatically synced with your curriculum timeline.
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {(["Easy", "Medium", "Hard"] as Difficulty[]).map((d) => {
-            const m = DIFF_META[d];
-            return (
-              <span key={d} className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", m.bg, m.color)}>
-                {diffCounts[d] ?? 0} {d}
-              </span>
-            );
-          })}
-        </div>
-      </div>
+        </header>
 
-      {/* Sticky Advanced Filter Bar */}
-      <div className="sticky top-0 z-20 mb-4 rounded-xl border border-border bg-background/95 p-3 backdrop-blur shadow-sm space-y-3">
-        {/* Search + Sort Bar */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by problem name, topic, or sheet…"
-              value={paramQuery}
-              onChange={(e) => setFilterState({ q: e.target.value })}
-              className="pl-9 pr-9 h-9 text-xs"
-            />
-            {paramQuery && (
-              <button
-                type="button"
-                onClick={() => setFilterState({ q: "" })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="Clear search"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Sort Selector */}
-          <div className="flex items-center gap-1.5">
-            <ArrowUpDown className="size-3.5 text-muted-foreground hidden sm:inline" />
-            <select
-              value={paramSort}
-              onChange={(e) => setFilterState({ sort: e.target.value })}
-              className="h-9 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              aria-label="Sort Order"
-            >
-              {SORT_OPTIONS.map((st) => (
-                <option key={st} value={st}>
-                  Sort: {st}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Status Pills */}
-        <div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mr-1">Status:</span>
-            {STATUS_FILTERS.map((st) => {
-              const active = paramStatus === st;
-              return (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => setFilterState({ status: st })}
-                  className={cn(
-                    "rounded-full border px-2.5 py-0.5 text-xs font-medium transition-all",
-                    active
-                      ? "border-transparent bg-primary text-primary-foreground shadow-sm"
-                      : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
-                  )}
-                >
-                  {st}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Secondary Filter Dropdowns & Pills */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-2.5">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Difficulty Tabs */}
-            <Tabs value={paramDiff} onValueChange={(v) => setFilterState({ difficulty: v })}>
-              <TabsList className="h-8 bg-muted/60 p-0.5">
-                {(["All", "Easy", "Medium", "Hard"] as const).map((d) => (
-                  <TabsTrigger key={d} value={d} className="h-7 px-2.5 text-xs font-medium">
-                    {d}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-
-            {/* Platform Selector */}
-            <select
-              value={paramPlat}
-              onChange={(e) => setFilterState({ platform: e.target.value })}
-              className="h-8 rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground focus:outline-none"
-              aria-label="Platform Filter"
-            >
-              <option value="All">All Platforms</option>
-              {PLATFORMS.filter((p) => p !== "All").map((pl) => (
-                <option key={pl} value={pl}>
-                  {PLATFORM_META[pl].label}
-                </option>
-              ))}
-            </select>
-
-            {/* Sheet Selector */}
-            <select
-              value={paramSheet}
-              onChange={(e) => setFilterState({ sheet: e.target.value })}
-              className="h-8 rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground focus:outline-none"
-              aria-label="Sheet Filter"
-            >
-              <option value="All">All</option>
-              {SHEET_FILTERS.filter((s) => s !== "All").map((sf) => (
-                <option key={sf} value={sf}>
-                  {sf}
-                </option>
-              ))}
-            </select>
-
-            {/* Topic Selector */}
-            <select
-              value={paramTopic}
-              onChange={(e) => setFilterState({ topic: e.target.value })}
-              className="h-8 rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground focus:outline-none max-w-[180px] truncate"
-              aria-label="Topic Filter"
-            >
-              <option value="All">All Topics ({topicsList.length - 1})</option>
-              {topicsList.filter((t) => t !== "All").map((tp) => (
-                <option key={tp} value={tp}>
-                  {tp}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {hasActiveFilter && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="flex items-center gap-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-            >
-              <X className="size-3" /> Clear filters
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Live Results Bar Summary */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span>
-            Showing <strong className="text-foreground">{startItem} - {endItem}</strong> of <strong className="text-foreground">{sortedAndFiltered.length}</strong> Problems
-          </span>
-          <span>•</span>
-          <span className="text-green-600 dark:text-green-400 font-medium">
-            Completed: {filteredDone}
-          </span>
-          <span>•</span>
-          <span className="text-amber-600 dark:text-amber-400 font-medium">
-            Remaining: {sortedAndFiltered.length - filteredDone}
-          </span>
-          <span>•</span>
-          <span>
-            Current Page: <strong className="text-foreground">{currentPage} / {totalPages}</strong>
-          </span>
-        </div>
-
-        {/* Per page size selector */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span>Per page:</span>
-          {[10, 20, 50, 100].map((sz) => (
-            <button
-              key={sz}
-              type="button"
-              onClick={() => {
-                setPageSize(sz);
-                setPage(1);
-              }}
-              className={cn(
-                "rounded px-2 py-0.5 font-medium transition-colors text-xs",
-                pageSize === sz
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {sz}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Problem List */}
-      {sortedAndFiltered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-          <Filter className="mx-auto size-8 mb-2 opacity-40" />
-          <p>No problems match your selected filters.</p>
-          <button
-            type="button"
-            className="mt-2 text-xs font-semibold text-primary underline underline-offset-2"
-            onClick={clearFilters}
-          >
-            Clear all filters
-          </button>
-        </div>
-      ) : (
-        <ul className="space-y-1.5">
-          {paginatedProblems.map((p) => (
-            <ProblemItem
-              key={`${p.sheet}|${p.id}|${p.name}`}
-              problem={p}
-              done={completed.has(p.name)}
-              submission={submissions[p.name]}
-              onSaveCode={(code, link, keyPoints) => submitCode(p.name, code, link || p.link, keyPoints)}
-              onDeleteCode={() => removeCode(p.name)}
-            />
-          ))}
-        </ul>
-      )}
-
-      {/* Pagination Footer Controls */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-          <p className="text-xs text-muted-foreground">
-            Page <span className="font-semibold text-foreground">{currentPage}</span> of{" "}
-            <span className="font-semibold text-foreground">{totalPages}</span>
-          </p>
-
-          <div className="flex flex-wrap items-center gap-1">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setPage(currentPage - 1)}
-              className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-40"
-              aria-label="Previous Page"
-            >
-              <ChevronLeft className="size-3.5" /> Previous
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter((p) => {
-                if (totalPages <= 7) return true;
-                return p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2;
-              })
-              .map((p, idx, arr) => {
-                const prev = arr[idx - 1];
-                const showEllipsis = prev && p - prev > 1;
-                return (
-                  <div key={p} className="flex items-center gap-1">
-                    {showEllipsis && (
-                      <span className="px-1.5 text-xs text-muted-foreground select-none">...</span>
-                    )}
+        {/* ── WORKSPACE LAYOUT (SIDEBAR + GRID) ── */}
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          
+          {/* LEFT SIDEBAR: FILTERS */}
+          <aside className="w-full lg:w-72 shrink-0 space-y-8 lg:sticky lg:top-8 border border-border bg-card p-6 rounded-2xl shadow-sm">
+            <div className="space-y-6">
+              
+              {/* Search */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search problems..."
+                    value={paramQuery}
+                    onChange={(e) => setFilterState({ q: e.target.value })}
+                    className="pl-9 h-10 border-border bg-secondary/50 focus:bg-background"
+                  />
+                  {paramQuery && (
                     <button
                       type="button"
-                      onClick={() => setPage(p)}
-                      aria-current={currentPage === p ? "page" : undefined}
+                      onClick={() => setFilterState({ q: "" })}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</label>
+                <div className="flex flex-col gap-1.5">
+                  {STATUS_FILTERS.map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setFilterState({ status: st })}
                       className={cn(
-                        "min-w-8 h-8 rounded-md border text-xs font-medium transition-colors",
-                        currentPage === p
-                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                          : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
+                        "text-left px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
+                        paramStatus === st
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                       )}
                     >
-                      {p}
+                      {st}
                     </button>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              </div>
 
-            <button
-              type="button"
-              disabled={currentPage === totalPages}
-              onClick={() => setPage(currentPage + 1)}
-              className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-40"
-              aria-label="Next Page"
-            >
-              Next <ChevronRight className="size-3.5" />
-            </button>
-          </div>
+              {/* Difficulty */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Difficulty</label>
+                <div className="flex flex-wrap gap-2">
+                  {(["All", "Easy", "Medium", "Hard"] as const).map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setFilterState({ difficulty: d })}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs font-bold transition-all",
+                        paramDiff === d
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-transparent text-muted-foreground hover:border-muted-foreground"
+                      )}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sheet */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Curriculum Sheet</label>
+                <select
+                  value={paramSheet}
+                  onChange={(e) => setFilterState({ sheet: e.target.value })}
+                  className="w-full h-10 rounded-lg border border-border bg-secondary/50 px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  {SHEET_FILTERS.map((sf) => (
+                    <option key={sf} value={sf}>{sf}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Topic */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Topic</label>
+                <select
+                  value={paramTopic}
+                  onChange={(e) => setFilterState({ topic: e.target.value })}
+                  className="w-full h-10 rounded-lg border border-border bg-secondary/50 px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="All">All Topics</option>
+                  {topicsList.filter((t) => t !== "All").map((tp) => (
+                    <option key={tp} value={tp}>{tp}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sort */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sort By</label>
+                <select
+                  value={paramSort}
+                  onChange={(e) => setFilterState({ sort: e.target.value })}
+                  className="w-full h-10 rounded-lg border border-border bg-secondary/50 px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  {SORT_OPTIONS.map((st) => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
+              </div>
+
+              {hasActiveFilter && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="w-full mt-4 flex justify-center items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors py-2 border-t border-border/50"
+                >
+                  <X className="size-3.5" /> Clear All Filters
+                </button>
+              )}
+
+            </div>
+          </aside>
+
+          {/* MAIN AREA: GRID */}
+          <main className="flex-1 min-w-0 space-y-6">
+            
+            {/* Top Bar Summary */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border rounded-xl p-4 shadow-sm">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                <span className="font-semibold text-foreground">
+                  Showing {startItem}-{endItem} of {sortedAndFiltered.length}
+                </span>
+                <span className="text-emerald-500 font-bold">
+                  ✓ {filteredDone} Completed
+                </span>
+                <span className="text-muted-foreground font-semibold">
+                  {sortedAndFiltered.length - filteredDone} Remaining
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Per Page</span>
+                <div className="flex items-center rounded-lg border border-border bg-secondary/50 p-0.5">
+                  {[20, 50, 100].map((sz) => (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => {
+                        setPageSize(sz);
+                        setPage(1);
+                      }}
+                      className={cn(
+                        "rounded-md px-3 py-1 font-bold text-xs transition-colors",
+                        pageSize === sz ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {sz}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Empty State */}
+            {sortedAndFiltered.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border p-12 text-center flex flex-col items-center">
+                <div className="size-16 rounded-full bg-secondary flex items-center justify-center mb-4">
+                  <Filter className="size-8 text-muted-foreground opacity-50" />
+                </div>
+                <h3 className="text-xl font-display font-bold mb-2">No problems found</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm">We couldn't find any challenges matching your current filter combinations.</p>
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-bold"
+                  onClick={clearFilters}
+                >
+                  Clear all filters
+                </button>
+              </div>
+            ) : (
+              /* Problem Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
+                {paginatedProblems.map((p) => (
+                  <ProblemItem
+                    key={`${p.sheet}|${p.id}|${p.name}`}
+                    problem={p}
+                    done={completed.has(p.name)}
+                    submission={submissions[p.name]}
+                    onSaveCode={async (code, link, kp) => await submitCode(p.name, code, link || p.link, kp)}
+                    onDeleteCode={async () => await removeCode(p.name)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-4 pt-4 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="w-24"
+                >
+                  <ChevronLeft className="mr-1 size-4" /> Previous
+                </Button>
+                <span className="text-sm text-muted-foreground font-medium">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-24"
+                >
+                  Next <ChevronRight className="ml-1 size-4" />
+                </Button>
+              </div>
+            )}
+
+          </main>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }
 

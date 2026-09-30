@@ -25,6 +25,7 @@ import {
   type MotivationalQuote,
 } from "@/lib/userActivity";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { formatDate, diffDays, todayIso } from "@/lib/plan";
 import {
@@ -54,6 +55,7 @@ import {
   RotateCcw,
   PauseCircle,
   PlayCircle,
+  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -414,195 +416,160 @@ export function MergedTodayProfile() {
   }, [days, submissions]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* ── Paused Mode Indicator & Resume Action Banner ── */}
-      {settings.paused && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 sm:p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start md:items-center gap-3.5">
-            <div className="rounded-xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30 text-amber-500">
-              <PauseCircle className="size-6 animate-pulse" />
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base sm:text-lg font-bold text-amber-500">
-                  Plan is Paused — Held at Day {displayedDay?.dayNumber}
-                </h2>
-                <span className="rounded-full bg-amber-500/25 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-300">
-                  FROZEN AT PAUSED DAY
-                </span>
+    <div className="min-h-screen bg-background text-foreground pb-16 animate-fade-in selection:bg-primary/20">
+      <div className="mx-auto max-w-6xl space-y-10">
+
+        {/* ── PAUSED ALERT ── */}
+        {settings.paused && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <PauseCircle className="size-5 text-amber-500 animate-pulse" />
+              <div className="space-y-0.5">
+                <h3 className="text-sm font-bold text-amber-500">Plan Paused (Day {displayedDay?.dayNumber})</h3>
+                <p className="text-xs text-amber-500/80">
+                  Paused on {formatDate(settings.pausedFrom ?? "")}. Your streak is protected.
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-amber-200/90 leading-relaxed">
-                Your preparation was paused on <strong>{formatDate(settings.pausedFrom ?? "")}</strong>. To protect your streak and ensure you never miss any problems, this workspace is held at <strong>Day {displayedDay?.dayNumber}</strong> instead of advancing to today&apos;s calendar date.
-              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2.5 self-end md:self-center shrink-0">
             <Button
               onClick={handleResumePlan}
               disabled={resumingPlan}
-              className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+              size="sm"
+              className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs"
             >
-              <PlayCircle className="size-4" />
-              <span>{resumingPlan ? "Resuming..." : "Resume & Catch Up to Today"}</span>
+              <PlayCircle className="size-4 mr-1.5" />
+              {resumingPlan ? "Resuming..." : "Resume Catch Up"}
             </Button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ── Top Row: Greeting + Topic Header (left) | Heatmap (right) ── */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
-        {/* Left (2/3): Highlighted Greeting Card + Today's Topic Description Header Card */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
-          {/* Greeting Card — expanded height & text to level top row perfectly */}
-          <div className={cn(
-            "rounded-2xl border p-5 sm:p-6 backdrop-blur-md shadow-lg flex-1 flex flex-col justify-center min-h-[135px]",
-            settings.paused
-              ? "border-amber-500/20 bg-amber-500/5"
-              : inactivityInfo.isLongAbsence
-                ? "border-amber-500/20 bg-amber-500/5"
-                : streakCount >= 7
-                  ? "border-emerald-500/20 bg-emerald-500/5"
-                  : "border-border bg-card/50 hover:bg-card"
-          )}>
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-3.5">
-                {/* Dynamic icon */}
-                {settings.paused ? (
-                  <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30">
-                    <PauseCircle className="size-7 text-amber-400" />
+        {/* ── MISSION HERO ── */}
+        <header className="space-y-4 pt-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Target className="size-3.5" />
+                <span>Today's Mission</span>
+              </div>
+              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-foreground leading-none">
+                {timeBasedGreeting.greeting.split(',')[0]}
+                <span className="text-muted-foreground block text-2xl sm:text-3xl mt-1">{userNameDisplay}.</span>
+              </h1>
+              <p className="text-muted-foreground max-w-xl text-sm sm:text-base leading-relaxed mt-2">
+                {timeBasedGreeting.subtext}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-end gap-3 shrink-0">
+              <div className={cn(
+                "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-bold shadow-sm transition-all",
+                streakCount > 0
+                  ? "border-2 border-orange-500/30 bg-gradient-to-r from-orange-500/10 to-amber-500/5 text-orange-400"
+                  : "border border-border bg-card text-muted-foreground"
+              )}>
+                <Flame className={cn("size-5", streakCount > 0 && "text-orange-500 animate-pulse")} />
+                <span>{streakCount > 0 ? `${streakCount} Day Streak` : "0 Day Streak"}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* ── WORKSPACE SPLIT ── */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+          
+          {/* LEFT: Curriculum & Queue (8 cols) */}
+          <div className="xl:col-span-8 space-y-8">
+            
+            {/* Topic Context (Editorial Style) */}
+            {sanitizedDay && (
+              <section className="space-y-4">
+                <h2 className="font-display text-2xl font-bold tracking-tight border-b border-border pb-2">
+                  Curriculum Context
+                </h2>
+                <div className="rounded-xl border-none bg-transparent">
+                  <DayDetail
+                    day={sanitizedDay}
+                    readOnly={false}
+                    lateMode={false}
+                    headerOnly
+                  />
+                </div>
+              </section>
+            )}
+
+            {/* Main Problem Queue */}
+            {sanitizedDay && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between border-b border-border pb-2">
+                  <h2 className="font-display text-2xl font-bold tracking-tight">
+                    Action Queue
+                  </h2>
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {sanitizedDay.problems.filter(p => p.done).length} / {sanitizedDay.problems.length} Completed
+                  </span>
+                </div>
+                
+                {/* The actual problems wrapped cleanly */}
+                <div className="rounded-none border-none bg-transparent pt-2">
+                  <DayDetail
+                    day={sanitizedDay}
+                    readOnly={false}
+                    lateMode={false}
+                    hideHeader
+                  />
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* RIGHT: Analytics & Consistency (4 cols) */}
+          <div className="xl:col-span-4 space-y-8">
+            <section className="space-y-4 sticky top-6">
+              <h2 className="font-display text-xl font-bold tracking-tight border-b border-border pb-2">
+                Consistency Track
+              </h2>
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
+              </div>
+
+              {/* Progress Milestones Overview */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4 mt-6">
+                <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
+                  <Rocket className="size-4 text-emerald-500" />
+                  Milestone Progress
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground font-medium">Problems Solved</span>
+                      <span className="font-bold">{stats.total}</span>
+                    </div>
+                    <Progress value={Math.min(100, (stats.total / ALL_PROBLEMS.length) * 100)} className="h-1.5" />
                   </div>
-                ) : inactivityInfo.isLongAbsence ? (
-                  <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30">
-                    <Rocket className="size-7 text-amber-400 animate-pulse" />
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground font-medium">Badges Earned</span>
+                      <span className="font-bold">{badges.length}</span>
+                    </div>
+                    <Progress value={Math.min(100, (badges.length / 10) * 100)} className="h-1.5" />
                   </div>
-                ) : streakCount >= 7 ? (
-                  <div className="rounded-2xl bg-emerald-500/20 p-3 shrink-0 border border-emerald-500/30">
-                    <Flame className="size-7 text-emerald-400" />
-                  </div>
-                ) : (
-                  <div className="rounded-2xl bg-primary/20 p-3 shrink-0 border border-primary/30">
-                    <HeartHandshake className="size-7 text-primary" />
-                  </div>
-                )}
-                <div className="space-y-1">
-                  {settings.paused ? (
-                    <>
-                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
-                        ⏸️ Preparation Paused, {userNameDisplay}!
-                      </h2>
-                      <p className="text-sm text-amber-200/80 font-medium">
-                        Workspace held at Day {displayedDay?.dayNumber} (paused since {formatDate(settings.pausedFrom ?? "")}). Missed-week checks &amp; streak decay are off. Practice at your own pace or resume anytime!
-                      </p>
-                    </>
-                  ) : inactivityInfo.daysInactive >= 14 ? (
-                    <>
-                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
-                        It's been {inactivityInfo.daysInactive} days, {userNameDisplay}! Time to reclaim your streak! 🔥
-                      </h2>
-                      <p className="text-sm text-amber-300/80 font-medium">Long time no see — your roadmap is waiting. Let's get back on track!</p>
-                    </>
-                  ) : inactivityInfo.daysInactive >= 7 ? (
-                    <>
-                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
-                        Welcome back, {userNameDisplay}! It's been a week 👋
-                      </h2>
-                      <p className="text-sm text-amber-300/80 font-medium">You were away for {inactivityInfo.daysInactive} days — start fresh, solve today's problems!</p>
-                    </>
-                  ) : inactivityInfo.daysInactive >= 3 ? (
-                    <>
-                      <h2 className="text-xl sm:text-2xl font-black text-orange-300 tracking-tight">
-                        Back after {inactivityInfo.daysInactive} days, {userNameDisplay}! 💪
-                      </h2>
-                      <p className="text-sm text-orange-300/80 font-medium">Pick up where you left off — your DSA journey continues today!</p>
-                    </>
-                  ) : streakCount >= 7 ? (
-                    <>
-                      <h2 className="text-xl sm:text-2xl font-black text-emerald-300 tracking-tight">
-                        🔥 {streakCount}-day streak! {timeBasedGreeting.greeting}
-                      </h2>
-                      <p className="text-sm text-emerald-300/80 font-medium">{timeBasedGreeting.subtext}</p>
-                    </>
-                  ) : streakCount >= 3 ? (
-                    <>
-                      <h2 className="text-xl sm:text-2xl font-black text-primary tracking-tight">
-                        ⚡ {streakCount} days strong! {timeBasedGreeting.greeting}
-                      </h2>
-                      <p className="text-sm text-muted-foreground font-medium">{timeBasedGreeting.subtext}</p>
-                    </>
-                  ) : (
-                    <>
-                      <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
-                        {timeBasedGreeting.greeting}
-                      </h2>
-                      <p className="text-sm text-muted-foreground font-medium">{timeBasedGreeting.subtext}</p>
-                    </>
-                  )}
                 </div>
               </div>
-              {/* Streak pill */}
-              {settings.paused ? (
-                <div className="flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold shrink-0 shadow-sm border border-amber-500/40 bg-amber-500/15 text-amber-300">
-                  <PauseCircle className="size-4 text-amber-400" />
-                  <span>Plan Paused</span>
-                </div>
-              ) : (
-                <div className={cn(
-                  "flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold shrink-0 shadow-sm",
-                  streakCount > 0
-                    ? "border border-orange-500/30 bg-orange-500/10 text-orange-400"
-                    : "border border-white/10 bg-white/5 text-muted-foreground"
-                )}>
-                  <Flame className="size-4 text-orange-500 animate-pulse" />
-                  <span>{streakCount > 0 ? `${streakCount} Day Streak` : "Start your streak!"}</span>
-                </div>
-              )}
-            </div>
+            </section>
           </div>
 
-          {/* Today Topic Description Header Section (Topic info, status, Postpone/Merge/Borrow/Delete/Restore, progress bar) */}
-          {sanitizedDay && (
-            <DayDetail
-              day={sanitizedDay}
-              readOnly={false}
-              lateMode={false}
-              headerOnly
-            />
-          )}
         </div>
 
-        {/* Right (1/3): Activity Heatmap */}
-        <div className="lg:col-span-1 h-full flex flex-col">
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 h-full flex flex-col justify-between gap-3 shadow-lg">
-            <div className="flex items-center gap-2">
-              <Flame className="size-4 text-emerald-400" />
-              <h3 className="text-sm font-bold text-foreground">Activity Heatmap</h3>
-            </div>
-            <div className="flex-1 flex flex-col justify-center">
-              <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Full-Width Below: Today's Core Problems, Contests, Checklist, Notes ── */}
-      {sanitizedDay && (
-        <DayDetail
-          day={sanitizedDay}
-          readOnly={false}
-          lateMode={false}
-          hideHeader
+        {/* Code Modal for viewing stored solutions from Solved tab */}
+        <CodeModal
+          open={!!selectedProblemForModal}
+          onOpenChange={(open) => !open && setSelectedProblemForModal(null)}
+          problemName={selectedProblemForModal ?? ""}
+          existingSubmission={selectedProblemForModal ? submissions[selectedProblemForModal] : undefined}
+          onSave={async () => { }}
+          readOnly={true}
         />
-      )}
-
-      {/* Code Modal for viewing stored solutions from Solved tab */}
-      <CodeModal
-        open={!!selectedProblemForModal}
-        onOpenChange={(open) => !open && setSelectedProblemForModal(null)}
-        problemName={selectedProblemForModal ?? ""}
-        existingSubmission={selectedProblemForModal ? submissions[selectedProblemForModal] : undefined}
-        onSave={async () => { }}
-        readOnly={true}
-      />
+      </div>
     </div>
   );
 }
