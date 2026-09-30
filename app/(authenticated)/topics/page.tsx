@@ -292,7 +292,7 @@ export default function TopicsPage() {
   return (
     <>
       {/* ── Customized Sheet Selector Header Card ── */}
-      <div className="mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-card to-card p-4 sm:p-5 shadow-sm">
+      <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-md">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="rounded-xl border border-primary/30 bg-primary/15 p-2.5 text-primary shrink-0">
@@ -363,7 +363,7 @@ export default function TopicsPage() {
         </div>
 
         {/* Informative Note for View Purpose vs Settings Change */}
-        <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-background/60 border border-primary/20 text-xs">
+        <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-secondary/50 border border-border text-xs">
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-primary shrink-0" />
             <span className="text-muted-foreground leading-relaxed">
@@ -401,8 +401,8 @@ export default function TopicsPage() {
                   className={cn(
                     "flex flex-col items-center justify-between p-2.5 rounded-xl border text-center transition-all cursor-pointer relative group",
                     isSelectedView
-                      ? "border-primary bg-primary/15 shadow-sm ring-2 ring-primary/40"
-                      : "border-border bg-card/80 hover:border-primary/40 hover:bg-card hover:shadow-xs"
+                      ? "border-primary bg-primary/10 shadow-sm"
+                      : "border-border bg-card hover:border-primary/40 hover:bg-card/80 hover:shadow-sm"
                   )}
                 >
                   <div className="w-full flex items-center justify-between gap-1 mb-1">
