@@ -122,9 +122,9 @@ export function DayDetail({
   const lastActiveDay = activeDays.at(-1);
 
   const headerCard = (
-    <header className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-4 sm:p-5 shadow-xl space-y-3">
+    <header className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-lg space-y-3">
       {/* Top Meta & Actions Row */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 dark:border-white/15 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
             Day {day.dayNumber} · Week {Math.ceil(day.dayNumber / 7)} · {formatDate(day.date)}

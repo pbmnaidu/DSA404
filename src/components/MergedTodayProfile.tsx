@@ -417,14 +417,14 @@ export function MergedTodayProfile() {
     <div className="space-y-6 animate-fade-in">
       {/* ── Paused Mode Indicator & Resume Action Banner ── */}
       {settings.paused && (
-        <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 p-5 sm:p-6 backdrop-blur-md shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 sm:p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start md:items-center gap-3.5">
-            <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30 text-amber-400">
+            <div className="rounded-xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30 text-amber-500">
               <PauseCircle className="size-6 animate-pulse" />
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base sm:text-lg font-bold text-amber-300">
+                <h2 className="text-base sm:text-lg font-bold text-amber-500">
                   Plan is Paused — Held at Day {displayedDay?.dayNumber}
                 </h2>
                 <span className="rounded-full bg-amber-500/25 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-300">
@@ -455,14 +455,14 @@ export function MergedTodayProfile() {
         <div className="lg:col-span-2 flex flex-col gap-4">
           {/* Greeting Card — expanded height & text to level top row perfectly */}
           <div className={cn(
-            "rounded-3xl border p-5 sm:p-6 backdrop-blur-md shadow-xl flex-1 flex flex-col justify-center min-h-[135px]",
+            "rounded-2xl border p-5 sm:p-6 backdrop-blur-md shadow-lg flex-1 flex flex-col justify-center min-h-[135px]",
             settings.paused
-              ? "border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5"
+              ? "border-amber-500/20 bg-amber-500/5"
               : inactivityInfo.isLongAbsence
-                ? "border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-rose-500/10"
+                ? "border-amber-500/20 bg-amber-500/5"
                 : streakCount >= 7
-                  ? "border-emerald-500/40 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-primary/10"
-                  : "border-primary/30 bg-gradient-to-r from-primary/15 via-purple-500/10 to-emerald-500/10"
+                  ? "border-emerald-500/20 bg-emerald-500/5"
+                  : "border-border bg-card/50 hover:bg-card"
           )}>
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3.5">
@@ -572,7 +572,7 @@ export function MergedTodayProfile() {
 
         {/* Right (1/3): Activity Heatmap */}
         <div className="lg:col-span-1 h-full flex flex-col">
-          <div className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/60 backdrop-blur-xl shadow-xl p-4 sm:p-5 h-full flex flex-col justify-between gap-3">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 h-full flex flex-col justify-between gap-3 shadow-lg">
             <div className="flex items-center gap-2">
               <Flame className="size-4 text-emerald-400" />
               <h3 className="text-sm font-bold text-foreground">Activity Heatmap</h3>
