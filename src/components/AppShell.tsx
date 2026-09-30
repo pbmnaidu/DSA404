@@ -20,15 +20,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   CalendarDays,
   CircleUser,
   Cloud,
   Flame,
-  Home,
-  ListTodo,
   Menu,
   Palette,
   PauseCircle,
@@ -39,16 +42,19 @@ import {
   BookmarkCheck,
   Code2,
   Trophy,
+  ChevronLeft,
   ChevronRight,
   X,
   LogOut,
-  GripVertical,
   Sparkles,
   Search,
   Megaphone,
   Globe,
   FolderGit2,
   Bell,
+  BarChart3,
+  MessageSquare,
+  MoreHorizontal,
 } from "lucide-react";
 import { loadUserProfile } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -62,243 +68,241 @@ import { useInAppBrowser } from "@/components/in-app-browser/InAppBrowserContext
 import { DemoHelperBanner } from "@/components/DemoHelperBanner";
 import { isGuestMode, disableGuestMode } from "@/lib/guest-data";
 
-const NAV = [
-  { to: "/today", label: "Today's Workspace", icon: Sparkles, hint: "Your daily topic, core problems, streak, and activity heatmap." },
-  { to: "/problems", label: "Problems", icon: Code2, hint: "838+ problems from 2 curated sets — filter by platform, difficulty, or sheet." },
-  { to: "/topics", label: "Topic View", icon: LayoutGrid, hint: "All 42 Core 404 topics. Expand any topic, skip topics, track progress." },
-  { to: "/weeks", label: "Week View", icon: CalendarRange, hint: "Your 17-week roadmap. See every day's status and jump to any day directly." },
-  { to: "/progress", label: "Progress", icon: Flame, hint: "Streaks, badges, weekly charts, and overall solving progress." },
-  { to: "/review", label: "Review", icon: BookmarkCheck, hint: "Problems you bookmarked for a second look — sorted by day and section." },
-  { to: "/backlog", label: "Backlog", icon: CalendarDays, hint: "Past days you haven't fully completed. Insert a revision day to catch up." },
-  { to: "/contests", label: "Contests", icon: Trophy, hint: "Live, upcoming & missed CP contests from LeetCode, Codeforces, CodeChef, AtCoder, HackerRank." },
-  { to: "/profile", label: "Coder Profile", icon: UserCircle2, hint: "Edit your avatar, banner, display name, bio, and coding platform handles." },
-  { to: "/settings", label: "Settings", icon: Settings, hint: "Adjust daily pace, shift schedule, pause plan, change password or theme." },
+/* ═══════════════════════════════════════════════════════════════════════
+   Navigation Configuration — preserves all original route destinations
+   ═══════════════════════════════════════════════════════════════════════ */
+
+interface NavItem {
+  to: string;
+  label: string;
+  icon: typeof Sparkles;
+  group: "learn" | "practice" | "track" | "compete" | "build" | "coach" | "account";
+  hint: string;
+}
+
+const NAV: NavItem[] = [
+  { to: "/today", label: "Today", icon: Sparkles, group: "learn", hint: "Your daily workspace — today's topic, problems, and streak." },
+  { to: "/weeks", label: "Roadmap", icon: CalendarRange, group: "learn", hint: "Your 17-week learning roadmap with day-by-day progress." },
+  { to: "/topics", label: "Topics", icon: LayoutGrid, group: "learn", hint: "All 42 Core 404 topics. Expand, track, and skip topics." },
+  { to: "/problems", label: "Problems", icon: Code2, group: "practice", hint: "838+ problems — filter by platform, difficulty, or sheet." },
+  { to: "/review", label: "Review", icon: BookmarkCheck, group: "practice", hint: "Problems flagged for revision, sorted by day and section." },
+  { to: "/backlog", label: "Backlog", icon: CalendarDays, group: "practice", hint: "Past incomplete days. Catch up at your own pace." },
+  { to: "/progress", label: "Progress", icon: BarChart3, group: "track", hint: "Streaks, badges, weekly charts, and solving progress." },
+  { to: "/contests", label: "Contests", icon: Trophy, group: "compete", hint: "Live, upcoming & past contests from 5 platforms." },
+  { to: "/editor", label: "Editor", icon: Code2, group: "build", hint: "Code editor workspace for problem solutions." },
+  { to: "/messages", label: "Messages", icon: MessageSquare, group: "coach", hint: "Platform announcements and broadcast alerts." },
+  { to: "/profile", label: "Profile", icon: UserCircle2, group: "account", hint: "Your avatar, bio, and coding platform handles." },
+  { to: "/settings", label: "Settings", icon: Settings, group: "account", hint: "Adjust pace, schedule, notifications, and theme." },
 ] as const;
 
-const MOBILE_BOTTOM_KEYS = ["/today", "/problems", "/settings"] as const;
-const MOBILE_BAR = NAV.filter((n) => (MOBILE_BOTTOM_KEYS as readonly string[]).includes(n.to));
+const NAV_GROUPS: { key: string; label: string; items: NavItem[] }[] = [
+  { key: "learn", label: "Learn", items: NAV.filter((n) => n.group === "learn") },
+  { key: "practice", label: "Practice", items: NAV.filter((n) => n.group === "practice") },
+  { key: "track", label: "Track", items: NAV.filter((n) => n.group === "track") },
+  { key: "compete", label: "Compete", items: NAV.filter((n) => n.group === "compete") },
+  { key: "coach", label: "Coach", items: NAV.filter((n) => n.group === "coach") },
+  { key: "account", label: "Account", items: NAV.filter((n) => n.group === "account") },
+];
 
-const SIDEBAR_MIN = 64;
-const SIDEBAR_MAX = 320;
-const SIDEBAR_DEFAULT = 224;
+// Mobile bottom bar — 5 items max (design system rule)
+const MOBILE_BOTTOM: NavItem[] = [
+  NAV.find((n) => n.to === "/today")!,
+  NAV.find((n) => n.to === "/problems")!,
+  // Center slot is reserved for Search button
+  NAV.find((n) => n.to === "/progress")!,
+  NAV.find((n) => n.to === "/topics")!,
+];
+
+const SIDEBAR_COLLAPSED = 64;
+const SIDEBAR_EXPANDED = 240;
 const SIDEBAR_STORAGE_KEY = "dsa-sidebar-width";
 
-// ─── Desktop Sidebar (resizable) ──────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════
+   Desktop Sidebar — Icon rail (collapsed) / Full panel (expanded)
+   ═══════════════════════════════════════════════════════════════════════ */
 function DesktopSidebar({
-  pathname, email, streak, lastSynced, displayName, initials, photoURL, username, onSignOut, width, onWidthChange, paused,
+  pathname, email, streak, lastSynced, displayName, initials, photoURL, username,
+  onSignOut, collapsed, onToggleCollapse, paused,
 }: {
   pathname: string; email: string; streak: number; lastSynced: string | null;
   displayName: string; initials: string; photoURL?: string | null; username?: string;
-  onSignOut: () => void; width: number; onWidthChange: (w: number) => void;
+  onSignOut: () => void; collapsed: boolean; onToggleCollapse: () => void;
   paused?: boolean;
 }) {
   const { openPanel } = useThemeCustomizer();
-  const dragging = useRef(false);
-  const startX = useRef(0);
-  const startW = useRef(width);
-
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    dragging.current = true;
-    startX.current = e.clientX;
-    startW.current = width;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-
-    function onMove(ev: MouseEvent) {
-      if (!dragging.current) return;
-      const next = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, startW.current + ev.clientX - startX.current));
-      onWidthChange(next);
-    }
-    function onUp() {
-      dragging.current = false;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-    }
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  }, [width, onWidthChange]);
-
-  const collapsed = width <= 80;
+  const width = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
   return (
     <aside
-      className="hidden md:flex fixed top-0 left-0 h-full flex-col z-30 select-none"
+      className="hidden md:flex fixed top-0 left-0 h-full flex-col z-30 select-none transition-[width] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
       style={{ width }}
+      aria-label="Main navigation"
     >
-      {/* Main sidebar panel — rounded on right edges */}
-      <div className="flex flex-col flex-1 bg-card/95 backdrop-blur border-r border-border rounded-r-2xl overflow-hidden shadow-md h-full">
+      <div className="flex flex-col flex-1 bg-sidebar border-r border-sidebar-border overflow-hidden h-full">
 
-        {/* Brand */}
-        <Link href="/today" className="flex items-center gap-2.5 border-b border-border px-4 py-4 shrink-0 justify-center md:justify-start">
-          <div className="size-7 rounded-full overflow-hidden border border-border/80 shadow-sm ring-1 ring-primary/20 bg-background shrink-0">
-            <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
-          </div>
+        {/* Brand header */}
+        <div className="flex items-center h-14 px-3 border-b border-sidebar-border shrink-0">
+          <Link href="/today" className="flex items-center gap-2.5 min-w-0" title="DSA⁴⁰⁴ — Go to Today">
+            <div className="size-8 rounded-lg overflow-hidden border border-border/60 bg-background shrink-0 flex items-center justify-center">
+              <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
+            </div>
+            {!collapsed && (
+              <span className="font-display font-black tracking-tight text-lg leading-none text-foreground">
+                DSA<span className="text-primary">⁴⁰⁴</span>
+              </span>
+            )}
+          </Link>
           {!collapsed && (
-            <div className="flex flex-col min-w-0">
-              <div className="font-display font-black tracking-tighter text-[22px] leading-none flex items-baseline select-none">
-                <span className="bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent drop-shadow-md">DSA</span>
-                <span className="bg-gradient-to-br from-primary to-orange-500 bg-clip-text text-transparent drop-shadow-md ml-[1px]">⁴⁰⁴</span>
-              </div>
-              <div className="font-mono text-[9px] font-bold tracking-tight text-muted-foreground leading-tight mt-1 truncate max-w-[160px]">
-                Find. Solve. Master. 🔥
-              </div>
+            <button
+              onClick={onToggleCollapse}
+              className="ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Nav groups */}
+        <nav aria-label="Sidebar navigation" className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.key}>
+              {!collapsed && (
+                <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
+                  {group.label}
+                </p>
+              )}
+              <ul className="space-y-0.5">
+                {group.items.map((n) => {
+                  const isActive = pathname === n.to || (n.to !== "/" && pathname.startsWith(n.to + "/"));
+                  const exactActive = pathname.startsWith(n.to);
+
+                  const linkContent = (
+                    <Link
+                      href={n.to}
+                      aria-current={exactActive ? "page" : undefined}
+                      className={cn(
+                        "group flex items-center rounded-lg transition-all duration-150",
+                        collapsed ? "justify-center p-2.5" : "gap-2.5 px-2.5 py-2",
+                        exactActive
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                      )}
+                    >
+                      <n.icon
+                        className={cn("size-[18px] shrink-0", exactActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")}
+                        aria-hidden="true"
+                      />
+                      {!collapsed && (
+                        <>
+                          <span className="text-[13px] truncate flex-1">{n.label}</span>
+                          {n.to === "/today" && paused && (
+                            <span className="rounded-full bg-warning/15 border border-warning/30 px-1.5 py-0.5 text-[9px] font-mono font-bold text-warning">
+                              Paused
+                            </span>
+                          )}
+                          {exactActive && (!paused || n.to !== "/today") && (
+                            <span className="ml-auto size-1.5 rounded-full bg-primary shrink-0" />
+                          )}
+                        </>
+                      )}
+                    </Link>
+                  );
+
+                  if (collapsed) {
+                    return (
+                      <li key={n.to}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                          <TooltipContent side="right" className="text-xs">
+                            {n.label}
+                          </TooltipContent>
+                        </Tooltip>
+                      </li>
+                    );
+                  }
+
+                  return <li key={n.to}>{linkContent}</li>;
+                })}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="border-t border-sidebar-border px-2 py-2.5 space-y-1 shrink-0">
+          {/* Streak badge */}
+          {streak > 0 && (
+            <div className={cn("flex items-center gap-2 px-2.5 py-1.5 rounded-lg", collapsed && "justify-center")}>
+              <Flame className="size-4 text-[var(--streak)] animate-streak" aria-hidden="true" />
+              {!collapsed && (
+                <span className="text-xs font-semibold text-[var(--streak)]">{streak} day streak</span>
+              )}
             </div>
           )}
-        </Link>
 
-        {/* User card */}
-        <div className="border-b border-border px-3 py-3 shrink-0">
+          {/* User card */}
           <Link
             href="/profile"
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-sidebar-accent",
+              collapsed && "justify-center"
+            )}
             title="View your profile"
-            className="flex items-center gap-2.5 rounded-xl -mx-1 px-1 py-1 transition-colors hover:bg-secondary"
           >
-            <div className="size-9 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+            <div className="size-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0">
               {photoURL
                 ? <img src={photoURL} alt="avatar" className="size-full object-cover" />
-                : <span className="text-sm font-bold text-primary">{initials}</span>
+                : <span className="text-xs font-bold text-primary">{initials}</span>
               }
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold truncate">{displayName}</p>
-                <p className="text-[10px] font-mono text-primary font-medium truncate">@{username || (email ? email.split("@")[0] : "user")}</p>
+                <p className="text-xs font-semibold truncate text-sidebar-foreground">{displayName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">@{username || (email ? email.split("@")[0] : "user")}</p>
               </div>
             )}
           </Link>
-          {!collapsed && (
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-              {streak > 0 && (
-                <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                  <Flame className="size-3 animate-streak" />{streak}d
-                </span>
-              )}
-              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <Cloud className="size-3" />
-                {lastSynced ? new Date(lastSynced).toLocaleTimeString() : "—"}
-              </span>
-              <div className="ml-auto"><ThemeToggle /></div>
-            </div>
-          )}
+
+          {/* Collapse toggle (when expanded, shown if not already in header) */}
           {collapsed && (
-            <div className="mt-2 flex flex-col items-center gap-1">
-              {streak > 0 && <span className="text-[10px] font-bold text-primary flex items-center gap-0.5"><Flame className="size-3" />{streak}</span>}
-              <ThemeToggle />
-            </div>
+            <button
+              onClick={onToggleCollapse}
+              className="flex w-full items-center justify-center p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+            >
+              <ChevronRight className="size-4" />
+            </button>
           )}
         </div>
 
-        {/* Nav links */}
-        <nav aria-label="Sidebar navigation" className="flex-1 overflow-y-auto py-2 px-2">
-          <ul className="space-y-0.5">
-            {NAV.map((n) => {
-              const isActive = pathname.startsWith(n.to);
-              return (
-                <li key={n.to}>
-                  <Link
-                    href={n.to}
-                    aria-current={isActive ? "page" : undefined}
-                    title={collapsed ? n.label : undefined}
-                    className={cn(
-                      "group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium transition-all duration-150",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                    )}
-                  >
-                    <n.icon className={cn("size-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
-                    {!collapsed && <span className="truncate flex-1">{n.label}</span>}
-                    {!collapsed && n.to === "/today" && paused && (
-                      <span className="ml-auto rounded-full bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 text-[9px] font-mono font-bold text-amber-400">
-                        Paused
-                      </span>
-                    )}
-                    {!collapsed && isActive && (!paused || n.to !== "/today") && <span className="ml-auto size-1.5 rounded-full bg-primary shrink-0" />}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        {/* Footer */}
-        <div className="border-t border-border px-2 py-2 space-y-0.5 shrink-0">
-          <button
-            onClick={openPanel}
-            title="Customize Color & Font"
-            className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-          >
-            <Palette className="size-3.5 shrink-0" />
-            {!collapsed && <span>Customize Color & Font</span>}
-          </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
-                <CircleUser className="size-3.5 shrink-0" />
-                {!collapsed && <><span>Account</span><ChevronRight className="size-3 ml-auto" /></>}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="end" className="w-56">
-              <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">{email}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={username ? `/profile/${username}` : "/profile"}>
-                  <Globe className="mr-2 size-4 text-primary" /> Public Portfolio (@{username || "you"})
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/progress"><Flame className="mr-2 size-4 text-orange-500" /> Progress</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/today"><Sparkles className="mr-2 size-4" /> Today's Workspace</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={onSignOut} className="text-destructive focus:text-destructive">
-                <LogOut className="mr-2 size-4" /> Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {!collapsed && (
-            <div className="pt-2 px-1 text-[10px] text-muted-foreground/75 leading-tight select-none border-t border-border/30 mt-1">
-              <p>
-                Created by{" "}
-                <a
-                  href="https://pbmnaiduportfolio.vercel.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground font-semibold hover:text-primary underline decoration-primary decoration-1 underline-offset-2 transition-colors cursor-pointer"
-                  title="Visit Bhanu's Portfolio"
-                >
-                  Bhanu
-                </a>
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Drag handle — rounded pill on right edge */}
-      <div
-        onMouseDown={onMouseDown}
-        title="Drag to resize sidebar"
-        className={cn(
-          "absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 z-40",
-          "flex items-center justify-center",
-          "w-4 h-10 rounded-full border border-border bg-card shadow-md",
-          "cursor-col-resize hover:bg-primary/10 hover:border-primary/40 transition-colors group",
+        {/* Attribution */}
+        {!collapsed && (
+          <div className="px-3 pb-3 text-[10px] text-muted-foreground/50 leading-tight select-none">
+            <p>
+              Created by{" "}
+              <a
+                href="https://pbmnaiduportfolio.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground/60 font-medium hover:text-primary underline decoration-primary/30 underline-offset-2 transition-colors cursor-pointer"
+                title="Visit Bhanu's Portfolio"
+              >
+                Bhanu
+              </a>
+            </p>
+          </div>
         )}
-      >
-        <GripVertical className="size-3 text-muted-foreground group-hover:text-primary" />
       </div>
-
-      {/* Corner decorations — small rounded blobs on sidebar corners */}
-      <div className="absolute top-0 right-0 size-3 rounded-bl-xl border-b border-l border-border bg-background pointer-events-none" />
-      <div className="absolute bottom-0 right-0 size-3 rounded-tl-xl border-t border-l border-border bg-background pointer-events-none" />
     </aside>
   );
 }
 
-// ─── Mobile Drawer ─────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════
+   Mobile Drawer — Full navigation (swipe from left edge)
+   ═══════════════════════════════════════════════════════════════════════ */
 function MobileDrawer({
   open, onClose, pathname, email, streak, lastSynced, displayName, initials, photoURL, username, onSignOut, paused,
 }: {
@@ -308,142 +312,139 @@ function MobileDrawer({
   paused?: boolean;
 }) {
   const { openPanel } = useThemeCustomizer();
+
   return (
     <>
+      {/* Backdrop */}
       <div
-        className={cn("fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden",
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}
-        aria-hidden="true" onClick={onClose}
+        className={cn(
+          "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:hidden",
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        aria-hidden="true"
+        onClick={onClose}
       />
+
+      {/* Drawer panel */}
       <aside
         aria-label="Navigation drawer"
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-[280px] flex flex-col",
-          "bg-card border-r border-border rounded-r-2xl shadow-2xl",
+          "fixed top-0 left-0 z-50 h-full w-[300px] flex flex-col",
+          "bg-card border-r border-border shadow-2xl",
           "transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        {/* Identity header */}
-        <div className="relative bg-gradient-to-br from-primary/20 via-primary/5 to-transparent border-b border-border px-5 pt-10 pb-5 rounded-tr-2xl">
-          <button onClick={onClose} aria-label="Close navigation"
-            className="absolute top-4 right-4 rounded-full p-1.5 text-muted-foreground hover:bg-secondary transition-colors">
+        {/* Header — user identity */}
+        <div className="relative border-b border-border px-5 pt-12 pb-5">
+          <button
+            onClick={onClose}
+            aria-label="Close navigation"
+            className="absolute top-4 right-4 rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
             <X className="size-4" />
           </button>
-          <Link
-            href="/profile"
-            onClick={onClose}
-            title="View your profile"
-            className="flex items-center gap-3 rounded-xl -mx-1 px-1 py-1 transition-colors hover:bg-white/5"
-          >
-            <div className="size-12 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
-              {photoURL ? <img src={photoURL} alt="avatar" className="size-full object-cover" /> : <span className="text-lg font-bold text-primary">{initials}</span>}
+
+          <Link href="/profile" onClick={onClose} className="flex items-center gap-3">
+            <div className="size-11 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+              {photoURL
+                ? <img src={photoURL} alt="avatar" className="size-full object-cover" />
+                : <span className="text-base font-bold text-primary">{initials}</span>
+              }
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-sm truncate text-foreground">{displayName}</p>
-              <p className="text-[11px] font-mono text-primary font-medium truncate">@{username || (email ? email.split("@")[0] : "user")}</p>
+              <p className="font-semibold text-sm truncate">{displayName}</p>
+              <p className="text-[11px] text-muted-foreground truncate">@{username || (email ? email.split("@")[0] : "user")}</p>
             </div>
           </Link>
-          <div className="mt-3.5 flex flex-wrap items-center gap-2">
+
+          {/* Streak + theme row */}
+          <div className="mt-3 flex items-center gap-2">
             {streak > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
-                <Flame className="size-3.5 animate-streak" />{streak} day streak
+              <span className="flex items-center gap-1 rounded-full bg-[var(--streak)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--streak)]">
+                <Flame className="size-3.5 animate-streak" />{streak}d
               </span>
             )}
-            <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
-              <Cloud className="size-3" />{lastSynced ? new Date(lastSynced).toLocaleTimeString() : "Not synced"}
-            </span>
             <div className="ml-auto flex items-center gap-1">
               <ThemeToggle />
-              <Link href="/profile" onClick={onClose} className="rounded-full p-1.5 text-muted-foreground hover:bg-secondary transition-colors" aria-label="Profile">
-                <UserCircle2 className="size-5" />
-              </Link>
             </div>
           </div>
         </div>
 
-        <div className="px-4 py-2 border-b border-border bg-muted/30">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Navigation</p>
-        </div>
-
-        <nav aria-label="Drawer navigation" className="flex-1 overflow-y-auto py-2 px-2">
-          <ul className="space-y-0.5">
-            {NAV.map((n) => {
-              const isActive = pathname.startsWith(n.to);
-              return (
-                <li key={n.to}>
-                  <Link href={n.to} onClick={onClose}
-                    className={cn("group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all",
-                      isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}>
-                    <div className={cn("shrink-0 flex items-center justify-center rounded-lg size-8",
-                      isActive ? "bg-primary/15" : "bg-muted/60")}>
-                      <n.icon className={cn("size-4", isActive ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className={cn("text-sm font-medium", isActive && "font-semibold text-primary")}>{n.label}</p>
-                        {n.to === "/today" && paused && (
-                          <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 text-[9px] font-mono font-bold text-amber-400">
-                            Paused
-                          </span>
+        {/* Nav links grouped */}
+        <nav aria-label="Drawer navigation" className="flex-1 overflow-y-auto py-3 px-3">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.key} className="mb-4">
+              <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
+                {group.label}
+              </p>
+              <ul className="space-y-0.5">
+                {group.items.map((n) => {
+                  const isActive = pathname.startsWith(n.to);
+                  return (
+                    <li key={n.to}>
+                      <Link
+                        href={n.to}
+                        onClick={onClose}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-2.5 py-2.5 transition-all",
+                          isActive
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-foreground/70 hover:bg-accent hover:text-foreground",
                         )}
-                      </div>
-                      <p className="text-[10px] opacity-60 line-clamp-1 mt-0.5">{n.hint}</p>
-                    </div>
-                    {isActive && <span className="shrink-0 size-1.5 rounded-full bg-primary" />}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                      >
+                        <n.icon className={cn("size-[18px] shrink-0", isActive ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">{n.label}</span>
+                            {n.to === "/today" && paused && (
+                              <span className="rounded-full bg-warning/15 border border-warning/30 px-1.5 py-0.5 text-[9px] font-mono font-bold text-warning">
+                                Paused
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground/60 line-clamp-1 mt-0.5">{n.hint}</p>
+                        </div>
+                        {isActive && <span className="shrink-0 size-1.5 rounded-full bg-primary" />}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
-        <div className="border-t border-border px-3 py-3 space-y-0.5 rounded-br-2xl shrink-0">
-          <button onClick={() => { openPanel(); onClose(); }}
-            className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
-            <Palette className="size-3.5 shrink-0" />
-            <span>Customize Color & Font</span>
+        {/* Footer */}
+        <div className="border-t border-border px-3 py-3 space-y-1 shrink-0">
+          <button
+            onClick={() => { openPanel(); onClose(); }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
+            <Palette className="size-4 shrink-0" />
+            <span>Customize Theme</span>
           </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
-                <CircleUser className="size-3.5 shrink-0" />
-                <span>Account</span><ChevronRight className="size-3 ml-auto" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="end" className="w-56">
-              <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">{email}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={username ? `/profile/${username}` : "/profile"} onClick={onClose}>
-                  <Globe className="mr-2 size-4 text-primary" /> Public Portfolio (@{username || "you"})
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/progress" onClick={onClose}><Flame className="mr-2 size-4 text-orange-500" /> Progress</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/profile" onClick={onClose}><UserCircle2 className="mr-2 size-4" /> Profile</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/settings" onClick={onClose}><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={onSignOut} className="text-destructive focus:text-destructive">
-                <LogOut className="mr-2 size-4" /> Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
-          <div className="pt-2.5 px-1 border-t border-border/40 text-[10px] text-muted-foreground/80 leading-tight select-none mt-1">
-            <p className="font-semibold text-foreground">
+          <button
+            onClick={onSignOut}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="size-4 shrink-0" />
+            <span>Log Out</span>
+          </button>
+
+          <div className="pt-2 px-1 text-[10px] text-muted-foreground/50 leading-tight select-none">
+            <p>
               Created by{" "}
               <a
                 href="https://pbmnaiduportfolio.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary underline decoration-primary decoration-1 underline-offset-2 transition-colors cursor-pointer"
+                className="text-foreground/60 font-medium hover:text-primary underline decoration-primary/30 underline-offset-2 transition-colors cursor-pointer"
                 title="Visit Bhanu's Portfolio"
               >
                 Bhanu
               </a>
-            </p>
-            <p className="text-[9px] text-muted-foreground/70 leading-tight mt-0.5">
-              🚀 DSA404 — a platform to help students organize and stay consistent with their DSA preparation.
             </p>
           </div>
         </div>
@@ -452,11 +453,12 @@ function MobileDrawer({
   );
 }
 
-// ─── AppShell ─────────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════
+   AppShell — Main application layout wrapper
+   ═══════════════════════════════════════════════════════════════════════ */
 export function AppShell({ email, children }: { email: string; children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [sidebarHidden, setSidebarHidden] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { lastSynced, days } = usePlan();
   const { settings } = useSettings();
   const { user } = useAuth();
@@ -469,6 +471,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
   const [username, setUsername] = useState<string>("");
 
+  // Load user profile data (preserved from original)
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
@@ -490,23 +493,31 @@ export function AppShell({ email, children }: { email: string; children: React.R
   const initials = displayName[0]?.toUpperCase() ?? "?";
   const photoURL = user?.photoURL;
 
-  // Load persisted sidebar width
+  // Load persisted sidebar state
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-      if (saved) setSidebarWidth(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, Number(saved))));
+      if (saved) {
+        const w = Number(saved);
+        setSidebarCollapsed(w <= 80);
+      }
     } catch { }
   }, []);
 
-  const handleSidebarWidth = useCallback((w: number) => {
-    setSidebarWidth(w);
-    try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(w)); } catch { }
+  const handleToggleCollapse = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED));
+      } catch { }
+      return next;
+    });
   }, []);
 
   // Close drawer on route change
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
 
-  // Swipe-to-open drawer (mobile)
+  // Swipe-to-open drawer (mobile) — preserved from original
   useEffect(() => {
     let startX = 0, startY = 0;
     const onTouchStart = (e: TouchEvent) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; };
@@ -529,16 +540,13 @@ export function AppShell({ email, children }: { email: string; children: React.R
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
-  // Auto popup for linking GitHub repository on initial start/data load (checks Cloud DB first across devices)
+  // Auto popup for linking GitHub repository on initial start (preserved from original)
   useEffect(() => {
     if (!user?.uid || isGuestMode()) return;
     let isCancelled = false;
 
     (async () => {
-      // 1. Check local storage
       let cfg = getLocalGitHubSyncConfig(user.uid);
-
-      // 2. If not configured in local storage (e.g. new device/browser), check cloud Firestore first
       if (!cfg?.token || !cfg?.repo) {
         try {
           const cloudCfg = await loadCloudGitHubSyncConfig(user.uid);
@@ -554,7 +562,6 @@ export function AppShell({ email, children }: { email: string; children: React.R
       const dismissedLocal = cfg?.autoPromptDismissed;
       const isConfigured = Boolean(cfg?.token && cfg?.repo);
 
-      // Only trigger linking popup on startup if genuinely NOT configured in cloud/local AND not dismissed
       if (!isConfigured && !dismissedSession && !dismissedLocal) {
         const timer = setTimeout(() => {
           if (!isCancelled) setGithubModalOpen(true);
@@ -568,13 +575,14 @@ export function AppShell({ email, children }: { email: string; children: React.R
     };
   }, [user?.uid]);
 
-  // Global listener to open GitHub sync modal from anywhere
+  // Global listener to open GitHub sync modal from anywhere (preserved)
   useEffect(() => {
     const handleOpen = () => setGithubModalOpen(true);
     window.addEventListener("open-github-sync", handleOpen);
     return () => window.removeEventListener("open-github-sync", handleOpen);
   }, []);
 
+  // Ctrl+K global search shortcut (preserved)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -588,6 +596,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
   const activeNav = NAV.find((n) => pathname.startsWith(n.to)) ?? NAV[0];
 
+  // Sign out logic (preserved)
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -606,174 +615,161 @@ export function AppShell({ email, children }: { email: string; children: React.R
     paused: settings.paused,
   };
 
+  const sidebarWidth = sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
+
   return (
     <TooltipProvider delayDuration={200}>
       {/* Desktop sidebar */}
-      {!sidebarHidden && (
-        <DesktopSidebar {...sharedProps} width={sidebarWidth} onWidthChange={handleSidebarWidth} />
-      )}
+      <DesktopSidebar
+        {...sharedProps}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={handleToggleCollapse}
+      />
 
       {/* Mobile drawer */}
       <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} {...sharedProps} />
 
       {/* Page layout — shifts right by sidebar width on desktop */}
-      <div
-        className="min-h-screen w-full max-w-full overflow-x-hidden bg-background transition-[padding] duration-200"
-      >
-        {/* ─ Outer wrapper shifts right on desktop ─ */}
+      <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background">
         <div
           className="md:transition-[padding] md:duration-200 md:pl-[var(--sidebar-w)]"
-          style={{ ['--sidebar-w' as string]: sidebarHidden ? '0px' : `${sidebarWidth}px` } as React.CSSProperties}
+          style={{ ['--sidebar-w' as string]: `${sidebarWidth}px` } as React.CSSProperties}
         >
 
-          {/* Mobile-only top header */}
-          <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur md:hidden">
-            <div className="flex items-center gap-2 px-4 py-3">
-              <button onClick={() => setDrawerOpen((v) => !v)} aria-label="Open navigation" aria-expanded={drawerOpen}
-                className="flex shrink-0 items-center justify-center size-9 rounded-xl border border-border bg-secondary/60 transition-colors hover:bg-secondary">
-                <Menu className="size-5" />
+          {/* Mobile top header */}
+          <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-lg md:hidden">
+            <div className="flex items-center gap-2.5 px-4 h-14">
+              {/* Menu button */}
+              <button
+                onClick={() => setDrawerOpen((v) => !v)}
+                aria-label="Open navigation"
+                aria-expanded={drawerOpen}
+                className="flex shrink-0 items-center justify-center size-9 rounded-lg border border-border bg-card transition-colors hover:bg-accent"
+              >
+                <Menu className="size-5 text-foreground" />
               </button>
-              <button onClick={() => setDrawerOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary border border-primary/20">
-                <activeNav.icon className="size-3.5 shrink-0" />
-                <span>{activeNav.label}</span>
-              </button>
-              <Link href="/today" className="ml-2 flex items-center gap-2">
-                <div className="size-6 rounded-full overflow-hidden border border-border/80 shadow-sm ring-1 ring-primary/20 bg-background shrink-0">
+
+              {/* Brand */}
+              <Link href="/today" className="flex items-center gap-1.5">
+                <div className="size-6 rounded-md overflow-hidden border border-border/60 bg-background shrink-0">
                   <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
                 </div>
-                <div className="font-display font-black tracking-tighter text-[20px] leading-none flex items-baseline select-none">
-                  <span className="bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent drop-shadow-sm">DSA</span>
-                  <span className="bg-gradient-to-br from-primary to-orange-500 bg-clip-text text-transparent drop-shadow-sm ml-[1px]">⁴⁰⁴</span>
-                </div>
+                <span className="font-display font-black tracking-tight text-base leading-none">
+                  DSA<span className="text-primary">⁴⁰⁴</span>
+                </span>
               </Link>
-              <div className="ml-auto flex items-center gap-1">
+
+              {/* Right side controls */}
+              <div className="ml-auto flex items-center gap-1.5">
                 {streak > 0 && (
-                  <span className="hidden items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary xs:flex">
+                  <span className="flex items-center gap-1 rounded-full bg-[var(--streak)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--streak)]">
                     <Flame className="size-3.5 animate-streak" />{streak}
                   </span>
                 )}
+
+                {/* Notification bell */}
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen(true)}
-                  className="relative flex items-center justify-center size-8 rounded-lg border border-border bg-secondary/60 hover:bg-secondary text-foreground transition-all cursor-pointer shrink-0"
-                  title="Notifications & Alerts"
+                  className="relative flex items-center justify-center size-8 rounded-lg border border-border bg-card hover:bg-accent transition-colors"
+                  title="Notifications"
                   aria-label="Open notifications panel"
                 >
                   <Bell className="size-4 text-muted-foreground" />
                   {unreadNotifCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground animate-pulse">
+                    <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                       {unreadNotifCount}
                     </span>
                   )}
                 </button>
+
                 <ThemeToggle />
+
+                {/* Account dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Account menu"><CircleUser className="size-5" /></Button>
+                    <Button variant="ghost" size="icon" aria-label="Account menu" className="size-8">
+                      <CircleUser className="size-5 text-muted-foreground" />
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">{email}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href={username ? `/profile/${username}` : "/profile"}>
-                        <Globe className="mr-2 size-4 text-primary" /> Public Portfolio (@{username || "you"})
+                        <Globe className="mr-2 size-4 text-primary" /> Public Portfolio
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/progress"><Flame className="mr-2 size-4 text-orange-500" /> Progress</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/today"><Sparkles className="mr-2 size-4" /> Today's Workspace</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/progress"><BarChart3 className="mr-2 size-4 text-[var(--streak)]" /> Progress</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setGithubModalOpen(true)}>
-                      <FolderGit2 className="mr-2 size-4 text-emerald-500" /> Link GitHub Repo (Auto-Sync)
+                      <FolderGit2 className="mr-2 size-4 text-[var(--success)]" /> GitHub Sync
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => openPanel()}><Palette className="mr-2 size-4" /> Customize Color & Font</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => openPanel()}><Palette className="mr-2 size-4" /> Customize Theme</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">Log out</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">
+                      <LogOut className="mr-2 size-4" /> Log out
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
           </header>
 
-          {/* Desktop context ribbon — same height as header (~52px), shows active page hint */}
-          <div className="hidden md:flex sticky top-0 z-20 items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-6 py-3 min-h-[52px]">
-            {/* Menu toggle button for Desktop Sidebar — collapses to icon-only mode instead of hiding */}
-            <button
-              onClick={() => {
-                if (sidebarHidden) {
-                  setSidebarHidden(false);
-                  handleSidebarWidth(SIDEBAR_DEFAULT);
-                } else if (sidebarWidth <= 80) {
-                  handleSidebarWidth(SIDEBAR_DEFAULT);
-                } else {
-                  handleSidebarWidth(64);
-                }
-              }}
-              className="flex items-center justify-center p-2 rounded-xl border border-border bg-secondary/50 hover:bg-secondary text-foreground transition-colors shrink-0"
-              title={sidebarWidth <= 80 || sidebarHidden ? "Expand sidebar" : "Collapse sidebar to icons"}
-              aria-label="Toggle sidebar collapse"
-            >
-              <Menu className="size-4" />
-            </button>
-
+          {/* Desktop context header */}
+          <div className="hidden md:flex sticky top-0 z-20 items-center gap-3 border-b border-border bg-background/95 backdrop-blur-lg px-6 h-14">
+            {/* Page context */}
             <div className="flex items-center gap-2 min-w-0">
               <activeNav.icon className="size-4 text-primary shrink-0" aria-hidden="true" />
-              <span className="font-semibold text-sm text-foreground">{activeNav.label}</span>
-              <span className="hidden lg:inline text-muted-foreground mx-1.5">·</span>
-              <span className="hidden lg:block text-xs text-muted-foreground truncate leading-snug">{activeNav.hint}</span>
+              <span className="font-semibold text-sm">{activeNav.label}</span>
+              <span className="hidden lg:inline text-muted-foreground/40 mx-1">·</span>
+              <span className="hidden lg:block text-xs text-muted-foreground truncate">{activeNav.hint}</span>
             </div>
 
-            {/* Top Center Global Search Trigger */}
-            <div className="flex-1 flex justify-center max-w-xs lg:max-w-md mx-auto px-2">
+            {/* Center search trigger */}
+            <div className="flex-1 flex justify-center max-w-xs lg:max-w-sm mx-auto px-2">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-secondary/60 hover:bg-secondary px-3.5 py-1.5 text-xs text-muted-foreground transition-all w-full shadow-inner group"
-                title="Search topics, problems, pages, keywords (Ctrl+K)"
+                className="flex items-center gap-2 rounded-lg border border-border bg-card hover:bg-accent px-3.5 py-1.5 text-xs text-muted-foreground transition-all w-full group"
+                title="Search topics, problems, pages (Ctrl+K)"
+                aria-label="Open search"
               >
                 <Search className="size-3.5 text-primary group-hover:scale-110 transition-transform shrink-0" />
-                <span className="truncate flex-1 text-left">Search topics, problems, pages...</span>
-                <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-white/10 bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground shrink-0">
-                  Ctrl K
+                <span className="truncate flex-1 text-left">Search problems, topics...</span>
+                <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground shrink-0">
+                  ⌘K
                 </kbd>
               </button>
             </div>
 
-            {/* Right side desktop controls */}
+            {/* Right controls */}
             <div className="ml-auto flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => openInApp("https://www.codechef.com/ide", "CodeChef IDE")}
-                className="hidden xl:inline-flex items-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-bold px-3 py-1 text-xs transition-colors shadow-xs cursor-pointer"
-                title="Open CodeChef IDE Compiler (https://www.codechef.com/ide)"
-              >
-                <span>👨‍🍳 CodeChef IDE</span>
-              </button>
-
               {streak > 0 && (
-                <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                <span className="flex items-center gap-1 rounded-full bg-[var(--streak)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--streak)]">
                   <Flame className="size-3.5 animate-streak" />{streak}
                 </span>
               )}
 
-              {/* Notification Bell Button (Top Right) */}
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(true)}
-                className="relative flex items-center justify-center size-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-foreground transition-all cursor-pointer shadow-xs group shrink-0"
-                title="Notifications & Alerts"
+                className="relative flex items-center justify-center size-9 rounded-lg border border-border bg-card hover:bg-accent transition-all group"
+                title="Notifications"
                 aria-label="Open notifications panel"
               >
                 <Bell className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 {unreadNotifCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm animate-pulse">
+                  <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {unreadNotifCount}
                   </span>
                 )}
               </button>
+
               <span className="hidden xl:flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Cloud className="size-3.5" />
-                {lastSynced ? `Synced ${new Date(lastSynced).toLocaleTimeString()}` : "Not synced yet"}
+                {lastSynced ? `Synced ${new Date(lastSynced).toLocaleTimeString()}` : "Not synced"}
               </span>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Account menu"><CircleUser className="size-5" /></Button>
@@ -782,13 +778,13 @@ export function AppShell({ email, children }: { email: string; children: React.R
                   <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">{email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={() => openInApp("https://www.codechef.com/ide", "CodeChef IDE")}>
-                    <Code2 className="mr-2 size-4 text-orange-500" /> Open CodeChef IDE
+                    <Code2 className="mr-2 size-4 text-[var(--streak)]" /> Open CodeChef IDE
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/progress"><Flame className="mr-2 size-4 text-orange-500" /> Progress</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/today"><Sparkles className="mr-2 size-4" /> Today's Workspace</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/progress"><BarChart3 className="mr-2 size-4 text-[var(--streak)]" /> Progress</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/today"><Sparkles className="mr-2 size-4" /> Today</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => setGithubModalOpen(true)}>
-                    <FolderGit2 className="mr-2 size-4 text-emerald-500" /> Link GitHub Repo (Auto-Sync)
+                    <FolderGit2 className="mr-2 size-4 text-[var(--success)]" /> GitHub Sync
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">Log out</DropdownMenuItem>
@@ -799,19 +795,19 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
           {/* Pause banner */}
           {settings.paused && (
-            <div role="status" className="border-b border-amber-500/40 bg-amber-500/10">
-              <div className="flex flex-wrap items-center gap-2 px-4 py-2 text-sm text-amber-300">
-                <PauseCircle className="size-4 shrink-0 text-amber-400" />
+            <div role="status" className="border-b border-warning/30 bg-warning/5">
+              <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm text-warning">
+                <PauseCircle className="size-4 shrink-0" />
                 <span>Preparation paused since {formatDate(settings.pausedFrom ?? "")}. Your daily workspace is held at the paused day.</span>
-                <Link href="/today" className="ml-auto font-semibold underline underline-offset-4 text-amber-400 hover:text-amber-200">
-                  View Paused Day / Resume
+                <Link href="/today" className="ml-auto font-semibold underline underline-offset-4 hover:text-foreground transition-colors">
+                  Resume →
                 </Link>
               </div>
             </div>
           )}
 
           {/* Main content */}
-          <main className="w-full min-w-0 px-4 pb-24 pt-6 md:pb-8 md:px-6">
+          <main className="w-full min-w-0 px-4 pb-24 pt-6 md:pb-8 md:px-6 lg:px-8">
             <DemoHelperBanner />
             {children}
           </main>
@@ -819,49 +815,53 @@ export function AppShell({ email, children }: { email: string; children: React.R
           {/* Theme customizer */}
           <ThemeCustomizerPanel />
 
-          {/* Mobile bottom bar — Search in Center (Mobile View Only) */}
-          <nav aria-label="Quick navigation"
-            className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-background/95 backdrop-blur-2xl md:hidden py-1 px-2 shadow-2xl">
-            <ul className="grid grid-cols-5 items-center">
-              <li>
-                <Link href="/today" className={cn("flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors", pathname === "/today" ? "text-primary font-bold" : "text-muted-foreground")}>
-                  <Sparkles className="size-4.5" />
-                  <span>{settings.paused ? "Today (Paused)" : "Today's Workspace"}</span>
-                </Link>
-              </li>
+          {/* Mobile bottom navigation — 5 items with center search */}
+          <nav
+            aria-label="Quick navigation"
+            className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl md:hidden safe-area-pb"
+          >
+            <ul className="grid grid-cols-5 items-center h-14">
+              {MOBILE_BOTTOM.slice(0, 2).map((n) => (
+                <li key={n.to}>
+                  <Link
+                    href={n.to}
+                    className={cn(
+                      "flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors",
+                      pathname.startsWith(n.to) ? "text-primary font-semibold" : "text-muted-foreground",
+                    )}
+                  >
+                    <n.icon className="size-5" />
+                    <span>{n.label}</span>
+                  </Link>
+                </li>
+              ))}
 
-              <li>
-                <Link href="/problems" className={cn("flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors", pathname === "/problems" ? "text-primary font-bold" : "text-muted-foreground")}>
-                  <Code2 className="size-4.5" />
-                  <span>Problems</span>
-                </Link>
-              </li>
-
-              {/* Center Mobile Search Button */}
+              {/* Center search button */}
               <li className="flex justify-center">
                 <button
                   onClick={() => setSearchOpen(true)}
-                  className="flex flex-col items-center justify-center size-10 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-                  title="Search anything (Ctrl+K)"
+                  className="flex items-center justify-center size-11 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 active:scale-95 transition-transform"
+                  title="Search (Ctrl+K)"
                   aria-label="Open search"
                 >
                   <Search className="size-5" />
                 </button>
               </li>
 
-              <li>
-                <Link href="/topics" className={cn("flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors", pathname === "/topics" ? "text-primary font-bold" : "text-muted-foreground")}>
-                  <LayoutGrid className="size-4.5" />
-                  <span>Topics</span>
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/settings" className={cn("flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors", pathname === "/settings" ? "text-primary font-bold" : "text-muted-foreground")}>
-                  <Settings className="size-4.5" />
-                  <span>Settings</span>
-                </Link>
-              </li>
+              {MOBILE_BOTTOM.slice(2).map((n) => (
+                <li key={n.to}>
+                  <Link
+                    href={n.to}
+                    className={cn(
+                      "flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors",
+                      pathname.startsWith(n.to) ? "text-primary font-semibold" : "text-muted-foreground",
+                    )}
+                  >
+                    <n.icon className="size-5" />
+                    <span>{n.label}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
         </div>
@@ -870,7 +870,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
       {/* Global Command Search Modal */}
       <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} onOpenColorPanel={openPanel} />
 
-      {/* GitHub Repository Link & Auto-Sync Modal (Startup Popup & On-Demand) */}
+      {/* GitHub Repository Link & Auto-Sync Modal */}
       <GitHubRepoLinkModal
         open={githubModalOpen}
         onOpenChange={setGithubModalOpen}
