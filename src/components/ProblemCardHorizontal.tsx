@@ -113,7 +113,7 @@ export function ProblemCardHorizontal({
     <>
       <div
         className={cn(
-          "group relative flex flex-col justify-between rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl w-full select-none min-h-[170px]",
+          "group relative flex min-w-0 w-full flex-col justify-between overflow-hidden rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl select-none min-h-[170px]",
           problem.done
             ? "border-emerald-500/50 bg-emerald-500/5 shadow-md shadow-emerald-500/10 dark:border-emerald-500/40"
             : "border-border/90 dark:border-white/35 bg-card/90 dark:bg-card/80 shadow-sm hover:border-primary/80 dark:hover:border-primary hover:shadow-xl"
@@ -121,8 +121,8 @@ export function ProblemCardHorizontal({
       >
 
         {/* Card Header: Badges & Actions */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex min-w-0 items-start justify-between gap-2 mb-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
             {(() => {
               const displayPlat = problem.platform === "GFG" ? "GeeksforGeeks" : problem.platform;
               return (
@@ -151,7 +151,7 @@ export function ProblemCardHorizontal({
             )}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             {onSkip && !readOnly && (
               <ThemedTooltip hint="Skip problem — moves this problem to tomorrow's plan">
                 <button
@@ -220,8 +220,8 @@ export function ProblemCardHorizontal({
         </div>
 
         {/* Card Footer: Links Dropdown & Action Buttons */}
-        <div className="flex items-center justify-between gap-1 pt-3 border-t border-border/80 dark:border-white/15 text-xs">
-          <div className="flex items-center gap-1">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 pt-3 border-t border-border/80 dark:border-white/15 text-xs">
+          <div className="flex shrink-0 items-center gap-1">
             {/* Links Dropdown Button */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -301,7 +301,7 @@ export function ProblemCardHorizontal({
             </DropdownMenu>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
             <ThemedTooltip hint={hasSubmission ? "View or edit stored code solution" : "Submit code solution to mark completed"}>
               <button
                 onClick={() => setCodeModalOpen(true)}

@@ -108,14 +108,15 @@ export function UnifiedProfileDashboard({
   const selectedProfile = selectedPlatform !== "all" ? fetchedData[selectedPlatform] : null;
   const selectedMeta = PLATFORM_META[selectedPlatform];
 
-  const handleRefresh = async () => {
-    const targets = selectedPlatform === "all"
+  const handleRefresh = async (platformOverride?: string) => {
+    const targetPlatform = platformOverride ?? selectedPlatform;
+    const targets = targetPlatform === "all"
       ? activeProfiles.map(([platform]) => ({
           platform: platform as PlatformId,
           username: connectedProfiles[platform],
         }))
-      : connectedProfiles[selectedPlatform]
-        ? [{ platform: selectedPlatform as PlatformId, username: connectedProfiles[selectedPlatform] }]
+      : connectedProfiles[targetPlatform]
+        ? [{ platform: targetPlatform as PlatformId, username: connectedProfiles[targetPlatform] }]
         : [];
 
     if (targets.length === 0) return;
@@ -125,13 +126,11 @@ export function UnifiedProfileDashboard({
       const refreshed = await fetchBatchProfilesApi(targets, true);
       const nextStats = { ...fetchedData, ...refreshed };
       setFetchedData(nextStats);
-      if (userId) {
-        await savePlatformStats(userId, nextStats);
-      }
+      if (userId) await savePlatformStats(userId, nextStats);
       toast.success(
-        selectedPlatform === "all"
+        targetPlatform === "all"
           ? "All platform analytics refreshed"
-          : `${selectedMeta?.name || selectedPlatform} analytics refreshed`
+          : `${PLATFORM_META[targetPlatform]?.name || targetPlatform} analytics refreshed`
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to refresh platform analytics");
@@ -201,13 +200,17 @@ export function UnifiedProfileDashboard({
           type="button"
           variant="outline"
           size="sm"
-          onClick={handleRefresh}
+          onClick={() => void handleRefresh()}
           disabled={loading}
           className="w-full shrink-0 gap-2 sm:w-auto"
-          title={selectedPlatform === "all" ? "Refresh all connected platforms" : `Refresh ${selectedMeta?.name || selectedPlatform}`}
+          aria-label={selectedPlatform === "all" ? "Refresh all platform analytics" : `Refresh ${selectedMeta?.name || selectedPlatform} analytics`}
         >
           <RefreshCw className={cn("size-4", loading && "animate-spin")} />
-          {loading ? "Refreshing..." : "Refresh analytics"}
+          {loading
+            ? "Refreshing..."
+            : selectedPlatform === "all"
+              ? "Refresh all"
+              : `Refresh ${selectedMeta?.name || "platform"}`}
         </Button>
       </div>
 

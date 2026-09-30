@@ -19,6 +19,7 @@ import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
 import { computeBadges, currentStreak } from "@/lib/gamification";
 import { DayDetail } from "@/components/DayDetail";
 import { TodayContestsSection } from "@/components/ContestsSection";
+import { TodayMissionOrbit } from "@/components/TodayMissionOrbit";
 import { CodeModal } from "@/components/CodeModal";
 import {
   getInactivityDays,
@@ -471,7 +472,7 @@ export function MergedTodayProfile() {
         {/* ── MISSION HERO ── */}
         <header className="space-y-4 pt-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <div className="space-y-2">
+            <div className="space-y-2 flex-1">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
                 <Target className="size-3.5" />
                 <span>Today's Mission</span>
@@ -485,7 +486,19 @@ export function MergedTodayProfile() {
               </p>
             </div>
 
-            <div className="flex flex-col items-end gap-3 shrink-0">
+            
+            <div className="hidden sm:flex flex-1 items-center justify-end pr-8 xl:pr-16 pointer-events-auto">
+              <TodayMissionOrbit 
+                topic={sanitizedDay?.topic}
+                solvedCount={sanitizedDay?.problems?.filter(p => p.done).length}
+                totalCount={sanitizedDay?.problems?.length}
+                streakCount={streakCount}
+                totalSolved={stats.total}
+              />
+            </div>
+
+            <div className="flex flex-col items-end gap-3 shrink-0 z-10">
+
               <div className={cn(
                 "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-bold shadow-sm transition-all",
                 streakCount > 0

@@ -382,10 +382,10 @@ export function DayDetail({
 
       {!hideHeader && headerCard}
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,0.35fr)_minmax(0,0.65fr)]">
         
         {/* ── LEFT COLUMN: Context & Checklists ── */}
-        <aside className="xl:col-span-6 space-y-6">
+        <aside className="min-w-0 space-y-6">
           
           {/* Reduced Height Completion Checklist UI */}
           <section aria-label="Daily checklist" className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
@@ -441,7 +441,7 @@ export function DayDetail({
         </aside>
 
         {/* ── RIGHT COLUMN: Workspace (Problems & Contests) ── */}
-        <main className="xl:col-span-6 space-y-6 min-w-0">
+        <main className="min-w-0 space-y-6">
           
           <section
             aria-label="Today's Core Problems"
@@ -516,7 +516,7 @@ export function DayDetail({
                 No problems on this day — it is a buffer date.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+              <div className="grid min-w-0 grid-cols-1 gap-5 pt-2">
                 {day.problems.map((p, i) => (
                   <ProblemCardHorizontal
                     key={`${p.name}-${i}`}
