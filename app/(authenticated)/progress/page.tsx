@@ -39,9 +39,9 @@ import {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-2xl font-semibold tabular-nums">{value}</p>
+    <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/20">
+      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{label}</p>
+      <p className="mt-1.5 font-display text-2xl font-bold tabular-nums text-foreground">{value}</p>
     </div>
   );
 }
@@ -152,13 +152,17 @@ export default function ProgressPage() {
 
   return (
     <>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">Progress</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Progress</h1>
+        <p className="text-sm text-muted-foreground mt-1">Your overall learning analytics and achievement milestones.</p>
+      </div>
 
-      <div className="mb-6 rounded-xl border border-border bg-card p-4">
-        <div className="mb-2 flex items-baseline justify-between">
-          <span className="font-display font-semibold">Overall (Plan + Problems tab)</span>
+      {/* Overall progress card */}
+      <div className="mb-6 rounded-lg border border-border bg-card p-5">
+        <div className="mb-3 flex items-baseline justify-between">
+          <span className="font-semibold text-foreground">Overall Progress</span>
           <span className="text-sm tabular-nums text-muted-foreground">
-            {stats.combinedDone}/{stats.combinedTotal} problems · {stats.combinedPct}%
+            {stats.combinedDone} of {stats.combinedTotal} problems · {stats.combinedPct}%
           </span>
         </div>
         <Progress value={stats.combinedPct} className="h-2" />

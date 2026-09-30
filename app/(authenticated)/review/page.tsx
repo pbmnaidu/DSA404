@@ -26,11 +26,13 @@ export default function ReviewPage() {
 
   return (
     <>
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">Review</h1>
-      <p className="mb-6 text-sm text-muted-foreground">
-        Problems you flagged for another look, gathered here from every day. Tap the bookmark on a
-        problem in Today to add or remove it.
-      </p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Review</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Problems you flagged for another look, gathered from every day. Tap the bookmark on a
+          problem in Today to add or remove it.
+        </p>
+      </div>
 
       {/* Topic Reminders Section */}
       <TopicReminderSection />
