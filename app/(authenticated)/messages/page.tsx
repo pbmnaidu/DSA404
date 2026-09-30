@@ -152,7 +152,7 @@ export default function MessagesPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-4 md:p-8 animate-fade-in">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-card to-card p-6 md:p-8 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 md:p-8 shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
@@ -324,7 +324,7 @@ export default function MessagesPage() {
             {messages.map((msg) => (
               <article
                 key={msg.id}
-                className="group relative rounded-2xl border border-border/80 bg-card p-5 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+                className="group relative rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2">
                   <div className="space-y-1">
