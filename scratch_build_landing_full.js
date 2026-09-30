@@ -1,4 +1,7 @@
-"use client";
+const fs = require('fs');
+const path = 'p:/DSA404-chatBot/app/page.tsx';
+
+const content = `"use client";
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
@@ -17,7 +20,7 @@ import {
   Code2, Sparkles, Trophy, Users, Search, ExternalLink, Zap, 
   Bot, Laptop, Globe, ArrowRight, ChevronDown, Play, 
   Clock, Flame, Menu, X, LayoutGrid, BarChart3, CheckCircle2,
-  Calendar, FolderGit2, BookOpen, BrainCircuit, Activity, LineChart, Code, CheckSquare, Sliders, History
+  Calendar, FolderGit2, BookOpen, BrainCircuit, Activity, LineChart, Code, CheckSquare
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -765,3 +768,7 @@ export default function LandingPage() {
     </div>
   );
 }
+`
+
+fs.writeFileSync(path, content, 'utf8');
+console.log("Full landing page generated with ALL 13 SECTIONS!");
