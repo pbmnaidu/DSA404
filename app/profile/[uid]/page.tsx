@@ -1246,96 +1246,53 @@ export default function PublicProfilePage() {
         </section>
 
         {/* ── PROFILE WORKSPACE ── */}
-        <div className="space-y-12">
-          {/* Top Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── TWO COLUMN WORKSPACE ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Story & Secondary Info */}
-          <aside className="lg:col-span-4 space-y-8">
+          {/* PRIMARY COLUMN: Main Analytics */}
+          <main className="lg:col-span-8 space-y-8 min-w-0 order-2 lg:order-1">
             
-            {/* About Me & Contact */}
-            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
-                <UserCircle2 className="size-4 text-primary" /> Story & Trajectory
-              </h3>
-              
-              {aboutMe ? (
-                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{aboutMe}</p>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">No detailed biography provided.</p>
-              )}
-
-              {email && (
-                <div className="mt-6 pt-4 border-t border-border/50">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground block mb-2">Contact Email</span>
-                  <a href={`mailto:${email}`} className="text-sm font-mono text-primary hover:underline">{email}</a>
-                </div>
-              )}
-
-              {/* Other Custom Links */}
-              {((codingProfiles.customLinks ?? []).some((cl) => cl.url) || socialLinks.length > 0) && (
-                <div className="mt-6 pt-4 border-t border-border/50">
-                  <h4 className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Verified Links</h4>
-                  <div className="flex flex-col gap-2">
-                    {socialLinks.map((s, i) => (
-                      <a key={`social-${i}`} href={s.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center justify-between bg-secondary/40 px-3 py-2 rounded-lg">
-                        <span className="flex items-center gap-2">{getSocialIcon(s.platform, "size-3.5")} {s.platform}</span>
-                        <ExternalLink className="size-3 opacity-50" />
-                      </a>
-                    ))}
-                    {(codingProfiles.customLinks ?? []).filter(cl => cl.url).map((cl, i) => (
-                      <a key={`custom-${i}`} href={cl.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center justify-between bg-secondary/40 px-3 py-2 rounded-lg">
-                        <span className="flex items-center gap-2"><Globe className="size-3.5 text-muted-foreground" /> {cl.label || "Link"}</span>
-                        <ExternalLink className="size-3 opacity-50" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Badges */}
-            {effectiveDays.length > 0 && (
-              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
-                  <Flame className="size-4 text-orange-500" /> Achievements
-                </h3>
-                <BadgesGrid badges={badges} />
+            {/* Unified Platform Profiles */}
+            {(Object.entries(codingProfiles).some(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim()))) && (
+              <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                <UnifiedProfileDashboard
+                  initialProfiles={codingProfiles as Record<string, string>}
+                  initialStats={platformStats}
+                  userId={resolvedUid}
+                  readOnly={true}
+                />
               </div>
             )}
-          </aside>
 
-          {/* Primary Highlights */}
-          <main className="lg:col-span-8 space-y-8 min-w-0">
-            
-            {/* Top Line Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
-                <span className="text-[10px] font-bold uppercase text-muted-foreground">Total Solved</span>
-                <span className="text-3xl font-display font-black text-primary mt-1">{allPlatformsStats.grandTotalSolved}</span>
-              </div>
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
-                <span className="text-[10px] font-bold uppercase text-muted-foreground">Current Streak</span>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Flame className="size-5 text-orange-500" />
-                  <span className="text-3xl font-display font-black text-foreground">{streakCount}</span>
+            {/* Solving Trend (Public) */}
+            {effectiveDays.length > 0 && (
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+                <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+                  <TrendingUp className="size-4 text-primary" /> Platform Solving Trend
+                </h3>
+                <div className="h-64 w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
+                      <defs>
+                        <linearGradient id="publicSolvedFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                      <RTooltip
+                        contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12, padding: "12px" }}
+                      />
+                      <Area type="monotone" dataKey="solved" name="Solved" stroke="var(--color-primary)" fill="url(#publicSolvedFill)" strokeWidth={2.5} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <div className="col-span-2 rounded-3xl border border-border bg-card p-5 shadow-sm">
-                <span className="text-[10px] font-bold uppercase text-muted-foreground mb-3 block">Platform Distribution</span>
-                <div className="flex flex-wrap gap-3">
-                  {Object.entries(allPlatformsStats.byPlatform).sort((a,b) => b[1] - a[1]).slice(0, 4).map(([plat, num]) => (
-                    <div key={plat} className="flex items-center gap-2">
-                      <span className="size-2 rounded-full bg-primary/50" />
-                      <span className="text-sm font-semibold">{plat}</span>
-                      <span className="text-sm text-muted-foreground font-mono">{num}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            )}
 
-            {/* Submission Heatmap */}
+            {/* Solved Days Heatmap */}
             <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
               <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
                 Learning Consistency
@@ -1359,80 +1316,119 @@ export default function PublicProfilePage() {
               </div>
             )}
 
-            </main>
-          </div>
-
-          {/* Full Width Analytics */}
-          <div className="w-full space-y-12 min-w-0">
-            {/* Unified Platform Profiles (if any linked) */}
-            {(Object.entries(codingProfiles).some(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim()))) && (
-              <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
-                <UnifiedProfileDashboard
-                  initialProfiles={codingProfiles as Record<string, string>}
-                  initialStats={platformStats}
-                  userId={resolvedUid}
-                  readOnly={true}
-                />
-              </div>
-            )}
-
-            {/* Solving Trend & Difficulty */}
-            {effectiveDays.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <TrendingUp className="size-3.5 text-primary" /> Solving Trend
-                  </h3>
-                  <div className="h-48 w-full bg-secondary/30 rounded-2xl p-2 border border-border/50">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
-                        <defs>
-                          <linearGradient id="publicSolvedFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.6} />
-                            <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.05} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
-                        <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                        <RTooltip
-                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12, padding: "12px" }}
-                        />
-                        <Area type="monotone" dataKey="solved" name="Solved" stroke="var(--color-primary)" fill="url(#publicSolvedFill)" strokeWidth={2.5} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <BarChart3 className="size-3.5 text-primary" /> Difficulty Split
-                  </h3>
-                  <div className="h-48 w-full bg-secondary/30 rounded-2xl p-2 border border-border/50">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={diffSplit} margin={{ left: -20, right: 8, top: 8 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
-                        <XAxis dataKey="difficulty" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                        <RTooltip
-                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12, padding: "12px" }}
-                        />
-                        <Bar dataKey="done" name="Solved" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Solved Problems Archive */}
             <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
               <SolvedProblemsArchive completedProblems={completedProblems} />
             </div>
 
-          </div>
+          </main>
+
+          {/* SECONDARY COLUMN: Summary & Narrative */}
+          <aside className="lg:col-span-4 space-y-6 order-1 lg:order-2">
+            
+            {/* Top Line Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground">Total Solved</span>
+                <span className="text-3xl font-display font-black text-primary mt-1">{allPlatformsStats.grandTotalSolved}</span>
+              </div>
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground">Current Streak</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Flame className="size-5 text-orange-500" />
+                  <span className="text-3xl font-display font-black text-foreground">{streakCount}</span>
+                </div>
+              </div>
+              <div className="col-span-2 rounded-3xl border border-border bg-card p-5 shadow-sm">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground mb-3 block">Platform Distribution</span>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(allPlatformsStats.byPlatform).sort((a,b) => b[1] - a[1]).map(([plat, num]) => (
+                    <div key={plat} className="flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 rounded-lg">
+                      <span className="size-1.5 rounded-full bg-primary/50" />
+                      <span className="text-xs font-semibold">{plat}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{num}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* About Me & Contact */}
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+                <UserCircle2 className="size-4 text-primary" /> Story & Trajectory
+              </h3>
+              
+              {aboutMe ? (
+                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{aboutMe}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No detailed biography provided.</p>
+              )}
+
+              {email && (
+                <div className="mt-6 pt-4 border-t border-border/50">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground block mb-2">Contact Email</span>
+                  <a href={"mailto:" + email} className="text-sm font-mono text-primary hover:underline">{email}</a>
+                </div>
+              )}
+
+              {/* Other Custom Links */}
+              {((codingProfiles.customLinks ?? []).some((cl) => cl.url) || socialLinks.length > 0) && (
+                <div className="mt-6 pt-4 border-t border-border/50">
+                  <h4 className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Verified Links</h4>
+                  <div className="flex flex-col gap-2">
+                    {socialLinks.map((s, i) => (
+                      <a key={"social-" + i} href={s.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center justify-between bg-secondary/40 px-3 py-2 rounded-lg">
+                        <span className="flex items-center gap-2">{getSocialIcon(s.platform, "size-3.5")} {s.platform}</span>
+                        <ExternalLink className="size-3 opacity-50" />
+                      </a>
+                    ))}
+                    {(codingProfiles.customLinks ?? []).filter(cl => cl.url).map((cl, i) => (
+                      <a key={"custom-" + i} href={cl.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center justify-between bg-secondary/40 px-3 py-2 rounded-lg">
+                        <span className="flex items-center gap-2"><Globe className="size-3.5 text-muted-foreground" /> {cl.label || "Link"}</span>
+                        <ExternalLink className="size-3 opacity-50" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Badges */}
+            {effectiveDays.length > 0 && (
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+                  <Flame className="size-4 text-orange-500" /> Achievements
+                </h3>
+                <BadgesGrid badges={badges} />
+              </div>
+            )}
+            
+            {/* Global Difficulty Split */}
+            {effectiveDays.length > 0 && (
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <BarChart3 className="size-3.5 text-primary" /> Difficulty Split
+                </h3>
+                <div className="h-48 w-full bg-secondary/30 rounded-2xl p-2 border border-border/50">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={diffSplit} margin={{ left: -20, right: 8, top: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
+                      <XAxis dataKey="difficulty" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                      <RTooltip
+                        contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12, padding: "12px" }}
+                      />
+                      <Bar dataKey="done" name="Solved" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+          </aside>
         </div>
-        {/* ── Footer ── */}
+      {/* ── Footer ── */}
         <footer className="pt-8 text-center text-xs font-medium text-muted-foreground">
           Built with{" "}
           <Link href="/" className="inline-flex items-center gap-1.5 align-middle hover:opacity-90 transition-opacity">

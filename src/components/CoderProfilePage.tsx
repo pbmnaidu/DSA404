@@ -1086,166 +1086,166 @@ export function CoderProfilePage() {
       </section>
 
       {/* ── PROFILE WORKSPACE ── */}
-        <div className="space-y-12">
-          {/* Top Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* LEFT COLUMN: Narrative & Private Tools */}
-        <aside className="lg:col-span-4 space-y-6">
+        {/* ── TWO COLUMN WORKSPACE ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* About Me */}
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
-              <UserCircle2 className="size-4 text-primary" /> About
-            </h3>
-            {aboutMe ? (
-              <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{aboutMe}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">No public biography provided.</p>
-            )}
-            {socialLinks.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-border/50">
-                <h4 className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Other Links</h4>
-                <div className="flex flex-wrap gap-2">
-                  {socialLinks.map((s, i) => (
-                    <a key={i} href={s.url} target="_blank" rel="noreferrer" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
-                      {s.platform} <ExternalLink className="size-3" />
-                    </a>
-                  ))}
+          {/* PRIMARY COLUMN: Main Analytics */}
+          <main className="lg:col-span-8 space-y-8 min-w-0 order-2 lg:order-1">
+            
+            {/* Unified Platform Profiles (Full Width of Primary Column) */}
+            <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+              <UnifiedProfileDashboard
+                initialProfiles={codingProfiles as Record<string, string>}
+                initialStats={platformStats}
+                userId={user?.uid}
+                onSaveProfiles={async (updated) => {
+                  setCodingProfiles(updated);
+                  setDraftProfiles((prev) => ({ ...prev, ...updated }));
+                  if (typeof window !== "undefined") {
+                    try {
+                      localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(updated));
+                      if (user?.uid) {
+                        localStorage.setItem("dsa_coding_profiles_" + user.uid, JSON.stringify(updated));
+                      }
+                      window.dispatchEvent(
+                        new CustomEvent("ldt_coding_profiles_updated", {
+                          detail: { codingProfiles: updated },
+                        })
+                      );
+                    } catch {}
+                  }
+                  if (user) {
+                    saveUserProfile(user.uid, { codingProfiles: updated }).catch(console.error);
+                  }
+                }}
+              />
+            </div>
+
+            {/* Solved Days Heatmap */}
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+              <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+                Learning Consistency
+              </h3>
+              <p className="text-xs text-muted-foreground mb-6">Your daily problem-solving activity across the platform.</p>
+              <div className="max-w-full overflow-x-auto pb-2">
+                <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
+              </div>
+            </div>
+
+            {/* GitHub Heatmap */}
+            {githubUsername && (
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+                <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+                  <GitHubIcon className="size-4" /> GitHub Contributions
+                </h3>
+                <p className="text-xs text-muted-foreground mb-6">Synced activity for @{githubUsername}.</p>
+                <div className="max-w-full overflow-x-auto pb-2">
+                  <GitHubContributionHeatmap username={githubUsername} />
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Personal Notes (Private) */}
-          <div className="rounded-3xl border border-amber-500/20 bg-amber-500/5 p-6 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Lock className="size-24 text-amber-500" />
+            {/* Solved Problems Archive */}
+            <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+              <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
             </div>
-            <div className="relative">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
-                <Lock className="size-4" /> Private Notes
-              </h3>
-              <p className="text-[11px] text-muted-foreground mb-4">Visible only to you. Use for interview prep or reminders.</p>
-              
-              <Textarea 
-                value={notes} 
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Draft your thoughts here..."
-                rows={6}
-                className="bg-background/80 border-amber-500/20 resize-none font-mono text-xs mb-3 shadow-inner text-amber-900 dark:text-amber-100"
-              />
-              <Button size="sm" onClick={handleSaveNotes} disabled={savingNotes} className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold">
-                {savingNotes ? "Saving..." : "Secure Save"}
-              </Button>
-            </div>
-          </div>
-
-          {/* Badges Mini-View */}
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
-              <Trophy className="size-4 text-emerald-500" /> Achievements
-            </h3>
-            <BadgesGrid badges={badges} />
-          </div>
-
-        </aside>
-
-        {/* Primary Highlights */}
-          <main className="lg:col-span-8 space-y-8 min-w-0">
-          
-          {/* Top Line Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
-              <span className="text-[10px] font-bold uppercase text-muted-foreground">Total Solved</span>
-              <span className="text-3xl font-display font-black text-primary mt-1">{stats.total}</span>
-            </div>
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
-              <span className="text-[10px] font-bold uppercase text-muted-foreground">Current Streak</span>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Flame className="size-5 text-orange-500" />
-                <span className="text-3xl font-display font-black text-foreground">{streakCount}</span>
-              </div>
-            </div>
-            <div className="col-span-2 rounded-3xl border border-border bg-card p-5 shadow-sm">
-              <span className="text-[10px] font-bold uppercase text-muted-foreground mb-3 block">Platform Distribution</span>
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(stats.byPlatform).sort((a,b) => b[1] - a[1]).slice(0, 4).map(([plat, num]) => (
-                  <div key={plat} className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-primary/50" />
-                    <span className="text-sm font-semibold">{plat}</span>
-                    <span className="text-sm text-muted-foreground font-mono">{num}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Solved Days Heatmap */}
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
-            <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
-              Learning Consistency
-            </h3>
-            <p className="text-xs text-muted-foreground mb-6">Your daily problem-solving activity across the platform.</p>
-            <div className="max-w-full overflow-x-auto pb-2">
-              <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
-            </div>
-          </div>
-
-          {/* GitHub Heatmap */}
-          {githubUsername && (
-            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
-              <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
-                <GitHubIcon className="size-4" /> GitHub Contributions
-              </h3>
-              <p className="text-xs text-muted-foreground mb-6">Synced activity for @{githubUsername}.</p>
-              <div className="max-w-full overflow-x-auto pb-2">
-                <GitHubContributionHeatmap username={githubUsername} />
-              </div>
-            </div>
-          )}
 
           </main>
-          </div>
 
-          {/* Full Width Analytics */}
-          <div className="w-full space-y-12 min-w-0">
-            {/* Unified Platform Profiles */}
-          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
-            <UnifiedProfileDashboard
-              initialProfiles={codingProfiles as Record<string, string>}
-              initialStats={platformStats}
-              userId={user?.uid}
-              onSaveProfiles={async (updated) => {
-                setCodingProfiles(updated);
-                setDraftProfiles((prev) => ({ ...prev, ...updated }));
-                if (typeof window !== "undefined") {
-                  try {
-                    localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(updated));
-                    if (user?.uid) {
-                      localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(updated));
-                    }
-                    window.dispatchEvent(
-                      new CustomEvent("ldt_coding_profiles_updated", {
-                        detail: { codingProfiles: updated },
-                      })
-                    );
-                  } catch {}
-                }
-                if (user) {
-                  saveUserProfile(user.uid, { codingProfiles: updated }).catch(console.error);
-                }
-              }}
-            />
-          </div>
+          {/* SECONDARY COLUMN: Summary & Narrative */}
+          <aside className="lg:col-span-4 space-y-6 order-1 lg:order-2">
+            
+            {/* Top Line Stats Stack */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground">Total Solved</span>
+                <span className="text-3xl font-display font-black text-primary mt-1">{stats.total}</span>
+              </div>
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground">Current Streak</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Flame className="size-5 text-orange-500" />
+                  <span className="text-3xl font-display font-black text-foreground">{streakCount}</span>
+                </div>
+              </div>
+              <div className="col-span-2 rounded-3xl border border-border bg-card p-5 shadow-sm">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground mb-3 block">Platform Distribution</span>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(stats.byPlatform).sort((a,b) => b[1] - a[1]).map(([plat, num]) => (
+                    <div key={plat} className="flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 rounded-lg">
+                      <span className="size-1.5 rounded-full bg-primary/50" />
+                      <span className="text-xs font-semibold">{plat}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{num}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-          {/* Solved Problems Archive */}
-          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
-            <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
-          </div>
+            {/* About Me */}
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <UserCircle2 className="size-4 text-primary" /> Story & Trajectory
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => setShowEditDetails(true)} className="h-6 px-2 text-xs">
+                  <Pencil className="size-3 mr-1" /> Edit
+                </Button>
+              </div>
+              
+              {aboutMe ? (
+                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{aboutMe}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No public biography provided.</p>
+              )}
+              {socialLinks.length > 0 && (
+                <div className="mt-6 pt-4 border-t border-border/50">
+                  <h4 className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Other Links</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {socialLinks.map((s, i) => (
+                      <a key={i} href={s.url} target="_blank" rel="noreferrer" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
+                        {s.platform} <ExternalLink className="size-3" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
+            {/* Personal Notes (Private) */}
+            <div className="rounded-3xl border border-amber-500/20 bg-amber-500/5 p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Lock className="size-24 text-amber-500" />
+              </div>
+              <div className="relative">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
+                  <Lock className="size-4" /> Private Notes
+                </h3>
+                <p className="text-[11px] text-muted-foreground mb-4">Visible only to you. Use for interview prep or reminders.</p>
+                
+                <Textarea 
+                  value={notes} 
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Draft your thoughts here..."
+                  rows={4}
+                  className="bg-background/80 border-amber-500/20 resize-none font-mono text-xs mb-3 shadow-inner text-amber-900 dark:text-amber-100"
+                />
+                <Button size="sm" onClick={handleSaveNotes} disabled={savingNotes} className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold">
+                  {savingNotes ? "Saving..." : "Secure Save"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Badges Mini-View */}
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+                <Trophy className="size-4 text-emerald-500" /> Achievements
+              </h3>
+              <BadgesGrid badges={badges} />
+            </div>
+
+          </aside>
         </div>
-      </div>
       {/* Gmail Requirement Modal */}
       <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
         <DialogContent className="max-w-md border-border bg-card rounded-2xl shadow-2xl">
