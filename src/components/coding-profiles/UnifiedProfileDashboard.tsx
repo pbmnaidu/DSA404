@@ -108,6 +108,38 @@ export function UnifiedProfileDashboard({
   const selectedProfile = selectedPlatform !== "all" ? fetchedData[selectedPlatform] : null;
   const selectedMeta = PLATFORM_META[selectedPlatform];
 
+  const handleRefresh = async () => {
+    const targets = selectedPlatform === "all"
+      ? activeProfiles.map(([platform]) => ({
+          platform: platform as PlatformId,
+          username: connectedProfiles[platform],
+        }))
+      : connectedProfiles[selectedPlatform]
+        ? [{ platform: selectedPlatform as PlatformId, username: connectedProfiles[selectedPlatform] }]
+        : [];
+
+    if (targets.length === 0) return;
+
+    setLoading(true);
+    try {
+      const refreshed = await fetchBatchProfilesApi(targets, true);
+      const nextStats = { ...fetchedData, ...refreshed };
+      setFetchedData(nextStats);
+      if (userId) {
+        await savePlatformStats(userId, nextStats);
+      }
+      toast.success(
+        selectedPlatform === "all"
+          ? "All platform analytics refreshed"
+          : `${selectedMeta?.name || selectedPlatform} analytics refreshed`
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to refresh platform analytics");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderPlatformSelector = () => (
     <div className="flex overflow-x-auto pb-4 mb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar gap-2 border-b border-border">
       <button
@@ -165,6 +197,18 @@ export function UnifiedProfileDashboard({
           <h2 className="text-2xl font-display font-bold tracking-tight break-words">Platform Analytics</h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground break-words">Your performance across all competitive programming platforms.</p>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={loading}
+          className="w-full shrink-0 gap-2 sm:w-auto"
+          title={selectedPlatform === "all" ? "Refresh all connected platforms" : `Refresh ${selectedMeta?.name || selectedPlatform}`}
+        >
+          <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+          {loading ? "Refreshing..." : "Refresh analytics"}
+        </Button>
       </div>
 
       {/* HEADER ROW: Platform Selector */}

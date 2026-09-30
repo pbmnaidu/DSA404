@@ -67,12 +67,14 @@ export function DayDetail({
   lateMode = false,
   headerOnly = false,
   hideHeader = false,
+  hideContests = false,
 }: {
   day: Day;
   readOnly?: boolean;
   lateMode?: boolean;
   headerOnly?: boolean;
   hideHeader?: boolean;
+  hideContests?: boolean;
 }) {
   const {
     days,
@@ -383,7 +385,7 @@ export function DayDetail({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         
         {/* ── LEFT COLUMN: Context & Checklists ── */}
-        <aside className="xl:col-span-4 space-y-6">
+        <aside className="xl:col-span-6 space-y-6">
           
           {/* Reduced Height Completion Checklist UI */}
           <section aria-label="Daily checklist" className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
@@ -435,43 +437,11 @@ export function DayDetail({
             </ul>
           </section>
 
-          {/* Daily Notes */}
-          <div className="space-y-2 rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <Label htmlFor={`notes-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-               Topic Notes & Takeaways
-            </Label>
-            <Textarea
-              id={`notes-${day.dayNumber}`}
-              rows={4}
-              defaultValue={day.notes}
-              placeholder="Write key code snippets, intuitions, or algorithm patterns..."
-              disabled={locked}
-              className="bg-secondary/40 border-border rounded-xl text-sm resize-none focus-visible:ring-primary/20"
-              onBlur={(e) => void updateDay(day.dayNumber, (d) => ({ ...d, notes: e.target.value }))}
-            />
-          </div>
 
-          {/* Revision Reminders */}
-          <div className="space-y-2 rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <Label htmlFor={`rev-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-               Revision Reminders
-            </Label>
-            <Textarea
-              id={`rev-${day.dayNumber}`}
-              rows={4}
-              defaultValue={day.revisionNotes}
-              placeholder="Important edge cases, time complexities, or trick points to remember..."
-              disabled={locked}
-              className="bg-secondary/40 border-border rounded-xl text-sm resize-none focus-visible:ring-primary/20"
-              onBlur={(e) =>
-                void updateDay(day.dayNumber, (d) => ({ ...d, revisionNotes: e.target.value }))
-              }
-            />
-          </div>
         </aside>
 
         {/* ── RIGHT COLUMN: Workspace (Problems & Contests) ── */}
-        <main className="xl:col-span-8 space-y-6 min-w-0">
+        <main className="xl:col-span-6 space-y-6 min-w-0">
           
           <section
             aria-label="Today's Core Problems"
@@ -577,13 +547,55 @@ export function DayDetail({
             )}
           </section>
 
-          {/* Today's Contests */}
-          <div className="rounded-3xl overflow-hidden border border-border shadow-sm">
-            <TodayContestsSection />
-          </div>
+          {!hideContests && (
+            <div className="rounded-3xl overflow-hidden border border-border shadow-sm">
+              <TodayContestsSection />
+            </div>
+          )}
 
         </main>
       </div>
+
+      {/* ── FULL WIDTH ROW: Notes & Revision ── */}
+      <section aria-label="Learning notes workspace" className="w-full min-w-0 pt-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          
+          {/* Daily Notes */}
+          <div className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <Label htmlFor={`notes-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+               Topic Notes & Takeaways
+            </Label>
+            <Textarea
+              id={`notes-${day.dayNumber}`}
+              rows={5}
+              defaultValue={day.notes}
+              placeholder="Write key code snippets, intuitions, or algorithm patterns..."
+              disabled={locked}
+              className="flex-1 bg-secondary/40 border-border rounded-xl text-sm resize-none focus-visible:ring-primary/20 p-4"
+              onBlur={(e) => void updateDay(day.dayNumber, (d) => ({ ...d, notes: e.target.value }))}
+            />
+          </div>
+
+          {/* Revision Reminders */}
+          <div className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <Label htmlFor={`rev-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+               Revision Reminders
+            </Label>
+            <Textarea
+              id={`rev-${day.dayNumber}`}
+              rows={5}
+              defaultValue={day.revisionNotes}
+              placeholder="Important edge cases, time complexities, or trick points to remember..."
+              disabled={locked}
+              className="flex-1 bg-secondary/40 border-border rounded-xl text-sm resize-none focus-visible:ring-primary/20 p-4"
+              onBlur={(e) =>
+                void updateDay(day.dayNumber, (d) => ({ ...d, revisionNotes: e.target.value }))
+              }
+            />
+          </div>
+
+        </div>
+      </section>
     </article>
   );
 }

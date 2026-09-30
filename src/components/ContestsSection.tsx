@@ -344,7 +344,7 @@ function ContestCard({
   return (
     <div
       className={cn(
-        "group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-all shadow-2xs hover:shadow-xs",
+        "group flex h-full w-full min-w-0 flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-all shadow-2xs hover:shadow-xs",
         c.status === "missed" && !attended && "opacity-75 hover:opacity-100",
         attended && "border-emerald-400/60 bg-emerald-50/40 dark:bg-emerald-950/20"
       )}
@@ -877,7 +877,14 @@ export function TodayContestsSection() {
       </div>
 
       {/* Grid of Contest Cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 pt-1">
+      <div
+        className={cn(
+          "grid min-w-0 gap-4 pt-1",
+          todaysContests.length === 1
+            ? "grid-cols-1"
+            : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        )}
+      >
         {todaysContests.map((c) => (
           <ContestCard
             key={c.id}
@@ -890,10 +897,10 @@ export function TodayContestsSection() {
       </div>
 
       {/* Button to view all remaining contests in Contests tab */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-white/10 bg-white/[0.03] mt-2">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 mt-2">
+        <div className="flex min-w-0 items-start gap-2 text-xs leading-5 text-muted-foreground">
           <Trophy className="size-4 text-amber-400 shrink-0" />
-          <span>
+          <span className="min-w-0 break-words">
             Showing short rounds (starts today, ends within 2 days).
             {remainingContestsCount > 0 && (
               <strong className="text-foreground font-semibold">
@@ -905,7 +912,7 @@ export function TodayContestsSection() {
         </div>
         <Link
           href="/contests"
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 px-4 py-2 text-xs font-bold transition-all shrink-0 hover:scale-[1.01]"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 px-4 py-2 text-xs font-bold transition-all hover:scale-[1.01]"
         >
           <Trophy className="size-3.5" />
           <span>View All Contests in Contests Tab ({contests.length})</span>

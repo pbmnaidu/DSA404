@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
@@ -17,6 +18,7 @@ import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
 import { computeBadges, currentStreak } from "@/lib/gamification";
 import { DayDetail } from "@/components/DayDetail";
+import { TodayContestsSection } from "@/components/ContestsSection";
 import { CodeModal } from "@/components/CodeModal";
 import {
   getInactivityDays,
@@ -28,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { formatDate, diffDays, todayIso } from "@/lib/plan";
+import { getChatGPTAiPromptUrl, getChatGPTDayTopicPromptUrl } from "@/lib/aiTutorPrompt";
 import {
   Camera,
   Check,
@@ -230,6 +233,28 @@ export function MergedTodayProfile() {
       ),
     };
   }, [displayedDay]);
+
+  const todayQueue = sanitizedDay?.problems ?? [];
+  const completedTodayCount = todayQueue.filter((problem) => problem.done).length;
+  const nextIncompleteProblem = todayQueue.find((problem) => !problem.done);
+  const tutorTarget = nextIncompleteProblem?.name || sanitizedDay?.topic || "DSA";
+  const tutorHref = sanitizedDay
+    ? getChatGPTDayTopicPromptUrl({
+        dayNumber: sanitizedDay.dayNumber,
+        topic: sanitizedDay.topic,
+        section: sanitizedDay.section,
+        subtopics: sanitizedDay.subtopics,
+        problems: todayQueue.map((problem) => ({
+          name: problem.name,
+          difficulty: problem.difficulty,
+          platform: problem.platform,
+        })),
+      })
+    : getChatGPTAiPromptUrl(tutorTarget);
+  const nextPlanDay = useMemo(
+    () => days.find((day) => !day.skipped && day.dayNumber > (displayedDay?.dayNumber ?? 0)),
+    [days, displayedDay?.dayNumber]
+  );
 
   // Calculate user inactivity gap
   const inactivityInfo = useMemo(() => getInactivityDays(days, user?.uid), [days, user]);
@@ -476,10 +501,10 @@ export function MergedTodayProfile() {
 
         
         {/* ── WORKSPACE SPLIT ── */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 gap-8 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.8fr)] xl:gap-10">
           
           {/* PRIMARY LEARNING COLUMN (Left side, 8 cols) */}
-          <main className="xl:col-span-8 space-y-10 min-w-0">
+          <main className="min-w-0 space-y-10">
             
             {/* Topic Context (Editorial Style) */}
             {sanitizedDay && (
@@ -493,6 +518,7 @@ export function MergedTodayProfile() {
                     readOnly={false}
                     lateMode={false}
                     headerOnly
+                    hideContests
                   />
                 </div>
               </section>
@@ -517,6 +543,7 @@ export function MergedTodayProfile() {
                     readOnly={false}
                     lateMode={false}
                     hideHeader
+                    hideContests
                   />
                 </div>
               </section>
@@ -537,7 +564,7 @@ export function MergedTodayProfile() {
           </main>
 
           {/* SECONDARY SIDEBAR (Right side, 4 cols) */}
-          <aside className="xl:col-span-4 space-y-8 min-w-0">
+          <aside className="min-w-0 space-y-8 xl:sticky xl:top-6 xl:self-start">
             
             {/* Progress Summary & Consistency */}
             <section className="space-y-4">
@@ -582,7 +609,16 @@ export function MergedTodayProfile() {
                 <Sparkles className="size-6 text-purple-500 mb-3 relative z-10" />
                 <h3 className="font-bold text-foreground mb-1 relative z-10">AI Coding Tutor</h3>
                 <p className="text-xs text-muted-foreground relative z-10 mb-4">Stuck on a problem? Ask your AI tutor for a conceptual hint without revealing the code.</p>
-                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold relative z-10">Launch Tutor</Button>
+                <Button asChild size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold relative z-10">
+                  <a
+                    href={tutorHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Launch AI tutor for ${tutorTarget}`}
+                  >
+                    Launch Tutor
+                  </a>
+                </Button>
               </div>
             </section>
             
@@ -591,9 +627,60 @@ export function MergedTodayProfile() {
               <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
                 Recommended Next
               </h2>
-              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                 <p className="text-xs text-muted-foreground italic text-center">Complete today's queue to unlock personalized recommendations.</p>
+              <div className="rounded-3xl border border-primary/20 bg-primary/5 p-5 shadow-sm">
+                {nextIncompleteProblem ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Continue today</p>
+                      <h3 className="mt-2 break-words text-base font-bold leading-6 text-foreground">{nextIncompleteProblem.name}</h3>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {nextIncompleteProblem.difficulty} · {nextIncompleteProblem.platform || "DSA"} · {completedTodayCount}/{todayQueue.length} complete
+                      </p>
+                    </div>
+                    <Button asChild size="sm" className="w-full font-bold">
+                      <Link href={`/day/${displayedDay?.dayNumber ?? ""}`}>Open today&apos;s queue</Link>
+                    </Button>
+                  </div>
+                ) : nextPlanDay ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Up next</p>
+                      <h3 className="mt-2 break-words text-base font-bold leading-6 text-foreground">{nextPlanDay.topic || nextPlanDay.section}</h3>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">Preview Day {nextPlanDay.dayNumber} and prepare for the next topic.</p>
+                    </div>
+                    <Button asChild size="sm" variant="outline" className="w-full font-bold">
+                      <Link href={`/day/${nextPlanDay.dayNumber}`}>Preview next day</Link>
+                    </Button>
+                  </div>
+                ) : completedTodayCount > 0 ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Today complete</p>
+                      <h3 className="mt-2 text-base font-bold leading-6 text-foreground">Keep the momentum going</h3>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">Review a solved problem or strengthen a weak topic.</p>
+                    </div>
+                    <Button asChild size="sm" variant="outline" className="w-full font-bold">
+                      <Link href="/review">Open review queue</Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Ready when you are</p>
+                      <h3 className="mt-2 text-base font-bold leading-6 text-foreground">Start today&apos;s learning mission</h3>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">Your next step will appear here once today&apos;s plan is available.</p>
+                    </div>
+                    <Button asChild size="sm" className="w-full font-bold">
+                      <Link href="/problems">Browse problems</Link>
+                    </Button>
+                  </div>
+                )}
               </div>
+            </section>
+
+            {/* Keep contests in the open right-side workspace, not below the full dashboard. */}
+            <section className="min-w-0 pt-2" aria-label="Today&apos;s contests and competitions">
+              <TodayContestsSection />
             </section>
 
           </aside>

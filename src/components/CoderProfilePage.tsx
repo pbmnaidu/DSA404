@@ -1090,10 +1090,10 @@ export function CoderProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* PRIMARY COLUMN: Main Analytics */}
-          <main className="lg:col-span-8 space-y-8 min-w-0 order-2 lg:order-1">
+          <main className="order-1 min-w-0 space-y-8 lg:contents">
             
             {/* Unified Platform Profiles (Full Width of Primary Column) */}
-            <div className="rounded-3xl border border-border bg-card p-4 shadow-sm overflow-hidden sm:p-6 lg:p-8">
+            <div className="rounded-3xl border border-border bg-card p-4 shadow-sm overflow-hidden sm:p-6 lg:order-1 lg:col-span-8 lg:p-8">
               <UnifiedProfileDashboard
                 initialProfiles={codingProfiles as Record<string, string>}
                 initialStats={platformStats}
@@ -1122,7 +1122,7 @@ export function CoderProfilePage() {
             </div>
 
             {/* Solved Days Heatmap */}
-            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden lg:order-3 lg:col-span-12">
               <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
                 Learning Consistency
               </h3>
@@ -1134,7 +1134,7 @@ export function CoderProfilePage() {
 
             {/* GitHub Heatmap */}
             {githubUsername && (
-              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden lg:order-4 lg:col-span-12">
                 <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
                   <GitHubIcon className="size-4" /> GitHub Contributions
                 </h3>
@@ -1146,14 +1146,14 @@ export function CoderProfilePage() {
             )}
 
             {/* Solved Problems Archive */}
-            <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+            <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden lg:order-5 lg:col-span-12">
               <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
             </div>
 
           </main>
 
           {/* SECONDARY COLUMN: Summary & Narrative */}
-          <aside className="lg:col-span-4 space-y-6 order-1 lg:order-2">
+          <aside className="order-2 min-w-0 space-y-6 lg:order-2 lg:col-span-4 lg:sticky lg:top-6 lg:self-start">
             
             {/* Top Line Stats Stack */}
             <div className="grid grid-cols-2 gap-4">
