@@ -242,7 +242,7 @@ export function CodeChefCompilerModal({
         className={`flex flex-col transition-all duration-200 border border-white/15 bg-card/95 backdrop-blur-2xl shadow-2xl ${
           isIdeMaximized
             ? "!fixed !top-0 !left-0 !right-0 !bottom-0 !translate-x-0 !translate-y-0 !w-screen !h-screen !max-w-none !max-h-none !rounded-none z-[999999]"
-            : "w-[96vw] max-w-6xl h-[94vh] max-h-[94vh] rounded-3xl"
+            : "w-[96vw] max-w-6xl h-[94vh] max-h-[94vh] rounded-2xl"
         }`}
       >
         <DialogHeader className="pb-2 border-b border-white/10 shrink-0">
