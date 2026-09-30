@@ -152,23 +152,23 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
               </DialogHeader>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
-                <div className="rounded-xl border border-border bg-emerald-50 dark:bg-emerald-900/20 p-2.5 sm:p-3 text-center">
+                <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
                   <BookOpen className="mx-auto mb-1 size-4 sm:size-5 text-emerald-600 dark:text-emerald-400" />
-                  <p className="text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-400">Level 1</p>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-emerald-800 dark:text-emerald-300">{LEVEL_COUNTS.level1} Problems</p>
-                  <p className="text-[10px] text-muted-foreground">Foundations</p>
+                  <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 1</p>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">{LEVEL_COUNTS.level1} Problems</p>
+                  <p className="text-[10px] text-muted-foreground/70">Foundations</p>
                 </div>
-                <div className="rounded-xl border border-border bg-blue-50 dark:bg-blue-900/20 p-2.5 sm:p-3 text-center">
-                  <Zap className="mx-auto mb-1 size-4 sm:size-5 text-blue-600 dark:text-blue-400" />
-                  <p className="text-[11px] sm:text-xs font-semibold text-blue-700 dark:text-blue-400">Level 2</p>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-blue-800 dark:text-blue-300">{LEVEL_COUNTS.level2} Problems</p>
-                  <p className="text-[10px] text-muted-foreground">Intermediate</p>
+                <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
+                  <Zap className="mx-auto mb-1 size-4 sm:size-5 text-amber-600 dark:text-amber-400" />
+                  <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 2</p>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">{LEVEL_COUNTS.level2} Problems</p>
+                  <p className="text-[10px] text-muted-foreground/70">Intermediate</p>
                 </div>
-                <div className="rounded-xl border border-border bg-purple-50 dark:bg-purple-900/20 p-2.5 sm:p-3 text-center">
-                  <Trophy className="mx-auto mb-1 size-4 sm:size-5 text-purple-600 dark:text-purple-400" />
-                  <p className="text-[11px] sm:text-xs font-semibold text-purple-700 dark:text-purple-400">Level 3</p>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-purple-800 dark:text-purple-300">{LEVEL_COUNTS.level3} Problems</p>
-                  <p className="text-[10px] text-muted-foreground">Advanced</p>
+                <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
+                  <Trophy className="mx-auto mb-1 size-4 sm:size-5 text-rose-600 dark:text-rose-400" />
+                  <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 3</p>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">{LEVEL_COUNTS.level3} Problems</p>
+                  <p className="text-[10px] text-muted-foreground/70">Advanced</p>
                 </div>
               </div>
 
@@ -205,10 +205,10 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                       key={tierKey}
                       type="button"
                       onClick={() => handleSelectTier(tierKey)}
-                      className={`relative flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      className={`relative flex flex-col items-start p-3 rounded-lg border text-left transition-all cursor-pointer ${
                         isSelected
                           ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
-                          : "border-border bg-card/60 hover:border-primary/40 hover:bg-muted/30"
+                          : "border-border bg-card hover:border-primary/40"
                       }`}
                     >
                       <div className="flex w-full items-center justify-between gap-1 mb-1">
