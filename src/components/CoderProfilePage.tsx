@@ -1,0 +1,2024 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import Link from "next/link";
+import { updateProfile } from "firebase/auth";
+import { auth } from "@/integrations/firebase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { usePlan } from "@/hooks/usePlan";
+import { useProblemCompletions } from "@/hooks/useProblemCompletions";
+import {
+  loadOwnerProfile,
+  saveUserProfile,
+  saveAvatarBase64,
+  saveBannerBase64,
+  claimUsername,
+  isUsernameAvailable,
+  normalizeUsername,
+  USERNAME_REGEX,
+  type CodingProfiles,
+  type CustomLink,
+  type SocialLinkItem,
+  type CompletedProblemSnapshot,
+  type PublicStats,
+  syncPublicSolvedProblems,
+} from "@/lib/db";
+import { todayIso } from "@/lib/plan";
+import {
+  LinkedInIcon,
+  GitHubIcon,
+  TwitterIcon,
+  YouTubeIcon,
+  getSocialIcon,
+} from "@/components/SocialIcons";
+import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
+import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
+import { GitHubContributionHeatmap, extractGitHubUsername, resolveGitHubUrl } from "@/components/GitHubContributionHeatmap";
+import { getLocalGitHubSyncConfig } from "@/lib/github-sync";
+import { UnifiedProfileDashboard } from "@/components/coding-profiles/UnifiedProfileDashboard";
+import { BadgesGrid } from "@/components/BadgesGrid";
+import { computeBadges, currentStreak } from "@/lib/gamification";
+import { SolvedProblemsArchive } from "@/components/SolvedProblemsArchive";
+import { CodeModal } from "@/components/CodeModal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
+  Camera,
+  Check,
+  CheckCircle2,
+  Code2,
+  ExternalLink,
+  Flame,
+  Globe,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Share2,
+  Trash2,
+  UserCircle2,
+  X,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  Sparkles,
+  Lock,
+  FileText,
+  Link2,
+  Eye,
+  Trophy,
+} from "lucide-react";
+import { extractHandleFromInput } from "@/lib/contest-platform-linker";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+// ── Platform metadata ────────────────────────────────────────────────────────
+const PLATFORMS: {
+  key: Exclude<keyof CodingProfiles, "customLinks" | "github">;
+  label: string;
+  placeholder: string;
+  color: string;
+  bgColor: string;
+}[] = [
+    { key: "leetcode", label: "LeetCode", placeholder: "https://leetcode.com/yourname", color: "#FFA116", bgColor: "rgba(255,161,22,0.12)" },
+    { key: "codeforces", label: "Codeforces", placeholder: "https://codeforces.com/profile/yourname", color: "#1F8ACB", bgColor: "rgba(31,138,203,0.12)" },
+    { key: "codechef", label: "CodeChef", placeholder: "https://www.codechef.com/users/yourname", color: "#5B4638", bgColor: "rgba(91,70,56,0.12)" },
+    { key: "atcoder", label: "AtCoder", placeholder: "https://atcoder.jp/users/yourname", color: "#8BC4E8", bgColor: "rgba(139,196,232,0.12)" },
+    { key: "hackerrank", label: "HackerRank", placeholder: "https://www.hackerrank.com/profile/yourname", color: "#00EA64", bgColor: "rgba(0,234,100,0.12)" },
+    { key: "gfg", label: "GeeksforGeeks", placeholder: "https://www.geeksforgeeks.org/user/yourname", color: "#2F8D46", bgColor: "rgba(47,141,70,0.12)" },
+  ];
+
+// ── Image helpers ────────────────────────────────────────────────────────────
+async function compressImageToDataUrl(file: File, maxPx = 128, quality = 0.5): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        const canvas = document.createElement("canvas");
+        canvas.width = maxPx; canvas.height = maxPx;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, maxPx, maxPx);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function compressBannerToDataUrl(file: File, width = 1200, height = 360, quality = 0.75): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        // Cover-fit: preserve aspect ratio
+        const scale = Math.max(width / img.width, height / img.height);
+        const sw = width / scale, sh = height / scale;
+        const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => reject(new Error("Failed to load banner"));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function ThemedTooltip({ hint, children }: { hint: string; children: React.ReactNode }) {
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs rounded-xl border border-white/15 bg-popover/95 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-2xl">
+          {hint}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
+export function CoderProfilePage() {
+  const { user } = useAuth();
+  const { days, loading } = usePlan();
+  const { completed: pbCompleted, submissions } = useProblemCompletions();
+
+  // — Refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // — Profile state
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [aboutMe, setAboutMe] = useState("");
+  const [notes, setNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [linkedin, setLinkedin] = useState("");
+  const [github, setGithub] = useState("");
+  const [portfolio, setPortfolio] = useState("");
+  const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([]);
+  const [username, setUsername] = useState("");
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<
+    "idle" | "checking" | "available" | "taken" | "invalid"
+  >("idle");
+  const [usernameSaving, setUsernameSaving] = useState(false);
+  const [photoURL, setPhotoURL] = useState("");
+  const [bannerURL, setBannerURL] = useState("");
+  const [codingProfiles, setCodingProfiles] = useState<CodingProfiles>({});
+  const [platformStats, setPlatformStats] = useState<Record<string, any>>({});
+  const [firestoreCompletedProblems, setFirestoreCompletedProblems] = useState<CompletedProblemSnapshot[]>([]);
+  const [publicStats, setPublicStats] = useState<PublicStats | null>(null);
+  const [editingProfiles, setEditingProfiles] = useState(false);
+  const [draftProfiles, setDraftProfiles] = useState<CodingProfiles>({});
+  const [draftCustomLinks, setDraftCustomLinks] = useState<CustomLink[]>([]);
+  const [copied, setCopied] = useState(false);
+  const [selectedProblemForModal, setSelectedProblemForModal] = useState<string | null>(null);
+
+  // — Edit Details section toggle & Gmail modal state
+  const [showEditDetails, setShowEditDetails] = useState(false);
+  const [profileEmail, setProfileEmail] = useState("");
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [gmailInput, setGmailInput] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
+  // Custom social link draft in Edit form
+  const [customSocialPlatform, setCustomSocialPlatform] = useState("");
+  const [customSocialUrl, setCustomSocialUrl] = useState("");
+
+  const currentEmail = profileEmail || user?.email || "";
+
+  // — Load profile
+  useEffect(() => {
+    if (!user || !user.uid) {
+      setLoadingProfile(false);
+      setPhotoURL("");
+      setBannerURL("");
+      return;
+    }
+    const localAvatar = localStorage.getItem(`local_avatar_url_${user.uid}`);
+    const localBanner = localStorage.getItem(`local_banner_url_${user.uid}`);
+    if (localAvatar) setPhotoURL(localAvatar);
+    if (localBanner) setBannerURL(localBanner);
+
+    setLoadingProfile(true);
+    loadOwnerProfile(user.uid)
+      .then((p) => {
+        setDisplayName(p.displayName ?? user.displayName ?? "");
+        setBio(p.bio ?? "");
+        setAboutMe(p.aboutMe ?? "");
+        setNotes(p.notes ?? "");
+        setLinkedin(p.linkedin ?? "");
+        setGithub(p.github ?? (p.socialLinks?.find((s) => s.platform.toLowerCase() === "github")?.url ?? ""));
+        setPortfolio(p.portfolio ?? "");
+        setSocialLinks(p.socialLinks ?? []);
+        setUsername(p.username ?? "");
+        setUsernameDraft(p.username ?? "");
+        if (p.email) {
+          setProfileEmail(p.email);
+        } else if (user.email) {
+          setProfileEmail(user.email);
+        }
+        if (p.platformStats) setPlatformStats(p.platformStats);
+        if (p.completedProblems && Array.isArray(p.completedProblems)) {
+          setFirestoreCompletedProblems(p.completedProblems);
+        }
+        if (p.publicStats) {
+          setPublicStats(p.publicStats);
+        }
+        // Auto-fill from the Google account photo the first time there's no
+        // avatar saved yet (no Firestore photoURL and nothing cached
+        // locally/uploaded above) — never overrides a photo the user chose.
+        if (p.photoURL) {
+          setPhotoURL(p.photoURL);
+        } else if (!localAvatar && user.photoURL) {
+          setPhotoURL(user.photoURL);
+          saveUserProfile(user.uid, { photoURL: user.photoURL }).catch(() => { });
+        }
+        if (p.bannerURL) setBannerURL(p.bannerURL);
+        setCodingProfiles(p.codingProfiles ?? {});
+        setDraftProfiles(p.codingProfiles ?? {});
+        setDraftCustomLinks(p.codingProfiles?.customLinks ?? []);
+      })
+      .finally(() => setLoadingProfile(false));
+  }, [user?.uid, user?.email]);
+
+  // If user has no email linked when visiting profile, prompt them
+  useEffect(() => {
+    if (!loadingProfile && user && !currentEmail) {
+      setGmailInput("");
+      setIsEmailModalOpen(true);
+    }
+  }, [loadingProfile, user, currentEmail]);
+
+  const handleSaveGmail = async () => {
+    if (!user) return;
+    const trimmed = gmailInput.trim().toLowerCase();
+    const GMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+    if (!GMAIL_REGEX.test(trimmed)) {
+      toast.error("Invalid Gmail address", {
+        description: "Please enter a valid Gmail address ending with @gmail.com",
+      });
+      return;
+    }
+
+    setSavingEmail(true);
+    try {
+      await saveUserProfile(user.uid, { email: trimmed });
+      setProfileEmail(trimmed);
+      setIsEmailModalOpen(false);
+      toast.success("Gmail address saved! 🎉", {
+        description: `Linked ${trimmed} to your account.`,
+      });
+    } catch (err) {
+      toast.error("Failed to save Gmail address", {
+        description: "Please try again.",
+      });
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  // — Live username availability check as the user edits their handle.
+  // Idle whenever the draft matches what's already saved — no need to
+  // re-check a username you already own.
+  useEffect(() => {
+    const raw = usernameDraft.trim();
+    if (!raw || normalizeUsername(raw) === username) {
+      setUsernameStatus("idle");
+      return;
+    }
+    const u = normalizeUsername(raw);
+    if (!USERNAME_REGEX.test(u)) {
+      setUsernameStatus("invalid");
+      return;
+    }
+    setUsernameStatus("checking");
+    const t = setTimeout(async () => {
+      try {
+        const available = await isUsernameAvailable(u);
+        setUsernameStatus(available ? "available" : "taken");
+      } catch {
+        setUsernameStatus("idle");
+      }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [usernameDraft, username]);
+
+  const saveUsername = useCallback(async () => {
+    if (!user) return;
+    const u = normalizeUsername(usernameDraft);
+    if (u === username) return;
+    if (!USERNAME_REGEX.test(u)) {
+      setUsernameStatus("invalid");
+      toast.error("Invalid handle format", { description: "3-20 characters: lowercase letters, numbers, - or _ only." });
+      return;
+    }
+    setUsernameSaving(true);
+    try {
+      await claimUsername(user.uid, u);
+      setUsername(u);
+      setUsernameDraft(u);
+      setUsernameStatus("idle");
+      toast.success("Username updated!", { description: `Your public profile is live at /profile/${u}` });
+    } catch (err) {
+      if (err instanceof Error && err.message === "USERNAME_TAKEN") {
+        setUsernameStatus("taken");
+        toast.error("That username is already taken — try another.");
+      } else if (err instanceof Error && err.message === "USERNAME_INVALID") {
+        setUsernameStatus("invalid");
+        toast.error("Invalid handle format", { description: "3-20 characters: lowercase letters, numbers, - or _ only." });
+      } else {
+        // Do NOT silently write `username` onto the profile doc here — that
+        // was the actual cause of the /profile/{username} 404 bug: it made
+        // the profile claim a username without ever creating the
+        // usernames/{username} -> uid index doc that public URL resolution
+        // depends on. Surface the failure instead so the user can retry.
+        toast.error("Couldn't claim username", {
+          description: (err as Error).message || "Please try again — your public link wasn't updated.",
+        });
+      }
+    } finally {
+      setUsernameSaving(false);
+    }
+  }, [user, usernameDraft, username]);
+
+  // — Computed stats
+  const streakCount = useMemo(() => currentStreak(days), [days]);
+  const badges = useMemo(() => computeBadges(days), [days]);
+
+  const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
+    const seen = new Set<string>();
+    const list: CompletedProblemSnapshot[] = [];
+    const today = todayIso();
+    for (const day of days) {
+      for (const p of day.problems) {
+        if (p.done && !seen.has(p.name)) {
+          seen.add(p.name);
+          const sub = submissions[p.name];
+          const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+          const rawPlat = p.platform || "DSA";
+          const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+          const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
+          const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
+          list.push({
+            name: p.name,
+            platform: normPlat,
+            difficulty: p.difficulty || "Medium",
+            link: platLink,
+            completedAt,
+            submittedAt,
+            topic: day.topic,
+            section: day.section,
+            ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+          });
+        }
+      }
+    }
+    for (const fp of ALL_PROBLEMS) {
+      if (pbCompleted.has(fp.name) && !seen.has(fp.name)) {
+        seen.add(fp.name);
+        const sub = submissions[fp.name];
+        const platLink = getCanonicalProblemLink(fp.name) || fp.link || "";
+        const rawPlat = fp.platform || "DSA";
+        const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+        const completedAt = sub?.submittedAt?.slice(0, 10) || today;
+        const submittedAt = sub?.submittedAt || new Date().toISOString();
+        list.push({
+          name: fp.name,
+          platform: normPlat,
+          difficulty: fp.difficulty || "Medium",
+          link: platLink,
+          completedAt,
+          submittedAt,
+          topic: fp.topic,
+          section: fp.sheet,
+          ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+        });
+      }
+    }
+    // Also include any submissions that were submitted on Problems tab or CodeModal
+    for (const [probName, sub] of Object.entries(submissions ?? {})) {
+      if (!probName || seen.has(probName)) continue;
+      seen.add(probName);
+      const platLink = getCanonicalProblemLink(probName) || sub.link || "";
+      const rawPlat = (sub as any).platform || "DSA";
+      const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+      const completedAt = sub.submittedAt?.slice(0, 10) || today;
+      const submittedAt = sub.submittedAt || new Date().toISOString();
+      list.push({
+        name: probName,
+        platform: normPlat,
+        difficulty: ((sub as any).difficulty || "Medium") as any,
+        link: platLink,
+        completedAt,
+        submittedAt,
+        topic: (sub as any).topic || "Problems",
+        section: (sub as any).section || "Problems Tab",
+        ...(sub.code ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+      });
+    }
+    // Include Firestore completedProblems snapshots
+    for (const fp of firestoreCompletedProblems) {
+      if (!fp?.name || seen.has(fp.name)) continue;
+      seen.add(fp.name);
+      const sub = submissions[fp.name];
+      const platLink = fp.link || getCanonicalProblemLink(fp.name) || sub?.link || "";
+      const rawPlat = fp.platform || "DSA";
+      const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+      const completedAt = fp.completedAt || sub?.submittedAt?.slice(0, 10) || today;
+      const submittedAt = fp.submittedAt || sub?.submittedAt || new Date().toISOString();
+      list.push({
+        name: fp.name,
+        platform: normPlat,
+        difficulty: (fp.difficulty || "Medium") as any,
+        link: platLink,
+        completedAt,
+        submittedAt,
+        topic: fp.topic || (fp as any).sheet || "DSA Sheet",
+        section: fp.section || "Core Problems",
+        ...(fp.code || sub?.code ? { code: fp.code || sub?.code, submissionLink: fp.submissionLink || sub?.link || platLink, keyPoints: fp.keyPoints || sub?.keyPoints } : {}),
+      });
+    }
+    // Fallback: check local storage completed problems for user
+    if (typeof window !== "undefined" && user?.uid) {
+      try {
+        const localCompRaw = localStorage.getItem(`dsa_completed_problems_${user.uid}`);
+        if (localCompRaw) {
+          const compArr = JSON.parse(localCompRaw);
+          if (Array.isArray(compArr)) {
+            for (const name of compArr) {
+              if (name && !seen.has(name)) {
+                seen.add(name);
+                const sub = submissions[name];
+                const platLink = getCanonicalProblemLink(name) || "";
+                list.push({
+                  name,
+                  platform: "DSA",
+                  difficulty: "Medium",
+                  link: platLink,
+                  completedAt: sub?.submittedAt?.slice(0, 10) || today,
+                  submittedAt: sub?.submittedAt || new Date().toISOString(),
+                  topic: "DSA Sheet",
+                  section: "Core Problems",
+                  ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+                });
+              }
+            }
+          }
+        }
+      } catch { }
+    }
+    return list;
+  }, [days, pbCompleted, submissions, user?.uid, firestoreCompletedProblems]);
+
+  // Auto-sync solved problems to world-readable userDoc in the background
+  useEffect(() => {
+    if (user?.uid && completedProblems.length > 0) {
+      void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions);
+    }
+  }, [user?.uid, completedProblems.length, days, pbCompleted, submissions]);
+
+  const { heatmapData, detailMap } = useMemo(() => {
+    const dateMap = new Map<string, any[]>();
+    for (const day of days) {
+      const doneProbs = day.problems.filter((p) => p.done);
+      for (const p of doneProbs) {
+        const dateStr = p.completedAt || day.date;
+        const sub = submissions[p.name];
+        const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+        const item = {
+          ...p,
+          submissionLink: sub?.link || (p as any).submissionLink || platLink || undefined,
+          code: sub?.code || (p as any).code || undefined,
+          keyPoints: sub?.keyPoints || (p as any).keyPoints || undefined,
+        };
+        const existing = dateMap.get(dateStr) ?? [];
+        dateMap.set(dateStr, [...existing, item]);
+      }
+    }
+    for (const [probName, sub] of Object.entries(submissions)) {
+      if (sub.submittedAt) {
+        const dateStr = sub.submittedAt.slice(0, 10);
+        const existing = dateMap.get(dateStr) ?? [];
+        if (!existing.some((p) => p.name === probName)) {
+          const platLink = getCanonicalProblemLink(probName) || "";
+          dateMap.set(dateStr, [
+            ...existing,
+            {
+              name: probName,
+              done: true,
+              platform: "Problems Tab",
+              submissionLink: sub.link || platLink || undefined,
+              code: sub.code || undefined,
+              keyPoints: sub.keyPoints || undefined,
+            },
+          ]);
+        }
+      }
+    }
+    const hData: { date: string; solved: number }[] = [];
+    const dMap: Record<string, any[]> = {};
+    dateMap.forEach((probs, dateStr) => { hData.push({ date: dateStr, solved: probs.length }); dMap[dateStr] = probs; });
+    for (const day of days) {
+      if (!day.skipped && !dateMap.has(day.date)) hData.push({ date: day.date, solved: 0 });
+    }
+    return { heatmapData: hData, detailMap: dMap };
+  }, [days, submissions]);
+
+  const stats = useMemo(() => {
+    const byPlatform: Record<string, number> = {};
+    for (const p of completedProblems) {
+      // Exclude GitHub: Git contributions/commits are not solved coding problems
+      if (p.platform?.toLowerCase() === "github") continue;
+      const plat = (p.platform === "GFG" || p.platform?.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : (p.platform || "DSA");
+      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
+    }
+
+    // Include external connected platforms from platformStats (LeetCode, GFG, Codeforces, CodeChef, HackerRank, etc.)
+    // Explicitly exclude GitHub: contributions/commits are displayed in the contribution heatmap, not solved problems
+    let externalPlatformsTotal = 0;
+    if (platformStats && typeof platformStats === "object") {
+      for (const [rawKey, prof] of Object.entries(platformStats)) {
+        const lk = rawKey.toLowerCase();
+        if (lk === "github" || lk === "linkedin") continue;
+        if (prof && typeof prof === "object" && typeof prof.totalSolved === "number" && prof.totalSolved > 0) {
+          const normKey =
+            lk === "leetcode"
+              ? "LeetCode"
+              : lk === "gfg" || lk.includes("geeks")
+              ? "GeeksforGeeks"
+              : lk === "codeforces"
+              ? "Codeforces"
+              : lk === "codechef"
+              ? "CodeChef"
+              : lk === "hackerrank"
+              ? "HackerRank"
+              : lk === "atcoder"
+              ? "AtCoder"
+              : rawKey;
+
+          externalPlatformsTotal += prof.totalSolved;
+          byPlatform[normKey] = Math.max(byPlatform[normKey] ?? 0, prof.totalSolved);
+        }
+      }
+    }
+
+    // Merge with publicStats.byPlatform if recorded higher
+    if (publicStats?.byPlatform) {
+      for (const [k, v] of Object.entries(publicStats.byPlatform)) {
+        if (k.toLowerCase() === "github" || k.toLowerCase() === "linkedin") continue;
+        if (typeof v === "number" && v > 0) {
+          const lk = k.toLowerCase();
+          const normKey =
+            lk === "leetcode"
+              ? "LeetCode"
+              : lk === "gfg" || lk.includes("geeks")
+              ? "GeeksforGeeks"
+              : lk === "codeforces"
+              ? "Codeforces"
+              : lk === "codechef"
+              ? "CodeChef"
+              : lk === "hackerrank"
+              ? "HackerRank"
+              : lk === "atcoder"
+              ? "AtCoder"
+              : k;
+          byPlatform[normKey] = Math.max(byPlatform[normKey] ?? 0, v);
+        }
+      }
+    }
+    delete byPlatform["GitHub"];
+    delete byPlatform["github"];
+
+    const heatmapSubmissionsTotal = heatmapData.reduce((acc, d) => acc + (d.solved > 0 ? d.solved : 0), 0);
+    const trackerProblemsCount = completedProblems.filter((p) => p.platform?.toLowerCase() !== "github").length;
+    const trackerTotal = Math.max(trackerProblemsCount, heatmapSubmissionsTotal);
+
+    const platformsSum = Object.values(byPlatform).reduce((acc, count) => acc + count, 0);
+    const grandTotal = Math.max(platformsSum, trackerTotal);
+
+    if (platformsSum < trackerTotal) {
+      byPlatform["DSA"] = (byPlatform["DSA"] ?? 0) + (trackerTotal - platformsSum);
+    }
+
+    return {
+      total: grandTotal,
+      trackerTotal,
+      externalTotal: externalPlatformsTotal,
+      byPlatform,
+    };
+  }, [completedProblems, platformStats, heatmapData, publicStats]);
+
+  // Auto-extract GitHub username/handle and profile URL from all available sources
+  const effectiveGithubRaw = useMemo(() => {
+    if (github && github.trim()) return github.trim();
+    const fromSocial = socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url;
+    if (fromSocial && fromSocial.trim()) return fromSocial.trim();
+    if (codingProfiles.github && codingProfiles.github.trim()) return codingProfiles.github.trim();
+    if (typeof window !== "undefined" && user?.uid) {
+      try {
+        const syncCfg = getLocalGitHubSyncConfig(user.uid);
+        if (syncCfg?.owner && syncCfg.owner.trim()) return syncCfg.owner.trim();
+      } catch { }
+    }
+    if (username && username.trim()) return username.trim();
+    return "";
+  }, [github, socialLinks, codingProfiles, user?.uid, username]);
+
+  const effectiveGithubUsername = useMemo(() => {
+    return extractGitHubUsername(effectiveGithubRaw) || effectiveGithubRaw.replace(/^@+/, "");
+  }, [effectiveGithubRaw]);
+
+  const githubProfileUrl = useMemo(() => {
+    return resolveGitHubUrl(effectiveGithubRaw);
+  }, [effectiveGithubRaw]);
+
+  const githubUsername = effectiveGithubUsername;
+
+  // — Handlers
+  const handleAvatarChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const dataUrl = await compressImageToDataUrl(file);
+      setPhotoURL(dataUrl);
+      if (typeof window !== "undefined" && user?.uid) localStorage.setItem(`local_avatar_url_${user.uid}`, dataUrl);
+      if (user) await saveAvatarBase64(user.uid, dataUrl).catch(() => { });
+      toast.success("Profile picture updated!");
+    } catch (err) { toast.error("Upload failed", { description: (err as Error).message }); }
+    finally { setUploadingAvatar(false); e.target.value = ""; }
+  }, [user]);
+
+  const handleBannerChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    setUploadingBanner(true);
+    try {
+      const dataUrl = await compressBannerToDataUrl(file);
+      setBannerURL(dataUrl);
+      if (typeof window !== "undefined" && user?.uid) localStorage.setItem(`local_banner_url_${user.uid}`, dataUrl);
+      if (user) await saveBannerBase64(user.uid, dataUrl).catch(() => { });
+      toast.success("Banner updated!");
+    } catch (err) { toast.error("Banner upload failed", { description: (err as Error).message }); }
+    finally { setUploadingBanner(false); e.target.value = ""; }
+  }, [user]);
+
+  const saveBasicInfo = useCallback(async () => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      let finalUsername = username;
+      const normDraft = normalizeUsername(usernameDraft);
+      if (normDraft && normDraft !== username) {
+        if (!USERNAME_REGEX.test(normDraft)) {
+          toast.error("Invalid username handle", { description: "Must be 3-20 characters: lowercase letters, numbers, - or _ only." });
+          setSaving(false);
+          return;
+        }
+        try {
+          await claimUsername(user.uid, normDraft);
+          finalUsername = normDraft;
+          setUsername(normDraft);
+          setUsernameDraft(normDraft);
+          setUsernameStatus("idle");
+        } catch (uErr) {
+          if (uErr instanceof Error && uErr.message === "USERNAME_TAKEN") {
+            setUsernameStatus("taken");
+            toast.error("Username already taken", { description: "Please choose a different handle." });
+            setSaving(false);
+            return;
+          } else {
+            // Do NOT silently write the username onto the profile doc here.
+            // That skips creating the usernames/{username} -> uid index doc
+            // that public URL resolution depends on, which is exactly what
+            // caused /profile/{username} links to 404 while looking
+            // "saved". Stop the whole save and surface the real error.
+            toast.error("Couldn't claim username", {
+              description: (uErr as Error).message || "Please try again — nothing was saved.",
+            });
+            setSaving(false);
+            return;
+          }
+        }
+      }
+
+      const cleanedDraftProfiles: CodingProfiles = { ...draftProfiles };
+      for (const [key, val] of Object.entries(cleanedDraftProfiles)) {
+        if (typeof val === "string" && val.trim()) {
+          const cleanVal = extractHandleFromInput(key as any, val);
+          (cleanedDraftProfiles as any)[key] = cleanVal || val.trim();
+        }
+      }
+
+      const mergedCodingProfiles: CodingProfiles = {
+        ...codingProfiles,
+        ...cleanedDraftProfiles,
+        customLinks: draftCustomLinks,
+      };
+      // Ensure github is not kept in codingProfiles (it has its own top-level field)
+      delete (mergedCodingProfiles as any).github;
+
+      await updateProfile(auth.currentUser!, { displayName });
+      await saveUserProfile(user.uid, {
+        displayName,
+        bio,
+        aboutMe,
+        notes,
+        linkedin: linkedin.trim(),
+        github: github.trim(),
+        portfolio: portfolio.trim(),
+        socialLinks,
+        codingProfiles: mergedCodingProfiles,
+        username: finalUsername,
+        email: currentEmail || undefined,
+        publicStats: { totalSolved: stats.total, byPlatform: stats.byPlatform, lastUpdated: new Date().toISOString() },
+        completedProblems,
+      });
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(mergedCodingProfiles));
+          localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(mergedCodingProfiles));
+          window.dispatchEvent(
+            new CustomEvent("ldt_coding_profiles_updated", {
+              detail: { codingProfiles: mergedCodingProfiles },
+            })
+          );
+        } catch {}
+      }
+      setCodingProfiles(mergedCodingProfiles);
+      toast.success("Profile details & contest links saved! 🎉");
+    } catch (err) {
+      toast.error("Save failed", { description: (err as Error).message });
+    } finally {
+      setSaving(false);
+    }
+  }, [user, displayName, bio, aboutMe, notes, linkedin, github, portfolio, socialLinks, draftProfiles, draftCustomLinks, codingProfiles, usernameDraft, username, currentEmail, stats, completedProblems]);
+
+  const handleSaveNotes = useCallback(async () => {
+    if (!user) return;
+    setSavingNotes(true);
+    try {
+      await saveUserProfile(user.uid, { notes });
+      toast.success("Personal notes saved! 🔒", {
+        description: "Stored securely in your private workspace.",
+      });
+    } catch (err) {
+      toast.error("Failed to save notes", { description: (err as Error).message });
+    } finally {
+      setSavingNotes(false);
+    }
+  }, [user, notes]);
+
+  const saveCodingProfiles = useCallback(async () => {
+    if (!user) return; setSaving(true);
+    try {
+      const cleaned: CodingProfiles = { ...draftProfiles };
+      for (const [key, val] of Object.entries(cleaned)) {
+        if (typeof val === "string" && val.trim()) {
+          const cleanVal = extractHandleFromInput(key as any, val);
+          (cleaned as any)[key] = cleanVal || val.trim();
+        }
+      }
+      delete (cleaned as any).github;
+      const merged: CodingProfiles = { ...cleaned, customLinks: draftCustomLinks };
+      await saveUserProfile(user.uid, { codingProfiles: merged });
+      setCodingProfiles(merged); setEditingProfiles(false);
+      toast.success("Coding profiles saved!");
+    } catch (err) { toast.error("Save failed", { description: (err as Error).message }); }
+    finally { setSaving(false); }
+  }, [user, draftProfiles, draftCustomLinks]);
+
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/profile/${username || user?.uid}` : "";
+  const copyShareLink = useCallback(async () => {
+    try { await navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 2500); toast.success("Link copied!"); }
+    catch { toast.error("Could not copy link"); }
+  }, [shareUrl]);
+
+  const userNameDisplay = displayName || user?.displayName || user?.email?.split("@")[0] || "Coder";
+  const initials = userNameDisplay[0]?.toUpperCase() ?? "C";
+
+  if (loading || loadingProfile) {
+    return (
+      <div className="space-y-4 p-6">
+        <Skeleton className="h-56 w-full rounded-3xl" />
+        <Skeleton className="h-32 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Hidden file inputs */}
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+      <input ref={bannerInputRef} type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
+
+      {/* ── Banner + Avatar Hero Card ── */}
+      <section className="rounded-3xl border border-white/15 bg-card/80 backdrop-blur-xl shadow-2xl overflow-hidden">
+        {/* Banner */}
+        <div
+          onClick={() => bannerInputRef.current?.click()}
+          className="h-44 sm:h-56 w-full relative overflow-hidden cursor-pointer group"
+          title="Click to change banner"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-purple-600/30 to-emerald-500/30" />
+          {bannerURL && <img src={bannerURL} alt="banner" className="absolute inset-0 w-full h-full object-cover" />}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-sm font-bold gap-2 backdrop-blur-[2px] z-10">
+            <Camera className="size-5" />
+            <span>Change Banner</span>
+          </div>
+        </div>
+
+        {/* Avatar + Info Row */}
+        <div className="px-4 sm:px-6 pb-6 pt-0 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-end justify-between gap-4 relative">
+          {/* Avatar */}
+          <div className="flex items-end gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="-mt-12 sm:-mt-16 flex size-20 sm:size-32 shrink-0 overflow-hidden rounded-full border-[4px] sm:border-[5px] border-card bg-card shadow-2xl items-center justify-center z-10 cursor-pointer group relative"
+              title="Click to change avatar"
+            >
+              {photoURL
+                ? <img src={photoURL} alt="avatar" className="size-full object-cover" />
+                : <span className="text-2xl sm:text-4xl font-extrabold text-primary">{initials}</span>
+              }
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-full">
+                <Camera className="size-5" />
+              </div>
+            </div>
+
+            <div className="pb-1 min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-foreground truncate">
+                {userNameDisplay.toLowerCase().includes("bhanu") ? (
+                  <a
+                    href="https://pbmnaiduportfolio.vercel.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors cursor-pointer"
+                    title="Visit Bhanu's Portfolio"
+                  >
+                    {userNameDisplay}
+                  </a>
+                ) : (
+                  userNameDisplay
+                )}
+              </h1>
+              <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                {username && username !== effectiveGithubUsername && (
+                  <Link
+                    href={`/profile/${username}`}
+                    className="text-xs font-semibold text-primary truncate hover:underline cursor-pointer"
+                    title={`View public profile for @${username}`}
+                  >
+                    @{username}
+                  </Link>
+                )}
+                {githubProfileUrl && (
+                  <a
+                    href={githubProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/20 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-800/35 dark:hover:bg-zinc-700/60 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer group"
+                    title={`Open GitHub profile: ${githubProfileUrl}`}
+                  >
+                    <GitHubIcon className="size-3.5 shrink-0" />
+                    <span className="font-mono">{effectiveGithubUsername ? `@${effectiveGithubUsername}` : "GitHub"}</span>
+                    <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  </a>
+                )}
+                {linkedin && (
+                  <a
+                    href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
+                    title={`Open LinkedIn profile: ${linkedin}`}
+                  >
+                    <LinkedInIcon className="size-3 shrink-0" />
+                    <span>LinkedIn</span>
+                    <ExternalLink className="size-2.5 opacity-70" />
+                  </a>
+                )}
+                {portfolio && (
+                  <a
+                    href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
+                    title={`Open Portfolio: ${portfolio}`}
+                  >
+                    <Globe className="size-3 shrink-0" />
+                    <span>Portfolio</span>
+                    <ExternalLink className="size-2.5 opacity-70" />
+                  </a>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1 mt-1">{bio || "SDE Aspirant · DSA Prep Tracker"}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-400">
+                  <Flame className="size-3.5 animate-pulse" /> {streakCount} Day Streak
+                </span>
+                <span
+                  className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-400"
+                  title={
+                    stats.externalTotal > 0
+                      ? `Total solved across all platforms: ${stats.total} (${stats.trackerTotal} in 404 DSA Tracker)`
+                      : `Total problems solved across all platforms: ${stats.total}`
+                  }
+                >
+                  <CheckCircle2 className="size-3.5" />
+                  <span>{stats.total} Solved</span>
+                  {stats.externalTotal > 0 && (
+                    <span className="text-[10px] font-normal text-emerald-400/80 ml-0.5">(All Platforms)</span>
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 pb-1 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
+            <ThemedTooltip hint="Copy shareable public profile link">
+              <Button variant="outline" size="sm" className="h-8 text-xs px-3 gap-1.5 rounded-xl border-white/10 flex-1 sm:flex-none" onClick={copyShareLink}>
+                {copied ? <Check className="size-3.5 text-emerald-400" /> : <Share2 className="size-3.5 text-primary" />}
+                <span>{copied ? "Copied!" : "Share Profile"}</span>
+              </Button>
+            </ThemedTooltip>
+
+            <ThemedTooltip hint="Open your public profile page">
+              <Link
+                href={`/profile/${username || user?.uid || "demo"}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center h-8 text-xs px-3 gap-1.5 rounded-xl font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm active:scale-95 flex-1 sm:flex-none cursor-pointer"
+              >
+                <Eye className="size-3.5" />
+                <span>View Profile</span>
+                <ExternalLink className="size-2.5 opacity-70" />
+              </Link>
+            </ThemedTooltip>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Edit Info & Upload Controls ── */}
+      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <UserCircle2 className="size-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">Edit Profile Details</h2>
+              <p className="text-[11px] text-muted-foreground">Manage your avatar, banner, bio, handle, and linked Gmail</p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowEditDetails((prev) => !prev)}
+            className={cn(
+              "gap-1.5 text-xs rounded-xl font-semibold transition-all shrink-0 cursor-pointer",
+              showEditDetails
+                ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
+                : "bg-background/60 hover:bg-background border-white/10 text-foreground"
+            )}
+          >
+            <Pencil className="size-3.5 text-primary" />
+            {showEditDetails ? "Hide Edit Details" : "Edit Profile Details"}
+            <ChevronDown className={cn("size-3.5 transition-transform duration-200", showEditDetails && "rotate-180")} />
+          </Button>
+        </div>
+
+        {/* Collapsed State Preview */}
+        {!showEditDetails && (
+          <div className="rounded-2xl border border-white/5 bg-background/30 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in-50 duration-200">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-12 overflow-hidden rounded-full border border-primary/30 bg-muted shrink-0 flex items-center justify-center shadow-sm">
+                {photoURL ? <img src={photoURL} alt="avatar" className="size-full object-cover" /> : <span className="font-bold text-primary">{initials}</span>}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-sm text-foreground truncate">{displayName || "Coder"}</span>
+                  {username && <span className="text-xs font-mono text-primary font-medium">@{username}</span>}
+                </div>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <Mail className="size-3.5 text-muted-foreground shrink-0" />
+                  {currentEmail ? (
+                    <span className="text-xs text-muted-foreground font-mono truncate">{currentEmail}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGmailInput("");
+                        setIsEmailModalOpen(true);
+                      }}
+                      className="text-xs text-amber-500 hover:text-amber-400 font-mono inline-flex items-center gap-1 font-semibold underline decoration-dotted cursor-pointer"
+                    >
+                      <AlertCircle className="size-3" /> No Gmail Linked — Click to enter Gmail
+                    </button>
+                  )}
+                  {currentEmail && (
+                    <Badge variant="outline" className="text-[10px] font-mono py-0 px-1.5 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                      Linked
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+              {!currentEmail && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="text-xs rounded-xl gap-1.5 h-8 font-medium cursor-pointer"
+                  onClick={() => {
+                    setGmailInput("");
+                    setIsEmailModalOpen(true);
+                  }}
+                >
+                  <AlertCircle className="size-3" /> Link Gmail
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="text-xs rounded-xl gap-1.5 h-8 font-medium cursor-pointer"
+                onClick={() => setShowEditDetails(true)}
+              >
+                <Pencil className="size-3" /> Edit Details
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Expanded Edit Form */}
+        {showEditDetails && (
+          <div className="space-y-4 pt-1 animate-in fade-in-50 duration-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Avatar upload */}
+              <div className="space-y-2 rounded-2xl border border-white/10 bg-background/40 p-4">
+                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Camera className="size-3.5 text-primary" /> Profile Photo
+                </Label>
+                <div className="flex items-center gap-3">
+                  <div className="size-12 overflow-hidden rounded-full border border-primary/40 bg-muted shrink-0 flex items-center justify-center">
+                    {photoURL ? <img src={photoURL} alt="avatar" className="size-full object-cover" /> : <span className="font-bold text-primary">{initials}</span>}
+                  </div>
+                  <Button variant="outline" size="sm" className="h-8 text-xs rounded-xl cursor-pointer" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}>
+                    {uploadingAvatar ? "Uploading…" : "Upload Photo"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Banner upload */}
+              <div className="space-y-2 rounded-2xl border border-white/10 bg-background/40 p-4">
+                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <ImageIcon className="size-3.5 text-primary" /> Cover Banner
+                </Label>
+                <div className="flex items-center gap-3">
+                  <div className="h-14 w-28 overflow-hidden rounded-xl border border-white/10 bg-muted shrink-0 relative cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-600/30" />
+                    {bannerURL && <img src={bannerURL} alt="banner" className="absolute inset-0 w-full h-full object-cover" />}
+                  </div>
+                  <Button variant="outline" size="sm" className="h-8 text-xs rounded-xl cursor-pointer" onClick={() => bannerInputRef.current?.click()} disabled={uploadingBanner}>
+                    {uploadingBanner ? "Uploading…" : "Upload Banner"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Email Section */}
+            <div className="space-y-2 rounded-2xl border border-white/10 bg-background/40 p-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="prof-email" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Mail className="size-3.5 text-primary" /> Account Gmail
+                </Label>
+                {currentEmail ? (
+                  <Badge variant="outline" className="text-[10px] font-mono bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1">
+                    <Check className="size-2.5" /> Verified Gmail
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] font-mono bg-amber-500/10 text-amber-500 border-amber-500/30 gap-1 animate-pulse">
+                    <AlertCircle className="size-2.5" /> Action Required: Missing Gmail
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="prof-email"
+                    value={currentEmail || "No Gmail address linked"}
+                    readOnly
+                    className={cn(
+                      "bg-background/60 border-white/10 rounded-xl text-sm font-mono pr-9",
+                      !currentEmail && "text-amber-500 italic font-sans"
+                    )}
+                  />
+                  <Mail className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setGmailInput(currentEmail);
+                    setIsEmailModalOpen(true);
+                  }}
+                  className="rounded-xl text-xs shrink-0 font-medium hover:border-primary/40 cursor-pointer"
+                >
+                  {currentEmail ? "Update Gmail" : "Enter Valid Gmail"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {currentEmail
+                  ? "Your verified Gmail for daily reminders, streak alerts, and account recovery."
+                  : "Please link a valid Gmail address to receive roadmap updates and secure your account."}
+              </p>
+            </div>
+
+            {/* Name & Bio */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-name" className="text-xs font-semibold text-muted-foreground">Display Name</Label>
+                <Input id="prof-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your display name" className="bg-background/40 border-white/10 rounded-xl text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-bio" className="text-xs font-semibold text-muted-foreground">Bio / Target Goal</Label>
+                <Input id="prof-bio" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="SDE Aspirant · Target SDE 1 role..." className="bg-background/40 border-white/10 rounded-xl text-sm" />
+              </div>
+            </div>
+
+            {/* GitHub, LinkedIn & Portfolio */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-github" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <GitHubIcon className="size-3.5 text-foreground" /> GitHub Profile URL
+                </Label>
+                <Input
+                  id="prof-github"
+                  value={github}
+                  onChange={(e) => setGithub(e.target.value)}
+                  placeholder="https://github.com/username"
+                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-linkedin" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <LinkedInIcon className="size-3.5 text-[#0077b5]" /> LinkedIn Profile URL
+                </Label>
+                <Input
+                  id="prof-linkedin"
+                  value={linkedin}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  placeholder="https://linkedin.com/in/username"
+                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="prof-portfolio" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Globe className="size-3.5 text-emerald-500" /> Portfolio Website URL
+                </Label>
+                <Input
+                  id="prof-portfolio"
+                  value={portfolio}
+                  onChange={(e) => setPortfolio(e.target.value)}
+                  placeholder="https://yourportfolio.dev"
+                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Other Social Media Profiles */}
+            <div className="space-y-2.5 rounded-2xl border border-white/10 bg-background/40 p-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Share2 className="size-3.5 text-primary" /> Other Social Media Profiles
+                </Label>
+                <span className="text-[10px] text-muted-foreground">GitHub, Twitter/X, YouTube, etc.</span>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                    <GitHubIcon className="size-3" /> GitHub
+                  </span>
+                  <Input
+                    value={socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSocialLinks((prev) => {
+                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "github");
+                        return val ? [...filtered, { platform: "GitHub", url: val }] : filtered;
+                      });
+                    }}
+                    placeholder="https://github.com/yourname"
+                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                    <TwitterIcon className="size-3" /> Twitter / X
+                  </span>
+                  <Input
+                    value={socialLinks.find((s) => s.platform.toLowerCase() === "twitter" || s.platform.toLowerCase() === "x")?.url || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSocialLinks((prev) => {
+                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "twitter" && s.platform.toLowerCase() !== "x");
+                        return val ? [...filtered, { platform: "Twitter", url: val }] : filtered;
+                      });
+                    }}
+                    placeholder="https://x.com/yourname"
+                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                    <YouTubeIcon className="size-3 text-red-500" /> YouTube
+                  </span>
+                  <Input
+                    value={socialLinks.find((s) => s.platform.toLowerCase() === "youtube")?.url || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSocialLinks((prev) => {
+                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "youtube");
+                        return val ? [...filtered, { platform: "YouTube", url: val }] : filtered;
+                      });
+                    }}
+                    placeholder="https://youtube.com/@channel"
+                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                </div>
+              </div>
+
+              {/* Additional Custom Social Links */}
+              {socialLinks.filter((s) => !["github", "twitter", "x", "youtube"].includes(s.platform.toLowerCase())).length > 0 && (
+                <div className="space-y-1.5 pt-2 border-t border-white/5">
+                  <span className="text-[11px] font-semibold text-muted-foreground">Additional Links:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {socialLinks.filter((s) => !["github", "twitter", "x", "youtube"].includes(s.platform.toLowerCase())).map((item, idx) => (
+                      <div key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-xs">
+                        {getSocialIcon(item.platform, "size-3 text-primary")}
+                        <span className="font-semibold text-foreground">{item.platform}:</span>
+                        <span className="text-muted-foreground font-mono truncate max-w-[150px]">{item.url}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSocialLinks((prev) => prev.filter((s) => s !== item))}
+                          className="text-muted-foreground hover:text-red-400 ml-1 cursor-pointer"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add custom link row */}
+              <div className="flex items-center gap-2 pt-1">
+                <Input
+                  value={customSocialPlatform}
+                  onChange={(e) => setCustomSocialPlatform(e.target.value)}
+                  placeholder="Platform (e.g. Discord, Blog)"
+                  className="bg-background/60 border-white/10 rounded-xl text-xs h-8 w-1/3"
+                />
+                <Input
+                  value={customSocialUrl}
+                  onChange={(e) => setCustomSocialUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="bg-background/60 border-white/10 rounded-xl text-xs h-8 flex-1"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl text-xs h-8 gap-1 shrink-0 cursor-pointer"
+                  disabled={!customSocialPlatform.trim() || !customSocialUrl.trim()}
+                  onClick={() => {
+                    if (customSocialPlatform.trim() && customSocialUrl.trim()) {
+                      setSocialLinks((prev) => [...prev, { platform: customSocialPlatform.trim(), url: customSocialUrl.trim() }]);
+                      setCustomSocialPlatform("");
+                      setCustomSocialUrl("");
+                    }
+                  }}
+                >
+                  <Plus className="size-3.5" /> Add Link
+                </Button>
+              </div>
+            </div>
+
+            {/* Contest & Coding Platform Profiles (Auto-Tracks Contests) */}
+            <div className="space-y-3 rounded-2xl border border-amber-500/25 bg-amber-500/[0.03] dark:bg-amber-500/[0.05] p-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-white/10 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="size-6 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                    <Trophy className="size-3.5" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      Coding &amp; Contest Platform Profiles
+                    </Label>
+                    <p className="text-[10.5px] text-muted-foreground">
+                      Enter your profile URL or handle. Contests on these platforms will automatically sync and link your account.
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="self-start sm:self-auto text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                  ⚡ Auto-Tracks Contests
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                {/* LeetCode */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-amber-500 font-bold">⚡</span> LeetCode
+                    </span>
+                    {draftProfiles.leetcode && extractHandleFromInput('leetcode', draftProfiles.leetcode) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('leetcode', draftProfiles.leetcode)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.leetcode || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, leetcode: e.target.value }))}
+                    placeholder="leetcode.com/u/yourhandle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://leetcode.com/u/username
+                  </p>
+                </div>
+
+                {/* Codeforces */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-blue-500 font-bold">🔵</span> Codeforces
+                    </span>
+                    {draftProfiles.codeforces && extractHandleFromInput('codeforces', draftProfiles.codeforces) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('codeforces', draftProfiles.codeforces)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.codeforces || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, codeforces: e.target.value }))}
+                    placeholder="codeforces.com/profile/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://codeforces.com/profile/tourist
+                  </p>
+                </div>
+
+                {/* CodeChef */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-orange-500 font-bold">👨‍🍳</span> CodeChef
+                    </span>
+                    {draftProfiles.codechef && extractHandleFromInput('codechef', draftProfiles.codechef) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('codechef', draftProfiles.codechef)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.codechef || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, codechef: e.target.value }))}
+                    placeholder="codechef.com/users/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.codechef.com/users/username
+                  </p>
+                </div>
+
+                {/* HackerRank */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-emerald-500 font-bold">🏆</span> HackerRank
+                    </span>
+                    {draftProfiles.hackerrank && extractHandleFromInput('hackerrank', draftProfiles.hackerrank) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('hackerrank', draftProfiles.hackerrank)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.hackerrank || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, hackerrank: e.target.value }))}
+                    placeholder="hackerrank.com/profile/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.hackerrank.com/profile/username
+                  </p>
+                </div>
+
+                {/* HackerEarth */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-cyan-500 font-bold">🌐</span> HackerEarth
+                    </span>
+                    {draftProfiles.hackerearth && extractHandleFromInput('hackerearth', draftProfiles.hackerearth) ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        @{extractHandleFromInput('hackerearth', draftProfiles.hackerearth)} ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.hackerearth || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, hackerearth: e.target.value }))}
+                    placeholder="hackerearth.com/@handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.hackerearth.com/@username
+                  </p>
+                </div>
+
+                {/* GeeksforGeeks */}
+                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                      <span className="text-emerald-600 font-bold">💚</span> GeeksforGeeks
+                    </span>
+                    {draftProfiles.gfg ? (
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
+                        Connected ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
+                    )}
+                  </div>
+                  <Input
+                    value={draftProfiles.gfg || ""}
+                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, gfg: e.target.value }))}
+                    placeholder="geeksforgeeks.org/user/handle or handle"
+                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
+                  />
+                  <p className="text-[10px] text-muted-foreground/80 truncate">
+                    Ex: https://www.geeksforgeeks.org/user/username
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Public About Me */}
+            <div className="space-y-1.5">
+              <Label htmlFor="prof-about-me" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-primary" /> About Me <span className="font-normal text-muted-foreground/70">— Public showcase seen on your public profile</span>
+              </Label>
+              <Textarea
+                id="prof-about-me"
+                value={aboutMe}
+                onChange={(e) => setAboutMe(e.target.value)}
+                placeholder="Share your software engineering journey, tech stack, aspirations, and what you're currently preparing for..."
+                rows={4}
+                className="bg-background/40 border-white/10 rounded-xl text-sm resize-none"
+              />
+            </div>
+
+            {/* Private Personal Notes */}
+            <div className="space-y-1.5">
+              <Label htmlFor="prof-notes" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Lock className="size-3.5 text-amber-500" /> Personal Notes <span className="font-normal text-amber-500/90 font-mono text-[11px]">🔒 Owner Only (Private — never shown on public profile)</span>
+              </Label>
+              <Textarea
+                id="prof-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Internal notes to yourself — weak DSA concepts to revisit, upcoming interview dates, checklist, reminders..."
+                rows={4}
+                className="bg-background/40 border-amber-500/20 focus-visible:ring-amber-500/30 rounded-xl text-sm resize-none"
+              />
+            </div>
+
+            {/* Username */}
+            <div className="space-y-1.5">
+              <Label htmlFor="prof-username" className="text-xs font-semibold text-muted-foreground">
+                Username <span className="font-normal text-muted-foreground/70">— your public profile URL</span>
+              </Label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="prof-username"
+                    value={usernameDraft}
+                    onChange={(e) => setUsernameDraft(e.target.value)}
+                    placeholder="e.g. alex-turner"
+                    disabled={usernameSaving}
+                    className={cn(
+                      "bg-background/40 border-white/10 rounded-xl text-sm pr-9",
+                      (usernameStatus === "taken" || usernameStatus === "invalid") && "border-red-500 focus-visible:ring-red-500",
+                      usernameStatus === "available" && "border-emerald-500 focus-visible:ring-emerald-500",
+                    )}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && usernameStatus === "available" && !usernameSaving) saveUsername();
+                    }}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {usernameStatus === "checking" && <RefreshCw className="size-3.5 animate-spin text-muted-foreground" />}
+                    {usernameStatus === "available" && <Check className="size-3.5 text-emerald-500" />}
+                    {(usernameStatus === "taken" || usernameStatus === "invalid") && <X className="size-3.5 text-red-500" />}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  className={cn(
+                    "gap-2 rounded-xl shrink-0 font-semibold transition-all shadow-sm cursor-pointer",
+                    normalizeUsername(usernameDraft) !== username && USERNAME_REGEX.test(normalizeUsername(usernameDraft)) && usernameStatus !== "taken"
+                      ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 ring-2 ring-primary/40"
+                      : "bg-muted text-muted-foreground opacity-60"
+                  )}
+                  disabled={
+                    normalizeUsername(usernameDraft) === username ||
+                    !USERNAME_REGEX.test(normalizeUsername(usernameDraft)) ||
+                    usernameStatus === "taken" ||
+                    usernameSaving
+                  }
+                  onClick={saveUsername}
+                >
+                  {usernameSaving ? <RefreshCw className="size-4 animate-spin" /> : <Check className="size-4" />}
+                  Save Handle
+                </Button>
+              </div>
+              {usernameStatus === "taken" && (
+                <p className="text-xs text-red-500">That username is already taken — choose another.</p>
+              )}
+              {usernameStatus === "invalid" && (
+                <p className="text-xs text-red-500">3-20 characters: lowercase letters, numbers, - or _ only.</p>
+              )}
+              {usernameStatus === "available" && (
+                <p className="text-xs text-emerald-500">Available!</p>
+              )}
+              {username && usernameStatus === "idle" && (
+                <p className="text-xs text-muted-foreground">Your profile: /profile/{username}</p>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <Button size="sm" className="gap-2 rounded-xl cursor-pointer" onClick={saveBasicInfo} disabled={saving}>
+                {saving ? <RefreshCw className="size-4 animate-spin" /> : <Check className="size-4" />}
+                Save Profile Details
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ── Enter Valid Gmail Pop-up Modal ── */}
+      <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+        <DialogContent className="max-w-md border-white/10 bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="size-9 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+                <Mail className="size-4" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-foreground">
+                  {currentEmail ? "Update Your Gmail Address" : "Enter Valid Gmail Address"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                  Link your active Gmail account for notifications and recovery
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3.5 py-2">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/80 space-y-1">
+              <p className="font-semibold text-primary flex items-center gap-1.5">
+                <Sparkles className="size-3.5" /> Gmail Requirement
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Please enter a valid Gmail address (ending in <strong className="text-foreground">@gmail.com</strong>) to sync with daily alerts and roadmap delivery.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="gmail-input" className="text-xs font-semibold text-muted-foreground">
+                Gmail Address
+              </Label>
+              <div className="relative">
+                <Input
+                  id="gmail-input"
+                  type="email"
+                  placeholder="yourname@gmail.com"
+                  value={gmailInput}
+                  onChange={(e) => setGmailInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim())) {
+                      handleSaveGmail();
+                    }
+                  }}
+                  className="bg-background/60 border-white/10 rounded-xl text-sm font-mono pr-9"
+                  autoFocus
+                />
+                <Mail className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              </div>
+              {gmailInput && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim()) && (
+                <p className="text-[11px] text-amber-500 flex items-center gap-1">
+                  <AlertCircle className="size-3 shrink-0" /> Must be a valid address ending with @gmail.com
+                </p>
+              )}
+              {gmailInput && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim()) && (
+                <p className="text-[11px] text-emerald-500 flex items-center gap-1">
+                  <Check className="size-3 shrink-0" /> Valid Gmail format!
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="rounded-xl text-xs cursor-pointer"
+              onClick={() => setIsEmailModalOpen(false)}
+              disabled={savingEmail}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-xl text-xs gap-1.5 font-semibold bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+              disabled={savingEmail || !gmailInput.trim() || !/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim())}
+              onClick={handleSaveGmail}
+            >
+              {savingEmail ? (
+                <>
+                  <RefreshCw className="size-3.5 animate-spin" /> Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="size-3.5" /> Save Gmail Address
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── About Me (Public Profile Details) ── */}
+      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <Sparkles className="size-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">About Me</h2>
+              <p className="text-xs text-muted-foreground">Public overview, target career goals &amp; verified professional links</p>
+            </div>
+          </div>
+          <span className="self-start sm:self-auto rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
+            Public Profile Viewable
+          </span>
+        </div>
+
+        {/* Profile Details Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Key Contact & Identity Info */}
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-background/40 p-4">
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <span className="text-xs font-medium text-muted-foreground">Full Name</span>
+              <span className="text-xs font-bold text-foreground truncate max-w-[200px]">
+                {userNameDisplay.toLowerCase().includes("bhanu") ? (
+                  <a
+                    href="https://pbmnaiduportfolio.vercel.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary underline decoration-primary decoration-1 underline-offset-2 transition-colors cursor-pointer"
+                    title="Visit Bhanu's Portfolio"
+                  >
+                    {userNameDisplay}
+                  </a>
+                ) : (
+                  userNameDisplay
+                )}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <span className="text-xs font-medium text-muted-foreground">Goal / Target Role</span>
+              <span className="text-xs font-bold text-primary truncate max-w-[200px]">{bio || "SDE Aspirant · DSA Prep"}</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Mail className="size-3 text-muted-foreground" /> Email
+              </span>
+              {currentEmail ? (
+                <a
+                  href={`mailto:${currentEmail}`}
+                  className="text-xs font-mono text-foreground hover:text-primary transition-colors underline decoration-dotted truncate max-w-[200px]"
+                  title={`Email ${currentEmail}`}
+                >
+                  {currentEmail}
+                </a>
+              ) : (
+                <span className="text-xs text-muted-foreground italic">Not specified</span>
+              )}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Profile Handle</span>
+              <span className="text-xs font-mono font-semibold text-primary">@{username || "coder"}</span>
+            </div>
+          </div>
+
+          {/* Social & Professional Links */}
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-background/40 p-4 flex flex-col justify-between">
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                Connected Profiles &amp; Links
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {githubProfileUrl ? (
+                  <a
+                    href={githubProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
+                    title={`Open GitHub: ${githubProfileUrl}`}
+                  >
+                    <GitHubIcon className="size-3.5 shrink-0" />
+                    <span>GitHub{effectiveGithubUsername ? ` (@${effectiveGithubUsername})` : ""}</span>
+                    <ExternalLink className="size-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
+                    <GitHubIcon className="size-3.5 opacity-40" /> No GitHub linked
+                  </span>
+                )}
+
+                {linkedin ? (
+                  <a
+                    href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                    title={`Open LinkedIn: ${linkedin}`}
+                  >
+                    <LinkedInIcon className="size-3.5 shrink-0" />
+                    <span>LinkedIn</span>
+                    <ExternalLink className="size-3 opacity-70" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
+                    <LinkedInIcon className="size-3.5 opacity-40" /> No LinkedIn linked
+                  </span>
+                )}
+
+                {portfolio ? (
+                  <a
+                    href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                    title={`Open Portfolio: ${portfolio}`}
+                  >
+                    <Globe className="size-3.5 shrink-0" />
+                    <span>Portfolio</span>
+                    <ExternalLink className="size-3 opacity-70" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
+                    <Globe className="size-3.5 opacity-40" /> No Portfolio linked
+                  </span>
+                )}
+
+                {/* Other Social Media Links */}
+                {socialLinks.map((s, idx) => (
+                  <a
+                    key={idx}
+                    href={s.url.startsWith("http") ? s.url : `https://${s.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                    title={`Open ${s.platform}: ${s.url}`}
+                  >
+                    {getSocialIcon(s.platform, "size-3.5 shrink-0")}
+                    <span>{s.platform}</span>
+                    <ExternalLink className="size-3 opacity-70" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {(!githubProfileUrl && !linkedin && !portfolio && socialLinks.length === 0) && (
+              <p className="text-[11px] text-muted-foreground">
+                Click <button type="button" onClick={() => setShowEditDetails(true)} className="text-primary hover:underline font-semibold cursor-pointer">Edit Profile Details</button> to add your LinkedIn, Portfolio, and other social profiles.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Narrative About Me Text */}
+        <div className="rounded-2xl border border-white/10 bg-background/30 p-4 space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <UserCircle2 className="size-3.5 text-primary" /> Bio &amp; Journey
+          </p>
+          {aboutMe ? (
+            <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">
+              {aboutMe}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground italic">
+              No description added yet. Add a short bio describing your DSA preparation trajectory, tech stack, and goals in the &quot;Edit Profile Details&quot; form above.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ── Personal Notes (Owner Only — STRICTLY PRIVATE) ── */}
+      <section className="rounded-3xl border border-amber-500/20 bg-amber-500/[0.02] backdrop-blur-xl p-6 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/20 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+              <Lock className="size-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-foreground">Personal Notes</h2>
+                <Badge variant="outline" className="text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                  🔒 Strictly Private
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">Personal scratchpad, interview review checklist, and topics to revisit. Never displayed on your public profile.</p>
+            </div>
+          </div>
+
+          <Button
+            size="sm"
+            onClick={handleSaveNotes}
+            disabled={savingNotes}
+            className="self-start sm:self-auto gap-1.5 text-xs rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-md cursor-pointer"
+          >
+            {savingNotes ? <RefreshCw className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+            <span>{savingNotes ? "Saving…" : "Save Notes"}</span>
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Write your private study notes here... e.g.
+• Revise DP Memoization vs Tabulation before Saturday mock interview
+• Review Dijkstra & Bellman-Ford cycle detection edge cases
+• Revisit Day 42 hard problems on Trie and Segment Tree"
+            rows={5}
+            className="bg-background/60 border-amber-500/30 focus-visible:ring-amber-500/40 rounded-2xl text-sm leading-relaxed resize-none p-3.5 font-mono text-xs"
+          />
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
+            <span className="flex items-center gap-1 text-amber-500/90">
+              <Lock className="size-3" /> Encrypted &amp; private to your account uid
+            </span>
+            <span>{notes.length} characters</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Multi-Platform Coding Profile Integration Dashboard ── */}
+      <UnifiedProfileDashboard
+        initialProfiles={codingProfiles as Record<string, string>}
+        initialStats={platformStats}
+        userId={user?.uid}
+        onSaveProfiles={async (updated) => {
+          setCodingProfiles(updated);
+          setDraftProfiles((prev) => ({ ...prev, ...updated }));
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(updated));
+              if (user?.uid) {
+                localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(updated));
+              }
+              window.dispatchEvent(
+                new CustomEvent("ldt_coding_profiles_updated", {
+                  detail: { codingProfiles: updated },
+                })
+              );
+            } catch {}
+          }
+          if (user) {
+            saveUserProfile(user.uid, { codingProfiles: updated }).catch(console.error);
+          }
+        }}
+      />
+
+      {/* ── Statistics ── */}
+      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
+        <div className="flex items-center gap-2">
+          <Globe className="size-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Statistics</h2>
+        </div>
+
+        <div className="mb-2 flex items-end gap-2">
+          <span className="font-display text-5xl font-bold tabular-nums text-primary">
+            {stats.total}
+          </span>
+          <span className="mb-1 text-sm text-muted-foreground">
+            problems solved across all platforms
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Object.entries(stats.byPlatform)
+            .sort((a, b) => b[1] - a[1])
+            .map(([platform, count]) => (
+              <div key={platform} className="rounded-2xl border border-white/10 bg-background/40 p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{platform}</p>
+                <p className="mt-1 font-extrabold text-2xl tabular-nums text-primary">{count}</p>
+              </div>
+            ))}
+          {Object.keys(stats.byPlatform).length === 0 && (
+            <p className="col-span-full text-xs text-muted-foreground italic">No problems completed yet. Mark problems done on your daily workspace to build your stats!</p>
+          )}
+        </div>
+      </section>
+
+      {/* ── Badges & Achievements ── */}
+      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl">
+        <BadgesGrid badges={badges} />
+      </section>
+
+      {/* ── Solved Days Heatmap ── */}
+      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
+        <div>
+          <h2 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Flame className="size-5 text-emerald-400" />
+            Solved Days Activity Heatmap
+          </h2>
+          <p className="text-xs text-muted-foreground">Days with solved problems are highlighted in green.</p>
+        </div>
+        <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
+      </section>
+
+      {/* ── GitHub Contribution Activity Heatmap ── */}
+      {githubUsername && (
+        <GitHubContributionHeatmap username={githubUsername} />
+      )}
+
+      {/* ── Solved Problems Archive ── */}
+      <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
+    </div>
+  );
+}

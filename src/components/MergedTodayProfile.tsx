@@ -1,0 +1,608 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { usePlan } from "@/hooks/usePlan";
+import { useSettings } from "@/hooks/useSettings";
+import { useProblemCompletions } from "@/hooks/useProblemCompletions";
+import {
+  loadOwnerProfile,
+  saveUserProfile,
+  syncPublicSolvedProblems,
+  type CodingProfiles,
+  type CustomLink,
+  type CompletedProblemSnapshot,
+} from "@/lib/db";
+import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
+import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
+import { computeBadges, currentStreak } from "@/lib/gamification";
+import { DayDetail } from "@/components/DayDetail";
+import { CodeModal } from "@/components/CodeModal";
+import {
+  getInactivityDays,
+  getRandomQuote,
+  recordActivity,
+  type MotivationalQuote,
+} from "@/lib/userActivity";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { formatDate, diffDays, todayIso } from "@/lib/plan";
+import {
+  Camera,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Code2,
+  ExternalLink,
+  Flame,
+  Globe,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  Quote,
+  RefreshCw,
+  Share2,
+  Sparkles,
+  Trash2,
+  UserCircle2,
+  ListTodo,
+  Calendar as CalendarIcon,
+  Rocket,
+  HeartHandshake,
+  X,
+  RotateCcw,
+  PauseCircle,
+  PlayCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// ── Platform Metadata ────────────────────────────────────────────────────────
+const PLATFORMS: {
+  key: Exclude<keyof CodingProfiles, "customLinks">;
+  label: string;
+  placeholder: string;
+  color: string;
+  bgColor: string;
+}[] = [
+    {
+      key: "leetcode",
+      label: "LeetCode",
+      placeholder: "https://leetcode.com/yourname",
+      color: "#FFA116",
+      bgColor: "rgba(255,161,22,0.12)",
+    },
+    {
+      key: "codeforces",
+      label: "Codeforces",
+      placeholder: "https://codeforces.com/profile/yourname",
+      color: "#1F8ACB",
+      bgColor: "rgba(31,138,203,0.12)",
+    },
+    {
+      key: "codechef",
+      label: "CodeChef",
+      placeholder: "https://www.codechef.com/users/yourname",
+      color: "#5B4638",
+      bgColor: "rgba(91,70,56,0.12)",
+    },
+    {
+      key: "atcoder",
+      label: "AtCoder",
+      placeholder: "https://atcoder.jp/users/yourname",
+      color: "#8BC4E8",
+      bgColor: "rgba(139,196,232,0.12)",
+    },
+    {
+      key: "hackerrank",
+      label: "HackerRank",
+      placeholder: "https://www.hackerrank.com/profile/yourname",
+      color: "#00EA64",
+      bgColor: "rgba(0,234,100,0.12)",
+    },
+    {
+      key: "gfg",
+      label: "GeeksforGeeks",
+      placeholder: "https://www.geeksforgeeks.org/user/yourname",
+      color: "#2F8D46",
+      bgColor: "rgba(47,141,70,0.12)",
+    },
+  ];
+
+
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+function ThemedTooltip({ hint, children }: { hint: string; children: React.ReactNode }) {
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs rounded-xl border border-white/15 bg-popover/95 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-2xl">
+          {hint}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+export function MergedTodayProfile() {
+  const { user } = useAuth();
+  const { days, loading, shiftSchedule } = usePlan();
+  const { settings, update: updateSettings } = useSettings();
+  const { completed: pbCompleted, submissions } = useProblemCompletions();
+  const [resumingPlan, setResumingPlan] = useState(false);
+
+  const handleResumePlan = useCallback(async () => {
+    setResumingPlan(true);
+    toast.info("Resuming preparation...", {
+      description: "Shifting schedule to today where you left off.",
+    });
+    try {
+      const from = settings.pausedFrom ?? todayIso();
+      const today = todayIso();
+      const finish = await shiftSchedule(from);
+      const gap = Math.max(0, diffDays(from, today));
+      await updateSettings({
+        paused: false,
+        pausedFrom: null,
+        pausedDays: (settings.pausedDays ?? 0) + gap,
+        resumeDate: today,
+      });
+      toast.success("Welcome back!", {
+        description:
+          gap > 0
+            ? `Preparation resumed from today! Schedule shifted forward by ${gap} day(s). New finish date: ${formatDate(finish ?? "")}.`
+            : "Preparation resumed right on schedule.",
+      });
+    } catch (err: any) {
+      toast.error("Failed to resume plan", { description: err?.message || "Please try again." });
+    } finally {
+      setResumingPlan(false);
+    }
+  }, [settings.pausedFrom, settings.pausedDays, shiftSchedule, updateSettings]);
+
+  // Selected date from calendar click
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
+
+  // Selected problem for CodeModal viewer in Solved tab
+  const [selectedProblemForModal, setSelectedProblemForModal] = useState<string | null>(null);
+
+  // Profile Drawer Edit toggle
+  const [showProfileCard, setShowProfileCard] = useState(false);
+
+
+  // Motivational Quote State
+  const [currentQuote, setCurrentQuote] = useState<MotivationalQuote>(getRandomQuote());
+
+  const [displayName, setDisplayName] = useState("");
+
+  // Record visit activity on mount
+  useEffect(() => {
+    if (user?.uid) recordActivity(user.uid);
+  }, [user]);
+
+  // Keep public profile solved problems & activity heatmap automatically in sync
+  useEffect(() => {
+    if (!user?.uid || loading) return;
+    const timer = setTimeout(() => {
+      void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions).catch((err) => {
+        console.warn("Background public solved problems sync failed:", err);
+      });
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [user?.uid, loading, days, pbCompleted, submissions]);
+
+  // Strictly determine Today's Day:
+  // When paused, freeze reference date to pausedFrom
+  const iso = settings.paused && settings.pausedFrom ? settings.pausedFrom : todayIso();
+  // 1. Look for active (non-skipped) day scheduled for today
+  const todayDay = days.find((d) => d.date === iso && !d.skipped);
+  // 2. If today has no exact date match (e.g. today was skipped or gap), find next active day on or after today
+  const upcomingActive = days.find((d) => d.date >= iso && !d.skipped);
+  // 3. If before plan start date, show first active day
+  const firstActive = days.find((d) => !d.skipped);
+  // 4. If after plan finish date, fallback to last active day
+  const lastActive = days.filter((d) => !d.skipped).at(-1);
+  // Strictly avoid falling back to old unfinished past days
+  const currentDay = todayDay ?? upcomingActive ?? firstActive ?? lastActive ?? days[0];
+
+  // In Today's workspace tab, strictly display Today's day only (never switch to past days)
+  const displayedDay = currentDay;
+  const isExactlyToday = displayedDay?.date === iso;
+  const isPast = false;
+
+  // Strictly filter problems to ensure ONLY problems belonging to today are displayed
+  // (strictly exclude any problems carried over from earlier days)
+  const sanitizedDay = useMemo(() => {
+    if (!displayedDay) return null;
+    return {
+      ...displayedDay,
+      problems: displayedDay.problems.filter(
+        (p) => !p.carriedFromDay || p.carriedFromDay === displayedDay.dayNumber
+      ),
+    };
+  }, [displayedDay]);
+
+  // Calculate user inactivity gap
+  const inactivityInfo = useMemo(() => getInactivityDays(days, user?.uid), [days, user]);
+
+  // Streak — standard derived streak from active plan days
+  const streakCount = useMemo(() => currentStreak(days), [days]);
+
+  const userNameDisplay = displayName || user?.displayName || user?.email?.split("@")[0] || "Coder";
+
+  const timeBasedGreeting = useMemo(() => {
+    const hour = new Date().getHours();
+
+    if (hour >= 5 && hour < 12) {
+      return {
+        greeting: `Good morning, ${userNameDisplay}! ☀️`,
+        subtext: "Fresh morning start! Target: Tackle today's core problems & build your DSA momentum.",
+      };
+    } else if (hour >= 12 && hour < 17) {
+      return {
+        greeting: `Good afternoon, ${userNameDisplay}! 🌤️`,
+        subtext: "Mid-day coding boost! Target: Solve today's problems & sharpen your DSA patterns.",
+      };
+    } else if (hour >= 17 && hour < 21) {
+      return {
+        greeting: `Good evening, ${userNameDisplay}! 🌙`,
+        subtext: "Evening sprint! Target: Clear today's checklist and keep your streak alive.",
+      };
+    } else {
+      return {
+        greeting: `Late night coding, ${userNameDisplay}! 🌌`,
+        subtext: "Night owl mode activated! Target: Conquer today's problems before calling it a day.",
+      };
+    }
+  }, [userNameDisplay]);
+
+  // Solved problems snapshots
+  const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
+    const seen = new Set<string>();
+    const list: CompletedProblemSnapshot[] = [];
+    const today = new Date().toISOString().slice(0, 10);
+
+    for (const day of days) {
+      for (const p of day.problems) {
+        if (p.done && !seen.has(p.name)) {
+          seen.add(p.name);
+          const sub = submissions[p.name];
+          const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+          const rawPlat = p.platform || "DSA";
+          const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+          const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
+          const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
+          list.push({
+            name: p.name,
+            platform: normPlat,
+            difficulty: p.difficulty || "Medium",
+            link: platLink,
+            completedAt,
+            submittedAt,
+            topic: day.topic,
+            section: day.section,
+            ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+          });
+        }
+      }
+    }
+
+    for (const fp of ALL_PROBLEMS) {
+      if (pbCompleted.has(fp.name) && !seen.has(fp.name)) {
+        seen.add(fp.name);
+        const sub = submissions[fp.name];
+        const platLink = getCanonicalProblemLink(fp.name) || fp.link || "";
+        const rawPlat = fp.platform || "DSA";
+        const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+        const completedAt = sub?.submittedAt?.slice(0, 10) || today;
+        const submittedAt = sub?.submittedAt || new Date().toISOString();
+        list.push({
+          name: fp.name,
+          platform: normPlat,
+          difficulty: fp.difficulty || "Medium",
+          link: platLink,
+          completedAt,
+          submittedAt,
+          topic: fp.topic,
+          section: fp.sheet,
+          ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+        });
+      }
+    }
+
+    // Also include any submissions that were submitted on Problems tab or CodeModal
+    for (const [probName, sub] of Object.entries(submissions ?? {})) {
+      if (!probName || seen.has(probName)) continue;
+      seen.add(probName);
+      const platLink = getCanonicalProblemLink(probName) || sub.link || "";
+      const rawPlat = (sub as any).platform || "DSA";
+      const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+      const completedAt = sub.submittedAt?.slice(0, 10) || today;
+      const submittedAt = sub.submittedAt || new Date().toISOString();
+      list.push({
+        name: probName,
+        platform: normPlat,
+        difficulty: ((sub as any).difficulty || "Medium") as any,
+        link: platLink,
+        completedAt,
+        submittedAt,
+        topic: (sub as any).topic || "Problems",
+        section: (sub as any).section || "Problems Tab",
+        ...(sub.code ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+      });
+    }
+
+    return list;
+  }, [days, pbCompleted, submissions]);
+
+  const stats = useMemo(() => {
+    const byPlatform: Record<string, number> = {};
+    for (const p of completedProblems) {
+      const plat = (p.platform === "GFG" || p.platform?.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : (p.platform || "DSA");
+      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
+    }
+    return { total: completedProblems.length, byPlatform };
+  }, [completedProblems]);
+
+  const badges = useMemo(() => computeBadges(days), [days]);
+
+  // Heatmap dataset
+  const { heatmapData, detailMap } = useMemo(() => {
+    const dateMap = new Map<string, any[]>();
+
+    for (const day of days) {
+      const doneProbs = day.problems.filter((p) => p.done);
+      for (const p of doneProbs) {
+        const dateStr = p.completedAt || day.date;
+        const sub = submissions[p.name];
+        const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+        const item = {
+          ...p,
+          submissionLink: sub?.link || (p as any).submissionLink || platLink || undefined,
+          code: sub?.code || (p as any).code || undefined,
+          keyPoints: sub?.keyPoints || (p as any).keyPoints || undefined,
+        };
+        const existing = dateMap.get(dateStr) ?? [];
+        dateMap.set(dateStr, [...existing, item]);
+      }
+    }
+
+    for (const [probName, sub] of Object.entries(submissions)) {
+      if (sub.submittedAt) {
+        const dateStr = sub.submittedAt.slice(0, 10);
+        const existing = dateMap.get(dateStr) ?? [];
+        if (!existing.some((p) => p.name === probName)) {
+          const platLink = getCanonicalProblemLink(probName) || "";
+          dateMap.set(dateStr, [
+            ...existing,
+            {
+              name: probName,
+              done: true,
+              platform: "Problems Tab",
+              submissionLink: sub.link || platLink || undefined,
+              code: sub.code || undefined,
+              keyPoints: sub.keyPoints || undefined,
+            },
+          ]);
+        }
+      }
+    }
+
+    const hData: { date: string; solved: number }[] = [];
+    const dMap: Record<string, any[]> = {};
+
+    dateMap.forEach((probs, dateStr) => {
+      hData.push({ date: dateStr, solved: probs.length });
+      dMap[dateStr] = probs;
+    });
+
+    const todayStr = todayIso();
+    for (const day of days) {
+      if (!day.skipped && !dateMap.has(day.date) && day.date <= todayStr) {
+        hData.push({ date: day.date, solved: 0 });
+      }
+    }
+
+    return { heatmapData: hData, detailMap: dMap };
+  }, [days, submissions]);
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* ── Paused Mode Indicator & Resume Action Banner ── */}
+      {settings.paused && (
+        <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 p-5 sm:p-6 backdrop-blur-md shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start md:items-center gap-3.5">
+            <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30 text-amber-400">
+              <PauseCircle className="size-6 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-amber-300">
+                  Plan is Paused — Held at Day {displayedDay?.dayNumber}
+                </h2>
+                <span className="rounded-full bg-amber-500/25 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-300">
+                  FROZEN AT PAUSED DAY
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-amber-200/90 leading-relaxed">
+                Your preparation was paused on <strong>{formatDate(settings.pausedFrom ?? "")}</strong>. To protect your streak and ensure you never miss any problems, this workspace is held at <strong>Day {displayedDay?.dayNumber}</strong> instead of advancing to today&apos;s calendar date.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 self-end md:self-center shrink-0">
+            <Button
+              onClick={handleResumePlan}
+              disabled={resumingPlan}
+              className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <PlayCircle className="size-4" />
+              <span>{resumingPlan ? "Resuming..." : "Resume & Catch Up to Today"}</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Top Row: Greeting + Topic Header (left) | Heatmap (right) ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        {/* Left (2/3): Highlighted Greeting Card + Today's Topic Description Header Card */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          {/* Greeting Card — expanded height & text to level top row perfectly */}
+          <div className={cn(
+            "rounded-3xl border p-5 sm:p-6 backdrop-blur-md shadow-xl flex-1 flex flex-col justify-center min-h-[135px]",
+            settings.paused
+              ? "border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5"
+              : inactivityInfo.isLongAbsence
+                ? "border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-rose-500/10"
+                : streakCount >= 7
+                  ? "border-emerald-500/40 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-primary/10"
+                  : "border-primary/30 bg-gradient-to-r from-primary/15 via-purple-500/10 to-emerald-500/10"
+          )}>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3.5">
+                {/* Dynamic icon */}
+                {settings.paused ? (
+                  <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30">
+                    <PauseCircle className="size-7 text-amber-400" />
+                  </div>
+                ) : inactivityInfo.isLongAbsence ? (
+                  <div className="rounded-2xl bg-amber-500/20 p-3 shrink-0 border border-amber-500/30">
+                    <Rocket className="size-7 text-amber-400 animate-pulse" />
+                  </div>
+                ) : streakCount >= 7 ? (
+                  <div className="rounded-2xl bg-emerald-500/20 p-3 shrink-0 border border-emerald-500/30">
+                    <Flame className="size-7 text-emerald-400" />
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-primary/20 p-3 shrink-0 border border-primary/30">
+                    <HeartHandshake className="size-7 text-primary" />
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {settings.paused ? (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
+                        ⏸️ Preparation Paused, {userNameDisplay}!
+                      </h2>
+                      <p className="text-sm text-amber-200/80 font-medium">
+                        Workspace held at Day {displayedDay?.dayNumber} (paused since {formatDate(settings.pausedFrom ?? "")}). Missed-week checks &amp; streak decay are off. Practice at your own pace or resume anytime!
+                      </p>
+                    </>
+                  ) : inactivityInfo.daysInactive >= 14 ? (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
+                        It's been {inactivityInfo.daysInactive} days, {userNameDisplay}! Time to reclaim your streak! 🔥
+                      </h2>
+                      <p className="text-sm text-amber-300/80 font-medium">Long time no see — your roadmap is waiting. Let's get back on track!</p>
+                    </>
+                  ) : inactivityInfo.daysInactive >= 7 ? (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
+                        Welcome back, {userNameDisplay}! It's been a week 👋
+                      </h2>
+                      <p className="text-sm text-amber-300/80 font-medium">You were away for {inactivityInfo.daysInactive} days — start fresh, solve today's problems!</p>
+                    </>
+                  ) : inactivityInfo.daysInactive >= 3 ? (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-orange-300 tracking-tight">
+                        Back after {inactivityInfo.daysInactive} days, {userNameDisplay}! 💪
+                      </h2>
+                      <p className="text-sm text-orange-300/80 font-medium">Pick up where you left off — your DSA journey continues today!</p>
+                    </>
+                  ) : streakCount >= 7 ? (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-emerald-300 tracking-tight">
+                        🔥 {streakCount}-day streak! {timeBasedGreeting.greeting}
+                      </h2>
+                      <p className="text-sm text-emerald-300/80 font-medium">{timeBasedGreeting.subtext}</p>
+                    </>
+                  ) : streakCount >= 3 ? (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-primary tracking-tight">
+                        ⚡ {streakCount} days strong! {timeBasedGreeting.greeting}
+                      </h2>
+                      <p className="text-sm text-muted-foreground font-medium">{timeBasedGreeting.subtext}</p>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+                        {timeBasedGreeting.greeting}
+                      </h2>
+                      <p className="text-sm text-muted-foreground font-medium">{timeBasedGreeting.subtext}</p>
+                    </>
+                  )}
+                </div>
+              </div>
+              {/* Streak pill */}
+              {settings.paused ? (
+                <div className="flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold shrink-0 shadow-sm border border-amber-500/40 bg-amber-500/15 text-amber-300">
+                  <PauseCircle className="size-4 text-amber-400" />
+                  <span>Plan Paused</span>
+                </div>
+              ) : (
+                <div className={cn(
+                  "flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold shrink-0 shadow-sm",
+                  streakCount > 0
+                    ? "border border-orange-500/30 bg-orange-500/10 text-orange-400"
+                    : "border border-white/10 bg-white/5 text-muted-foreground"
+                )}>
+                  <Flame className="size-4 text-orange-500 animate-pulse" />
+                  <span>{streakCount > 0 ? `${streakCount} Day Streak` : "Start your streak!"}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Today Topic Description Header Section (Topic info, status, Postpone/Merge/Borrow/Delete/Restore, progress bar) */}
+          {sanitizedDay && (
+            <DayDetail
+              day={sanitizedDay}
+              readOnly={false}
+              lateMode={false}
+              headerOnly
+            />
+          )}
+        </div>
+
+        {/* Right (1/3): Activity Heatmap */}
+        <div className="lg:col-span-1 h-full flex flex-col">
+          <div className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/60 backdrop-blur-xl shadow-xl p-4 sm:p-5 h-full flex flex-col justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Flame className="size-4 text-emerald-400" />
+              <h3 className="text-sm font-bold text-foreground">Activity Heatmap</h3>
+            </div>
+            <div className="flex-1 flex flex-col justify-center">
+              <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Full-Width Below: Today's Core Problems, Contests, Checklist, Notes ── */}
+      {sanitizedDay && (
+        <DayDetail
+          day={sanitizedDay}
+          readOnly={false}
+          lateMode={false}
+          hideHeader
+        />
+      )}
+
+      {/* Code Modal for viewing stored solutions from Solved tab */}
+      <CodeModal
+        open={!!selectedProblemForModal}
+        onOpenChange={(open) => !open && setSelectedProblemForModal(null)}
+        problemName={selectedProblemForModal ?? ""}
+        existingSubmission={selectedProblemForModal ? submissions[selectedProblemForModal] : undefined}
+        onSave={async () => { }}
+        readOnly={true}
+      />
+    </div>
+  );
+}
