@@ -435,14 +435,13 @@ export function AuthPageContent() {
         </Link>
         <Card className="w-full max-w-md border-border bg-card shadow-lg">
           <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center gap-2.5 mb-1">
-              <div className="size-8 rounded-full overflow-hidden border border-border/80 shadow-md ring-1 ring-primary/20 bg-background shrink-0">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <div className="size-8 rounded-lg overflow-hidden border border-border/60 bg-background shrink-0">
                 <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
               </div>
-              <div className="font-display font-black tracking-tighter text-2xl leading-none flex items-baseline select-none">
-                <span className="bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent drop-shadow-sm">DSA</span>
-                <span className="bg-gradient-to-br from-primary to-orange-500 bg-clip-text text-transparent drop-shadow-sm ml-[1px]">⁴⁰⁴</span>
-              </div>
+              <span className="font-display font-black tracking-tight text-xl leading-none select-none text-foreground">
+                DSA<span className="text-primary">⁴⁰⁴</span>
+              </span>
             </div>
             <CardDescription className="text-sm">
               {mode === "signin" ? "Sign in to track your DSA roadmap" : "Create your account & personalised plan"}

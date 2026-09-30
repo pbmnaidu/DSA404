@@ -176,6 +176,11 @@ export default function BacklogPage() {
 
   return (
     <div className="space-y-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
+        <p className="text-sm text-muted-foreground mt-1">Past incomplete days. Catch up at your own pace without losing your streak.</p>
+      </div>
+
       {/* Pending backlog */}
       {hasPending && (
         <section>
