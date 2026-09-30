@@ -233,6 +233,13 @@ export default function WeeksPage() {
     );
   }
 
+  const PageHeader = () => (
+    <div className="mb-6">
+      <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
+      <p className="text-sm text-muted-foreground mt-1">Your entire DSA preparation timeline. Track progress week by week.</p>
+    </div>
+  );
+
   const FilterBar = () => (
     <div className="sticky top-0 z-10 -mx-1 mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background/95 px-4 py-3 shadow-sm backdrop-blur">
       {/* View mode pills */}
@@ -386,6 +393,7 @@ export default function WeeksPage() {
 
     return (
       <div className="space-y-6">
+        <PageHeader />
         <FilterBar />
         <div className="flex items-center gap-3">
           <div>
@@ -460,6 +468,7 @@ export default function WeeksPage() {
 
     return (
       <div className="space-y-6">
+        <PageHeader />
         <FilterBar />
         <div className="flex items-center gap-3">
           <div>
@@ -530,6 +539,7 @@ export default function WeeksPage() {
   /* ────────── ALL WEEKS VIEW ────────── */
   return (
     <div className="space-y-6">
+      <PageHeader />
       <FilterBar />
       <div className="space-y-8">
         {weeks.map((week, weekIdx) => {
