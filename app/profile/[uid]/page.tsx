@@ -1245,10 +1245,12 @@ export default function PublicProfilePage() {
           </div>
         </section>
 
-        {/* ── TWO COLUMN PUBLIC WORKSPACE ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── PROFILE WORKSPACE ── */}
+        <div className="space-y-12">
+          {/* Top Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* LEFT COLUMN: Narrative & Badges */}
+          {/* Story & Secondary Info */}
           <aside className="lg:col-span-4 space-y-8">
             
             {/* About Me & Contact */}
@@ -1303,7 +1305,7 @@ export default function PublicProfilePage() {
             )}
           </aside>
 
-          {/* RIGHT COLUMN: Progress & Integration */}
+          {/* Primary Highlights */}
           <main className="lg:col-span-8 space-y-8 min-w-0">
             
             {/* Top Line Stats */}
@@ -1357,6 +1359,11 @@ export default function PublicProfilePage() {
               </div>
             )}
 
+            </main>
+          </div>
+
+          {/* Full Width Analytics */}
+          <div className="w-full space-y-12 min-w-0">
             {/* Unified Platform Profiles (if any linked) */}
             {(Object.entries(codingProfiles).some(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim()))) && (
               <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
@@ -1389,7 +1396,7 @@ export default function PublicProfilePage() {
                         <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
                         <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
                         <RTooltip
-                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12 }}
+                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12, padding: "12px" }}
                         />
                         <Area type="monotone" dataKey="solved" name="Solved" stroke="var(--color-primary)" fill="url(#publicSolvedFill)" strokeWidth={2.5} />
                       </AreaChart>
@@ -1408,7 +1415,7 @@ export default function PublicProfilePage() {
                         <XAxis dataKey="difficulty" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
                         <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
                         <RTooltip
-                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12 }}
+                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12, padding: "12px" }}
                         />
                         <Bar dataKey="done" name="Solved" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
                       </BarChart>
@@ -1423,9 +1430,8 @@ export default function PublicProfilePage() {
               <SolvedProblemsArchive completedProblems={completedProblems} />
             </div>
 
-          </main>
+          </div>
         </div>
-
         {/* ── Footer ── */}
         <footer className="pt-8 text-center text-xs font-medium text-muted-foreground">
           Built with{" "}

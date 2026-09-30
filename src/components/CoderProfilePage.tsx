@@ -1085,8 +1085,10 @@ export function CoderProfilePage() {
         </div>
       </section>
 
-      {/* ── TWO COLUMN WORKSPACE ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* ── PROFILE WORKSPACE ── */}
+        <div className="space-y-12">
+          {/* Top Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* LEFT COLUMN: Narrative & Private Tools */}
         <aside className="lg:col-span-4 space-y-6">
@@ -1149,8 +1151,8 @@ export function CoderProfilePage() {
 
         </aside>
 
-        {/* RIGHT COLUMN: Progress & Integration */}
-        <main className="lg:col-span-8 space-y-8 min-w-0">
+        {/* Primary Highlights */}
+          <main className="lg:col-span-8 space-y-8 min-w-0">
           
           {/* Top Line Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1203,7 +1205,12 @@ export function CoderProfilePage() {
             </div>
           )}
 
-          {/* Unified Platform Profiles */}
+          </main>
+          </div>
+
+          {/* Full Width Analytics */}
+          <div className="w-full space-y-12 min-w-0">
+            {/* Unified Platform Profiles */}
           <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
             <UnifiedProfileDashboard
               initialProfiles={codingProfiles as Record<string, string>}
@@ -1237,9 +1244,8 @@ export function CoderProfilePage() {
             <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
           </div>
 
-        </main>
+        </div>
       </div>
-
       {/* Gmail Requirement Modal */}
       <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
         <DialogContent className="max-w-md border-border bg-card rounded-2xl shadow-2xl">

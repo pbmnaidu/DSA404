@@ -355,6 +355,56 @@ export function UnifiedProfileDashboard({
 
           <div className="lg:col-span-8 space-y-6">
             
+            {/* Contest Rating Chart */}
+            {selectedProfile?.ratingHistory && selectedProfile.ratingHistory.length > 0 ? (
+              <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm h-[350px] flex flex-col">
+                <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                  <TrendingUp className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Rating Progression</span>
+                </div>
+                <div className="flex-1 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={selectedProfile.ratingHistory} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRating" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={selectedMeta?.color} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={selectedMeta?.color} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12, fill: "#888" }} 
+                        stroke="#888" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        minTickGap={30}
+                      />
+                      <YAxis 
+                        domain={['auto', 'auto']} 
+                        stroke="#888" 
+                        fontSize={12} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        width={40}
+                      />
+                      <RechartsTooltip 
+                        contentStyle={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.8)", padding: "12px" }} 
+                        labelStyle={{ color: "#fff", fontWeight: "bold", marginBottom: "4px" }}
+                      />
+                      <Area type="monotone" dataKey="rating" stroke={selectedMeta?.color} strokeWidth={3} fillOpacity={1} fill="url(#colorRating)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-[2rem] bg-card border border-border p-12 shadow-sm text-center flex flex-col items-center justify-center h-[350px]">
+                <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-4"><LineChart className="size-6" /></div>
+                <h4 className="font-bold text-lg mb-2">No Contest History</h4>
+                <p className="text-muted-foreground text-sm max-w-sm">We couldn't find any rated contest history for this platform profile.</p>
+              </div>
+            )}
+
+            
             {/* Activity Chart if available */}
             {selectedProfile?.recentSubmissions && selectedProfile.recentSubmissions.length > 0 ? (
               <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm">
