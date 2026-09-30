@@ -227,51 +227,62 @@ function ProblemItem({
     <>
       <li
         className={cn(
-          "flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:bg-secondary/40",
-          done && "border-green-500/30 bg-green-500/5",
+          "flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 sm:px-4 sm:py-3 transition-colors shadow-sm hover:shadow-md",
+          done && "border-emerald-500/30 bg-emerald-500/5",
         )}
       >
-        <Checkbox
-          id={checkId}
-          checked={done}
-          onCheckedChange={() => setModalOpen(true)}
-          aria-label={`Mark ${problem.name} as ${done ? "incomplete" : "complete"}`}
-          className="size-4 shrink-0"
-        />
+        {/* Left Side: Checkbox, ID, Name */}
+        <div className="flex items-start sm:items-center gap-3 min-w-0">
+          <Checkbox
+            id={checkId}
+            checked={done}
+            onCheckedChange={() => setModalOpen(true)}
+            aria-label={`Mark ${problem.name} as ${done ? "incomplete" : "complete"}`}
+            className="mt-0.5 sm:mt-0 size-4.5 shrink-0 transition-all"
+          />
 
-        <span className="w-8 shrink-0 text-xs text-muted-foreground font-mono">
-          #{problem.id}
-        </span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2.5 min-w-0">
+            <span className="w-auto sm:w-8 shrink-0 text-[10px] sm:text-xs text-muted-foreground font-mono">
+              #{problem.id}
+            </span>
+            <label
+              htmlFor={checkId}
+              className={cn(
+                "truncate cursor-pointer text-sm font-semibold transition-colors",
+                done ? "text-muted-foreground line-through" : "text-foreground hover:text-primary",
+              )}
+            >
+              {problem.name}
+            </label>
+          </div>
+        </div>
 
-        <label
-          htmlFor={checkId}
-          className={cn(
-            "min-w-0 flex-1 cursor-pointer text-sm font-medium",
-            done && "text-muted-foreground line-through",
-          )}
-        >
-          {problem.name}
-        </label>
+        {/* Right Side / Bottom (Mobile): Meta badges and Actions */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0 pl-7 sm:pl-0 w-full sm:w-auto">
+          {/* Metadata badges */}
+          <span
+            className={cn(
+              "rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold",
+              sm.bg,
+              sm.color,
+            )}
+          >
+            {problem.sheet}
+          </span>
 
-        <span
-          className={cn(
-            "hidden rounded-full border border-border px-2 py-0.5 text-[10px] font-medium sm:inline",
-            sm.bg,
-            sm.color,
-          )}
-        >
-          {problem.sheet}
-        </span>
+          <span className="hidden sm:inline rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {problem.topic}
+          </span>
 
-        <span className="hidden rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground lg:inline">
-          {problem.topic}
-        </span>
+          <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", diff.bg, diff.color)}>
+            {problem.difficulty}
+          </span>
 
-        <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", diff.bg, diff.color)}>
-          {problem.difficulty}
-        </span>
+          {/* Spacer to push actions to the right on mobile */}
+          <div className="flex-1 sm:hidden"></div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Actions */}
+          <div className="flex items-center gap-1.5 shrink-0 sm:ml-2">
 
           {/* Links Dropdown Menu */}
           <DropdownMenu>
@@ -353,6 +364,7 @@ function ProblemItem({
               <span>Code</span>
             </button>
           </ThemedTooltip>
+          </div>
         </div>
       </li>
 
