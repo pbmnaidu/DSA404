@@ -1053,11 +1053,11 @@ export function CoderProfilePage() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 shrink-0">
-                <Button variant="secondary" className="gap-2 rounded-xl font-semibold" onClick={() => setShowEditDetails(true)}>
+              <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
+                <Button variant="secondary" className="min-h-10 flex-1 gap-2 rounded-xl font-semibold whitespace-nowrap md:flex-none" onClick={() => setShowEditDetails(true)}>
                   <Pencil className="size-4" /> Edit Profile
                 </Button>
-                <Button variant="outline" className="gap-2 rounded-xl" onClick={copyShareLink}>
+                <Button variant="outline" className="min-h-10 flex-1 gap-2 rounded-xl whitespace-nowrap md:flex-none" onClick={copyShareLink}>
                   <Share2 className="size-4" /> Share
                 </Button>
               </div>
@@ -1093,7 +1093,7 @@ export function CoderProfilePage() {
           <main className="lg:col-span-8 space-y-8 min-w-0 order-2 lg:order-1">
             
             {/* Unified Platform Profiles (Full Width of Primary Column) */}
-            <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+            <div className="rounded-3xl border border-border bg-card p-4 shadow-sm overflow-hidden sm:p-6 lg:p-8">
               <UnifiedProfileDashboard
                 initialProfiles={codingProfiles as Record<string, string>}
                 initialStats={platformStats}

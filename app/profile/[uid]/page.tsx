@@ -1254,7 +1254,7 @@ export default function PublicProfilePage() {
             
             {/* Unified Platform Profiles */}
             {(Object.entries(codingProfiles).some(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim()))) && (
-              <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+              <div className="rounded-3xl border border-border bg-card p-4 shadow-sm overflow-hidden sm:p-6 lg:p-8">
                 <UnifiedProfileDashboard
                   initialProfiles={codingProfiles as Record<string, string>}
                   initialStats={platformStats}

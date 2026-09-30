@@ -159,11 +159,11 @@ export function UnifiedProfileDashboard({
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-display font-bold tracking-tight">Platform Analytics</h2>
-          <p className="text-sm text-muted-foreground">Your performance across all competitive programming platforms.</p>
+    <div className="min-w-0 space-y-8 animate-fade-in">
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-2xl font-display font-bold tracking-tight break-words">Platform Analytics</h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground break-words">Your performance across all competitive programming platforms.</p>
         </div>
       </div>
 
@@ -223,9 +223,9 @@ export function UnifiedProfileDashboard({
             <div className="flex items-center gap-2 text-muted-foreground mb-6">
               <BarChart3 className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Platform Distribution</span>
             </div>
-            <div className="h-64 w-full">
+            <div className="h-64 min-w-0 w-full overflow-hidden rounded-xl">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={platformDistribution} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
+                <BarChart data={platformDistribution} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#888" }} width={90} />
                   <RechartsTooltip contentStyle={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.8)", padding: "12px" }} />
@@ -262,7 +262,7 @@ export function UnifiedProfileDashboard({
           </div>
 
           {/* Primary Area: Large Ranking Graph */}
-          <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm">
+          <div className="min-w-0 rounded-[2rem] bg-card border border-border p-4 shadow-sm sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <TrendingUp className="size-4 text-primary" /> <span className="text-xs font-bold uppercase tracking-wider text-primary">Rating Progression</span>
@@ -273,10 +273,10 @@ export function UnifiedProfileDashboard({
               </div>
             </div>
             
-            <div className="h-[350px] w-full">
+            <div className="h-[280px] min-w-0 w-full overflow-hidden rounded-xl sm:h-[350px]">
               {selectedProfile?.ratingHistory && selectedProfile.ratingHistory.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={selectedProfile.ratingHistory} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <AreaChart data={selectedProfile.ratingHistory} margin={{ top: 20, right: 20, left: 8, bottom: 8 }}>
                     <defs>
                       <linearGradient id="colorRating" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={selectedMeta?.color} stopOpacity={0.4} />

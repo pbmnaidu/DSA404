@@ -210,7 +210,7 @@ export function SolvedProblemsArchive({
           <h3 className="text-lg font-bold flex items-center gap-2 mb-6">
             <BookOpen className="size-5 text-primary" /> Problem Library
           </h3>
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
@@ -220,7 +220,7 @@ export function SolvedProblemsArchive({
                 className="pl-9 h-11 rounded-xl bg-background border-border"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 sm:shrink-0">
               <div className="relative">
                 <select
                   value={selectedDifficulty}
@@ -257,22 +257,22 @@ export function SolvedProblemsArchive({
                 <div key={i} className="transition-colors hover:bg-muted/10">
                   <div 
                     onClick={() => setExpandedId(isExpanded ? null : p.name)}
-                    className="p-4 sm:px-6 flex items-center justify-between cursor-pointer"
+                    className="flex min-w-0 items-start justify-between gap-3 p-4 cursor-pointer sm:items-center sm:px-6"
                   >
-                    <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
                       <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="size-4 text-emerald-500" />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-sm truncate">{p.name}</h4>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <h4 className="font-bold text-sm leading-5 break-words">{p.name}</h4>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                           <span className={cn(
                             "font-bold",
                             p.difficulty === "Easy" ? "text-emerald-500" :
                             p.difficulty === "Medium" ? "text-amber-500" : "text-destructive"
                           )}>{p.difficulty}</span>
                           <span>•</span>
-                          <span className="truncate max-w-[120px]">{p.topic}</span>
+                          <span className="break-words">{p.topic}</span>
                         </div>
                       </div>
                     </div>
