@@ -1,4 +1,7 @@
-"use client";
+const fs = require('fs');
+const path = 'p:/DSA404-chatBot/src/components/SolvedProblemsArchive.tsx';
+
+const content = `"use client";
 
 import { useState, useMemo } from "react";
 import { useOptionalPlan } from "@/hooks/usePlan";
@@ -81,7 +84,6 @@ export function SolvedProblemsArchive({
           const normPlat = rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks") ? "GeeksforGeeks" : rawPlat;
           const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
           const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
-          const meta = getProblemMetadata(p.name);
           list.push({
             name: p.name,
             platform: normPlat,
@@ -89,8 +91,8 @@ export function SolvedProblemsArchive({
             link: platLink,
             completedAt,
             submittedAt,
-            topic: meta.topic || "DSA Sheet",
-            section: meta.sheet || "Core Problems",
+            topic: p.topic || "DSA Sheet",
+            section: p.section || "Core Problems",
             code: sub?.code,
             submissionLink: sub?.link || platLink,
             keyPoints: sub?.keyPoints,
@@ -114,8 +116,7 @@ export function SolvedProblemsArchive({
 
   const topicCounts = useMemo(() => {
     return completedProblems.reduce((acc, p) => {
-      const topic = p.topic || "Uncategorized";
-      acc[topic] = (acc[topic] || 0) + 1;
+      acc[p.topic] = (acc[p.topic] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
   }, [completedProblems]);
@@ -129,8 +130,7 @@ export function SolvedProblemsArchive({
         if (selectedDifficulty !== "All" && p.difficulty !== selectedDifficulty) return false;
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
-          const topicMatch = p.topic ? p.topic.toLowerCase().includes(q) : false;
-          return p.name.toLowerCase().includes(q) || topicMatch;
+          return p.name.toLowerCase().includes(q) || p.topic.toLowerCase().includes(q);
         }
         return true;
       })
@@ -183,7 +183,7 @@ export function SolvedProblemsArchive({
                       <span>{count}</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", color)} style={{ width: `${(count / total) * 100}%` }} />
+                      <div className={cn("h-full rounded-full", color)} style={{ width: \`\${(count / total) * 100}%\` }} />
                     </div>
                   </div>
                 )
@@ -333,10 +333,13 @@ export function SolvedProblemsArchive({
         <CodeModal
           open={true}
           onOpenChange={(open) => { if (!open) setSelectedProblemForModal(null); }}
-          onSave={async () => {}}
           problemName={selectedProblemForModal}
         />
       )}
     </div>
   );
 }
+`
+
+fs.writeFileSync(path, content, 'utf8');
+console.log("SolvedProblemsArchive completely rebuilt!");

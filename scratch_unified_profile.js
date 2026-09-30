@@ -1,4 +1,7 @@
-"use client";
+const fs = require('fs');
+const path = 'p:/DSA404-chatBot/src/components/coding-profiles/UnifiedProfileDashboard.tsx';
+
+const content = `"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 import { ConnectedPlatform, NormalizedCodingProfile, PlatformId } from "@/lib/coding-platforms/types";
@@ -64,9 +67,9 @@ export function UnifiedProfileDashboard({
         setConnectedProfiles(newProfiles);
         setFetchedData(newStats);
         onSaveProfiles?.(newProfiles);
-        toast.success(`Connected to ${PLATFORM_META[platformKey]?.name || platformKey}`);
+        toast.success(\`Connected to \${PLATFORM_META[platformKey]?.name || platformKey}\`);
       } else {
-        toast.error(`Failed to connect to ${PLATFORM_META[platformKey]?.name || platformKey}`);
+        toast.error(\`Failed to connect to \${PLATFORM_META[platformKey]?.name || platformKey}\`);
       }
     } catch (e) {
       toast.error("An error occurred while connecting.");
@@ -204,7 +207,7 @@ export function UnifiedProfileDashboard({
                   {analytics.highestReportedRating ? analytics.highestReportedRating.rating : "N/A"}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {analytics.highestReportedRating ? `On ${analytics.highestReportedRating.platform.toUpperCase()}` : "No rated contests"}
+                  {analytics.highestReportedRating ? \`On \${analytics.highestReportedRating.platform.toUpperCase()}\` : "No rated contests"}
                 </p>
               </div>
             </div>
@@ -221,7 +224,7 @@ export function UnifiedProfileDashboard({
                     <RechartsTooltip cursor={{ fill: "rgba(255,255,255,0.05)" }} contentStyle={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.8)" }} />
                     <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
                       {platformDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={\`cell-\${index}\`} fill={entry.color} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -245,7 +248,7 @@ export function UnifiedProfileDashboard({
                         <span>{d.value}</span>
                       </div>
                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${(d.value / analytics.totalSolvedAcrossPlatforms) * 100}%`, backgroundColor: d.color }} />
+                        <div className="h-full rounded-full" style={{ width: \`\${(d.value / analytics.totalSolvedAcrossPlatforms) * 100}%\`, backgroundColor: d.color }} />
                       </div>
                     </div>
                   ))}
@@ -328,7 +331,7 @@ export function UnifiedProfileDashboard({
                      <div>
                        <div className="flex justify-between text-xs font-bold mb-1 text-emerald-500"><span>Easy</span><span>{selectedProfile.easySolved}</span></div>
                        <div className="h-1.5 w-full bg-emerald-500/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(selectedProfile.easySolved / (selectedProfile.totalSolved || 1)) * 100}%` }} />
+                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: \`\${(selectedProfile.easySolved / (selectedProfile.totalSolved || 1)) * 100}%\` }} />
                        </div>
                      </div>
                    )}
@@ -336,7 +339,7 @@ export function UnifiedProfileDashboard({
                      <div>
                        <div className="flex justify-between text-xs font-bold mb-1 text-amber-500"><span>Medium</span><span>{selectedProfile.mediumSolved}</span></div>
                        <div className="h-1.5 w-full bg-amber-500/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-amber-500 rounded-full" style={{ width: `${(selectedProfile.mediumSolved / (selectedProfile.totalSolved || 1)) * 100}%` }} />
+                         <div className="h-full bg-amber-500 rounded-full" style={{ width: \`\${(selectedProfile.mediumSolved / (selectedProfile.totalSolved || 1)) * 100}%\` }} />
                        </div>
                      </div>
                    )}
@@ -344,7 +347,7 @@ export function UnifiedProfileDashboard({
                      <div>
                        <div className="flex justify-between text-xs font-bold mb-1 text-destructive"><span>Hard</span><span>{selectedProfile.hardSolved}</span></div>
                        <div className="h-1.5 w-full bg-destructive/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-destructive rounded-full" style={{ width: `${(selectedProfile.hardSolved / (selectedProfile.totalSolved || 1)) * 100}%` }} />
+                         <div className="h-full bg-destructive rounded-full" style={{ width: \`\${(selectedProfile.hardSolved / (selectedProfile.totalSolved || 1)) * 100}%\` }} />
                        </div>
                      </div>
                    )}
@@ -354,9 +357,40 @@ export function UnifiedProfileDashboard({
           </div>
 
           <div className="lg:col-span-8 space-y-6">
+            {/* Contest Rating Chart */}
+            {selectedProfile?.contestHistory && selectedProfile.contestHistory.length > 0 ? (
+              <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm h-[350px] flex flex-col">
+                <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                  <TrendingUp className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Rating Progression</span>
+                </div>
+                <div className="flex-1 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={selectedProfile.contestHistory}>
+                      <defs>
+                        <linearGradient id="colorRating" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={selectedMeta?.color} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={selectedMeta?.color} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                      <XAxis dataKey="date" hide />
+                      <YAxis domain={['auto', 'auto']} stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
+                      <RechartsTooltip contentStyle={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.8)" }} />
+                      <Area type="monotone" dataKey="rating" stroke={selectedMeta?.color} strokeWidth={3} fillOpacity={1} fill="url(#colorRating)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-[2rem] bg-card border border-border p-12 shadow-sm text-center flex flex-col items-center justify-center">
+                <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-4"><LineChart className="size-6" /></div>
+                <h4 className="font-bold text-lg mb-2">No Contest History</h4>
+                <p className="text-muted-foreground text-sm max-w-sm">We couldn't find any rated contest history for this platform profile.</p>
+              </div>
+            )}
             
             {/* Activity Chart if available */}
-            {selectedProfile?.recentSubmissions && selectedProfile.recentSubmissions.length > 0 ? (
+            {selectedProfile?.recentSubmissions && selectedProfile.recentSubmissions.length > 0 && (
               <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm">
                 <div className="flex items-center gap-2 text-muted-foreground mb-4">
                   <Code2 className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Recent Activity</span>
@@ -364,17 +398,11 @@ export function UnifiedProfileDashboard({
                 <div className="space-y-2">
                   {selectedProfile.recentSubmissions.slice(0, 5).map((sub, i) => (
                     <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-background border border-border">
-                      <span className="font-medium text-sm truncate max-w-[200px] sm:max-w-md">{sub.problemName || "Submission"}</span>
-                      <span className="text-xs text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full font-mono">{sub.verdict || "Accepted"}</span>
+                      <span className="font-medium text-sm truncate max-w-[200px] sm:max-w-md">{sub.title}</span>
+                      <span className="text-xs text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full font-mono">{sub.status || "Accepted"}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-            ) : (
-              <div className="rounded-[2rem] bg-card border border-border p-12 shadow-sm text-center flex flex-col items-center justify-center">
-                <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-4"><Code2 className="size-6" /></div>
-                <h4 className="font-bold text-lg mb-2">No Recent Activity</h4>
-                <p className="text-muted-foreground text-sm max-w-sm">We couldn't find any recent submissions for this platform profile.</p>
               </div>
             )}
           </div>
@@ -383,3 +411,7 @@ export function UnifiedProfileDashboard({
     </div>
   );
 }
+`
+
+fs.writeFileSync(path, content, 'utf8');
+console.log("UnifiedProfileDashboard completely rebuilt!");
