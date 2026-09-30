@@ -1550,17 +1550,16 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header / Navigation */}
-      <header className="border-b border-border/50 bg-background/95 backdrop-blur sticky top-0 z-50">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
+      <header className="border-b border-border bg-background/95 backdrop-blur-lg sticky top-0 z-50">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 h-14">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="size-7 rounded-full overflow-hidden border border-border/80 shadow-xs ring-1 ring-primary/20 bg-background shrink-0">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="size-8 rounded-lg overflow-hidden border border-border/60 bg-background shrink-0">
               <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
             </div>
-            <div className="font-display font-black tracking-tighter text-xl leading-none flex items-baseline select-none">
-              <span className="bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">DSA</span>
-              <span className="bg-gradient-to-br from-primary to-orange-500 bg-clip-text text-transparent ml-[1px]">⁴⁰⁴</span>
-            </div>
+            <span className="font-display font-black tracking-tight text-lg leading-none select-none text-foreground">
+              DSA<span className="text-primary">⁴⁰⁴</span>
+            </span>
           </Link>
 
           {/* Desktop Nav Links */}
@@ -1729,63 +1728,63 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-10 bg-muted/20">
-        <div className="mx-auto max-w-6xl px-4 flex flex-col items-center justify-center text-center gap-4">
+      <footer className="border-t border-border py-12 bg-card/50">
+        <div className="mx-auto max-w-6xl px-4 flex flex-col items-center justify-center text-center gap-5">
           <div className="flex items-center gap-2">
-            <div className="size-6 rounded-full overflow-hidden border border-border/80 shadow-xs ring-1 ring-primary/20 bg-background shrink-0">
+            <div className="size-7 rounded-lg overflow-hidden border border-border/60 bg-background shrink-0">
               <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
             </div>
             <span className="font-display font-black tracking-tight text-base">
-              DSA<span className="text-primary font-bold ml-0.5">⁴⁰⁴</span>
+              DSA<span className="text-primary">⁴⁰⁴</span>
             </span>
           </div>
 
-          <p className="text-xs sm:text-sm text-muted-foreground max-w-xl leading-relaxed">
-            DSA⁴⁰⁴ helps students learn Data Structures & Algorithms step by step through a personalized daily plan, guided problems, pattern-based learning, progress tracking, contests, and coding-profile integrations.
+          <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
+            Structured DSA learning — daily plans, guided problems, pattern-based practice, and progress tracking.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-muted-foreground">
-            <a href="#how-it-works" className="hover:text-foreground">How it works</a>
-            <span>·</span>
-            <a href="#slideshow" className="hover:text-foreground">Module Tour</a>
-            <span>·</span>
-            <a href="#features" className="hover:text-foreground">Features</a>
-            <span>·</span>
-            <a href="#roadmap" className="hover:text-foreground">Roadmap</a>
-            <span>·</span>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
-            <span>·</span>
-            <Link href="/auth?mode=signin" className="hover:text-foreground">Login</Link>
-            <span>·</span>
-            <Link href="/auth?mode=signup" className="hover:text-foreground">Register</Link>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+            <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
+            <span className="text-border">·</span>
+            <a href="#slideshow" className="hover:text-foreground transition-colors">Tour</a>
+            <span className="text-border">·</span>
+            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+            <span className="text-border">·</span>
+            <a href="#roadmap" className="hover:text-foreground transition-colors">Roadmap</a>
+            <span className="text-border">·</span>
+            <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+            <span className="text-border">·</span>
+            <Link href="/auth?mode=signin" className="hover:text-foreground transition-colors">Login</Link>
+            <span className="text-border">·</span>
+            <Link href="/auth?mode=signup" className="text-primary font-medium hover:text-primary/80 transition-colors">Get Started</Link>
           </div>
 
-          <p className="text-xs text-muted-foreground font-medium">
-            Created by{" "}
-            <a
-              href="https://pbmnaiduportfolio.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-foreground underline decoration-primary underline-offset-2 hover:text-primary transition-colors cursor-pointer"
-            >
-              Bhanu
-            </a>
-          </p>
-
-          <div className="flex items-center gap-2 pt-0.5 font-mono text-xs">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span>
+              Created by{" "}
+              <a
+                href="https://pbmnaiduportfolio.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-foreground hover:text-primary underline decoration-primary/30 underline-offset-2 transition-colors"
+              >
+                Bhanu
+              </a>
+            </span>
+            <span className="text-border">·</span>
             <a
               href="https://dsa404.vercel.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-primary hover:bg-primary/20 transition-all shadow-xs font-semibold"
+              className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors font-medium"
             >
-              <span>dsa404.vercel.app</span>
+              dsa404.vercel.app
               <ExternalLink className="size-3" />
             </a>
           </div>
 
-          <p className="text-[11px] text-muted-foreground/60 font-mono pt-2">
-            © {new Date().getFullYear()} DSA⁴⁰⁴ · Built for structured, consistent DSA practice
+          <p className="text-[11px] text-muted-foreground/50 pt-2">
+            © {new Date().getFullYear()} DSA⁴⁰⁴
           </p>
         </div>
       </footer>
