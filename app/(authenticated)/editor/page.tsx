@@ -105,7 +105,7 @@ function EditorPageInner() {
   const problem = useMemo(
     () => ({
       name: params.get("name") || "Untitled Problem",
-      topic: params.get("topic") || "",
+      topic: params.get("topic") || "General",
       link: params.get("link") || "",
     }),
     [params]
@@ -118,7 +118,6 @@ function EditorPageInner() {
   const [langOpen, setLangOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Auto-fill existing code submission if problem was already submitted
   useEffect(() => {
     if (existingSubmission?.code) {
       setCode(existingSubmission.code);
@@ -156,81 +155,115 @@ function EditorPageInner() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background text-foreground select-none">
-      {/* Top bar: problem name + topic only */}
-      <div className="h-[56px] shrink-0 flex items-center justify-between px-4 border-b border-border bg-background">
-        <div className="flex items-center gap-3 min-w-0">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0d1117] text-[#c9d1d9] font-sans">
+      {/* ── IDE Top Menu Bar ── */}
+      <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-[#30363d] bg-[#010409]">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            title="Back"
+            className="flex items-center justify-center rounded-md p-1.5 text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d] transition-colors"
+            title="Go Back"
           >
             <ArrowLeft size={16} />
           </button>
-          <span className="text-[14px] font-bold tracking-tight shrink-0">
-            404<span className="text-primary">DSA</span>
-          </span>
-          <div className="w-px h-4 bg-border shrink-0" />
-          <div className="flex items-center gap-1.5 text-[13px] min-w-0">
-            <span className="font-semibold text-foreground truncate">{problem.name}</span>
-            {problem.topic && (
-              <>
-                <ChevronRight size={13} className="text-muted-foreground/60 shrink-0" />
-                <span className="text-muted-foreground truncate">{problem.topic}</span>
-              </>
-            )}
+          <div className="flex items-center gap-2 text-xs font-semibold">
+            <span className="text-[#58a6ff]">DSA⁴⁰⁴ Workspace</span>
+            <span className="text-[#30363d]">/</span>
+            <span className="text-[#8b949e]">{problem.topic}</span>
+            <span className="text-[#30363d]">/</span>
+            <span className="text-[#c9d1d9]">{problem.name}</span>
           </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+           <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="flex items-center gap-1.5 rounded-md bg-[#238636] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled:opacity-50 transition-colors shadow-sm border border-[rgba(240,253,244,0.1)]"
+          >
+            {submitting && <Loader2 size={13} className="animate-spin" />}
+            Submit Solution
+          </button>
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="flex-1 min-w-0 flex flex-col bg-background">
-        <div className="h-10 shrink-0 flex items-center justify-between px-3 border-b border-border bg-card">
-          <div className="relative">
-            <button
-              onClick={() => setLangOpen((o) => !o)}
-              className="flex items-center gap-1.5 rounded px-2.5 py-1 text-[12.5px] font-semibold text-foreground hover:bg-secondary transition-colors border border-border/60"
-            >
-              <Code2 size={13} className="text-primary" />
-              {currentLang.label}
-              <ChevronDown size={13} className="text-muted-foreground" />
-            </button>
-            {langOpen && (
-              <div className="absolute left-0 top-full mt-1 w-44 rounded-md border border-border bg-card py-1 shadow-lg z-20">
-                {LANGUAGES.map((l) => (
-                  <button
-                    key={l.id}
-                    onClick={() => handleLanguageChange(l.id)}
-                    className={cn(
-                      "w-full text-left px-3 py-1.5 text-[12.5px] hover:bg-secondary transition-colors",
-                      l.id === language ? "text-foreground font-semibold bg-secondary/40" : "text-muted-foreground"
-                    )}
-                  >
-                    {l.label}
-                  </button>
-                ))}
+      {/* ── IDE Main Workspace ── */}
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* Left Sidebar (Problem Info) */}
+        <div className="w-[300px] shrink-0 border-r border-[#30363d] bg-[#0d1117] flex flex-col hidden md:flex">
+          <div className="h-9 border-b border-[#30363d] flex items-center px-4">
+            <span className="text-[11px] font-bold tracking-wider text-[#8b949e] uppercase">Explorer</span>
+          </div>
+          <div className="p-4 space-y-4 overflow-y-auto">
+            <div>
+              <h2 className="text-sm font-bold text-[#c9d1d9] mb-1">{problem.name}</h2>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="px-1.5 py-0.5 rounded-sm bg-[#1f6feb]/20 text-[#58a6ff] font-mono border border-[#1f6feb]/30">{problem.topic}</span>
               </div>
-            )}
+            </div>
+            
+            <div className="pt-4 border-t border-[#30363d]">
+              <p className="text-xs text-[#8b949e] leading-relaxed">
+                Write your solution in the editor pane. Make sure your logic correctly solves the problem requirements on the platform.
+              </p>
+              {problem.link && (
+                <a href={problem.link} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs text-[#58a6ff] hover:underline">
+                  View Problem Description <ChevronRight size={12} />
+                </a>
+              )}
+            </div>
           </div>
         </div>
 
-        <CodeEditor
-          value={code}
-          onChange={setCode}
-          language={language}
-          className="flex-1 rounded-none border-x-0 border-b-0"
-        />
+        {/* Right Pane (Editor) */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[#0d1117]">
+          {/* Editor Tabs */}
+          <div className="h-9 shrink-0 flex items-end border-b border-[#30363d] bg-[#010409] px-2 gap-1 overflow-x-auto">
+            <div className="h-8 px-4 flex items-center gap-2 border-t border-x border-[#30363d] bg-[#0d1117] rounded-t-md border-b-transparent translate-y-[1px] relative">
+              <Code2 size={14} className="text-[#e3b341]" />
+              <span className="text-xs font-mono text-[#c9d1d9]">solution.{language === "javascript" ? "js" : language === "typescript" ? "ts" : language === "cpp" ? "cpp" : language === "java" ? "java" : "py"}</span>
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-[#f78166]" />
+            </div>
+            
+            <div className="ml-auto relative mb-1">
+              <button
+                onClick={() => setLangOpen((o) => !o)}
+                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-semibold text-[#8b949e] hover:bg-[#21262d] transition-colors border border-[#30363d]"
+              >
+                {currentLang.label}
+                <ChevronDown size={12} className="text-[#8b949e]" />
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1 w-40 rounded-md border border-[#30363d] bg-[#161b22] py-1 shadow-xl z-20">
+                  {LANGUAGES.map((l) => (
+                    <button
+                      key={l.id}
+                      onClick={() => handleLanguageChange(l.id)}
+                      className={cn(
+                        "w-full text-left px-3 py-1.5 text-[11px] font-mono hover:bg-[#1f6feb] hover:text-white transition-colors",
+                        l.id === language ? "text-[#58a6ff] bg-[#1f6feb]/10" : "text-[#c9d1d9]"
+                      )}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
-        <div className="h-14 shrink-0 flex items-center justify-end gap-2 px-3 border-t border-border bg-card">
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex items-center gap-1.5 rounded-md bg-primary px-5 py-2 text-[13px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm"
-          >
-            {submitting && <Loader2 size={14} className="animate-spin" />}
-            Submit
-          </button>
+          <div className="flex-1 relative">
+            <CodeEditor
+              value={code}
+              onChange={setCode}
+              language={language}
+              className="absolute inset-0 rounded-none border-0"
+              theme="vs-dark"
+            />
+          </div>
         </div>
+
       </div>
     </div>
   );

@@ -175,57 +175,76 @@ export default function BacklogPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
-        <p className="text-sm text-muted-foreground mt-1">Past incomplete days. Catch up at your own pace without losing your streak.</p>
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* Editorial Header */}
+      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+          <Clock className="size-48" />
+        </div>
+        <div className="space-y-2 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+              <Clock className="size-5" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-display font-black tracking-tight text-foreground">Backlog & Catch-Up</h1>
+          </div>
+          <p className="text-sm text-muted-foreground max-w-xl">
+            Incomplete days from the past. Solve problems here to catch up without breaking your schedule. Take your time—consistency beats speed.
+          </p>
+        </div>
+        <div className="relative z-10 w-full md:w-auto">
+          {hasPending && (
+            <AddRevisionDayButton
+              onAdd={() => {
+                const lastPending = pending[pending.length - 1];
+                if (lastPending) insertRevisionDay(lastPending.dayNumber);
+              }}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Pending backlog */}
-      {hasPending && (
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="size-4 text-warning" />
-            <h2 className="text-sm font-semibold text-foreground">
-              Incomplete Days
-            </h2>
-            <Badge variant="secondary" className="text-xs px-1.5 py-0">
-              {pending.length}
-            </Badge>
-          </div>
-          <div className="grid gap-3">
-            {pending.map((d) => (
-              <BacklogDayCard key={d.date} day={d} />
-            ))}
-          </div>
-          <AddRevisionDayButton
-            onAdd={() => {
-              const lastPending = pending[pending.length - 1];
-              if (lastPending) insertRevisionDay(lastPending.dayNumber);
-            }}
-          />
-        </section>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Pending Column */}
+        {hasPending && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="size-6 rounded bg-warning/10 text-warning flex items-center justify-center">
+                  <Clock className="size-3.5" />
+                </div>
+                <h2 className="text-base font-bold text-foreground">Pending Days</h2>
+              </div>
+              <Badge variant="secondary" className="font-mono">{pending.length} remaining</Badge>
+            </div>
+            <div className="grid gap-4">
+              {pending.map((d) => (
+                <BacklogDayCard key={d.date} day={d} />
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Late completed days */}
-      {hasLateCompleted && (
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="size-4 text-success" />
-            <h2 className="text-sm font-semibold text-foreground">
-              Completed Late
-            </h2>
-            <Badge variant="secondary" className="text-xs px-1.5 py-0 bg-success/15 text-success border-success/20">
-              {lateCompleted.length}
-            </Badge>
-          </div>
-          <div className="grid gap-3">
-            {lateCompleted.map((d) => (
-              <BacklogDayCard key={d.date} day={d} />
-            ))}
-          </div>
-        </section>
-      )}
+        {/* Late Completed Column */}
+        {hasLateCompleted && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="size-6 rounded bg-success/10 text-success flex items-center justify-center">
+                  <CheckCircle2 className="size-3.5" />
+                </div>
+                <h2 className="text-base font-bold text-foreground">Late Completed</h2>
+              </div>
+              <Badge variant="secondary" className="bg-success/10 text-success border-success/20 font-mono">{lateCompleted.length} solved</Badge>
+            </div>
+            <div className="grid gap-4 opacity-70 hover:opacity-100 transition-opacity">
+              {lateCompleted.map((d) => (
+                <BacklogDayCard key={d.date} day={d} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

@@ -1119,6 +1119,7 @@ export default function PublicProfilePage() {
 
 
   // ── 404 state ──
+  // ── 404 state ──
   if (notFound) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4 text-center">
@@ -1126,18 +1127,15 @@ export default function PublicProfilePage() {
           <Globe className="size-8 text-muted-foreground" />
         </div>
         <h1 className="text-2xl font-bold">Profile not found</h1>
-        <p className="text-muted-foreground">This profile doesn&apos;t exist or hasn&apos;t been set up yet.</p>
+        <p className="text-muted-foreground">This profile doesn't exist or hasn't been set up yet.</p>
         <Link
           href="/"
-          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          <div className="size-5 rounded-full overflow-hidden border border-border shadow-sm ring-1 ring-primary/20 bg-background shrink-0">
-            <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
-          </div>
-          <span>Go to</span>
+          <span>Return to</span>
           <div className="font-display font-black tracking-tighter text-sm leading-none inline-flex items-baseline select-none">
-            <span className="bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">DSA</span>
-            <span className="bg-gradient-to-br from-primary to-orange-500 bg-clip-text text-transparent ml-[0.5px]">⁴⁰⁴</span>
+            <span>DSA</span>
+            <span className="text-orange-500 ml-[0.5px]">⁴⁰⁴</span>
           </div>
         </Link>
       </div>
@@ -1148,35 +1146,36 @@ export default function PublicProfilePage() {
     <div className="min-h-screen bg-background">
       {/* ── Branded top bar ── */}
       <header className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-10">
-        <div className="mx-auto flex max-w-7xl items-center gap-2.5 px-4 sm:px-6 lg:px-8 py-3">
+        <div className="mx-auto flex max-w-[1400px] items-center gap-2.5 px-4 sm:px-6 lg:px-8 py-3">
           <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-90">
             <div className="size-7 rounded-full overflow-hidden border border-border/80 shadow-sm ring-1 ring-primary/20 bg-background shrink-0">
               <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
             </div>
             <div className="font-display font-black tracking-tighter text-[20px] leading-none flex items-baseline select-none">
-              <span className="bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent drop-shadow-sm">DSA</span>
-              <span className="bg-gradient-to-br from-primary to-orange-500 bg-clip-text text-transparent drop-shadow-sm ml-[1px]">⁴⁰⁴</span>
+              <span className="text-foreground drop-shadow-sm">DSA</span>
+              <span className="text-primary drop-shadow-sm ml-[1px]">⁴⁰⁴</span>
             </div>
           </Link>
-          <span className="ml-auto text-xs text-muted-foreground">Public Profile</span>
+          <span className="ml-auto text-xs font-semibold uppercase tracking-wider text-muted-foreground">Public Portfolio</span>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in pb-24">
+        
         {/* ── Demo Mode Showcase Ribbon ── */}
         {isDemo && (
-          <div className="rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-purple-500/10 to-primary/10 p-4 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="rounded-3xl border border-primary/30 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary shrink-0">
                 <Sparkles className="size-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-foreground">Live Public Profile Showcase (Demo)</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground">DEMO MODE</span>
+                  <span className="font-bold text-sm text-foreground">Live Public Profile Showcase</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground">DEMO</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  This showcase demonstrates how your DSA portfolio and verified social links present to recruiters and peers.
+                  See how your DSA portfolio and verified social links present to recruiters.
                 </p>
               </div>
             </div>
@@ -1184,537 +1183,258 @@ export default function PublicProfilePage() {
               href="/auth"
               className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4 py-2 shadow-sm transition-all"
             >
-              <span>Create Your Profile</span>
+              <span>Create Profile</span>
               <ExternalLink className="size-3" />
             </Link>
           </div>
         )}
 
-        {/* ── GitHub / LeetCode Style Profile Hero Card ── */}
-        <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-          <div className="h-24 sm:h-32 w-full bg-gradient-to-r from-primary/30 via-primary/10 to-accent/20 border-b border-border/40 relative overflow-hidden">
-            {bannerURL && (
-              <img src={bannerURL} alt="Profile cover banner" className="absolute inset-0 size-full object-cover" />
-            )}
-            <div className="absolute right-2 top-2 sm:right-4 sm:top-3 flex flex-wrap justify-end items-center gap-1.5 sm:gap-2 z-10 max-w-[85%]">
-              <span className="inline-flex items-center gap-1 rounded-full bg-background/85 backdrop-blur px-2 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold text-foreground border border-border/50 shadow-sm">
-                <Flame className="size-3.5 text-orange-500" />
-                {streakCount} Day Streak
-              </span>
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full bg-background/85 backdrop-blur px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary border border-border/50 shadow-sm"
-                title={
-                  allPlatformsStats.externalPlatformsTotal > 0
-                    ? `Total solved across all platforms: ${allPlatformsStats.grandTotalSolved} (${allPlatformsStats.trackerTotal} in 404 DSA Tracker)`
-                    : `Total solved across all platforms: ${allPlatformsStats.grandTotalSolved}`
-                }
-              >
-                <Sparkles className="size-3.5" />
-                <span>{allPlatformsStats.grandTotalSolved} Solved</span>
-                {allPlatformsStats.externalPlatformsTotal > 0 && (
-                  <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                    (All Platforms)
-                  </span>
-                )}
-              </span>
-            </div>
+        {/* ── HERO BANNER (EDITORIAL) ── */}
+        <section className="relative rounded-3xl overflow-hidden border border-border bg-card shadow-sm">
+          <div className="h-48 md:h-64 w-full relative bg-muted">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-transparent" />
+            {bannerURL && <img src={bannerURL} alt="banner" className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-overlay" />}
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
           </div>
 
-          <div className="px-4 sm:px-6 pb-6 pt-0">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-end gap-4 sm:gap-5 -mt-10 sm:-mt-12 mb-3">
-              <div className="size-20 sm:size-24 shrink-0 overflow-hidden rounded-full border-4 border-card bg-muted shadow-lg flex items-center justify-center z-10">
-                {photoURL ? (
-                  <img src={photoURL} alt={`${displayName} avatar`} className="size-full object-cover" />
-                ) : (
-                  <span className="text-3xl sm:text-4xl font-bold text-primary">{initials}</span>
-                )}
-              </div>
+          <div className="relative px-6 md:px-10 pb-8 -mt-20 md:-mt-24 flex flex-col md:flex-row items-end gap-6 md:gap-8">
+            {/* Avatar */}
+            <div className="size-32 md:size-40 rounded-[2rem] border-4 border-card shadow-xl overflow-hidden shrink-0 bg-secondary flex items-center justify-center hover:scale-[1.02] transition-transform duration-300">
+              {photoURL ? (
+                <img src={photoURL} alt="Avatar" className="size-full object-cover" />
+              ) : (
+                <span className="text-5xl font-black text-primary/50">{initials}</span>
+              )}
+            </div>
 
-              <div className="flex-1 min-w-0 pt-1 sm:pt-2">
-                <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">
-                  {(displayName || "").toLowerCase().includes("bhanu") ? (
-                    <a
-                      href="https://pbmnaiduportfolio.vercel.app"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-primary transition-colors cursor-pointer"
-                      title="Visit Bhanu's Portfolio"
-                    >
-                      {displayName}
-                    </a>
-                  ) : (
-                    displayName || "Anonymous Coder"
-                  )}
-                </h1>
-                <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                  {username && username !== effectiveGithubUsername && (
-                    <p className="text-xs font-mono font-medium text-primary truncate">@{username}</p>
-                  )}
-                  {githubProfileUrl && (
-                    <a
-                      href={githubProfileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/20 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-800/35 dark:hover:bg-zinc-700/60 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
-                      title={`Open GitHub profile: ${githubProfileUrl}`}
-                    >
-                      <GitHubIcon className="size-3.5 shrink-0" />
-                      <span className="font-mono">{effectiveGithubUsername ? `@${effectiveGithubUsername}` : "GitHub"}</span>
-                      <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                    </a>
-                  )}
-                  {linkedin && (
-                    <a
-                      href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                      title={`Open LinkedIn profile: ${linkedin}`}
-                    >
-                      <LinkedInIcon className="size-3 shrink-0" />
-                      <span>LinkedIn</span>
-                      <ExternalLink className="size-2.5 opacity-70" />
-                    </a>
-                  )}
-                  {portfolio && (
-                    <a
-                      href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                      title={`Open Portfolio: ${portfolio}`}
-                    >
-                      <Globe className="size-3 shrink-0" />
-                      <span>Portfolio</span>
-                      <ExternalLink className="size-2.5 opacity-70" />
-                    </a>
-                  )}
+            {/* Core Info */}
+            <div className="flex-1 min-w-0 w-full pb-2">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1.5">
+                  <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight text-foreground truncate">
+                    {displayName || "Anonymous Coder"}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                    {username && username !== effectiveGithubUsername && (
+                      <span className="font-mono text-primary font-bold">@{username}</span>
+                    )}
+                    <span className="text-muted-foreground font-medium">{bio || "Software Engineer Aspirant"}</span>
+                  </div>
                 </div>
-                {bio && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{bio}</p>}
+              </div>
+              
+              {/* External Link Rail */}
+              <div className="flex flex-wrap items-center gap-3 mt-4">
+                {githubProfileUrl && (
+                  <a href={githubProfileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border shadow-sm">
+                    <GitHubIcon className="size-3.5" /> GitHub <ExternalLink className="size-3 opacity-50" />
+                  </a>
+                )}
+                {linkedin && (
+                  <a href={linkedin.startsWith("http") ? linkedin : `https://linkedin.com/in/${linkedin}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border shadow-sm">
+                    <LinkedInIcon className="size-3.5" /> LinkedIn <ExternalLink className="size-3 opacity-50" />
+                  </a>
+                )}
+                {portfolio && (
+                  <a href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border shadow-sm">
+                    <Globe className="size-3.5" /> Portfolio <ExternalLink className="size-3 opacity-50" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── About Me Public Section ── */}
-        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                <Sparkles className="size-4" />
-              </div>
-              <div>
-                <h2 className="font-display text-lg font-bold tracking-tight text-foreground">About Me</h2>
-                <p className="text-xs text-muted-foreground">Professional profile, background, &amp; verified developer links</p>
-              </div>
-            </div>
-            {isDemo && (
-              <span className="self-start sm:self-auto rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-0.5 text-[11px] font-mono font-bold text-blue-500">
-                Demo Showcase Mode
-              </span>
-            )}
-          </div>
+        {/* ── TWO COLUMN PUBLIC WORKSPACE ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* LEFT COLUMN: Narrative & Badges */}
+          <aside className="lg:col-span-4 space-y-8">
+            
+            {/* About Me & Contact */}
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+                <UserCircle2 className="size-4 text-primary" /> Story & Trajectory
+              </h3>
+              
+              {aboutMe ? (
+                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{aboutMe}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No detailed biography provided.</p>
+              )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Identity & Career Info */}
-            <div className="space-y-3 rounded-xl border border-border/60 bg-background/50 p-4">
-              <div className="flex items-center justify-between border-b border-border/40 pb-2 text-xs">
-                <span className="text-muted-foreground font-medium">Full Name</span>
-                {(displayName || "").toLowerCase().includes("bhanu") ? (
-                  <a
-                    href="https://pbmnaiduportfolio.vercel.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold text-foreground hover:text-primary transition-colors underline decoration-dotted truncate max-w-[200px] cursor-pointer"
-                    title="Visit Bhanu's Portfolio"
-                  >
-                    {displayName}
-                  </a>
-                ) : (
-                  <span className="font-bold text-foreground truncate max-w-[200px]">{displayName || "Anonymous Coder"}</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between border-b border-border/40 pb-2 text-xs">
-                <span className="text-muted-foreground font-medium">Goal / Career Focus</span>
-                <span className="font-bold text-primary truncate max-w-[200px]">{bio || "SDE Aspirant"}</span>
-              </div>
-              <div className="flex items-center justify-between border-b border-border/40 pb-2 text-xs">
-                <span className="text-muted-foreground font-medium flex items-center gap-1">
-                  <Mail className="size-3 text-muted-foreground" /> Contact Email
-                </span>
-                {email ? (
-                  <a
-                    href={`mailto:${email}`}
-                    className="font-mono text-foreground hover:text-primary transition-colors underline decoration-dotted truncate max-w-[200px]"
-                    title={`Email ${email}`}
-                  >
-                    {email}
-                  </a>
-                ) : (
-                  <span className="text-muted-foreground italic">Private</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground font-medium">Handle</span>
-                <span className="font-mono font-semibold text-primary">@{username || "coder"}</span>
-              </div>
-            </div>
-
-            {/* Social & Professional Connections */}
-            <div className="space-y-3 rounded-xl border border-border/60 bg-background/50 p-4 flex flex-col justify-between">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
-                  Verified Social &amp; Web Links
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {githubProfileUrl && (
-                    <a
-                      href={githubProfileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
-                      title={`Open GitHub: ${githubProfileUrl}`}
-                    >
-                      <GitHubIcon className="size-3.5 shrink-0" />
-                      <span>GitHub{effectiveGithubUsername ? ` (@${effectiveGithubUsername})` : ""}</span>
-                      <ExternalLink className="size-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                    </a>
-                  )}
-
-                  {linkedin && (
-                    <a
-                      href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                      title={`Open LinkedIn: ${linkedin}`}
-                    >
-                      <LinkedInIcon className="size-3.5 shrink-0" />
-                      <span>LinkedIn</span>
-                      <ExternalLink className="size-3 opacity-70" />
-                    </a>
-                  )}
-
-                  {portfolio && (
-                    <a
-                      href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                      title={`Open Portfolio: ${portfolio}`}
-                    >
-                      <Globe className="size-3.5 shrink-0" />
-                      <span>Portfolio</span>
-                      <ExternalLink className="size-3 opacity-70" />
-                    </a>
-                  )}
-
-                  {/* Other Social Media Links */}
-                  {socialLinks.map((s, idx) => (
-                    <a
-                      key={idx}
-                      href={s.url.startsWith("http") ? s.url : `https://${s.url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                      title={`Open ${s.platform}: ${s.url}`}
-                    >
-                      {getSocialIcon(s.platform, "size-3.5 shrink-0")}
-                      <span>{s.platform}</span>
-                      <ExternalLink className="size-3 opacity-70" />
-                    </a>
-                  ))}
-
-                  {!githubProfileUrl && !linkedin && !portfolio && socialLinks.length === 0 && (
-                    <span className="text-xs text-muted-foreground italic">No public social media links attached.</span>
-                  )}
+              {email && (
+                <div className="mt-6 pt-4 border-t border-border/50">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground block mb-2">Contact Email</span>
+                  <a href={`mailto:${email}`} className="text-sm font-mono text-primary hover:underline">{email}</a>
                 </div>
-              </div>
+              )}
 
-              {/* Coding Platforms Quick Badges */}
-              {Object.entries(codingProfiles).some(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim())) && (
-                <div className="pt-3 border-t border-border/40 mt-2">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Code2 className="size-3.5 text-primary" />
-                    Connected Coding Platforms
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(codingProfiles)
-                      .filter(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim()))
-                      .map(([platform, uname]) => {
-                        const meta = CODING_PLATFORM_META[platform as keyof typeof CODING_PLATFORM_META];
-                        const label = meta?.label || platform;
-                        const url =
-                          platform === "leetcode" ? `https://leetcode.com/u/${uname}/` :
-                          platform === "codeforces" ? `https://codeforces.com/profile/${uname}` :
-                          platform === "codechef" ? `https://codechef.com/users/${uname}` :
-                          platform === "hackerrank" ? `https://hackerrank.com/profile/${uname}` :
-                          platform === "gfg" ? `https://geeksforgeeks.org/user/${uname}/` :
-                          platform === "github" ? `https://github.com/${uname}` :
-                          `#`;
-                        return (
-                          <a
-                            key={platform}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                            style={{
-                              backgroundColor: meta?.bgColor || "rgba(255,255,255,0.06)",
-                              color: meta?.color || "inherit",
-                              borderColor: meta ? `${meta.color}40` : "var(--color-border)",
-                            }}
-                            title={`Open ${label} profile: ${uname}`}
-                          >
-                            <Code2 className="size-3 shrink-0" />
-                            <span>{label}</span>
-                            <span className="opacity-70 text-[10px] font-mono font-normal">@{uname}</span>
-                            <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
-                          </a>
-                        );
-                      })}
+              {/* Other Custom Links */}
+              {((codingProfiles.customLinks ?? []).some((cl) => cl.url) || socialLinks.length > 0) && (
+                <div className="mt-6 pt-4 border-t border-border/50">
+                  <h4 className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Verified Links</h4>
+                  <div className="flex flex-col gap-2">
+                    {socialLinks.map((s, i) => (
+                      <a key={`social-${i}`} href={s.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center justify-between bg-secondary/40 px-3 py-2 rounded-lg">
+                        <span className="flex items-center gap-2">{getSocialIcon(s.platform, "size-3.5")} {s.platform}</span>
+                        <ExternalLink className="size-3 opacity-50" />
+                      </a>
+                    ))}
+                    {(codingProfiles.customLinks ?? []).filter(cl => cl.url).map((cl, i) => (
+                      <a key={`custom-${i}`} href={cl.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center justify-between bg-secondary/40 px-3 py-2 rounded-lg">
+                        <span className="flex items-center gap-2"><Globe className="size-3.5 text-muted-foreground" /> {cl.label || "Link"}</span>
+                        <ExternalLink className="size-3 opacity-50" />
+                      </a>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Narrative About Me text */}
-          {aboutMe && (
-            <div className="rounded-xl border border-border/60 bg-background/40 p-4 space-y-1.5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <UserCircle2 className="size-3.5 text-primary" /> Story &amp; Trajectory
-              </p>
-              <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
-                {aboutMe}
-              </p>
+            {/* Badges */}
+            {effectiveDays.length > 0 && (
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+                  <Flame className="size-4 text-orange-500" /> Achievements
+                </h3>
+                <BadgesGrid badges={badges} />
+              </div>
+            )}
+          </aside>
+
+          {/* RIGHT COLUMN: Progress & Integration */}
+          <main className="lg:col-span-8 space-y-8 min-w-0">
+            
+            {/* Top Line Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground">Total Solved</span>
+                <span className="text-3xl font-display font-black text-primary mt-1">{allPlatformsStats.grandTotalSolved}</span>
+              </div>
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground">Current Streak</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Flame className="size-5 text-orange-500" />
+                  <span className="text-3xl font-display font-black text-foreground">{streakCount}</span>
+                </div>
+              </div>
+              <div className="col-span-2 rounded-3xl border border-border bg-card p-5 shadow-sm">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground mb-3 block">Platform Distribution</span>
+                <div className="flex flex-wrap gap-3">
+                  {Object.entries(allPlatformsStats.byPlatform).sort((a,b) => b[1] - a[1]).slice(0, 4).map(([plat, num]) => (
+                    <div key={plat} className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-primary/50" />
+                      <span className="text-sm font-semibold">{plat}</span>
+                      <span className="text-sm text-muted-foreground font-mono">{num}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
-        </section>
 
-        {/* ── Unified Coding Profiles & Live Platform Stats Dashboard ── */}
-        {(Object.entries(codingProfiles).some(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim())) ||
-          (codingProfiles.customLinks ?? []).some((cl) => cl.url)) && (
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Globe className="size-5 text-primary" />
-              <h2 className="font-display text-lg font-bold tracking-tight text-foreground">
-                Coding Profiles & Live Analytics
-              </h2>
+            {/* Submission Heatmap */}
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+              <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+                Learning Consistency
+              </h3>
+              <p className="text-xs text-muted-foreground mb-6">Daily problem-solving activity across the platform.</p>
+              <div className="max-w-full overflow-x-auto pb-2">
+                <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
+              </div>
             </div>
-            <UnifiedProfileDashboard
-              initialProfiles={codingProfiles as Record<string, string>}
-              initialStats={platformStats}
-              userId={resolvedUid}
-              readOnly={true}
-            />
 
-            {/* Custom links */}
-            {(codingProfiles.customLinks ?? []).some((cl) => cl.url) && (
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <p className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Custom Links</p>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {(codingProfiles.customLinks ?? []).map((cl, idx) =>
-                    cl.url ? (
-                      <a
-                        key={idx}
-                        href={cl.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 bg-primary/5 hover:border-primary/50 transition-all"
-                      >
-                        <Globe className="size-4 shrink-0 text-primary" />
-                        <span className="text-xs font-semibold truncate">{cl.label || "Custom Link"}</span>
-                        <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground truncate">
-                          <ExternalLink className="size-3 shrink-0" />
-                          <span className="truncate">{cl.url.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                        </span>
-                      </a>
-                    ) : null
-                  )}
+            {/* GitHub Heatmap */}
+            {githubUsername && (
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+                <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+                  <GitHubIcon className="size-4" /> GitHub Contributions
+                </h3>
+                <p className="text-xs text-muted-foreground mb-6">Synced activity for @{githubUsername}.</p>
+                <div className="max-w-full overflow-x-auto pb-2">
+                  <GitHubContributionHeatmap username={githubUsername} />
                 </div>
               </div>
             )}
-          </section>
-        )}
 
-        {/* ── DSA 404 Solving Trend & Roadmap Progression Graph (from Progress Tab) ── */}
-        {effectiveDays.length > 0 && (
-          <section className="space-y-6 rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
-                  <Sparkles className="size-4" />
-                </div>
-                <div>
-                  <h2 className="font-display text-lg font-bold text-foreground">404 DSA Sheet Progress & Solving Trend</h2>
-                  <p className="text-xs text-muted-foreground">Daily solving consistency & difficulty trajectory</p>
-                </div>
+            {/* Unified Platform Profiles (if any linked) */}
+            {(Object.entries(codingProfiles).some(([k, v]) => k !== "customLinks" && k !== "platformStats" && typeof v === "string" && Boolean(v.trim()))) && (
+              <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                <UnifiedProfileDashboard
+                  initialProfiles={codingProfiles as Record<string, string>}
+                  initialStats={platformStats}
+                  userId={resolvedUid}
+                  readOnly={true}
+                />
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-bold text-primary">
-                  {effectiveDays.reduce((acc, d) => acc + (d.problems?.filter((p) => p.done).length || 0), 0)} Plan Solved
-                </span>
-                <span className="rounded-full border border-border bg-background px-3 py-1 font-bold text-foreground">
-                  {effectiveDays.filter((d) => !d.skipped && d.problems.every((p) => p.done)).length} Days Completed
-                </span>
-              </div>
-            </div>
-
-            {/* Solving Trend Area Chart */}
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <TrendingUp className="size-3.5 text-primary" />
-                Daily Solving Activity Trend
-              </h3>
-              <div className="h-64 w-full rounded-2xl border border-border bg-background/50 p-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
-                    <defs>
-                      <linearGradient id="publicSolvedFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.6} />
-                        <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.05} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
-                    <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                    <RTooltip
-                      contentStyle={{
-                        background: "var(--color-popover)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: 12,
-                        color: "var(--color-popover-foreground)",
-                        fontSize: 12,
-                      }}
-                      formatter={(value, name) => {
-                        if (name === "Plan solved") return [`${value} problems`, "Plan Solved"];
-                        return [value, name];
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Area
-                      type="monotone"
-                      dataKey="solved"
-                      name="Plan solved"
-                      stroke="var(--color-primary)"
-                      fill="url(#publicSolvedFill)"
-                      strokeWidth={2.5}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Difficulty Split Bar Chart */}
-            <div className="space-y-2 pt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <BarChart3 className="size-3.5 text-primary" />
-                Difficulty Distribution (Easy / Medium / Hard)
-              </h3>
-              <div className="h-48 w-full rounded-2xl border border-border bg-background/50 p-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={diffSplit} margin={{ left: -20, right: 8, top: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
-                    <XAxis dataKey="difficulty" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                    <RTooltip
-                      contentStyle={{
-                        background: "var(--color-popover)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: 12,
-                        color: "var(--color-popover-foreground)",
-                        fontSize: 12,
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Bar dataKey="done" name="Solved" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="remaining" name="Remaining" fill="rgba(255,255,255,0.12)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── Submission Heatmap ── */}
-        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4">
-            <h2 className="font-display text-lg font-semibold flex items-center gap-2 text-foreground">
-              <Flame className="size-5 text-orange-500" />
-              Submission Heatmap
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Daily problem consistency and active solving timeline
-            </p>
-          </div>
-          <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
-        </section>
-
-        {/* ── GitHub Contribution Activity Heatmap ── */}
-        {githubUsername ? (
-          <GitHubContributionHeatmap username={githubUsername} />
-        ) : null}
-
-        {/* ── Badges & Achievements Section ── */}
-        {effectiveDays.length > 0 && (
-          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <BadgesGrid badges={badges} />
-          </section>
-        )}
-
-        {/* ── Statistics ── */}
-        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <h2 className="mb-4 font-display text-lg font-semibold">Statistics</h2>
-
-          <div className="mb-4 flex items-end gap-2">
-            <span className="font-display text-5xl font-bold tabular-nums text-primary">
-              {allPlatformsStats.grandTotalSolved}
-            </span>
-            <span className="mb-1 text-sm text-muted-foreground">
-              problems solved across all platforms
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {Object.entries(allPlatformsStats.byPlatform)
-              .sort((a, b) => b[1] - a[1])
-              .map(([platform, count]) => (
-                <div key={platform} className="rounded-xl border border-border bg-background p-3">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">{platform}</p>
-                  <p className="mt-1 font-display text-2xl font-semibold tabular-nums">{count}</p>
-                </div>
-              ))}
-            {Object.keys(allPlatformsStats.byPlatform).length === 0 && (
-              <p className="col-span-full text-sm text-muted-foreground">
-                No solved problems recorded yet.
-              </p>
             )}
-          </div>
 
-          {publicStats.lastUpdated && (
-            <p className="mt-3 text-[11px] text-muted-foreground">
-              Last updated {new Date(publicStats.lastUpdated).toLocaleDateString()}
-            </p>
-          )}
-        </section>
+            {/* Solving Trend & Difficulty */}
+            {effectiveDays.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <TrendingUp className="size-3.5 text-primary" /> Solving Trend
+                  </h3>
+                  <div className="h-48 w-full bg-secondary/30 rounded-2xl p-2 border border-border/50">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
+                        <defs>
+                          <linearGradient id="publicSolvedFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.6} />
+                            <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
+                        <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                        <RTooltip
+                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12 }}
+                        />
+                        <Area type="monotone" dataKey="solved" name="Solved" stroke="var(--color-primary)" fill="url(#publicSolvedFill)" strokeWidth={2.5} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
 
-        {/* ── Solved Problems Archive ── */}
-        <SolvedProblemsArchive completedProblems={completedProblems} />
+                <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <BarChart3 className="size-3.5 text-primary" /> Difficulty Split
+                  </h3>
+                  <div className="h-48 w-full bg-secondary/30 rounded-2xl p-2 border border-border/50">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={diffSplit} margin={{ left: -20, right: 8, top: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.6} />
+                        <XAxis dataKey="difficulty" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                        <RTooltip
+                          contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12 }}
+                        />
+                        <Bar dataKey="done" name="Solved" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Solved Problems Archive */}
+            <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+              <SolvedProblemsArchive completedProblems={completedProblems} />
+            </div>
+
+          </main>
+        </div>
 
         {/* ── Footer ── */}
-        <footer className="pb-8 text-center text-xs text-muted-foreground">
+        <footer className="pt-8 text-center text-xs font-medium text-muted-foreground">
           Built with{" "}
           <Link href="/" className="inline-flex items-center gap-1.5 align-middle hover:opacity-90 transition-opacity">
-            <div className="size-4 rounded-full overflow-hidden border border-border shadow-sm ring-1 ring-primary/20 bg-background shrink-0">
-              <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
-            </div>
-            <span className="font-display font-black tracking-tighter text-xs leading-none flex items-baseline select-none">
-              <span className="bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">DSA</span>
-              <span className="bg-gradient-to-br from-primary to-orange-500 bg-clip-text text-transparent ml-[0.5px]">⁴⁰⁴</span>
+            <span className="font-display font-black tracking-tighter text-xs leading-none flex items-baseline select-none text-foreground">
+              DSA<span className="text-primary ml-[0.5px]">⁴⁰⁴</span>
             </span>
           </Link>
-          {" "}— Track your DSA journey.
+          {" "}— The premier DSA learning workspace.
         </footer>
       </main>
     </div>

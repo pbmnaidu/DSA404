@@ -465,7 +465,7 @@ export default function SettingsPage() {
   const pushPerm = pushState();
 
   return (
-    <>
+    <div className="animate-fade-in pb-12">
       {/* Chrome PWA Install Banner - shown only if not already installed */}
       {!isStandalone && (
         <div className="mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-card to-card p-4 sm:p-5 shadow-sm">
@@ -520,11 +520,22 @@ export default function SettingsPage() {
       />
 
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Account, pace, customized sheet, reminders and pause controls.
-        </p>
+      {/* Editorial Header */}
+      <div className="mb-8 rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+          <Settings className="size-48" />
+        </div>
+        <div className="space-y-2 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+              <Settings className="size-5" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-display font-black tracking-tight text-foreground">Platform Settings</h1>
+          </div>
+          <p className="text-sm text-muted-foreground max-w-xl">
+            Account, pace, customized sheet, reminders, and pause controls.
+          </p>
+        </div>
       </div>
 
       {/* ── Customized Sheet Selector Section ── */}

@@ -370,202 +370,219 @@ export function DayDetail({
   }
 
   return (
-    <article aria-label={`Details for Day ${day.dayNumber}`} className="space-y-5">
+    <article aria-label={`Details for Day ${day.dayNumber}`} className="space-y-6 animate-fade-in pb-12">
       {lateMode && (
-        <div role="alert" className="flex items-center gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-300 shadow-md">
-          <AlertTriangle className="size-4 shrink-0 text-amber-400" />
-          <span>This is a past uncompleted day. Submitting code or checking items here will update your stats.</span>
+        <div role="alert" className="flex items-center gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-300 shadow-md">
+          <AlertTriangle className="size-5 shrink-0 text-amber-400" />
+          <span>This is a past uncompleted day. Submitting code or checking items here will still count towards your stats.</span>
         </div>
       )}
 
       {!hideHeader && headerCard}
 
-      {/* ── AREA 1: Today's Core Problems (Dedicated Particular Area) ── */}
-      <section
-        aria-label="Today's Core Problems"
-        className="rounded-3xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-5 sm:p-6 shadow-xl space-y-5 relative overflow-hidden"
-      >
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/70 via-purple-500/50 to-emerald-500/40" />
-
-        {/* Problems Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 dark:border-white/15 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-primary/20 p-2.5 border border-primary/30 text-primary shrink-0">
-              <Sparkles className="size-5" />
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        
+        {/* ── LEFT COLUMN: Context & Checklists ── */}
+        <aside className="xl:col-span-4 space-y-6">
+          
+          {/* Reduced Height Completion Checklist UI */}
+          <section aria-label="Daily checklist" className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <ListTodo className="size-4 text-emerald-500" />
+                <h3 className="text-xs font-bold text-foreground uppercase tracking-wide">Completion Checklist</h3>
+              </div>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-500">
+                {checklistDone} / {checklistTotal} ({checklistPct}%)
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
-                  Today's Core Problems
-                </h3>
-                <span className="rounded-full bg-primary/20 border border-primary/30 px-2.5 py-0.5 text-xs font-bold text-primary">
-                  {done} / {total} Solved ({pct}%)
+
+            <ul className="flex flex-col gap-2.5">
+              {day.checklist.map((c, i) => (
+                <li
+                  key={`${c.label}-${i}`}
+                  className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${
+                    c.done
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500 font-semibold"
+                      : "border-border bg-secondary/30 text-foreground hover:bg-secondary/60"
+                  }`}
+                >
+                  <Checkbox
+                    id={`c-${day.dayNumber}-${i}`}
+                    checked={c.done}
+                    disabled={locked}
+                    className="size-4 rounded-md border-border text-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                    onCheckedChange={(v) =>
+                      void updateDay(day.dayNumber, (d) => ({
+                        ...d,
+                        checklist: d.checklist.map((x, xi) =>
+                          xi === i ? { ...x, done: Boolean(v) } : x,
+                        ),
+                      }))
+                    }
+                  />
+                  <Label
+                    htmlFor={`c-${day.dayNumber}-${i}`}
+                    className={`cursor-pointer text-xs leading-snug flex-1 select-none ${
+                      c.done && "line-through opacity-80"
+                    }`}
+                  >
+                    {c.label}
+                  </Label>
+                  {c.done && <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Daily Notes */}
+          <div className="space-y-2 rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <Label htmlFor={`notes-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+               Topic Notes & Takeaways
+            </Label>
+            <Textarea
+              id={`notes-${day.dayNumber}`}
+              rows={4}
+              defaultValue={day.notes}
+              placeholder="Write key code snippets, intuitions, or algorithm patterns..."
+              disabled={locked}
+              className="bg-secondary/40 border-border rounded-xl text-sm resize-none focus-visible:ring-primary/20"
+              onBlur={(e) => void updateDay(day.dayNumber, (d) => ({ ...d, notes: e.target.value }))}
+            />
+          </div>
+
+          {/* Revision Reminders */}
+          <div className="space-y-2 rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <Label htmlFor={`rev-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+               Revision Reminders
+            </Label>
+            <Textarea
+              id={`rev-${day.dayNumber}`}
+              rows={4}
+              defaultValue={day.revisionNotes}
+              placeholder="Important edge cases, time complexities, or trick points to remember..."
+              disabled={locked}
+              className="bg-secondary/40 border-border rounded-xl text-sm resize-none focus-visible:ring-primary/20"
+              onBlur={(e) =>
+                void updateDay(day.dayNumber, (d) => ({ ...d, revisionNotes: e.target.value }))
+              }
+            />
+          </div>
+        </aside>
+
+        {/* ── RIGHT COLUMN: Workspace (Problems & Contests) ── */}
+        <main className="xl:col-span-8 space-y-6 min-w-0">
+          
+          <section
+            aria-label="Today's Core Problems"
+            className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-6 relative overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-5">
+              <div className="flex items-center gap-4">
+                <div className="size-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+                  <Sparkles className="size-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-display font-black tracking-tight text-foreground">
+                    Core Problem Set
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Curated problems to master {day.topic}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="rounded-full bg-secondary border border-border px-4 py-1.5 text-sm font-bold text-foreground">
+                  {done} / {total} Solved
                 </span>
                 {done === total && total > 0 && (
-                  <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-xs font-bold text-emerald-400">
-                    All Complete ✨
+                  <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-4 py-1.5 text-sm font-bold text-emerald-500 flex items-center gap-2">
+                    <CheckCircle2 className="size-4" /> All Complete
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Curated problem set to practice and master today's patterns
-              </p>
             </div>
-          </div>
-        </div>
 
-        {day.isRevisionDay ? (
-          <div className="space-y-2.5 pt-1">
-            {(!day.revisionDayNumbers || day.revisionDayNumbers.length === 0) ? (
-              <p className="rounded-2xl border border-dashed border-white/15 p-4 text-xs text-muted-foreground">
-                No study days from this week yet — check back once you've solved a few!
-              </p>
+            {day.isRevisionDay ? (
+              <div className="space-y-4 pt-2">
+                {(!day.revisionDayNumbers || day.revisionDayNumbers.length === 0) ? (
+                  <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-8 text-center text-sm text-muted-foreground">
+                    No study days from this week yet — check back once you've solved a few!
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground bg-primary/5 border border-primary/20 p-4 rounded-xl text-primary">
+                      Sunday is set aside for revision — revisit this week's topics and re-solve the problems from scratch to lock in the patterns.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {day.revisionDayNumbers.map((n) => {
+                        const wd = days.find((x) => x.dayNumber === n);
+                        if (!wd) return null;
+                        return (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => { window.location.href = `/day/${wd.dayNumber}`; }}
+                            className="group flex flex-col justify-between gap-4 rounded-2xl border border-border bg-secondary/40 hover:bg-secondary hover:border-primary/40 p-5 text-left transition-all"
+                          >
+                            <div className="w-full space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold uppercase tracking-wider text-primary">Day {wd.dayNumber}</span>
+                                <RotateCcw className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                              </div>
+                              <p className="text-base font-bold text-foreground line-clamp-1">{wd.topic}</p>
+                              <p className="text-xs text-muted-foreground">{wd.problems.length} Problems to Revise</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : total === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-8 text-center text-sm text-muted-foreground">
+                No problems on this day — it is a buffer date.
+              </div>
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground">
-                  Sunday is set aside for revision — revisit this week's topics and re-solve the problems from scratch to lock in the patterns.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {day.revisionDayNumbers.map((n) => {
-                    const wd = days.find((x) => x.dayNumber === n);
-                    if (!wd) return null;
-                    return (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => { window.location.href = `/day/${wd.dayNumber}`; }}
-                        className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-secondary/60 hover:bg-secondary px-4 py-3 text-left transition-colors"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">Day {wd.dayNumber} · {wd.topic}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">{wd.problems.length} problem{wd.problems.length === 1 ? "" : "s"}</p>
-                        </div>
-                        <RotateCcw className="size-3.5 text-primary shrink-0 rotate-45" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                {day.problems.map((p, i) => (
+                  <ProblemCardHorizontal
+                    key={`${p.name}-${i}`}
+                    problem={p}
+                    readOnly={locked}
+                    topic={day.topic}
+                    dayNumber={day.dayNumber}
+                    section={day.section}
+                    onToggle={() =>
+                      void updateDay(day.dayNumber, (d) => ({
+                        ...d,
+                        problems: d.problems.map((x) =>
+                          x.name === p.name
+                            ? { ...x, done: !x.done, completedAt: !x.done ? todayIso() : undefined }
+                            : x
+                        ),
+                      }))
+                    }
+                    onToggleReview={
+                      locked ? undefined : () => void toggleReview(day.dayNumber, p.name, !p.forReview)
+                    }
+                    onSkip={
+                      locked ? undefined : () => void deleteProblem(day.dayNumber, p.name)
+                    }
+                  />
+                ))}
+              </div>
             )}
+          </section>
+
+          {/* Today's Contests */}
+          <div className="rounded-3xl overflow-hidden border border-border shadow-sm">
+            <TodayContestsSection />
           </div>
-        ) : total === 0 ? (
-          <p className="rounded-2xl border border-dashed border-white/15 p-4 text-xs text-muted-foreground">
-            No problems on this day — it is a buffer date.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
-            {day.problems.map((p, i) => (
-              <ProblemCardHorizontal
-                key={`${p.name}-${i}`}
-                problem={p}
-                readOnly={locked}
-                topic={day.topic}
-                dayNumber={day.dayNumber}
-                section={day.section}
-                onToggle={() =>
-                  void updateDay(day.dayNumber, (d) => ({
-                    ...d,
-                    problems: d.problems.map((x) =>
-                      x.name === p.name
-                        ? { ...x, done: !x.done, completedAt: !x.done ? todayIso() : undefined }
-                        : x
-                    ),
-                  }))
-                }
-                onToggleReview={
-                  locked ? undefined : () => void toggleReview(day.dayNumber, p.name, !p.forReview)
-                }
-                onSkip={
-                  locked ? undefined : () => void deleteProblem(day.dayNumber, p.name)
-                }
-              />
-            ))}
-          </div>
-        )}
-      </section>
 
-      {/* ── AREA 2: Today's Live & Upcoming Contests Section (Dedicated Area Below Problems) ── */}
-      <TodayContestsSection />
-
-      {/* ── Reduced Height Completion Checklist UI ── */}
-      <section aria-label="Daily checklist" className="rounded-2xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-3.5 shadow-md space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <ListTodo className="size-4 text-emerald-400" />
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wide">Completion Checklist</h3>
-          </div>
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
-            {checklistDone} / {checklistTotal} ({checklistPct}%)
-          </span>
-        </div>
-
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {day.checklist.map((c, i) => (
-            <li
-              key={`${c.label}-${i}`}
-              className={`flex items-center gap-2.5 rounded-xl border px-3 py-1.5 transition-all ${
-                c.done
-                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 font-semibold"
-                  : "border-border/80 dark:border-white/15 bg-white/5 text-foreground hover:bg-white/10"
-              }`}
-            >
-              <Checkbox
-                id={`c-${day.dayNumber}-${i}`}
-                checked={c.done}
-                disabled={locked}
-                className="size-4 rounded-md border-border text-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                onCheckedChange={(v) =>
-                  void updateDay(day.dayNumber, (d) => ({
-                    ...d,
-                    checklist: d.checklist.map((x, xi) =>
-                      xi === i ? { ...x, done: Boolean(v) } : x,
-                    ),
-                  }))
-                }
-              />
-              <Label
-                htmlFor={`c-${day.dayNumber}-${i}`}
-                className={`cursor-pointer text-xs leading-snug flex-1 select-none ${
-                  c.done && "line-through text-emerald-400/80"
-                }`}
-              >
-                {c.label}
-              </Label>
-              {c.done && <CheckCircle2 className="size-3.5 text-emerald-400 shrink-0" />}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ── Daily Notes & Revision Reminders ── */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="space-y-1.5 rounded-2xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-3.5 shadow-md">
-          <Label htmlFor={`notes-${day.dayNumber}`} className="text-xs font-bold text-foreground">Topic Notes & Takeaways</Label>
-          <Textarea
-            id={`notes-${day.dayNumber}`}
-            rows={3}
-            defaultValue={day.notes}
-            placeholder="Write key code snippets or intuition..."
-            disabled={locked}
-            className="bg-background/40 border-border/70 dark:border-white/10 rounded-xl text-xs"
-            onBlur={(e) => void updateDay(day.dayNumber, (d) => ({ ...d, notes: e.target.value }))}
-          />
-        </div>
-        <div className="space-y-1.5 rounded-2xl border border-border/80 dark:border-white/15 bg-card/80 backdrop-blur-xl p-3.5 shadow-md">
-          <Label htmlFor={`rev-${day.dayNumber}`} className="text-xs font-bold text-foreground">Revision Reminders</Label>
-          <Textarea
-            id={`rev-${day.dayNumber}`}
-            rows={3}
-            defaultValue={day.revisionNotes}
-            placeholder="Important formulas or complexities to re-read..."
-            disabled={locked}
-            className="bg-background/40 border-border/70 dark:border-white/10 rounded-xl text-xs"
-            onBlur={(e) =>
-              void updateDay(day.dayNumber, (d) => ({ ...d, revisionNotes: e.target.value }))
-            }
-          />
-        </div>
-
+        </main>
       </div>
     </article>
   );

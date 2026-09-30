@@ -290,7 +290,7 @@ export default function TopicsPage() {
   }
 
   return (
-    <>
+    <div className="animate-fade-in pb-12">
       {/* ── Customized Sheet Selector Header Card ── */}
       <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-md">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">

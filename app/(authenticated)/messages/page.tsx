@@ -150,9 +150,12 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 p-4 md:p-8 animate-fade-in">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 md:p-8 shadow-md">
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* Editorial Header */}
+      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+          <Bell className="size-48" />
+        </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">

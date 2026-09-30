@@ -151,317 +151,248 @@ export default function ProgressPage() {
   if (loading) return <Skeleton className="h-96 w-full" />;
 
   return (
-    <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Progress</h1>
-        <p className="text-sm text-muted-foreground mt-1">Your overall learning analytics and achievement milestones.</p>
-      </div>
-
-      {/* Overall progress card */}
-      <div className="mb-6 rounded-lg border border-border bg-card p-5">
-        <div className="mb-3 flex items-baseline justify-between">
-          <span className="font-semibold text-foreground">Overall Progress</span>
-          <span className="text-sm tabular-nums text-muted-foreground">
-            {stats.combinedDone} of {stats.combinedTotal} problems · {stats.combinedPct}%
-          </span>
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* Editorial Header */}
+      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col lg:flex-row items-start justify-between gap-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+          <History className="size-48" />
         </div>
-        <Progress value={stats.combinedPct} className="h-2" />
+        
+        <div className="space-y-4 relative z-10 lg:w-1/2">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+              <History className="size-5" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-display font-black tracking-tight text-foreground">Analytics & Progress</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Your overall learning analytics, achievement milestones, and schedule modifications.
+          </p>
+
+          <div className="pt-4 space-y-2">
+            <div className="flex items-baseline justify-between text-sm font-semibold">
+              <span>Overall Completion</span>
+              <span className="tabular-nums text-primary">{stats.combinedPct}%</span>
+            </div>
+            <Progress value={stats.combinedPct} className="h-3 rounded-full" />
+            <p className="text-xs text-muted-foreground font-mono">
+              {stats.combinedDone} of {stats.combinedTotal} problems solved across all modules
+            </p>
+          </div>
+        </div>
+
+        <div className="relative z-10 w-full lg:w-1/2 grid grid-cols-2 gap-4">
+          <Stat label="Plan Solved" value={`${stats.done}/${stats.total}`} />
+          <Stat label="Extra Solved" value={`${stats.pbDone}/${stats.pbTotal}`} />
+          <Stat label="Days Complete" value={`${stats.completedDays}/${stats.countedDays}`} />
+          <Stat label="Current Streak" value={`${streaks.current} Days`} />
+        </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Core Plan (Today) Solved" value={`${stats.done}/${stats.total}`} />
-        <Stat label="Problems Tab Solved" value={`${stats.pbDone}/${stats.pbTotal}`} />
-        <Stat label="Total Problems Left" value={String(stats.remaining)} />
-        <Stat label="Days Completed" value={`${stats.completedDays}/${stats.countedDays}`} />
-      </div>
-
-      {/* New Contests Section with Attendance Progress Bar */}
-      <div className="mb-8">
-        <ContestProgress contests={contests} />
-      </div>
-
-      {/* Skipped problems card — shown only when the student has skipped topics */}
       {stats.skippedProblems > 0 && (
-        <div className="mb-8 rounded-xl border border-warning/40 bg-warning/8 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-warning">
-                ⏭ {stats.skippedProblems} problem{stats.skippedProblems === 1 ? "" : "s"} skipped
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Across {stats.skippedDaysCount} skipped day{stats.skippedDaysCount === 1 ? "" : "s"} — these are not counted in your completion or graph.
-                Go to <strong>Topics → Skipped</strong> to restore them anytime.
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-semibold tabular-nums text-warning">{stats.skippedProblems}</p>
-              <p className="text-xs text-muted-foreground">skipped</p>
-            </div>
+        <div className="rounded-2xl border border-warning/40 bg-warning/10 p-6 flex items-center justify-between gap-4 shadow-sm">
+          <div>
+            <p className="text-sm font-bold text-warning flex items-center gap-2">
+              <AlertTriangle className="size-4" /> {stats.skippedProblems} Problems Skipped
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Across {stats.skippedDaysCount} skipped days. Restore them in Topics to count towards completion.
+            </p>
+          </div>
+          <div className="text-2xl font-black text-warning bg-warning/20 px-4 py-2 rounded-xl">
+            {stats.skippedProblems}
           </div>
         </div>
       )}
 
-      {/* Upgrade 4 — weekly snapshot + charts */}
-      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="This week solved" value={String(week.problemsSolved + stats.pbDone)} />
-        <Stat label="Time invested (7d)" value={`${Math.round(week.minutesSpent / 60)}h`} />
-        <Stat label="Active days (7d)" value={`${week.daysActive}/7`} />
-        <Stat label="Longest streak" value={`${streaks.longest} days`} />
-      </div>
+      {/* Two Column Layout for Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* LEFT COL: Charts & Weekly */}
+        <div className="lg:col-span-8 space-y-8">
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="rounded-2xl border border-border bg-card p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase font-bold">This Week</p>
+              <p className="text-2xl font-black text-foreground mt-1">{week.problemsSolved + stats.pbDone}</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase font-bold">Time (7d)</p>
+              <p className="text-2xl font-black text-foreground mt-1">{Math.round(week.minutesSpent / 60)}h</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase font-bold">Active (7d)</p>
+              <p className="text-2xl font-black text-foreground mt-1">{week.daysActive}/7</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase font-bold">Longest</p>
+              <p className="text-2xl font-black text-foreground mt-1">{streaks.longest}d</p>
+            </div>
+          </div>
 
-      <h2 className="mb-3 font-display text-lg font-semibold">Solving trend</h2>
-      <div className="mb-8 h-64 rounded-xl border border-border bg-card p-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
-            <defs>
-              <linearGradient id="solvedFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.6} />
-                <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.05} />
-              </linearGradient>
-              <linearGradient id="pbFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#22c55e" stopOpacity={0.5} />
-                <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-            <RTooltip
-              contentStyle={{
-                background: "var(--color-popover)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                color: "var(--color-popover-foreground)",
-                fontSize: 12,
-              }}
-              formatter={(value, name) => {
-                if (name === "Plan solved") return [`${value} problems`, "Plan (day)"];
-                if (name === "Problems tab") return [`${value} / ${trend[0]?.pbTotal ?? 0} total`, "Problems tab (all-time)"];
-                return [value, name];
-              }}
-            />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Area
-              type="monotone"
-              dataKey="solved"
-              name="Plan solved"
-              stroke="var(--color-primary)"
-              fill="url(#solvedFill)"
-              strokeWidth={2}
-            />
-            <Area
-              type="monotone"
-              dataKey="pbCompleted"
-              name="Problems tab"
-              stroke="#22c55e"
-              fill="url(#pbFill)"
-              strokeWidth={2}
-              strokeDasharray="5 3"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6 flex items-center gap-2">
+              <History className="size-4 text-primary" /> Solving Trajectory
+            </h2>
+            <div className="h-64 w-full bg-secondary/30 rounded-2xl p-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
+                  <defs>
+                    <linearGradient id="solvedFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.6} />
+                      <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.05} />
+                    </linearGradient>
+                    <linearGradient id="pbFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.5} />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                  <RTooltip contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Area type="monotone" dataKey="solved" name="Plan solved" stroke="var(--color-primary)" fill="url(#solvedFill)" strokeWidth={2.5} />
+                  <Area type="monotone" dataKey="pbCompleted" name="Extra solved" stroke="#22c55e" fill="url(#pbFill)" strokeWidth={2.5} strokeDasharray="5 3" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-      <h2 className="mb-3 font-display text-lg font-semibold">Difficulty split</h2>
-      <div className="mb-8 h-64 rounded-xl border border-border bg-card p-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={split} margin={{ left: -20, right: 8, top: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis dataKey="difficulty" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-            <RTooltip
-              contentStyle={{
-                background: "var(--color-popover)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                color: "var(--color-popover-foreground)",
-              }}
-            />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="done" name="Done" stackId="a" fill="var(--color-success)" radius={[0, 0, 4, 4]} />
-            <Bar dataKey="remaining" name="Remaining" stackId="a" fill="var(--color-muted)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6 flex items-center gap-2">
+              <CheckCircle2 className="size-4 text-primary" /> Difficulty Split
+            </h2>
+            <div className="h-64 w-full bg-secondary/30 rounded-2xl p-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={split} margin={{ left: -20, right: 8, top: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="difficulty" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                  <RTooltip contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12, color: "var(--color-popover-foreground)", fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="done" name="Done" stackId="a" fill="var(--color-primary)" radius={[0, 0, 4, 4]} />
+                  <Bar dataKey="remaining" name="Remaining" stackId="a" fill="var(--color-muted)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-      <h2 className="mb-3 font-display text-lg font-semibold">
-        Badges <span className="text-sm font-normal text-muted-foreground">({earned.length}/{badges.length})</span>
-      </h2>
-      <ul className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {badges.map((b, i) => (
-          <li
-            key={b.code}
-            style={{ "--i": i } as React.CSSProperties}
-            className={
-              b.earned
-                ? "stagger-item rounded-lg border border-primary/40 bg-primary/10 p-3"
-                : "stagger-item rounded-lg border border-border bg-card p-3 opacity-60"
-            }
-          >
-            <p className="text-sm font-semibold">{b.label}</p>
-            <p className="text-xs text-muted-foreground">{b.description}</p>
-          </li>
-        ))}
-      </ul>
-
-      <h2 className="mb-3 font-display text-lg font-semibold">By section</h2>
-      <div className="mb-8 space-y-3">
-        {sections.map(([section, s]) => (
-          <div key={section} className="rounded-lg border border-border bg-card p-3">
-            <div className="mb-1.5 flex items-baseline justify-between gap-2">
-              <span className="text-sm font-medium">{section}</span>
-              <span className="text-xs tabular-nums text-muted-foreground">
-                {s.done}/{s.total}
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <History className="size-4 text-primary" /> Schedule History
+              </h2>
+              <span className="text-[10px] text-muted-foreground font-mono bg-secondary px-2.5 py-1 rounded-md">
+                1-week revert window
               </span>
             </div>
-            <Progress
-              value={s.total ? Math.round((s.done / s.total) * 100) : 0}
-              className="h-1.5"
+            
+            {events.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-secondary/20 p-8 text-center text-sm text-muted-foreground">
+                <History className="mx-auto size-8 opacity-40 mb-3" />
+                <p className="font-bold text-foreground">No schedule changes recorded yet.</p>
+                <p className="text-xs mt-1">Actions like postponing or skipping will appear here.</p>
+              </div>
+            ) : (
+              <ul className="space-y-4">
+                {events.map((e) => {
+                  const dateObj = new Date(e.createdAtIso);
+                  const isValidDate = !isNaN(dateObj.getTime());
+                  const dateStr = isValidDate ? dateObj.toLocaleDateString() : "Recent";
+                  
+                  return (
+                    <li key={e.id} className="rounded-2xl border border-border bg-secondary/10 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary/30 transition-colors">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-md bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">{e.kind}</span>
+                          <span className="text-xs font-mono text-muted-foreground">{dateStr}</span>
+                          {e.canRevert && (
+                            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Revertible</span>
+                          )}
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">{e.detail}</p>
+                      </div>
+                      <div className="shrink-0">
+                        {e.canRevert ? (
+                          <ConfirmDialog
+                            title="Revert schedule change?"
+                            description={`Restore schedule to before: "${e.detail}"`}
+                            confirmWord="REVERT"
+                            confirmLabel="Yes, Revert"
+                            onConfirm={async () => {
+                              if (!e.snapshot) return;
+                              setRevertingId(e.id);
+                              try {
+                                await revertSchedule(parseDaySnapshot(e.snapshot), e.detail);
+                                if (userId) setEvents(await listEvents(userId));
+                              } catch (err: any) {
+                                toast.error("Error", { description: err.message });
+                              } finally {
+                                setRevertingId(null);
+                              }
+                            }}
+                            trigger={<Button variant="outline" size="sm" disabled={revertingId === e.id} className="h-8 gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"><Undo2 className="size-3" /> Revert</Button>}
+                          />
+                        ) : (
+                          <Button variant="outline" size="sm" disabled className="h-8 gap-2 opacity-50"><Undo2 className="size-3" /> Expired</Button>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT COL: Badges, Section Split, Danger Zone */}
+        <div className="lg:col-span-4 space-y-8">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6 flex items-center justify-between">
+              <span>Badges</span>
+              <span className="text-primary">{earned.length}/{badges.length}</span>
+            </h2>
+            <ul className="grid grid-cols-2 gap-3">
+              {badges.map((b, i) => (
+                <li key={b.code} className={b.earned ? "rounded-xl border border-primary/40 bg-primary/10 p-4 text-center" : "rounded-xl border border-border bg-secondary/30 p-4 text-center opacity-50 grayscale"}>
+                  <div className="text-2xl mb-1">{b.earned ? '🏆' : '🔒'}</div>
+                  <p className="text-[10px] font-black uppercase text-foreground leading-tight">{b.label}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6">Topic Progress</h2>
+            <div className="space-y-4">
+              {sections.map(([section, s]) => (
+                <div key={section} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-foreground truncate pr-2">{section}</span>
+                    <span className="text-primary tabular-nums shrink-0">{s.done}/{s.total}</span>
+                  </div>
+                  <Progress value={s.total ? Math.round((s.done / s.total) * 100) : 0} className="h-1.5 bg-secondary" />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 text-center">
+            <h2 className="text-sm font-bold text-destructive mb-2">Danger Zone</h2>
+            <p className="text-xs text-muted-foreground mb-4">Resetting will permanently wipe your plan, notes, and progress.</p>
+            <ConfirmDialog
+              title="Reset all progress?"
+              description="This regenerates the full 120-day plan from scratch. Every tick, note, and chat message is deleted."
+              confirmWord="RESET"
+              confirmLabel="Reset everything"
+              onConfirm={resetAll}
+              trigger={<Button variant="destructive" className="w-full font-bold">Reset Schedule</Button>}
             />
           </div>
-        ))}
-      </div>
-
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <History className="size-5 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Schedule History</h2>
         </div>
-        <span className="text-[11px] text-muted-foreground font-mono bg-muted/60 px-2.5 py-1 rounded-full border border-border/50">
-          Saved for 1 week · Auto-pruned permanently after 7 days
-        </span>
+
       </div>
-
-      {events.length === 0 ? (
-        <div className="mb-8 rounded-xl border border-dashed border-border bg-card/40 p-6 text-center text-sm text-muted-foreground">
-          <History className="mx-auto size-8 opacity-40 mb-2" />
-          <p className="font-medium text-foreground">No schedule changes recorded yet.</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Modifications like postponing days, rebalancing daily pace, skipping, or inserting revisions will appear here with 1-week revert capability.
-          </p>
-        </div>
-      ) : (
-        <ul className="mb-8 space-y-3">
-          {events.map((e) => {
-            const dateObj = new Date(e.createdAtIso);
-            const isValidDate = !isNaN(dateObj.getTime());
-            const dateStr = isValidDate
-              ? dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-              : "Recent";
-            const timeStr = isValidDate
-              ? dateObj.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
-              : "";
-            
-            const isRevertingThis = revertingId === e.id;
-
-            return (
-              <li
-                key={e.id}
-                className="rounded-2xl border border-border bg-card p-4 shadow-xs hover:border-primary/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-md bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                      {e.kind}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono">
-                      <Calendar className="size-3 text-muted-foreground/70" />
-                      <span>{dateStr}</span>
-                      {timeStr && (
-                        <>
-                          <Clock className="size-3 text-muted-foreground/70 ml-1" />
-                          <span>{timeStr}</span>
-                        </>
-                      )}
-                    </span>
-                    {e.canRevert ? (
-                      <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        <CheckCircle2 className="size-2.5" />
-                        Revert Eligible (within 7 days)
-                      </span>
-                    ) : e.isWithinWeek ? (
-                      <span className="text-[10px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                        No Revert Snapshot
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        Expired (&gt; 1 week)
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-sm font-medium text-foreground leading-snug">
-                    {e.detail}
-                  </p>
-                </div>
-
-                <div className="shrink-0 flex items-center gap-2">
-                  {e.canRevert ? (
-                    <ConfirmDialog
-                      title="Revert this schedule change?"
-                      description={`This will restore your entire schedule back to the state prior to this action: "${e.detail}". You can only revert changes within 1 week.`}
-                      confirmWord="REVERT"
-                      confirmLabel="Yes, Revert Schedule"
-                      onConfirm={async () => {
-                        if (!e.snapshot) return;
-                        try {
-                          setRevertingId(e.id);
-                          const targetDays = parseDaySnapshot(e.snapshot);
-                          await revertSchedule(targetDays, e.detail);
-                          if (userId) {
-                            const refreshed = await listEvents(userId);
-                            setEvents(refreshed);
-                          }
-                        } catch (err: any) {
-                          toast.error("Could not revert schedule", { description: err.message });
-                        } finally {
-                          setRevertingId(null);
-                        }
-                      }}
-                      trigger={
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isRevertingThis}
-                          className="h-8 gap-1.5 rounded-xl border-primary/30 text-xs font-bold text-primary hover:bg-primary/10 hover:text-primary transition-all cursor-pointer shadow-xs"
-                          title="Restore schedule to the state before this change"
-                        >
-                          <Undo2 className="size-3.5" />
-                          <span>{isRevertingThis ? "Reverting..." : "Revert this change"}</span>
-                        </Button>
-                      }
-                    />
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled
-                      className="h-8 gap-1.5 rounded-xl text-xs font-semibold opacity-50 cursor-not-allowed"
-                      title={
-                        e.isWithinWeek
-                          ? "Snapshot was not saved for this action."
-                          : "Changes older than 1 week cannot be reverted and will be permanently deleted."
-                      }
-                    >
-                      <Undo2 className="size-3.5" />
-                      <span>{e.isWithinWeek ? "Revert Unavailable" : "Revert Expired"}</span>
-                    </Button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      <ConfirmDialog
-        title="Reset all progress?"
-        description="This regenerates the full 120-day plan from scratch. Every tick, note, AI explainer and chat message is deleted."
-        confirmWord="RESET"
-        confirmLabel="Reset everything"
-        onConfirm={resetAll}
-        trigger={<Button variant="outline" className="text-destructive">Reset all progress</Button>}
-      />
-    </>
+    </div>
   );
 }

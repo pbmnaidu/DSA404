@@ -833,1192 +833,443 @@ export function CoderProfilePage() {
   const userNameDisplay = displayName || user?.displayName || user?.email?.split("@")[0] || "Coder";
   const initials = userNameDisplay[0]?.toUpperCase() ?? "C";
 
+  // Check if we are in Edit Mode
+  const isEditing = showEditDetails;
+
   if (loading || loadingProfile) {
     return (
-      <div className="space-y-4 p-6">
-        <Skeleton className="h-56 w-full rounded-3xl" />
-        <Skeleton className="h-32 w-full rounded-2xl" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 space-y-8 animate-pulse">
+        <div className="h-64 w-full rounded-2xl bg-muted/50 animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4 space-y-6">
+            <div className="h-48 w-full rounded-2xl bg-muted/50 animate-pulse" />
+            <div className="h-32 w-full rounded-2xl bg-muted/50 animate-pulse" />
+          </div>
+          <div className="lg:col-span-8 space-y-6">
+            <div className="h-32 w-full rounded-2xl bg-muted/50 animate-pulse" />
+            <div className="h-64 w-full rounded-2xl bg-muted/50 animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="max-w-[1400px] mx-auto pb-24 pt-6 px-4 md:px-8 animate-fade-in space-y-8">
+      
       {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
       <input ref={bannerInputRef} type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
 
-      {/* ── Banner + Avatar Hero Card ── */}
-      <section className="rounded-3xl border border-white/15 bg-card/80 backdrop-blur-xl shadow-2xl overflow-hidden">
-        {/* Banner */}
-        <div
-          onClick={() => bannerInputRef.current?.click()}
-          className="h-44 sm:h-56 w-full relative overflow-hidden cursor-pointer group"
-          title="Click to change banner"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-purple-600/30 to-emerald-500/30" />
-          {bannerURL && <img src={bannerURL} alt="banner" className="absolute inset-0 w-full h-full object-cover" />}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-sm font-bold gap-2 backdrop-blur-[2px] z-10">
-            <Camera className="size-5" />
-            <span>Change Banner</span>
-          </div>
-        </div>
-
-        {/* Avatar + Info Row */}
-        <div className="px-4 sm:px-6 pb-6 pt-0 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-end justify-between gap-4 relative">
-          {/* Avatar */}
-          <div className="flex items-end gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="-mt-12 sm:-mt-16 flex size-20 sm:size-32 shrink-0 overflow-hidden rounded-full border-[4px] sm:border-[5px] border-card bg-card shadow-2xl items-center justify-center z-10 cursor-pointer group relative"
-              title="Click to change avatar"
-            >
-              {photoURL
-                ? <img src={photoURL} alt="avatar" className="size-full object-cover" />
-                : <span className="text-2xl sm:text-4xl font-extrabold text-primary">{initials}</span>
-              }
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-full">
-                <Camera className="size-5" />
-              </div>
-            </div>
-
-            <div className="pb-1 min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-foreground truncate">
-                {userNameDisplay.toLowerCase().includes("bhanu") ? (
-                  <a
-                    href="https://pbmnaiduportfolio.vercel.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-primary transition-colors cursor-pointer"
-                    title="Visit Bhanu's Portfolio"
-                  >
-                    {userNameDisplay}
-                  </a>
-                ) : (
-                  userNameDisplay
-                )}
-              </h1>
-              <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                {username && username !== effectiveGithubUsername && (
-                  <Link
-                    href={`/profile/${username}`}
-                    className="text-xs font-semibold text-primary truncate hover:underline cursor-pointer"
-                    title={`View public profile for @${username}`}
-                  >
-                    @{username}
-                  </Link>
-                )}
-                {githubProfileUrl && (
-                  <a
-                    href={githubProfileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800/20 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-800/35 dark:hover:bg-zinc-700/60 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer group"
-                    title={`Open GitHub profile: ${githubProfileUrl}`}
-                  >
-                    <GitHubIcon className="size-3.5 shrink-0" />
-                    <span className="font-mono">{effectiveGithubUsername ? `@${effectiveGithubUsername}` : "GitHub"}</span>
-                    <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  </a>
-                )}
-                {linkedin && (
-                  <a
-                    href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
-                    title={`Open LinkedIn profile: ${linkedin}`}
-                  >
-                    <LinkedInIcon className="size-3 shrink-0" />
-                    <span>LinkedIn</span>
-                    <ExternalLink className="size-2.5 opacity-70" />
-                  </a>
-                )}
-                {portfolio && (
-                  <a
-                    href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs shrink-0 cursor-pointer"
-                    title={`Open Portfolio: ${portfolio}`}
-                  >
-                    <Globe className="size-3 shrink-0" />
-                    <span>Portfolio</span>
-                    <ExternalLink className="size-2.5 opacity-70" />
-                  </a>
-                )}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1 mt-1">{bio || "SDE Aspirant · DSA Prep Tracker"}</p>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-400">
-                  <Flame className="size-3.5 animate-pulse" /> {streakCount} Day Streak
-                </span>
-                <span
-                  className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-400"
-                  title={
-                    stats.externalTotal > 0
-                      ? `Total solved across all platforms: ${stats.total} (${stats.trackerTotal} in 404 DSA Tracker)`
-                      : `Total problems solved across all platforms: ${stats.total}`
-                  }
-                >
-                  <CheckCircle2 className="size-3.5" />
-                  <span>{stats.total} Solved</span>
-                  {stats.externalTotal > 0 && (
-                    <span className="text-[10px] font-normal text-emerald-400/80 ml-0.5">(All Platforms)</span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2 pb-1 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
-            <ThemedTooltip hint="Copy shareable public profile link">
-              <Button variant="outline" size="sm" className="h-8 text-xs px-3 gap-1.5 rounded-xl border-white/10 flex-1 sm:flex-none" onClick={copyShareLink}>
-                {copied ? <Check className="size-3.5 text-emerald-400" /> : <Share2 className="size-3.5 text-primary" />}
-                <span>{copied ? "Copied!" : "Share Profile"}</span>
-              </Button>
-            </ThemedTooltip>
-
-            <ThemedTooltip hint="Open your public profile page">
-              <Link
-                href={`/profile/${username || user?.uid || "demo"}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center h-8 text-xs px-3 gap-1.5 rounded-xl font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm active:scale-95 flex-1 sm:flex-none cursor-pointer"
-              >
-                <Eye className="size-3.5" />
-                <span>View Profile</span>
-                <ExternalLink className="size-2.5 opacity-70" />
-              </Link>
-            </ThemedTooltip>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Edit Info & Upload Controls ── */}
-      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <UserCircle2 className="size-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-foreground">Edit Profile Details</h2>
-              <p className="text-[11px] text-muted-foreground">Manage your avatar, banner, bio, handle, and linked Gmail</p>
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowEditDetails((prev) => !prev)}
-            className={cn(
-              "gap-1.5 text-xs rounded-xl font-semibold transition-all shrink-0 cursor-pointer",
-              showEditDetails
-                ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
-                : "bg-background/60 hover:bg-background border-white/10 text-foreground"
-            )}
-          >
-            <Pencil className="size-3.5 text-primary" />
-            {showEditDetails ? "Hide Edit Details" : "Edit Profile Details"}
-            <ChevronDown className={cn("size-3.5 transition-transform duration-200", showEditDetails && "rotate-180")} />
-          </Button>
-        </div>
-
-        {/* Collapsed State Preview */}
-        {!showEditDetails && (
-          <div className="rounded-2xl border border-white/5 bg-background/30 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in-50 duration-200">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-12 overflow-hidden rounded-full border border-primary/30 bg-muted shrink-0 flex items-center justify-center shadow-sm">
-                {photoURL ? <img src={photoURL} alt="avatar" className="size-full object-cover" /> : <span className="font-bold text-primary">{initials}</span>}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-sm text-foreground truncate">{displayName || "Coder"}</span>
-                  {username && <span className="text-xs font-mono text-primary font-medium">@{username}</span>}
-                </div>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <Mail className="size-3.5 text-muted-foreground shrink-0" />
-                  {currentEmail ? (
-                    <span className="text-xs text-muted-foreground font-mono truncate">{currentEmail}</span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setGmailInput("");
-                        setIsEmailModalOpen(true);
-                      }}
-                      className="text-xs text-amber-500 hover:text-amber-400 font-mono inline-flex items-center gap-1 font-semibold underline decoration-dotted cursor-pointer"
-                    >
-                      <AlertCircle className="size-3" /> No Gmail Linked — Click to enter Gmail
-                    </button>
-                  )}
-                  {currentEmail && (
-                    <Badge variant="outline" className="text-[10px] font-mono py-0 px-1.5 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                      Linked
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-              {!currentEmail && (
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="text-xs rounded-xl gap-1.5 h-8 font-medium cursor-pointer"
-                  onClick={() => {
-                    setGmailInput("");
-                    setIsEmailModalOpen(true);
-                  }}
-                >
-                  <AlertCircle className="size-3" /> Link Gmail
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="secondary"
-                className="text-xs rounded-xl gap-1.5 h-8 font-medium cursor-pointer"
-                onClick={() => setShowEditDetails(true)}
-              >
-                <Pencil className="size-3" /> Edit Details
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Expanded Edit Form */}
-        {showEditDetails && (
-          <div className="space-y-4 pt-1 animate-in fade-in-50 duration-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Avatar upload */}
-              <div className="space-y-2 rounded-2xl border border-white/10 bg-background/40 p-4">
-                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <Camera className="size-3.5 text-primary" /> Profile Photo
-                </Label>
-                <div className="flex items-center gap-3">
-                  <div className="size-12 overflow-hidden rounded-full border border-primary/40 bg-muted shrink-0 flex items-center justify-center">
-                    {photoURL ? <img src={photoURL} alt="avatar" className="size-full object-cover" /> : <span className="font-bold text-primary">{initials}</span>}
-                  </div>
-                  <Button variant="outline" size="sm" className="h-8 text-xs rounded-xl cursor-pointer" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}>
-                    {uploadingAvatar ? "Uploading…" : "Upload Photo"}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Banner upload */}
-              <div className="space-y-2 rounded-2xl border border-white/10 bg-background/40 p-4">
-                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <ImageIcon className="size-3.5 text-primary" /> Cover Banner
-                </Label>
-                <div className="flex items-center gap-3">
-                  <div className="h-14 w-28 overflow-hidden rounded-xl border border-white/10 bg-muted shrink-0 relative cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-600/30" />
-                    {bannerURL && <img src={bannerURL} alt="banner" className="absolute inset-0 w-full h-full object-cover" />}
-                  </div>
-                  <Button variant="outline" size="sm" className="h-8 text-xs rounded-xl cursor-pointer" onClick={() => bannerInputRef.current?.click()} disabled={uploadingBanner}>
-                    {uploadingBanner ? "Uploading…" : "Upload Banner"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Email Section */}
-            <div className="space-y-2 rounded-2xl border border-white/10 bg-background/40 p-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="prof-email" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <Mail className="size-3.5 text-primary" /> Account Gmail
-                </Label>
-                {currentEmail ? (
-                  <Badge variant="outline" className="text-[10px] font-mono bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1">
-                    <Check className="size-2.5" /> Verified Gmail
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-[10px] font-mono bg-amber-500/10 text-amber-500 border-amber-500/30 gap-1 animate-pulse">
-                    <AlertCircle className="size-2.5" /> Action Required: Missing Gmail
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    id="prof-email"
-                    value={currentEmail || "No Gmail address linked"}
-                    readOnly
-                    className={cn(
-                      "bg-background/60 border-white/10 rounded-xl text-sm font-mono pr-9",
-                      !currentEmail && "text-amber-500 italic font-sans"
-                    )}
-                  />
-                  <Mail className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setGmailInput(currentEmail);
-                    setIsEmailModalOpen(true);
-                  }}
-                  className="rounded-xl text-xs shrink-0 font-medium hover:border-primary/40 cursor-pointer"
-                >
-                  {currentEmail ? "Update Gmail" : "Enter Valid Gmail"}
-                </Button>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                {currentEmail
-                  ? "Your verified Gmail for daily reminders, streak alerts, and account recovery."
-                  : "Please link a valid Gmail address to receive roadmap updates and secure your account."}
-              </p>
-            </div>
-
-            {/* Name & Bio */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="prof-name" className="text-xs font-semibold text-muted-foreground">Display Name</Label>
-                <Input id="prof-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your display name" className="bg-background/40 border-white/10 rounded-xl text-sm" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="prof-bio" className="text-xs font-semibold text-muted-foreground">Bio / Target Goal</Label>
-                <Input id="prof-bio" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="SDE Aspirant · Target SDE 1 role..." className="bg-background/40 border-white/10 rounded-xl text-sm" />
-              </div>
-            </div>
-
-            {/* GitHub, LinkedIn & Portfolio */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="prof-github" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <GitHubIcon className="size-3.5 text-foreground" /> GitHub Profile URL
-                </Label>
-                <Input
-                  id="prof-github"
-                  value={github}
-                  onChange={(e) => setGithub(e.target.value)}
-                  placeholder="https://github.com/username"
-                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="prof-linkedin" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <LinkedInIcon className="size-3.5 text-[#0077b5]" /> LinkedIn Profile URL
-                </Label>
-                <Input
-                  id="prof-linkedin"
-                  value={linkedin}
-                  onChange={(e) => setLinkedin(e.target.value)}
-                  placeholder="https://linkedin.com/in/username"
-                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="prof-portfolio" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <Globe className="size-3.5 text-emerald-500" /> Portfolio Website URL
-                </Label>
-                <Input
-                  id="prof-portfolio"
-                  value={portfolio}
-                  onChange={(e) => setPortfolio(e.target.value)}
-                  placeholder="https://yourportfolio.dev"
-                  className="bg-background/40 border-white/10 rounded-xl text-xs font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Other Social Media Profiles */}
-            <div className="space-y-2.5 rounded-2xl border border-white/10 bg-background/40 p-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <Share2 className="size-3.5 text-primary" /> Other Social Media Profiles
-                </Label>
-                <span className="text-[10px] text-muted-foreground">GitHub, Twitter/X, YouTube, etc.</span>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-                    <GitHubIcon className="size-3" /> GitHub
-                  </span>
-                  <Input
-                    value={socialLinks.find((s) => s.platform.toLowerCase() === "github")?.url || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setSocialLinks((prev) => {
-                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "github");
-                        return val ? [...filtered, { platform: "GitHub", url: val }] : filtered;
-                      });
-                    }}
-                    placeholder="https://github.com/yourname"
-                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-                    <TwitterIcon className="size-3" /> Twitter / X
-                  </span>
-                  <Input
-                    value={socialLinks.find((s) => s.platform.toLowerCase() === "twitter" || s.platform.toLowerCase() === "x")?.url || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setSocialLinks((prev) => {
-                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "twitter" && s.platform.toLowerCase() !== "x");
-                        return val ? [...filtered, { platform: "Twitter", url: val }] : filtered;
-                      });
-                    }}
-                    placeholder="https://x.com/yourname"
-                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-                    <YouTubeIcon className="size-3 text-red-500" /> YouTube
-                  </span>
-                  <Input
-                    value={socialLinks.find((s) => s.platform.toLowerCase() === "youtube")?.url || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setSocialLinks((prev) => {
-                        const filtered = prev.filter((s) => s.platform.toLowerCase() !== "youtube");
-                        return val ? [...filtered, { platform: "YouTube", url: val }] : filtered;
-                      });
-                    }}
-                    placeholder="https://youtube.com/@channel"
-                    className="bg-background/60 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                </div>
-              </div>
-
-              {/* Additional Custom Social Links */}
-              {socialLinks.filter((s) => !["github", "twitter", "x", "youtube"].includes(s.platform.toLowerCase())).length > 0 && (
-                <div className="space-y-1.5 pt-2 border-t border-white/5">
-                  <span className="text-[11px] font-semibold text-muted-foreground">Additional Links:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {socialLinks.filter((s) => !["github", "twitter", "x", "youtube"].includes(s.platform.toLowerCase())).map((item, idx) => (
-                      <div key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-xs">
-                        {getSocialIcon(item.platform, "size-3 text-primary")}
-                        <span className="font-semibold text-foreground">{item.platform}:</span>
-                        <span className="text-muted-foreground font-mono truncate max-w-[150px]">{item.url}</span>
-                        <button
-                          type="button"
-                          onClick={() => setSocialLinks((prev) => prev.filter((s) => s !== item))}
-                          className="text-muted-foreground hover:text-red-400 ml-1 cursor-pointer"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Add custom link row */}
-              <div className="flex items-center gap-2 pt-1">
-                <Input
-                  value={customSocialPlatform}
-                  onChange={(e) => setCustomSocialPlatform(e.target.value)}
-                  placeholder="Platform (e.g. Discord, Blog)"
-                  className="bg-background/60 border-white/10 rounded-xl text-xs h-8 w-1/3"
-                />
-                <Input
-                  value={customSocialUrl}
-                  onChange={(e) => setCustomSocialUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="bg-background/60 border-white/10 rounded-xl text-xs h-8 flex-1"
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="rounded-xl text-xs h-8 gap-1 shrink-0 cursor-pointer"
-                  disabled={!customSocialPlatform.trim() || !customSocialUrl.trim()}
-                  onClick={() => {
-                    if (customSocialPlatform.trim() && customSocialUrl.trim()) {
-                      setSocialLinks((prev) => [...prev, { platform: customSocialPlatform.trim(), url: customSocialUrl.trim() }]);
-                      setCustomSocialPlatform("");
-                      setCustomSocialUrl("");
-                    }
-                  }}
-                >
-                  <Plus className="size-3.5" /> Add Link
-                </Button>
-              </div>
-            </div>
-
-            {/* Contest & Coding Platform Profiles (Auto-Tracks Contests) */}
-            <div className="space-y-3 rounded-2xl border border-amber-500/25 bg-amber-500/[0.03] dark:bg-amber-500/[0.05] p-4 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-white/10 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="size-6 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
-                    <Trophy className="size-3.5" />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                      Coding &amp; Contest Platform Profiles
-                    </Label>
-                    <p className="text-[10.5px] text-muted-foreground">
-                      Enter your profile URL or handle. Contests on these platforms will automatically sync and link your account.
-                    </p>
-                  </div>
-                </div>
-                <Badge variant="outline" className="self-start sm:self-auto text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
-                  ⚡ Auto-Tracks Contests
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                {/* LeetCode */}
-                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                      <span className="text-amber-500 font-bold">⚡</span> LeetCode
-                    </span>
-                    {draftProfiles.leetcode && extractHandleFromInput('leetcode', draftProfiles.leetcode) ? (
-                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
-                        @{extractHandleFromInput('leetcode', draftProfiles.leetcode)} ✓
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
-                    )}
-                  </div>
-                  <Input
-                    value={draftProfiles.leetcode || ""}
-                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, leetcode: e.target.value }))}
-                    placeholder="leetcode.com/u/yourhandle or handle"
-                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                  <p className="text-[10px] text-muted-foreground/80 truncate">
-                    Ex: https://leetcode.com/u/username
-                  </p>
-                </div>
-
-                {/* Codeforces */}
-                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                      <span className="text-blue-500 font-bold">🔵</span> Codeforces
-                    </span>
-                    {draftProfiles.codeforces && extractHandleFromInput('codeforces', draftProfiles.codeforces) ? (
-                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
-                        @{extractHandleFromInput('codeforces', draftProfiles.codeforces)} ✓
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
-                    )}
-                  </div>
-                  <Input
-                    value={draftProfiles.codeforces || ""}
-                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, codeforces: e.target.value }))}
-                    placeholder="codeforces.com/profile/handle or handle"
-                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                  <p className="text-[10px] text-muted-foreground/80 truncate">
-                    Ex: https://codeforces.com/profile/tourist
-                  </p>
-                </div>
-
-                {/* CodeChef */}
-                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                      <span className="text-orange-500 font-bold">👨‍🍳</span> CodeChef
-                    </span>
-                    {draftProfiles.codechef && extractHandleFromInput('codechef', draftProfiles.codechef) ? (
-                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
-                        @{extractHandleFromInput('codechef', draftProfiles.codechef)} ✓
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
-                    )}
-                  </div>
-                  <Input
-                    value={draftProfiles.codechef || ""}
-                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, codechef: e.target.value }))}
-                    placeholder="codechef.com/users/handle or handle"
-                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                  <p className="text-[10px] text-muted-foreground/80 truncate">
-                    Ex: https://www.codechef.com/users/username
-                  </p>
-                </div>
-
-                {/* HackerRank */}
-                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                      <span className="text-emerald-500 font-bold">🏆</span> HackerRank
-                    </span>
-                    {draftProfiles.hackerrank && extractHandleFromInput('hackerrank', draftProfiles.hackerrank) ? (
-                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
-                        @{extractHandleFromInput('hackerrank', draftProfiles.hackerrank)} ✓
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
-                    )}
-                  </div>
-                  <Input
-                    value={draftProfiles.hackerrank || ""}
-                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, hackerrank: e.target.value }))}
-                    placeholder="hackerrank.com/profile/handle or handle"
-                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                  <p className="text-[10px] text-muted-foreground/80 truncate">
-                    Ex: https://www.hackerrank.com/profile/username
-                  </p>
-                </div>
-
-                {/* HackerEarth */}
-                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                      <span className="text-cyan-500 font-bold">🌐</span> HackerEarth
-                    </span>
-                    {draftProfiles.hackerearth && extractHandleFromInput('hackerearth', draftProfiles.hackerearth) ? (
-                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
-                        @{extractHandleFromInput('hackerearth', draftProfiles.hackerearth)} ✓
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
-                    )}
-                  </div>
-                  <Input
-                    value={draftProfiles.hackerearth || ""}
-                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, hackerearth: e.target.value }))}
-                    placeholder="hackerearth.com/@handle or handle"
-                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                  <p className="text-[10px] text-muted-foreground/80 truncate">
-                    Ex: https://www.hackerearth.com/@username
-                  </p>
-                </div>
-
-                {/* GeeksforGeeks */}
-                <div className="space-y-1 rounded-xl border border-white/5 bg-background/50 p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                      <span className="text-emerald-600 font-bold">💚</span> GeeksforGeeks
-                    </span>
-                    {draftProfiles.gfg ? (
-                      <span className="text-[10px] text-emerald-500 font-mono font-bold">
-                        Connected ✓
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/60 font-mono">Not linked</span>
-                    )}
-                  </div>
-                  <Input
-                    value={draftProfiles.gfg || ""}
-                    onChange={(e) => setDraftProfiles(prev => ({ ...prev, gfg: e.target.value }))}
-                    placeholder="geeksforgeeks.org/user/handle or handle"
-                    className="bg-background/80 border-white/10 rounded-xl text-xs font-mono h-8"
-                  />
-                  <p className="text-[10px] text-muted-foreground/80 truncate">
-                    Ex: https://www.geeksforgeeks.org/user/username
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Public About Me */}
-            <div className="space-y-1.5">
-              <Label htmlFor="prof-about-me" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <Sparkles className="size-3.5 text-primary" /> About Me <span className="font-normal text-muted-foreground/70">— Public showcase seen on your public profile</span>
-              </Label>
-              <Textarea
-                id="prof-about-me"
-                value={aboutMe}
-                onChange={(e) => setAboutMe(e.target.value)}
-                placeholder="Share your software engineering journey, tech stack, aspirations, and what you're currently preparing for..."
-                rows={4}
-                className="bg-background/40 border-white/10 rounded-xl text-sm resize-none"
-              />
-            </div>
-
-            {/* Private Personal Notes */}
-            <div className="space-y-1.5">
-              <Label htmlFor="prof-notes" className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <Lock className="size-3.5 text-amber-500" /> Personal Notes <span className="font-normal text-amber-500/90 font-mono text-[11px]">🔒 Owner Only (Private — never shown on public profile)</span>
-              </Label>
-              <Textarea
-                id="prof-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Internal notes to yourself — weak DSA concepts to revisit, upcoming interview dates, checklist, reminders..."
-                rows={4}
-                className="bg-background/40 border-amber-500/20 focus-visible:ring-amber-500/30 rounded-xl text-sm resize-none"
-              />
-            </div>
-
-            {/* Username */}
-            <div className="space-y-1.5">
-              <Label htmlFor="prof-username" className="text-xs font-semibold text-muted-foreground">
-                Username <span className="font-normal text-muted-foreground/70">— your public profile URL</span>
-              </Label>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    id="prof-username"
-                    value={usernameDraft}
-                    onChange={(e) => setUsernameDraft(e.target.value)}
-                    placeholder="e.g. alex-turner"
-                    disabled={usernameSaving}
-                    className={cn(
-                      "bg-background/40 border-white/10 rounded-xl text-sm pr-9",
-                      (usernameStatus === "taken" || usernameStatus === "invalid") && "border-red-500 focus-visible:ring-red-500",
-                      usernameStatus === "available" && "border-emerald-500 focus-visible:ring-emerald-500",
-                    )}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && usernameStatus === "available" && !usernameSaving) saveUsername();
-                    }}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {usernameStatus === "checking" && <RefreshCw className="size-3.5 animate-spin text-muted-foreground" />}
-                    {usernameStatus === "available" && <Check className="size-3.5 text-emerald-500" />}
-                    {(usernameStatus === "taken" || usernameStatus === "invalid") && <X className="size-3.5 text-red-500" />}
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  className={cn(
-                    "gap-2 rounded-xl shrink-0 font-semibold transition-all shadow-sm cursor-pointer",
-                    normalizeUsername(usernameDraft) !== username && USERNAME_REGEX.test(normalizeUsername(usernameDraft)) && usernameStatus !== "taken"
-                      ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 ring-2 ring-primary/40"
-                      : "bg-muted text-muted-foreground opacity-60"
-                  )}
-                  disabled={
-                    normalizeUsername(usernameDraft) === username ||
-                    !USERNAME_REGEX.test(normalizeUsername(usernameDraft)) ||
-                    usernameStatus === "taken" ||
-                    usernameSaving
-                  }
-                  onClick={saveUsername}
-                >
-                  {usernameSaving ? <RefreshCw className="size-4 animate-spin" /> : <Check className="size-4" />}
-                  Save Handle
-                </Button>
-              </div>
-              {usernameStatus === "taken" && (
-                <p className="text-xs text-red-500">That username is already taken — choose another.</p>
-              )}
-              {usernameStatus === "invalid" && (
-                <p className="text-xs text-red-500">3-20 characters: lowercase letters, numbers, - or _ only.</p>
-              )}
-              {usernameStatus === "available" && (
-                <p className="text-xs text-emerald-500">Available!</p>
-              )}
-              {username && usernameStatus === "idle" && (
-                <p className="text-xs text-muted-foreground">Your profile: /profile/{username}</p>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-1">
-              <Button size="sm" className="gap-2 rounded-xl cursor-pointer" onClick={saveBasicInfo} disabled={saving}>
-                {saving ? <RefreshCw className="size-4 animate-spin" /> : <Check className="size-4" />}
-                Save Profile Details
-              </Button>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* ── Enter Valid Gmail Pop-up Modal ── */}
-      <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
-        <DialogContent className="max-w-md border-white/10 bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl">
-          <DialogHeader>
-            <div className="flex items-center gap-2.5 mb-1">
-              <div className="size-9 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0">
-                <Mail className="size-4" />
-              </div>
-              <div>
-                <DialogTitle className="text-base font-bold text-foreground">
-                  {currentEmail ? "Update Your Gmail Address" : "Enter Valid Gmail Address"}
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                  Link your active Gmail account for notifications and recovery
-                </DialogDescription>
-              </div>
-            </div>
+      {/* ── EDIT PROFILE MODAL (STRUCTURAL SHIFT TO MODAL) ── */}
+      <Dialog open={showEditDetails} onOpenChange={setShowEditDetails}>
+        <DialogContent className="max-w-4xl border-border bg-card p-0 shadow-2xl overflow-hidden rounded-2xl flex flex-col max-h-[90vh]">
+          <DialogHeader className="p-6 border-b border-border bg-muted/30">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Pencil className="size-5 text-primary" /> Edit Profile Settings
+            </DialogTitle>
+            <DialogDescription>
+              Customize your public identity, connect platforms, and update your handle.
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3.5 py-2">
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/80 space-y-1">
-              <p className="font-semibold text-primary flex items-center gap-1.5">
-                <Sparkles className="size-3.5" /> Gmail Requirement
-              </p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Please enter a valid Gmail address (ending in <strong className="text-foreground">@gmail.com</strong>) to sync with daily alerts and roadmap delivery.
-              </p>
+          <div className="overflow-y-auto p-6 space-y-8 bg-background">
+            
+            {/* Visual Assets Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Camera className="size-4" /> Avatar
+                </Label>
+                <div className="flex items-center gap-4">
+                  <div className="size-16 rounded-full overflow-hidden border border-border shrink-0 bg-muted flex items-center justify-center">
+                    {photoURL ? <img src={photoURL} alt="avatar" className="size-full object-cover" /> : <span className="font-bold text-xl">{initials}</span>}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}>
+                    {uploadingAvatar ? "Uploading..." : "Change Avatar"}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <ImageIcon className="size-4" /> Cover Banner
+                </Label>
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-32 rounded-xl overflow-hidden border border-border shrink-0 relative bg-muted cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
+                    {bannerURL ? <img src={bannerURL} alt="banner" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20" />}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => bannerInputRef.current?.click()} disabled={uploadingBanner}>
+                    {uploadingBanner ? "Uploading..." : "Change Banner"}
+                  </Button>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="gmail-input" className="text-xs font-semibold text-muted-foreground">
-                Gmail Address
-              </Label>
-              <div className="relative">
-                <Input
-                  id="gmail-input"
-                  type="email"
-                  placeholder="yourname@gmail.com"
-                  value={gmailInput}
-                  onChange={(e) => setGmailInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim())) {
-                      handleSaveGmail();
-                    }
-                  }}
-                  className="bg-background/60 border-white/10 rounded-xl text-sm font-mono pr-9"
-                  autoFocus
-                />
-                <Mail className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            {/* Basic Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-border pt-6">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Display Name</Label>
+                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-secondary/50 border-border" />
               </div>
-              {gmailInput && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim()) && (
-                <p className="text-[11px] text-amber-500 flex items-center gap-1">
-                  <AlertCircle className="size-3 shrink-0" /> Must be a valid address ending with @gmail.com
-                </p>
-              )}
-              {gmailInput && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim()) && (
-                <p className="text-[11px] text-emerald-500 flex items-center gap-1">
-                  <Check className="size-3 shrink-0" /> Valid Gmail format!
-                </p>
-              )}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Role / Short Bio</Label>
+                <Input value={bio} onChange={(e) => setBio(e.target.value)} placeholder="SDE Aspirant" className="bg-secondary/50 border-border" />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex justify-between">
+                  <span>About Me (Public Showcase)</span>
+                </Label>
+                <Textarea value={aboutMe} onChange={(e) => setAboutMe(e.target.value)} rows={3} className="bg-secondary/50 border-border resize-none" />
+              </div>
             </div>
+
+            {/* Account & Handle */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-border pt-6">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Mail className="size-3.5" /> Linked Email
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input value={currentEmail || "No Email"} readOnly className="bg-secondary/50 border-border text-muted-foreground font-mono" />
+                  <Button variant="outline" size="sm" onClick={() => { setIsEmailModalOpen(true); setShowEditDetails(false); }}>
+                    Update
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <span>Public Handle</span>
+                  {usernameStatus === "available" && <span className="text-emerald-500 text-[10px] normal-case">Available</span>}
+                  {usernameStatus === "taken" && <span className="text-red-500 text-[10px] normal-case">Taken</span>}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input 
+                    value={usernameDraft} 
+                    onChange={(e) => setUsernameDraft(e.target.value)} 
+                    className={cn("bg-secondary/50 font-mono", usernameStatus === "taken" && "border-red-500")}
+                  />
+                  <Button 
+                    variant={usernameStatus === "available" ? "default" : "secondary"}
+                    size="sm"
+                    onClick={saveUsername}
+                    disabled={usernameSaving || normalizeUsername(usernameDraft) === username || usernameStatus === "taken"}
+                  >
+                    Claim
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Social Links */}
+            <div className="border-t border-border pt-6 space-y-4">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Social & Links</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input value={github} onChange={(e) => setGithub(e.target.value)} placeholder="GitHub URL" className="bg-secondary/50" />
+                <Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="LinkedIn URL" className="bg-secondary/50" />
+                <Input value={portfolio} onChange={(e) => setPortfolio(e.target.value)} placeholder="Portfolio URL" className="bg-secondary/50" />
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {socialLinks.map((s, idx) => (
+                  <Badge key={idx} variant="secondary" className="px-3 py-1 flex items-center gap-2">
+                    {s.platform}: <span className="font-mono text-xs truncate max-w-[100px]">{s.url}</span>
+                    <button onClick={() => setSocialLinks(p => p.filter(x => x !== s))} className="hover:text-red-400"><X className="size-3" /></button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Input value={customSocialPlatform} onChange={(e) => setCustomSocialPlatform(e.target.value)} placeholder="Platform (e.g. YouTube)" className="w-48 bg-secondary/50" />
+                <Input value={customSocialUrl} onChange={(e) => setCustomSocialUrl(e.target.value)} placeholder="URL" className="flex-1 bg-secondary/50" />
+                <Button size="sm" variant="outline" onClick={() => {
+                  if (customSocialPlatform && customSocialUrl) {
+                    setSocialLinks(p => [...p, { platform: customSocialPlatform.trim(), url: customSocialUrl.trim() }]);
+                    setCustomSocialPlatform(""); setCustomSocialUrl("");
+                  }
+                }}>Add</Button>
+              </div>
+            </div>
+
+            {/* Platform Identifiers */}
+            <div className="border-t border-border pt-6 space-y-4">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                <span>Contest Platform Integration</span>
+                <span className="text-[10px] normal-case bg-amber-500/10 text-amber-500 px-2 rounded-full py-0.5">⚡ Auto-syncs</span>
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {PLATFORMS.map((plat) => (
+                  <div key={plat.key} className="flex flex-col gap-1.5">
+                    <span className="text-[10px] font-semibold text-foreground/80">{plat.label}</span>
+                    <Input 
+                      value={draftProfiles[plat.key] || ""} 
+                      onChange={(e) => setDraftProfiles(p => ({ ...p, [plat.key]: e.target.value }))}
+                      placeholder={plat.placeholder}
+                      className="bg-secondary/50 h-9 font-mono text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0 pt-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="rounded-xl text-xs cursor-pointer"
-              onClick={() => setIsEmailModalOpen(false)}
-              disabled={savingEmail}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="rounded-xl text-xs gap-1.5 font-semibold bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
-              disabled={savingEmail || !gmailInput.trim() || !/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmailInput.trim())}
-              onClick={handleSaveGmail}
-            >
-              {savingEmail ? (
-                <>
-                  <RefreshCw className="size-3.5 animate-spin" /> Saving...
-                </>
-              ) : (
-                <>
-                  <Check className="size-3.5" /> Save Gmail Address
-                </>
-              )}
+          <DialogFooter className="p-4 border-t border-border bg-card">
+            <Button variant="ghost" onClick={() => setShowEditDetails(false)}>Cancel</Button>
+            <Button onClick={saveBasicInfo} disabled={saving} className="px-6 font-bold">
+              {saving ? <RefreshCw className="size-4 animate-spin mr-2" /> : <Check className="size-4 mr-2" />}
+              Save All Changes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── About Me (Public Profile Details) ── */}
-      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <Sparkles className="size-4" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">About Me</h2>
-              <p className="text-xs text-muted-foreground">Public overview, target career goals &amp; verified professional links</p>
-            </div>
-          </div>
-          <span className="self-start sm:self-auto rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
-            Public Profile Viewable
-          </span>
+
+      {/* ── NEW HERO COMPOSITION (EDITORIAL) ── */}
+      <section className="relative rounded-3xl overflow-hidden border border-border bg-card shadow-sm group">
+        <div className="h-48 md:h-64 w-full relative bg-muted">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-transparent" />
+          {bannerURL && <img src={bannerURL} alt="banner" className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-overlay" />}
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
         </div>
 
-        {/* Profile Details Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Key Contact & Identity Info */}
-          <div className="space-y-3 rounded-2xl border border-white/10 bg-background/40 p-4">
-            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-              <span className="text-xs font-medium text-muted-foreground">Full Name</span>
-              <span className="text-xs font-bold text-foreground truncate max-w-[200px]">
-                {userNameDisplay.toLowerCase().includes("bhanu") ? (
-                  <a
-                    href="https://pbmnaiduportfolio.vercel.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-primary underline decoration-primary decoration-1 underline-offset-2 transition-colors cursor-pointer"
-                    title="Visit Bhanu's Portfolio"
-                  >
-                    {userNameDisplay}
-                  </a>
-                ) : (
-                  userNameDisplay
-                )}
-              </span>
+        <div className="relative px-6 md:px-10 pb-8 -mt-20 md:-mt-24 flex flex-col md:flex-row items-end gap-6 md:gap-8">
+          {/* Avatar */}
+          <div className="size-32 md:size-40 rounded-[2rem] border-4 border-card shadow-xl overflow-hidden shrink-0 bg-secondary flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-300">
+            {photoURL ? (
+              <img src={photoURL} alt="Avatar" className="size-full object-cover" />
+            ) : (
+              <span className="text-5xl font-black text-primary/50">{initials}</span>
+            )}
+          </div>
+
+          {/* Core Info */}
+          <div className="flex-1 min-w-0 w-full pb-2">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight text-foreground truncate">
+                  {userNameDisplay}
+                </h1>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                  {username && <span className="font-mono text-primary font-bold">@{username}</span>}
+                  <span className="text-muted-foreground font-medium">{bio || "Software Engineer Aspirant"}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 shrink-0">
+                <Button variant="secondary" className="gap-2 rounded-xl font-semibold" onClick={() => setShowEditDetails(true)}>
+                  <Pencil className="size-4" /> Edit Profile
+                </Button>
+                <Button variant="outline" className="gap-2 rounded-xl" onClick={copyShareLink}>
+                  <Share2 className="size-4" /> Share
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-              <span className="text-xs font-medium text-muted-foreground">Goal / Target Role</span>
-              <span className="text-xs font-bold text-primary truncate max-w-[200px]">{bio || "SDE Aspirant · DSA Prep"}</span>
-            </div>
-            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-              <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Mail className="size-3 text-muted-foreground" /> Email
-              </span>
-              {currentEmail ? (
-                <a
-                  href={`mailto:${currentEmail}`}
-                  className="text-xs font-mono text-foreground hover:text-primary transition-colors underline decoration-dotted truncate max-w-[200px]"
-                  title={`Email ${currentEmail}`}
-                >
-                  {currentEmail}
+            
+            {/* Link Rail */}
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              {githubProfileUrl && (
+                <a href={githubProfileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border">
+                  <GitHubIcon className="size-3.5" /> GitHub <ExternalLink className="size-3 opacity-50" />
                 </a>
-              ) : (
-                <span className="text-xs text-muted-foreground italic">Not specified</span>
+              )}
+              {linkedin && (
+                <a href={linkedin.startsWith("http") ? linkedin : `https://linkedin.com/in/${linkedin}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border">
+                  <LinkedInIcon className="size-3.5" /> LinkedIn <ExternalLink className="size-3 opacity-50" />
+                </a>
+              )}
+              {portfolio && (
+                <a href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border">
+                  <Globe className="size-3.5" /> Portfolio <ExternalLink className="size-3 opacity-50" />
+                </a>
               )}
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Profile Handle</span>
-              <span className="text-xs font-mono font-semibold text-primary">@{username || "coder"}</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TWO COLUMN WORKSPACE ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* LEFT COLUMN: Narrative & Private Tools */}
+        <aside className="lg:col-span-4 space-y-6">
+          
+          {/* About Me */}
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+              <UserCircle2 className="size-4 text-primary" /> About
+            </h3>
+            {aboutMe ? (
+              <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{aboutMe}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No public biography provided.</p>
+            )}
+            {socialLinks.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-border/50">
+                <h4 className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Other Links</h4>
+                <div className="flex flex-wrap gap-2">
+                  {socialLinks.map((s, i) => (
+                    <a key={i} href={s.url} target="_blank" rel="noreferrer" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
+                      {s.platform} <ExternalLink className="size-3" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Personal Notes (Private) */}
+          <div className="rounded-3xl border border-amber-500/20 bg-amber-500/5 p-6 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Lock className="size-24 text-amber-500" />
+            </div>
+            <div className="relative">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
+                <Lock className="size-4" /> Private Notes
+              </h3>
+              <p className="text-[11px] text-muted-foreground mb-4">Visible only to you. Use for interview prep or reminders.</p>
+              
+              <Textarea 
+                value={notes} 
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Draft your thoughts here..."
+                rows={6}
+                className="bg-background/80 border-amber-500/20 resize-none font-mono text-xs mb-3 shadow-inner text-amber-900 dark:text-amber-100"
+              />
+              <Button size="sm" onClick={handleSaveNotes} disabled={savingNotes} className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold">
+                {savingNotes ? "Saving..." : "Secure Save"}
+              </Button>
             </div>
           </div>
 
-          {/* Social & Professional Links */}
-          <div className="space-y-3 rounded-2xl border border-white/10 bg-background/40 p-4 flex flex-col justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
-                Connected Profiles &amp; Links
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {githubProfileUrl ? (
-                  <a
-                    href={githubProfileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800/15 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-800/25 dark:hover:bg-zinc-700/40 border border-zinc-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
-                    title={`Open GitHub: ${githubProfileUrl}`}
-                  >
-                    <GitHubIcon className="size-3.5 shrink-0" />
-                    <span>GitHub{effectiveGithubUsername ? ` (@${effectiveGithubUsername})` : ""}</span>
-                    <ExternalLink className="size-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  </a>
-                ) : (
-                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
-                    <GitHubIcon className="size-3.5 opacity-40" /> No GitHub linked
-                  </span>
-                )}
+          {/* Badges Mini-View */}
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+              <Trophy className="size-4 text-emerald-500" /> Achievements
+            </h3>
+            <BadgesGrid badges={badges} />
+          </div>
 
-                {linkedin ? (
-                  <a
-                    href={linkedin.startsWith("http") ? linkedin : linkedin.includes("linkedin.com") ? `https://${linkedin}` : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0077b5]/15 text-[#0077b5] dark:text-[#3897f0] hover:bg-[#0077b5]/25 border border-[#0077b5]/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                    title={`Open LinkedIn: ${linkedin}`}
-                  >
-                    <LinkedInIcon className="size-3.5 shrink-0" />
-                    <span>LinkedIn</span>
-                    <ExternalLink className="size-3 opacity-70" />
-                  </a>
-                ) : (
-                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
-                    <LinkedInIcon className="size-3.5 opacity-40" /> No LinkedIn linked
-                  </span>
-                )}
+        </aside>
 
-                {portfolio ? (
-                  <a
-                    href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                    title={`Open Portfolio: ${portfolio}`}
-                  >
-                    <Globe className="size-3.5 shrink-0" />
-                    <span>Portfolio</span>
-                    <ExternalLink className="size-3 opacity-70" />
-                  </a>
-                ) : (
-                  <span className="text-xs text-muted-foreground/60 italic inline-flex items-center gap-1 border border-dashed border-white/10 px-2.5 py-1 rounded-xl">
-                    <Globe className="size-3.5 opacity-40" /> No Portfolio linked
-                  </span>
-                )}
-
-                {/* Other Social Media Links */}
-                {socialLinks.map((s, idx) => (
-                  <a
-                    key={idx}
-                    href={s.url.startsWith("http") ? s.url : `https://${s.url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
-                    title={`Open ${s.platform}: ${s.url}`}
-                  >
-                    {getSocialIcon(s.platform, "size-3.5 shrink-0")}
-                    <span>{s.platform}</span>
-                    <ExternalLink className="size-3 opacity-70" />
-                  </a>
+        {/* RIGHT COLUMN: Progress & Integration */}
+        <main className="lg:col-span-8 space-y-8 min-w-0">
+          
+          {/* Top Line Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground">Total Solved</span>
+              <span className="text-3xl font-display font-black text-primary mt-1">{stats.total}</span>
+            </div>
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col justify-center">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground">Current Streak</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Flame className="size-5 text-orange-500" />
+                <span className="text-3xl font-display font-black text-foreground">{streakCount}</span>
+              </div>
+            </div>
+            <div className="col-span-2 rounded-3xl border border-border bg-card p-5 shadow-sm">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground mb-3 block">Platform Distribution</span>
+              <div className="flex flex-wrap gap-3">
+                {Object.entries(stats.byPlatform).sort((a,b) => b[1] - a[1]).slice(0, 4).map(([plat, num]) => (
+                  <div key={plat} className="flex items-center gap-2">
+                    <span className="size-2 rounded-full bg-primary/50" />
+                    <span className="text-sm font-semibold">{plat}</span>
+                    <span className="text-sm text-muted-foreground font-mono">{num}</span>
+                  </div>
                 ))}
               </div>
             </div>
-
-            {(!githubProfileUrl && !linkedin && !portfolio && socialLinks.length === 0) && (
-              <p className="text-[11px] text-muted-foreground">
-                Click <button type="button" onClick={() => setShowEditDetails(true)} className="text-primary hover:underline font-semibold cursor-pointer">Edit Profile Details</button> to add your LinkedIn, Portfolio, and other social profiles.
-              </p>
-            )}
           </div>
-        </div>
 
-        {/* Narrative About Me Text */}
-        <div className="rounded-2xl border border-white/10 bg-background/30 p-4 space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-            <UserCircle2 className="size-3.5 text-primary" /> Bio &amp; Journey
-          </p>
-          {aboutMe ? (
-            <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">
-              {aboutMe}
-            </p>
-          ) : (
-            <p className="text-xs text-muted-foreground italic">
-              No description added yet. Add a short bio describing your DSA preparation trajectory, tech stack, and goals in the &quot;Edit Profile Details&quot; form above.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ── Personal Notes (Owner Only — STRICTLY PRIVATE) ── */}
-      <section className="rounded-3xl border border-amber-500/20 bg-amber-500/[0.02] backdrop-blur-xl p-6 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/20 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
-              <Lock className="size-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-foreground">Personal Notes</h2>
-                <Badge variant="outline" className="text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
-                  🔒 Strictly Private
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">Personal scratchpad, interview review checklist, and topics to revisit. Never displayed on your public profile.</p>
+          {/* Solved Days Heatmap */}
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+            <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+              Learning Consistency
+            </h3>
+            <p className="text-xs text-muted-foreground mb-6">Your daily problem-solving activity across the platform.</p>
+            <div className="max-w-full overflow-x-auto pb-2">
+              <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
             </div>
           </div>
 
-          <Button
-            size="sm"
-            onClick={handleSaveNotes}
-            disabled={savingNotes}
-            className="self-start sm:self-auto gap-1.5 text-xs rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-md cursor-pointer"
-          >
-            {savingNotes ? <RefreshCw className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-            <span>{savingNotes ? "Saving…" : "Save Notes"}</span>
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Write your private study notes here... e.g.
-• Revise DP Memoization vs Tabulation before Saturday mock interview
-• Review Dijkstra & Bellman-Ford cycle detection edge cases
-• Revisit Day 42 hard problems on Trie and Segment Tree"
-            rows={5}
-            className="bg-background/60 border-amber-500/30 focus-visible:ring-amber-500/40 rounded-2xl text-sm leading-relaxed resize-none p-3.5 font-mono text-xs"
-          />
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
-            <span className="flex items-center gap-1 text-amber-500/90">
-              <Lock className="size-3" /> Encrypted &amp; private to your account uid
-            </span>
-            <span>{notes.length} characters</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Multi-Platform Coding Profile Integration Dashboard ── */}
-      <UnifiedProfileDashboard
-        initialProfiles={codingProfiles as Record<string, string>}
-        initialStats={platformStats}
-        userId={user?.uid}
-        onSaveProfiles={async (updated) => {
-          setCodingProfiles(updated);
-          setDraftProfiles((prev) => ({ ...prev, ...updated }));
-          if (typeof window !== "undefined") {
-            try {
-              localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(updated));
-              if (user?.uid) {
-                localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(updated));
-              }
-              window.dispatchEvent(
-                new CustomEvent("ldt_coding_profiles_updated", {
-                  detail: { codingProfiles: updated },
-                })
-              );
-            } catch {}
-          }
-          if (user) {
-            saveUserProfile(user.uid, { codingProfiles: updated }).catch(console.error);
-          }
-        }}
-      />
-
-      {/* ── Statistics ── */}
-      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
-        <div className="flex items-center gap-2">
-          <Globe className="size-5 text-primary" />
-          <h2 className="text-lg font-bold text-foreground">Statistics</h2>
-        </div>
-
-        <div className="mb-2 flex items-end gap-2">
-          <span className="font-display text-5xl font-bold tabular-nums text-primary">
-            {stats.total}
-          </span>
-          <span className="mb-1 text-sm text-muted-foreground">
-            problems solved across all platforms
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.entries(stats.byPlatform)
-            .sort((a, b) => b[1] - a[1])
-            .map(([platform, count]) => (
-              <div key={platform} className="rounded-2xl border border-white/10 bg-background/40 p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{platform}</p>
-                <p className="mt-1 font-extrabold text-2xl tabular-nums text-primary">{count}</p>
+          {/* GitHub Heatmap */}
+          {githubUsername && (
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm overflow-hidden">
+              <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+                <GitHubIcon className="size-4" /> GitHub Contributions
+              </h3>
+              <p className="text-xs text-muted-foreground mb-6">Synced activity for @{githubUsername}.</p>
+              <div className="max-w-full overflow-x-auto pb-2">
+                <GitHubContributionHeatmap username={githubUsername} />
               </div>
-            ))}
-          {Object.keys(stats.byPlatform).length === 0 && (
-            <p className="col-span-full text-xs text-muted-foreground italic">No problems completed yet. Mark problems done on your daily workspace to build your stats!</p>
+            </div>
           )}
-        </div>
-      </section>
 
-      {/* ── Badges & Achievements ── */}
-      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl">
-        <BadgesGrid badges={badges} />
-      </section>
+          {/* Unified Platform Profiles */}
+          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+            <UnifiedProfileDashboard
+              initialProfiles={codingProfiles as Record<string, string>}
+              initialStats={platformStats}
+              userId={user?.uid}
+              onSaveProfiles={async (updated) => {
+                setCodingProfiles(updated);
+                setDraftProfiles((prev) => ({ ...prev, ...updated }));
+                if (typeof window !== "undefined") {
+                  try {
+                    localStorage.setItem("dsa_coding_profiles_v2", JSON.stringify(updated));
+                    if (user?.uid) {
+                      localStorage.setItem(`dsa_coding_profiles_${user.uid}`, JSON.stringify(updated));
+                    }
+                    window.dispatchEvent(
+                      new CustomEvent("ldt_coding_profiles_updated", {
+                        detail: { codingProfiles: updated },
+                      })
+                    );
+                  } catch {}
+                }
+                if (user) {
+                  saveUserProfile(user.uid, { codingProfiles: updated }).catch(console.error);
+                }
+              }}
+            />
+          </div>
 
-      {/* ── Solved Days Heatmap ── */}
-      <section className="rounded-3xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-4">
-        <div>
-          <h2 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Flame className="size-5 text-emerald-400" />
-            Solved Days Activity Heatmap
-          </h2>
-          <p className="text-xs text-muted-foreground">Days with solved problems are highlighted in green.</p>
-        </div>
-        <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
-      </section>
+          {/* Solved Problems Archive */}
+          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+            <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
+          </div>
 
-      {/* ── GitHub Contribution Activity Heatmap ── */}
-      {githubUsername && (
-        <GitHubContributionHeatmap username={githubUsername} />
-      )}
+        </main>
+      </div>
 
-      {/* ── Solved Problems Archive ── */}
-      <SolvedProblemsArchive completedProblems={completedProblems} isProfileTheme={true} />
+      {/* Gmail Requirement Modal */}
+      <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+        <DialogContent className="max-w-md border-border bg-card rounded-2xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="size-5 text-primary" /> Valid Email Required
+            </DialogTitle>
+            <DialogDescription>
+              Link your active Gmail account for notifications and secure recovery.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="bg-primary/10 text-primary p-3 rounded-xl text-sm">
+              Please enter an address ending in @gmail.com.
+            </div>
+            <Input 
+              value={gmailInput} 
+              onChange={e => setGmailInput(e.target.value)} 
+              placeholder="you@gmail.com" 
+              className="bg-background border-border"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsEmailModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveGmail} disabled={savingEmail || !gmailInput.includes("@gmail.com")}>
+              {savingEmail ? "Saving..." : "Save Email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
