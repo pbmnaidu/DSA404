@@ -1,4 +1,7 @@
-"use client";
+const fs = require('fs');
+const path = 'p:/DSA404-chatBot/src/components/coding-profiles/UnifiedProfileDashboard.tsx';
+
+const content = `"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 import { ConnectedPlatform, NormalizedCodingProfile, PlatformId } from "@/lib/coding-platforms/types";
@@ -64,9 +67,9 @@ export function UnifiedProfileDashboard({
         setConnectedProfiles(newProfiles);
         setFetchedData(newStats);
         onSaveProfiles?.(newProfiles);
-        toast.success(`Connected to ${PLATFORM_META[platformKey]?.name || platformKey}`);
+        toast.success(\`Connected to \${PLATFORM_META[platformKey]?.name || platformKey}\`);
       } else {
-        toast.error(`Failed to connect to ${PLATFORM_META[platformKey]?.name || platformKey}`);
+        toast.error(\`Failed to connect to \${PLATFORM_META[platformKey]?.name || platformKey}\`);
       }
     } catch (e) {
       toast.error("An error occurred while connecting.");
@@ -207,7 +210,7 @@ export function UnifiedProfileDashboard({
                         <span>{d.value}</span>
                       </div>
                       <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${(d.value / Math.max(analytics.totalSolvedAcrossPlatforms, 1)) * 100}%`, backgroundColor: d.color }} />
+                        <div className="h-full rounded-full" style={{ width: \`\${(d.value / Math.max(analytics.totalSolvedAcrossPlatforms, 1)) * 100}%\`, backgroundColor: d.color }} />
                       </div>
                     </div>
                   ))}
@@ -231,7 +234,7 @@ export function UnifiedProfileDashboard({
                   <RechartsTooltip contentStyle={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.8)", padding: "12px" }} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
                     {platformDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={\`cell-\${index}\`} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -349,7 +352,7 @@ export function UnifiedProfileDashboard({
                      <div>
                        <div className="flex justify-between text-xs font-bold mb-1.5 text-emerald-500"><span>Easy</span><span>{selectedProfile.easySolved}</span></div>
                        <div className="h-2 w-full bg-emerald-500/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(selectedProfile.easySolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
+                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: \`\${(selectedProfile.easySolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%\` }} />
                        </div>
                      </div>
                    )}
@@ -357,7 +360,7 @@ export function UnifiedProfileDashboard({
                      <div>
                        <div className="flex justify-between text-xs font-bold mb-1.5 text-amber-500"><span>Medium</span><span>{selectedProfile.mediumSolved}</span></div>
                        <div className="h-2 w-full bg-amber-500/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-amber-500 rounded-full" style={{ width: `${(selectedProfile.mediumSolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
+                         <div className="h-full bg-amber-500 rounded-full" style={{ width: \`\${(selectedProfile.mediumSolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%\` }} />
                        </div>
                      </div>
                    )}
@@ -365,7 +368,7 @@ export function UnifiedProfileDashboard({
                      <div>
                        <div className="flex justify-between text-xs font-bold mb-1.5 text-destructive"><span>Hard</span><span>{selectedProfile.hardSolved}</span></div>
                        <div className="h-2 w-full bg-destructive/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-destructive rounded-full" style={{ width: `${(selectedProfile.hardSolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
+                         <div className="h-full bg-destructive rounded-full" style={{ width: \`\${(selectedProfile.hardSolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%\` }} />
                        </div>
                      </div>
                    )}
@@ -403,3 +406,6 @@ export function UnifiedProfileDashboard({
     </div>
   );
 }
+`
+fs.writeFileSync(path, content, 'utf8');
+console.log("UnifiedProfileDashboard completely rebuilt!");
