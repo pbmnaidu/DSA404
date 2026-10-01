@@ -143,7 +143,15 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: var(--background);
+    background-image: radial-gradient(
+      circle at 50% 35%,
+      var(--bg-glow, color-mix(in oklab, var(--primary) 8%, var(--background))) 0%,
+      var(--background) 50%,
+      var(--bg-edge, color-mix(in oklab, #000 30%, var(--background))) 100%
+    );
+    background-attachment: fixed;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

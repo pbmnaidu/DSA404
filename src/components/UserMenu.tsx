@@ -63,18 +63,18 @@ export default function UserMenu() {
             <Link
               href="/profile"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors w-full"
             >
-              <User className="w-4 h-4" />
+              <User className="size-4 shrink-0" />
               Profile
             </Link>
 
             <Link
               href="/settings"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors w-full mt-1"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="size-4 shrink-0" />
               Settings
             </Link>
 
@@ -84,9 +84,9 @@ export default function UserMenu() {
                   setOpen(false);
                   signOut();
                 }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:text-destructive hover:bg-muted transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="size-4 shrink-0" />
                 Logout
               </button>
             </div>

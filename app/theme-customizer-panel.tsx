@@ -173,23 +173,58 @@ export function ThemeCustomizerPanel() {
 
           {/* ── Color Presets ── */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-foreground mb-2.5">Color Presets</p>
-            <div className="grid grid-cols-3 gap-2">
-              {Object.entries(PRESETS).map(([key, preset]) => (
-                <button key={key} onClick={() => applyPreset(key)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border text-xs font-medium transition-all duration-150 hover:scale-105 active:scale-95 ${
-                    activePreset === key
-                      ? "border-primary bg-muted text-primary"
-                      : "border-border bg-muted text-foreground hover:border-border"
-                  }`}
-                >
-                  <div className="flex gap-0.5 mb-0.5">
-                    <span className="w-4 h-4 rounded-full border border-border" style={{ background: preset.colors.light.background }} />
-                    <span className="w-4 h-4 rounded-full border border-border" style={{ background: preset.colors.light.primary }} />
-                    <span className="w-4 h-4 rounded-full border border-border" style={{ background: preset.colors.dark.background }} />
+            <p className="text-xs font-semibold uppercase tracking-wider text-foreground mb-4">Premium Themes</p>
+            <div className="space-y-6">
+              {Object.entries(
+                Object.entries(PRESETS).reduce((acc, [key, preset]) => {
+                  const group = preset.group || "Custom";
+                  if (!acc[group]) acc[group] = [];
+                  acc[group].push({ key, preset });
+                  return acc;
+                }, {} as Record<string, { key: string; preset: typeof PRESETS[keyof typeof PRESETS] }[]>)
+              ).map(([groupName, groupPresets]) => (
+                <div key={groupName} className="space-y-3">
+                  <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{groupName}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {groupPresets.map(({ key, preset }) => (
+                      <button
+                        key={key}
+                        onClick={() => applyPreset(key)}
+                        className={`group relative flex flex-col gap-2.5 rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] ${
+                          activePreset === key
+                            ? "border-primary bg-primary/[0.03] shadow-sm ring-1 ring-primary/20"
+                            : "border-border bg-card hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex -space-x-1.5">
+                            {/* Light Mode Preview */}
+                            <div className="relative size-6 overflow-hidden rounded-full border border-border shadow-sm transition-transform group-hover:scale-110 group-hover:z-10">
+                              <div className="absolute inset-0" style={{ backgroundColor: preset.colors.light.background }}></div>
+                              <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ backgroundColor: preset.colors.light.card }}></div>
+                              <div className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border shadow-sm" style={{ backgroundColor: preset.colors.light.primary }}></div>
+                            </div>
+                            {/* Dark Mode Preview */}
+                            <div className="relative size-6 overflow-hidden rounded-full border border-border shadow-sm transition-transform group-hover:scale-110 group-hover:z-10">
+                              <div className="absolute inset-0" style={{ backgroundColor: preset.colors.dark.background }}></div>
+                              <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ backgroundColor: preset.colors.dark.card }}></div>
+                              <div className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border shadow-sm" style={{ backgroundColor: preset.colors.dark.primary }}></div>
+                            </div>
+                          </div>
+                          {activePreset === key && (
+                            <div className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm animate-in zoom-in duration-200">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <span className={`text-xs font-semibold tracking-tight truncate w-full ${activePreset === key ? "text-primary" : "text-foreground"}`}>
+                          {preset.label}
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                  <span className="text-[10px] text-center leading-tight">{preset.label}</span>
-                </button>
+                </div>
               ))}
             </div>
           </div>

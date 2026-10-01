@@ -929,7 +929,7 @@ function Index() {
  }
  `}</style>
 
- <div className="min-h-screen bg-background text-foreground">
+ <div className="min-h-screen text-foreground">
  <HeroSection />
  <StatsBar />
  <HowItWorks />

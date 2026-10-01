@@ -118,8 +118,8 @@ function platformSearchLink(name: string, platform: Platform | string): string {
 }
 
 function googleSearchUrl(problemName: string) {
- const query = `${problemName} DSA solution explanation site:leetcode.com OR site:geeksforgeeks.org OR site:takeuforward.org`;
- return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+  const query = `${problemName} DSA solution explanation site:leetcode.com OR site:geeksforgeeks.org OR site:takeuforward.org OR site:naukri.com OR site:interviewbit.com OR site:programiz.com OR site:w3schools.com OR site:hackerrank.com OR site:hackerearth.com OR site:codechef.com OR site:codeforces.com OR site:neetcode.io OR site:cp-algorithms.com`;
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
 const PLATFORM_META: Record<string, { label: string; color: string; bg: string; dot: string }> = {
@@ -294,6 +294,12 @@ function ProblemItem({
  <a href={youtubeSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium cursor-pointer">
  <Video className="size-3.5 text-destructive" />
  <span>YouTube Solutions</span>
+ </a>
+ </DropdownMenuItem>
+ <DropdownMenuItem asChild>
+ <a href={googleSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+ <Search className="size-3.5 text-primary" />
+ <span>Google Search</span>
  </a>
  </DropdownMenuItem>
  </DropdownMenuContent>
@@ -525,7 +531,7 @@ export default function ProblemsPage() {
  const endItem = Math.min(currentPage * pageSize, sortedAndFiltered.length);
 
  return (
- <div className="min-h-screen bg-background text-foreground pb-16 pt-8 animate-fade-in">
+ <div className="min-h-screen text-foreground pb-16 pt-8 animate-fade-in">
  <div className="mx-auto max-w-[1400px] px-4 md:px-8">
  
  {/* ── EDITORIAL HEADER ── */}

@@ -90,21 +90,25 @@ export function isToday(ms: number): boolean {
 
 const PLATFORM_STYLES: Record<string, string> = {
  LeetCode:
- "bg-warning text-warning dark:bg-muted dark:text-warning",
+ "bg-warning/20 text-yellow-700 dark:text-warning",
  Codeforces:
- "bg-info text-info dark:bg-muted dark:text-info",
+ "bg-info/20 text-blue-700 dark:text-info",
  CodeChef:
- "bg-warning text-warning dark:bg-warning dark:text-warning",
+ "bg-[#5B4638]/20 text-[#5B4638] dark:text-[#A07B64]",
  HackerRank:
- "bg-success text-success dark:bg-muted dark:text-success",
+ "bg-success/20 text-green-700 dark:text-success",
  HackerEarth:
- "bg-primary text-primary dark:bg-muted dark:text-primary",
+ "bg-primary/20 text-primary-foreground dark:text-primary",
+ AtCoder:
+ "bg-blue-500/20 text-blue-700 dark:text-blue-400",
+ GeeksforGeeks:
+ "bg-green-600/20 text-green-700 dark:text-green-400",
 };
 
 const STATUS_STYLES = {
- live: "bg-destructive text-destructive dark:bg-muted dark:text-destructive animate-pulse",
+ live: "bg-destructive/20 text-red-700 dark:bg-muted dark:text-destructive animate-pulse",
  upcoming:
- "bg-info text-info dark:bg-muted dark:text-info",
+ "bg-info/20 text-blue-700 dark:bg-muted dark:text-info",
  missed:
  "bg-muted text-foreground dark:bg-muted dark:text-foreground",
 } as const;

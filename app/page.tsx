@@ -722,11 +722,11 @@ export default function LandingPage() {
  }, [router]);
 
  return (
- <div className="min-h-screen bg-background font-sans selection:bg-muted text-foreground">
+ <div className="min-h-screen font-sans selection:bg-muted text-foreground">
  <AnnouncementBar />
  
  {/* 2. Header */}
- <header className="sticky top-0 z-50 w-full border-b border-border bg-background ">
+ <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md ">
  <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
  <Link href="/" className="flex items-center gap-2">
  <div className="size-8 rounded-lg border border-border overflow-hidden shrink-0">

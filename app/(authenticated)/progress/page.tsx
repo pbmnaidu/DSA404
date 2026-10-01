@@ -154,8 +154,8 @@ export default function ProgressPage() {
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Editorial Header */}
       <div className="rounded-lg border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col lg:flex-row items-start justify-between gap-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8  pointer-events-none">
-          <History className="size-48" />
+        <div className="hidden lg:block absolute -top-12 -right-12 p-8 pointer-events-none opacity-5 dark:opacity-10 text-foreground">
+          <History className="size-64" />
         </div>
         
         <div className="space-y-4 relative z-10 lg:w-1/2">

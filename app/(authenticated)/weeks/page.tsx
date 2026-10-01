@@ -253,7 +253,7 @@ export default function WeeksPage() {
   const totalPct = totalProbs > 0 ? Math.round((doneProbs / totalProbs) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20 animate-fade-in">
+    <div className="min-h-screen text-foreground pb-20 animate-fade-in">
       <div className="mx-auto max-w-4xl space-y-12">
         
         {/* ── EDITORIAL HEADER ── */}

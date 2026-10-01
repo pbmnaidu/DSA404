@@ -262,13 +262,17 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  } catch {
  formattedDate = dateStr;
  }
+ 
+ const isToday = dateStr === format(new Date(), "yyyy-MM-dd");
+ const todayClass = isToday ? "ring-2 ring-primary ring-offset-1 ring-offset-background z-10" : "";
+ 
  return (
  <button
  key={dateStr}
  onClick={() => setSelectedDate(dateStr)}
- className={`size-4 sm:size-4.5 rounded-[3px] transition-all hover:scale-125 hover:z-10 focus:outline-none focus:ring-2 focus:ring-ring ${LEVEL_CLASSES[level]}`}
- title={`${formattedDate}: ${count} problem${count === 1 ? "" : "s"} solved`}
- aria-label={`${formattedDate}: ${count} solved`}
+ className={`relative size-4 sm:size-4.5 rounded-[3px] transition-all hover:scale-125 hover:z-20 focus:outline-none focus:ring-2 focus:ring-ring ${LEVEL_CLASSES[level]} ${todayClass}`}
+ title={`${isToday ? "Today, " : ""}${formattedDate}: ${count} problem${count === 1 ? "" : "s"} solved`}
+ aria-label={`${isToday ? "Today, " : ""}${formattedDate}: ${count} solved`}
  />
  );
  })}

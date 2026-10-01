@@ -107,8 +107,12 @@ const antiFoucScript = `
           var mt = toOklch(activeColors.muted);
           var bd = toOklch(activeColors.border);
           var prFg = isDark ? fg : 'oklch(0.98 0.008 85)';
+          var bgGlow = isDark ? 'color-mix(in oklab, ' + pr + ' 12%, ' + bg + ')' : 'color-mix(in oklab, ' + pr + ' 6%, ' + bg + ')';
+          var bgEdge = isDark ? 'color-mix(in oklab, #000 45%, ' + bg + ')' : 'color-mix(in oklab, ' + mt + ' 35%, ' + bg + ')';
 
           doc.style.setProperty('--background', bg);
+          doc.style.setProperty('--bg-glow', bgGlow);
+          doc.style.setProperty('--bg-edge', bgEdge);
           doc.style.setProperty('--foreground', fg);
           doc.style.setProperty('--card', cd);
           doc.style.setProperty('--card-foreground', fg);
@@ -187,7 +191,7 @@ export default function RootLayout({
         {/* Synchronous anti-FOUC script — applies saved theme, custom colors, and typography before paint */}
         <script id="anti-fouc" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: antiFoucScript }} />
       </head>
-      <body className="antialiased bg-background text-foreground min-h-screen">
+      <body className="antialiased text-foreground min-h-screen">
         <Providers>{children}</Providers>
       </body>
     </html>

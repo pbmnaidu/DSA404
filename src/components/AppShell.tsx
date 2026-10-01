@@ -155,7 +155,7 @@ function DesktopSidebar({
           {!collapsed && (
             <button
               onClick={onToggleCollapse}
-              className="ml-auto p-1.5 rounded-md text-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="ml-auto p-1.5 rounded-md text-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               title="Collapse sidebar"
               aria-label="Collapse sidebar"
             >
@@ -246,7 +246,7 @@ function DesktopSidebar({
           <button
             onClick={() => openPanel()}
             className={cn(
-              "flex w-full items-center gap-2.5 rounded-lg p-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors",
+              "flex w-full items-center gap-2.5 rounded-lg p-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
               collapsed && "justify-center"
             )}
             title="Theme & Display"
@@ -259,7 +259,7 @@ function DesktopSidebar({
           <Link
             href="/profile"
             className={cn(
-              "flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-sidebar-accent",
+              "flex items-center gap-2.5 rounded-lg p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 hover:bg-sidebar-accent",
               collapsed && "justify-center"
             )}
             title="View your profile"
@@ -282,7 +282,7 @@ function DesktopSidebar({
           {collapsed && (
             <button
               onClick={onToggleCollapse}
-              className="flex w-full items-center justify-center p-2 rounded-lg text-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+              className="flex w-full items-center justify-center p-2 rounded-lg text-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               title="Expand sidebar"
               aria-label="Expand sidebar"
             >
@@ -300,7 +300,7 @@ function DesktopSidebar({
                 href="https://pbmnaiduportfolio.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground font-medium hover:text-primary underline decoration-primary/30 underline-offset-2 transition-colors cursor-pointer"
+                className="text-foreground font-medium hover:text-primary underline decoration-primary/30 underline-offset-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 cursor-pointer"
                 title="Visit Bhanu's Portfolio"
               >
                 Bhanu
@@ -353,7 +353,7 @@ function MobileDrawer({
           <button
             onClick={onClose}
             aria-label="Close navigation"
-            className="absolute top-4 right-4 rounded-lg p-1.5 text-foreground hover:text-foreground hover:bg-accent transition-colors"
+            className="absolute top-4 right-4 rounded-lg p-1.5 text-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           >
             <X className="size-4" />
           </button>
@@ -432,17 +432,17 @@ function MobileDrawer({
         <div className="border-t border-border px-3 py-3 space-y-1 shrink-0">
           <button
             onClick={() => { openPanel(); onClose(); }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-foreground hover:bg-accent hover:text-foreground transition-colors"
+            className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium text-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           >
-            <Palette className="size-4 shrink-0" />
+            <Palette className="size-[18px] shrink-0" />
             <span>Theme & Display</span>
           </button>
 
           <button
             onClick={onSignOut}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-destructive hover:bg-muted transition-colors"
+            className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           >
-            <LogOut className="size-4 shrink-0" />
+            <LogOut className="size-[18px] shrink-0" />
             <span>Log Out</span>
           </button>
 
@@ -453,7 +453,7 @@ function MobileDrawer({
                 href="https://pbmnaiduportfolio.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground font-medium hover:text-primary underline decoration-primary/30 underline-offset-2 transition-colors cursor-pointer"
+                className="text-foreground font-medium hover:text-primary underline decoration-primary/30 underline-offset-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 cursor-pointer"
                 title="Visit Bhanu's Portfolio"
               >
                 Bhanu
@@ -657,7 +657,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
                 onClick={() => setDrawerOpen((v) => !v)}
                 aria-label="Open navigation"
                 aria-expanded={drawerOpen}
-                className="flex shrink-0 items-center justify-center size-9 rounded-lg border border-border bg-card transition-colors hover:bg-accent"
+                className="flex shrink-0 items-center justify-center size-9 rounded-lg border border-border bg-card transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 hover:bg-accent"
               >
                 <Menu className="size-5 text-foreground" />
               </button>
@@ -684,7 +684,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen(true)}
-                  className="relative flex items-center justify-center size-8 rounded-lg border border-border bg-card hover:bg-accent transition-colors"
+                  className="relative flex items-center justify-center size-8 rounded-lg border border-border bg-card hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                   title="Notifications"
                   aria-label="Open notifications panel"
                 >
@@ -720,8 +720,8 @@ export function AppShell({ email, children }: { email: string; children: React.R
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => openPanel()}><Palette className="mr-2 size-4" /> Theme & Display</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">
-                      <LogOut className="mr-2 size-4" /> Log out
+                    <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                      <LogOut className="mr-2 size-4 shrink-0" /> Log out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -770,7 +770,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
                 title="Notifications"
                 aria-label="Open notifications panel"
               >
-                <Bell className="size-4 text-foreground group-hover:text-primary transition-colors" />
+                <Bell className="size-4 text-foreground group-hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1" />
                 {unreadNotifCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {unreadNotifCount}
@@ -800,7 +800,9 @@ export function AppShell({ email, children }: { email: string; children: React.R
                     <FolderGit2 className="mr-2 size-4 text-[var(--success)]" /> GitHub Sync
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">Log out</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                    <LogOut className="mr-2 size-4 shrink-0" /> Log out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -812,7 +814,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
               <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm text-warning">
                 <PauseCircle className="size-4 shrink-0" />
                 <span>Preparation paused since {formatDate(settings.pausedFrom ?? "")}. Your daily workspace is held at the paused day.</span>
-                <Link href="/today" className="ml-auto font-semibold underline underline-offset-4 hover:text-foreground transition-colors">
+                <Link href="/today" className="ml-auto font-semibold underline underline-offset-4 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1">
                   Resume →
                 </Link>
               </div>
@@ -839,7 +841,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
                   <Link
                     href={n.to}
                     className={cn(
-                      "flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors",
+                      "flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                       pathname.startsWith(n.to) ? "text-primary font-semibold" : "text-foreground",
                     )}
                   >
@@ -866,7 +868,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
                   <Link
                     href={n.to}
                     className={cn(
-                      "flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors",
+                      "flex flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                       pathname.startsWith(n.to) ? "text-primary font-semibold" : "text-foreground",
                     )}
                   >
@@ -899,3 +901,5 @@ export function AppShell({ email, children }: { email: string; children: React.R
     </TooltipProvider>
   );
 }
+
+

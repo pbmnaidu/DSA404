@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 
 function googleSearchUrl(problemName: string, topic?: string) {
- const query = `${topic ? topic + " " : ""}${problemName} DS site:takeuforward.org OR site:geeksforgeeks.org OR site:leetcode.com OR site:naukri.com OR site:interviewbit.com OR site:techiedelight.com OR site:programiz.com OR site:w3schools.com solution explanation`;
- return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+  const query = `${topic ? topic + " " : ""}${problemName} DSA solution explanation site:leetcode.com OR site:geeksforgeeks.org OR site:takeuforward.org OR site:naukri.com OR site:interviewbit.com OR site:programiz.com OR site:w3schools.com OR site:hackerrank.com OR site:hackerearth.com OR site:codechef.com OR site:codeforces.com OR site:neetcode.io OR site:cp-algorithms.com`;
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
 function youtubeSearchUrl(problemName: string) {

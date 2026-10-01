@@ -1023,61 +1023,69 @@ export function CoderProfilePage() {
 
 
  {/* ── NEW HERO COMPOSITION (EDITORIAL) ── */}
- <section className="relative rounded-lg overflow-hidden border border-border bg-card shadow-sm group">
- <div className="h-48 md:h-64 w-full relative bg-muted">
- <div className="absolute inset-0 bg-primary /10  " />
+ <section className="relative rounded-lg border border-border bg-card shadow-sm group flex flex-col">
+ <div className="h-48 md:h-64 w-full relative bg-muted rounded-t-lg overflow-hidden shrink-0">
+ <div className="absolute inset-0 bg-primary/10" />
  {bannerURL && <img src={bannerURL} alt="banner" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay" />}
- <div className="absolute inset-0 bg-primary  /50 " />
+ <div className="absolute inset-0 bg-primary/20" />
  </div>
 
- <div className="relative px-6 md:px-10 pb-8 -mt-20 md:-mt-24 flex flex-col md:flex-row items-end gap-6 md:gap-8">
+ <div className="relative px-4 sm:px-6 md:px-8 pb-6 md:pb-8 flex flex-col z-10">
+ <div className="flex flex-col md:flex-row gap-4 md:gap-6 relative">
  {/* Avatar */}
- <div className="size-32 md:size-40 rounded-[2rem] border-4 border-card shadow-sm overflow-hidden shrink-0 bg-secondary flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-300">
+ <div className="relative -mt-16 md:-mt-20 z-20 shrink-0 self-start">
+ <div className="size-32 md:size-40 rounded-[2rem] border-4 border-card shadow-sm overflow-hidden bg-secondary flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-300">
  {photoURL ? (
  <img src={photoURL} alt="Avatar" className="size-full object-cover" />
  ) : (
  <span className="text-5xl font-black text-primary">{initials}</span>
  )}
  </div>
+ </div>
+
+ {/* Action Buttons */}
+ <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:ml-auto md:pt-4 z-20 shrink-0 self-start order-2 md:order-none relative">
+ <Button variant="secondary" className="min-h-10 flex-1 md:flex-none gap-2 rounded-lg font-semibold whitespace-nowrap" onClick={() => setShowEditDetails(true)}>
+ <Pencil className="size-4 shrink-0" /> Edit Profile
+ </Button>
+ <Button variant="outline" className="min-h-10 flex-1 md:flex-none gap-2 rounded-lg whitespace-nowrap" onClick={copyShareLink}>
+ <Share2 className="size-4 shrink-0" /> Share
+ </Button>
+ <Button variant="outline" className="min-h-10 flex-1 md:flex-none gap-2 rounded-lg whitespace-nowrap" asChild>
+ <Link href={shareUrl} target="_blank">
+ <Eye className="size-4 shrink-0" /> View Public Profile
+ </Link>
+ </Button>
+ </div>
+ </div>
 
  {/* Core Info */}
- <div className="flex-1 min-w-0 w-full pb-2">
- <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
- <div className="space-y-1.5">
- <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight text-foreground truncate">
+ <div className="flex-1 min-w-0 w-full pt-4 md:pt-2 flex flex-col z-10">
+ <div className="space-y-1.5 min-w-0">
+ <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight text-foreground break-words" style={{ overflowWrap: "anywhere" }}>
  {userNameDisplay}
  </h1>
  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
- {username && <span className="font-mono text-primary font-bold">@{username}</span>}
- <span className="text-foreground font-medium">{bio || "Software Engineer Aspirant"}</span>
- </div>
- </div>
- 
- <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
- <Button variant="secondary" className="min-h-10 flex-1 gap-2 rounded-lg font-semibold whitespace-nowrap md:flex-none" onClick={() => setShowEditDetails(true)}>
- <Pencil className="size-4" /> Edit Profile
- </Button>
- <Button variant="outline" className="min-h-10 flex-1 gap-2 rounded-lg whitespace-nowrap md:flex-none" onClick={copyShareLink}>
- <Share2 className="size-4" /> Share
- </Button>
+ {username && <span className="font-mono text-primary font-bold break-all" style={{ overflowWrap: "anywhere" }}>@{username}</span>}
+ <span className="text-foreground font-medium break-words" style={{ overflowWrap: "anywhere" }}>{bio || "Software Engineer Aspirant"}</span>
  </div>
  </div>
  
  {/* Link Rail */}
  <div className="flex flex-wrap items-center gap-3 mt-4">
  {githubProfileUrl && (
- <a href={githubProfileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground transition-colors bg-secondary px-3 py-1.5 rounded-lg border border-border">
- <GitHubIcon className="size-3.5" /> GitHub <ExternalLink className="size-3 " />
+ <a href={githubProfileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground transition-colors bg-secondary px-3 py-1.5 rounded-lg border border-border shrink-0 max-w-full truncate">
+ <GitHubIcon className="size-3.5 shrink-0" /> <span className="truncate">GitHub</span> <ExternalLink className="size-3 shrink-0" />
  </a>
  )}
  {linkedin && (
- <a href={linkedin.startsWith("http") ? linkedin : `https://linkedin.com/in/${linkedin}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground transition-colors bg-secondary px-3 py-1.5 rounded-lg border border-border">
- <LinkedInIcon className="size-3.5" /> LinkedIn <ExternalLink className="size-3 " />
+ <a href={linkedin.startsWith("http") ? linkedin : `https://linkedin.com/in/${linkedin}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground transition-colors bg-secondary px-3 py-1.5 rounded-lg border border-border shrink-0 max-w-full truncate">
+ <LinkedInIcon className="size-3.5 shrink-0" /> <span className="truncate">LinkedIn</span> <ExternalLink className="size-3 shrink-0" />
  </a>
  )}
  {portfolio && (
- <a href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground transition-colors bg-secondary px-3 py-1.5 rounded-lg border border-border">
- <Globe className="size-3.5" /> Portfolio <ExternalLink className="size-3 " />
+ <a href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground transition-colors bg-secondary px-3 py-1.5 rounded-lg border border-border shrink-0 max-w-full truncate">
+ <Globe className="size-3.5 shrink-0" /> <span className="truncate">Portfolio</span> <ExternalLink className="size-3 shrink-0" />
  </a>
  )}
  </div>

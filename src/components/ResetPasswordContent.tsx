@@ -49,7 +49,7 @@ export default function ResetPasswordContent() {
 
   if (checking) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-4 bg-background">
+      <main className="flex min-h-screen items-center justify-center px-4">
         <Skeleton className="h-64 w-full max-w-md rounded-lg" />
       </main>
     );
@@ -57,7 +57,7 @@ export default function ResetPasswordContent() {
 
   if (!oobCode || !validCode) {
     return (
-      <main className="flex min-h-[80vh] items-center justify-center px-4 bg-background">
+      <main className="flex min-h-[80vh] items-center justify-center px-4">
         <div className="w-full max-w-md rounded-lg border border-border bg-muted p-8 text-center space-y-4">
           <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted text-destructive">
             <svg className="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -75,7 +75,7 @@ export default function ResetPasswordContent() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-12 bg-background relative overflow-hidden">
+    <main className="flex min-h-screen items-center justify-center px-4 py-12 relative overflow-hidden">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-lg aspect-square bg-muted blur-[100px] rounded-full pointer-events-none" />
       
       <div className="w-full max-w-md relative z-10 space-y-8">

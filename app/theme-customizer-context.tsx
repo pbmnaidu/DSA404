@@ -26,139 +26,152 @@ export interface ThemeCustom {
 
 // ─── Presets ─────────────────────────────────────────────────────────────────
 
-export const PRESETS: Record<string, { label: string; emoji: string; colors: ThemeCustom }> = {
-  gold: {
-    label: "Parchment & Gold",
-    emoji: "🏆",
+export interface ThemePreset {
+  label: string;
+  group: string;
+  colors: ThemeCustom;
+}
+
+export const PRESETS: Record<string, ThemePreset> = {
+  // Premium Dark
+  "midnight-electric": {
+    label: "Midnight & Electric",
+    group: "Premium Dark",
     colors: {
-      light: {
-        background: "#f5ede0",
-        foreground: "#2d1e10",
-        primary: "#c48a2f",
-        card: "#fdf7f0",
-        muted: "#e8d9c5",
-        border: "#c9ae8a",
-      },
-      dark: {
-        background: "#16110c",
-        foreground: "#f0e6d3",
-        primary: "#e8a832",
-        card: "#241a10",
-        muted: "#3a2a18",
-        border: "#4a3520",
-      },
-    },
+      light: { background: "#f8fafc", foreground: "#0f172a", primary: "#0ea5e9", card: "#ffffff", muted: "#f1f5f9", border: "#e2e8f0" },
+      dark: { background: "#060913", foreground: "#f8fafc", primary: "#0ea5e9", card: "#0b1121", muted: "#141c2f", border: "#1e293b" }
+    }
   },
-  default: {
-    label: "DSA404 Onyx Gold",
-    emoji: "🏆",
+  "graphite-cobalt": {
+    label: "Graphite & Cobalt",
+    group: "Premium Dark",
     colors: {
-      light: {
-        background: "#F3F0E8",
-        foreground: "#211F1A",
-        primary: "#A96F08",
-        card: "#FCFAF5",
-        muted: "#E8E2D6",
-        border: "#D8D0C1",
-      },
-      dark: {
-        background: "#09090B",
-        foreground: "#F4F1E8",
-        primary: "#E3AF35",
-        card: "#101013",
-        muted: "#17171B",
-        border: "rgba(255,255,255,0.08)",
-      },
-    },
+      light: { background: "#f9fafb", foreground: "#111827", primary: "#2563eb", card: "#ffffff", muted: "#f3f4f6", border: "#e5e7eb" },
+      dark: { background: "#111827", foreground: "#f9fafb", primary: "#3b82f6", card: "#1f2937", muted: "#374151", border: "#4b5563" }
+    }
   },
-  forest: {
-    label: "Forest Green",
-    emoji: "🌿",
+  "obsidian-violet": {
+    label: "Obsidian & Violet",
+    group: "Premium Dark",
     colors: {
-      light: {
-        background: "#e8f5e9",
-        foreground: "#1a3320",
-        primary: "#2e7d32",
-        card: "#f4fbf4",
-        muted: "#c8e6c9",
-        border: "#88c98c",
-      },
-      dark: {
-        background: "#060f08",
-        foreground: "#c8f0cc",
-        primary: "#4caf50",
-        card: "#0c1e0e",
-        muted: "#122814",
-        border: "#1a3a1e",
-      },
-    },
+      light: { background: "#faf5ff", foreground: "#1e1b4b", primary: "#8b5cf6", card: "#ffffff", muted: "#f3e8ff", border: "#e9d5ff" },
+      dark: { background: "#0b0314", foreground: "#f3e8ff", primary: "#a855f7", card: "#150a24", muted: "#24143a", border: "#341a54" }
+    }
   },
-  rose: {
-    label: "Rose Pink",
-    emoji: "🌸",
+  "black-champagne": {
+    label: "Black & Champagne",
+    group: "Premium Dark",
     colors: {
-      light: {
-        background: "#fde8f0",
-        foreground: "#4a0d25",
-        primary: "#cc2255",
-        card: "#fff5f8",
-        muted: "#f5c8d8",
-        border: "#e890aa",
-      },
-      dark: {
-        background: "#180608",
-        foreground: "#ffd0e0",
-        primary: "#f05080",
-        card: "#2a0c12",
-        muted: "#3a1018",
-        border: "#4a1822",
-      },
-    },
+      light: { background: "#faf9f6", foreground: "#1a1a1a", primary: "#d4af37", card: "#ffffff", muted: "#f0efe9", border: "#e3dfd3" },
+      dark: { background: "#000000", foreground: "#f5f5f5", primary: "#d4af37", card: "#0f0f0f", muted: "#1f1f1f", border: "#2e2e2e" }
+    }
   },
-  slate: {
-    label: "Slate Minimal",
-    emoji: "🪨",
+  
+  // Premium Light
+  "pearl-royal": {
+    label: "Pearl & Royal",
+    group: "Premium Light",
     colors: {
-      light: {
-        background: "#f1f5f9",
-        foreground: "#0f172a",
-        primary: "#3b82f6",
-        card: "#ffffff",
-        muted: "#e2e8f0",
-        border: "#cbd5e1",
-      },
-      dark: {
-        background: "#0f172a",
-        foreground: "#f1f5f9",
-        primary: "#60a5fa",
-        card: "#1e293b",
-        muted: "#334155",
-        border: "#475569",
-      },
-    },
+      light: { background: "#fdfdfc", foreground: "#172033", primary: "#1d4ed8", card: "#ffffff", muted: "#f3f4f6", border: "#e5e7eb" },
+      dark: { background: "#101623", foreground: "#fdfdfc", primary: "#3b82f6", card: "#161e2e", muted: "#1f2937", border: "#374151" }
+    }
   },
-  violet: {
-    label: "Violet Night",
-    emoji: "🔮",
+  "ivory-navy": {
+    label: "Ivory & Deep Navy",
+    group: "Premium Light",
     colors: {
-      light: {
-        background: "#f0ebff",
-        foreground: "#1e0a3c",
-        primary: "#7c3aed",
-        card: "#faf8ff",
-        muted: "#ddd6fe",
-        border: "#b9a8f5",
-      },
-      dark: {
-        background: "#0a0614",
-        foreground: "#e8d8ff",
-        primary: "#a855f7",
-        card: "#16082a",
-        muted: "#220d38",
-        border: "#2e1248",
-      },
-    },
+      light: { background: "#fffff8", foreground: "#0a192f", primary: "#112240", card: "#ffffff", muted: "#f2f2eb", border: "#e6e6dc" },
+      dark: { background: "#050d1a", foreground: "#fffff8", primary: "#64ffda", card: "#0a192f", muted: "#112240", border: "#233554" }
+    }
   },
+  "cloud-indigo": {
+    label: "Cloud & Indigo",
+    group: "Premium Light",
+    colors: {
+      light: { background: "#f8fafc", foreground: "#1e1b4b", primary: "#4f46e5", card: "#ffffff", muted: "#e0e7ff", border: "#c7d2fe" },
+      dark: { background: "#0f172a", foreground: "#f8fafc", primary: "#6366f1", card: "#1e293b", muted: "#312e81", border: "#4338ca" }
+    }
+  },
+  "warm-copper": {
+    label: "Warm White & Copper",
+    group: "Premium Light",
+    colors: {
+      light: { background: "#fffbf7", foreground: "#2d1606", primary: "#b76e22", card: "#ffffff", muted: "#f5eadc", border: "#e8d5c4" },
+      dark: { background: "#1a1005", foreground: "#fffbf7", primary: "#d97706", card: "#2b1a08", muted: "#452a0d", border: "#5c3811" }
+    }
+  },
+
+  // AI Neon
+  "indigo-cyan": {
+    label: "Deep Indigo & Cyan",
+    group: "AI Neon",
+    colors: {
+      light: { background: "#f0fdfa", foreground: "#042f2e", primary: "#06b6d4", card: "#ffffff", muted: "#ccfbf1", border: "#99f6e4" },
+      dark: { background: "#070c27", foreground: "#ecfeff", primary: "#06b6d4", card: "#101538", muted: "#1e2454", border: "#2c3370" }
+    }
+  },
+  "charcoal-lavender": {
+    label: "Charcoal & Lavender",
+    group: "AI Neon",
+    colors: {
+      light: { background: "#fdfcff", foreground: "#1c192b", primary: "#8b5cf6", card: "#ffffff", muted: "#f5f3ff", border: "#ede9fe" },
+      dark: { background: "#121214", foreground: "#f9f8fc", primary: "#a78bfa", card: "#1c1c1f", muted: "#27272a", border: "#3f3f46" }
+    }
+  },
+
+  // Calm Learning
+  "arctic-teal": {
+    label: "Arctic & Teal",
+    group: "Calm Learning",
+    colors: {
+      light: { background: "#f4fcfc", foreground: "#0f3a40", primary: "#0d9488", card: "#ffffff", muted: "#e6f6f5", border: "#b2e3e0" },
+      dark: { background: "#041517", foreground: "#f4fcfc", primary: "#14b8a6", card: "#0a272b", muted: "#134249", border: "#1f5e67" }
+    }
+  },
+  "forest-mint": {
+    label: "Forest & Mint",
+    group: "Calm Learning",
+    colors: {
+      light: { background: "#f2fbf5", foreground: "#143a21", primary: "#10b981", card: "#ffffff", muted: "#d1fae5", border: "#a7f3d0" },
+      dark: { background: "#021209", foreground: "#f0fdf4", primary: "#10b981", card: "#062413", muted: "#0f3d24", border: "#175936" }
+    }
+  },
+  
+  // Creative
+  "sand-burgundy": {
+    label: "Sand & Burgundy",
+    group: "Creative",
+    colors: {
+      light: { background: "#fdf8f5", foreground: "#4a1220", primary: "#9f1239", card: "#ffffff", muted: "#f5e6e1", border: "#ebd0c8" },
+      dark: { background: "#1a080d", foreground: "#fdf8f5", primary: "#e11d48", card: "#2a1017", muted: "#4a1c29", border: "#6b273b" }
+    }
+  },
+  "rose-plum": {
+    label: "Rose Quartz & Plum",
+    group: "Creative",
+    colors: {
+      light: { background: "#fff5f7", foreground: "#4c0519", primary: "#be123c", card: "#ffffff", muted: "#ffe4e6", border: "#fecdd3" },
+      dark: { background: "#200612", foreground: "#fff1f2", primary: "#f43f5e", card: "#330a1c", muted: "#4f102b", border: "#73173e" }
+    }
+  },
+  
+  // Monochrome / Default
+  "default": {
+    label: "Slate & Sapphire (Default)",
+    group: "Monochrome",
+    colors: {
+      light: { background: "#f8fafc", foreground: "#0f172a", primary: "#334155", card: "#ffffff", muted: "#f1f5f9", border: "#e2e8f0" },
+      dark: { background: "#0f172a", foreground: "#f8fafc", primary: "#94a3b8", card: "#1e293b", muted: "#334155", border: "#475569" }
+    }
+  },
+  "slate-sapphire": {
+    label: "Slate & Sapphire",
+    group: "Monochrome",
+    colors: {
+      light: { background: "#f8fafc", foreground: "#0f172a", primary: "#334155", card: "#ffffff", muted: "#f1f5f9", border: "#e2e8f0" },
+      dark: { background: "#0f172a", foreground: "#f8fafc", primary: "#94a3b8", card: "#1e293b", muted: "#334155", border: "#475569" }
+    }
+  }
 };
 
 // ─── Hex → oklch helpers (approximation via RGB) ─────────────────────────────
@@ -216,8 +229,18 @@ function buildCssVars(colors: ThemeColors, mode: ColorMode): Record<string, stri
     ? hexToOklch(colors.foreground)    // on dark, primary text is dark bg
     : "oklch(0.98 0.008 85)";
 
+  const bgGlow = mode === "dark" 
+    ? `color-mix(in oklab, ${pr} 12%, ${bg})`
+    : `color-mix(in oklab, ${pr} 6%, ${bg})`;
+    
+  const bgEdge = mode === "dark"
+    ? `color-mix(in oklab, #000 45%, ${bg})`
+    : `color-mix(in oklab, ${mt} 35%, ${bg})`;
+
   return {
     "--background": bg,
+    "--bg-glow": bgGlow,
+    "--bg-edge": bgEdge,
     "--foreground": fg,
     "--card": cd,
     "--card-foreground": fg,
@@ -349,17 +372,17 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     if (typeof window !== "undefined") {
       try {
         if (localStorage.getItem("dsa-theme-version") !== "7") {
-          return PRESETS.default.colors;
+          return PRESETS["default"].colors;
         }
         const saved = localStorage.getItem(THEME_CUSTOM_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved) as { colors: ThemeCustom; preset: string | null };
-          if (parsed?.preset === "default") return PRESETS.default.colors;
+          if (parsed?.preset === "default") return PRESETS["default"].colors;
           if (parsed?.colors) return parsed.colors;
         }
       } catch {}
     }
-    return PRESETS.default.colors;
+    return PRESETS["default"].colors;
   });
 
   const [activePreset, setActivePreset] = useState<string | null>(() => {

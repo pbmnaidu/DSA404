@@ -322,30 +322,30 @@ export function MergedTodayProfile() {
  const userNameDisplay = displayName || user?.displayName || user?.email?.split("@")[0] || "Coder";
 
  const timeBasedGreeting = useMemo(() => {
- const hour = new Date().getHours();
+  const hour = new Date().getHours();
 
- if (hour >= 5 && hour < 12) {
- return {
- greeting: `Good morning, ${userNameDisplay}! ☀️`,
- subtext: "Fresh morning start! Target: Tackle today's core problems & build your DSA momentum.",
- };
- } else if (hour >= 12 && hour < 17) {
- return {
- greeting: `Good afternoon, ${userNameDisplay}! 🌤️`,
- subtext: "Mid-day coding boost! Target: Solve today's problems & sharpen your DSA patterns.",
- };
- } else if (hour >= 17 && hour < 21) {
- return {
- greeting: `Good evening, ${userNameDisplay}! 🌙`,
- subtext: "Evening sprint! Target: Clear today's checklist and keep your streak alive.",
- };
- } else {
- return {
- greeting: `Late night coding, ${userNameDisplay}! 🌌`,
- subtext: "Night owl mode activated! Target: Conquer today's problems before calling it a day.",
- };
- }
- }, [userNameDisplay]);
+  if (hour >= 5 && hour < 12) {
+    return {
+      greeting: `Good morning, ${userNameDisplay}! ☀️`,
+      subtext: "Every great system was built one component at a time. Write code today that your future self will thank you for.",
+    };
+  } else if (hour >= 12 && hour < 17) {
+    return {
+      greeting: `Good afternoon, ${userNameDisplay}! 🌤️`,
+      subtext: "Consistency outpaces intensity. A single problem solved today compounds into mastery tomorrow.",
+    };
+  } else if (hour >= 17 && hour < 21) {
+    return {
+      greeting: `Good evening, ${userNameDisplay}! 🌙`,
+      subtext: "The day isn't over until you say it is. Push through the resistance and secure your progress.",
+    };
+  } else {
+    return {
+      greeting: `Late night coding, ${userNameDisplay}! 🌌`,
+      subtext: "While the world sleeps, the dedicated build. Conquer the silence, solve the problem, and earn your rest.",
+    };
+  }
+}, [userNameDisplay]);
 
  // Solved problems snapshots
  const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
@@ -509,7 +509,7 @@ export function MergedTodayProfile() {
  }, [days, submissions]);
 
  return (
- <div className="min-h-screen bg-background text-foreground pb-16 animate-fade-in selection:bg-muted">
+ <div className="min-h-screen text-foreground pb-16 animate-fade-in selection:bg-muted">
  <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8 space-y-12 pt-6">
 
  {/* ── PAUSED ALERT ── */}
@@ -537,103 +537,112 @@ export function MergedTodayProfile() {
  )}
 
  {/* ── MISSION HERO ── */}
- <header className="relative overflow-hidden rounded-[2rem] border border-border bg-primary /[0.08]   p-5 shadow-sm sm:p-8">
- <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-muted blur-3xl" />
- <div className="pointer-events-none absolute -bottom-32 left-1/3 size-64 rounded-full bg-warning/[0.08] blur-3xl" />
+<header className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground p-6 shadow-sm border border-primary/20">
+  {/* subtle background pattern or gradient */}
+  <div className="absolute inset-0 bg-gradient-to-br from-black/5 to-transparent pointer-events-none" />
 
- <div className="relative flex flex-col gap-8 xl:flex-row xl:items-center xl:gap-12">
- <div className="min-w-0 flex-1 space-y-5">
- <div className="flex flex-wrap items-center gap-2">
- <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-bold text-primary">
- <Target className="size-3.5" aria-hidden="true" />
- <span>Today's Mission</span>
- </div>
- <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground">
- <CalendarIcon className="size-3.5" aria-hidden="true" />
- Day {displayedDay?.dayNumber ?? 1} of {days.length || 1}
- </span>
- </div>
+  <div className="relative flex flex-col gap-6 xl:flex-row xl:items-start xl:gap-8">
+     {/* Left Content (Title, Subtitle, Progress Cards) */}
+     <div className="flex-1 flex flex-col min-w-0 h-full">
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+           <div className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1.5 text-xs font-bold text-primary-foreground">
+              <Target className="size-3.5" aria-hidden="true" />
+              <span>Today's Mission</span>
+           </div>
+           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1.5 text-xs font-medium text-primary-foreground">
+              <CalendarIcon className="size-3.5" aria-hidden="true" />
+              Day {displayedDay?.dayNumber ?? 1} of {days.length || 1}
+           </span>
+        </div>
 
- <div className="space-y-3">
- <h1 className="font-display text-4xl font-black leading-[0.98] tracking-tight text-foreground sm:text-5xl">
- {timeBasedGreeting.greeting.split(',')[0]}
- <span className="mt-2 block text-2xl text-foreground sm:text-3xl">{userNameDisplay}.</span>
- </h1>
- <p className="max-w-2xl text-sm leading-relaxed text-foreground sm:text-base">
- {timeBasedGreeting.subtext}
- </p>
- </div>
+        <div>
+           <h1 className="font-display text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl">
+              {timeBasedGreeting.greeting.split(',')[0]}
+              <span className="block text-2xl font-medium text-primary-foreground/80 mt-1.5">{userNameDisplay}.</span>
+           </h1>
+           <p className="mt-3 text-base sm:text-lg leading-relaxed text-primary-foreground/80 max-w-xl">
+              {timeBasedGreeting.subtext}
+           </p>
+        </div>
 
- <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
- <div className="rounded-lg border border-border bg-background p-4">
- <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-foreground">Today's progress</div>
- <div className="mt-2 flex items-end gap-1">
- <span className="text-2xl font-black text-foreground">{missionSolvedCount}</span>
- <span className="pb-0.5 text-sm text-foreground">/ {missionTotalCount}</span>
- </div>
- <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
- <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${missionProgress}%` }} />
- </div>
- </div>
- <div className="rounded-lg border border-warning bg-warning/[0.06] p-4">
- <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-warning dark:text-warning">
- <Flame className="size-3.5" aria-hidden="true" /> Current streak
- </div>
- <div className="mt-2 text-2xl font-black text-foreground">{streakCount} <span className="text-sm font-semibold text-foreground">days</span></div>
- <div className="mt-1 text-xs text-foreground">Next milestone: {nextStreakMilestone} days</div>
- </div>
- <div className="rounded-lg border border-border bg-background p-4">
- <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-foreground">Journey built</div>
- <div className="mt-2 text-2xl font-black text-foreground">{journeyProgress}%</div>
- <div className="mt-1 text-xs text-foreground">Keep showing up, one day at a time.</div>
- </div>
- </div>
- </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-auto pt-8">
+           {/* Progress Cards redesigned (clean, subtle borders, 12-16px radius, aligned metrics) */}
+           <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col text-card-foreground">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Today's Progress</span>
+              <div className="flex items-end gap-1 mb-3">
+                 <span className="text-2xl font-bold leading-none">{missionSolvedCount}</span>
+                 <span className="text-sm text-muted-foreground pb-0.5">/ {missionTotalCount}</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-muted mt-auto overflow-hidden">
+                 <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${missionProgress}%` }} />
+              </div>
+           </div>
 
- <MissionWelcomeMascot name={userNameDisplay} />
+           <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col text-card-foreground">
+              <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-warning mb-2">
+                 <Flame className="size-3.5" /> Current Streak
+              </span>
+              <div className="flex items-end gap-1 mb-1">
+                 <span className="text-2xl font-bold leading-none">{streakCount}</span>
+                 <span className="text-sm font-medium text-muted-foreground pb-0.5">days</span>
+              </div>
+              <span className="text-xs text-muted-foreground mt-auto">Next milestone: {nextStreakMilestone}</span>
+           </div>
 
- <div className="flex w-full min-w-0 items-center justify-center pointer-events-auto xl:w-[280px] xl:shrink-0">
- <TodayMissionOrbit
- topic={sanitizedDay?.topic}
- solvedCount={missionSolvedCount}
- totalCount={missionTotalCount}
- streakCount={streakCount}
- totalSolved={stats.total}
- activeBadgeCount={badges.filter((badge) => badge.earned).length}
- />
- </div>
- </div>
+           <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col text-card-foreground">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Journey</span>
+              <div className="text-2xl font-bold leading-none mb-1">{journeyProgress}%</div>
+              <span className="text-xs text-muted-foreground mt-auto">Keep showing up.</span>
+           </div>
+        </div>
+     </div>
 
- <div className="relative mt-8 border-t border-border pt-5">
- <div className="mb-3 flex items-center justify-between gap-4 text-xs">
- <span className="font-bold uppercase tracking-[0.16em] text-foreground">Your learning arc</span>
- <span className="font-semibold text-primary">{journeyProgress}% complete</span>
- </div>
- <div className="relative h-2 rounded-full bg-white/20">
- <div className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-700" style={{ width: `${journeyProgress}%` }} />
- <div className="absolute inset-x-0 -top-1.5 flex justify-between">
- {Array.from({ length: 5 }).map((_, index) => {
- const isReached = index / 4 <= journeyProgress / 100;
- return (
- <span
- key={index}
- className={cn(
- "size-5 rounded-full border-4 border-card transition-colors",
- isReached ? "bg-primary ring-[3px] ring-primary/15" : "bg-white/40"
- )}
- aria-hidden="true"
- />
- );
- })}
- </div>
- </div>
- <div className="mt-3 flex justify-between text-[11px] font-medium text-foreground">
- <span>Started</span>
- <span>Building consistency</span>
- <span>Next chapter</span>
- </div>
- </div>
- </header>
+     {/* Right Content (Assistant & Orbit/Visuals) */}
+     <div className="flex flex-col gap-6 xl:w-[320px] shrink-0">
+        <MissionWelcomeMascot name={userNameDisplay} />
+        
+        <div className="flex items-center justify-center bg-background rounded-xl border border-border p-4 shadow-sm h-full min-h-[220px]">
+           <TodayMissionOrbit
+             topic={sanitizedDay?.topic}
+             solvedCount={missionSolvedCount}
+             totalCount={missionTotalCount}
+             streakCount={streakCount}
+             badges={badges}
+           />
+        </div>
+     </div>
+  </div>
+
+  {/* Learning Arc - bottom row */}
+  <div className="relative mt-8 pt-6 border-t border-primary-foreground/20">
+     <div className="flex items-center justify-between gap-4 text-xs mb-3">
+        <span className="font-semibold uppercase tracking-wider text-primary-foreground/70">Your learning arc</span>
+        <span className="font-medium text-primary-foreground">{journeyProgress}% complete</span>
+     </div>
+     <div className="relative h-1.5 rounded-full bg-primary-foreground/20">
+        <div className="absolute inset-y-0 left-0 rounded-full bg-primary-foreground transition-all duration-700" style={{ width: `${journeyProgress}%` }} />
+        <div className="absolute inset-x-0 -top-1.5 flex justify-between">
+           {Array.from({ length: 5 }).map((_, index) => {
+              const isReached = index / 4 <= journeyProgress / 100;
+              return (
+                 <span
+                    key={index}
+                    className={cn(
+                       "size-4 rounded-full border-2 transition-colors",
+                       isReached ? "bg-primary-foreground border-primary ring-2 ring-primary-foreground/30" : "bg-primary-foreground/20 border-primary"
+                    )}
+                 />
+              );
+           })}
+        </div>
+     </div>
+     <div className="mt-3 flex justify-between text-[10px] font-medium text-primary-foreground/70">
+        <span>Started</span>
+        <span>Consistency</span>
+        <span>Next Chapter</span>
+     </div>
+  </div>
+</header>
 
  
  {/* ── WORKSPACE SPLIT ── */}

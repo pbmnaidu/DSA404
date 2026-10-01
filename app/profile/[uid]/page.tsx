@@ -1143,9 +1143,9 @@ export default function PublicProfilePage() {
  }
 
  return (
- <div className="min-h-screen bg-background">
+ <div className="min-h-screen">
  {/* ── Branded top bar ── */}
- <header className="border-b border-border bg-background sticky top-0 z-10">
+ <header className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-10">
  <div className="mx-auto flex max-w-[1400px] items-center gap-2.5 px-4 sm:px-6 lg:px-8 py-3">
  <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:">
  <div className="size-7 rounded-full overflow-hidden border border-border shadow-sm ring-1 ring-primary/20 bg-background shrink-0">
