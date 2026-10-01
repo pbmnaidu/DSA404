@@ -7,12 +7,12 @@ import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
 import { useProblemCompletions } from "@/hooks/useProblemCompletions";
 import {
-  loadOwnerProfile,
-  saveUserProfile,
-  syncPublicSolvedProblems,
-  type CodingProfiles,
-  type CustomLink,
-  type CompletedProblemSnapshot,
+ loadOwnerProfile,
+ saveUserProfile,
+ syncPublicSolvedProblems,
+ type CodingProfiles,
+ type CustomLink,
+ type CompletedProblemSnapshot,
 } from "@/lib/db";
 import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
 import { SubmissionHeatmap } from "@/components/SubmissionHeatmap";
@@ -22,10 +22,10 @@ import { TodayContestsSection } from "@/components/ContestsSection";
 import { TodayMissionOrbit } from "@/components/TodayMissionOrbit";
 import { CodeModal } from "@/components/CodeModal";
 import {
-  getInactivityDays,
-  getRandomQuote,
-  recordActivity,
-  type MotivationalQuote,
+ getInactivityDays,
+ getRandomQuote,
+ recordActivity,
+ type MotivationalQuote,
 } from "@/lib/userActivity";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -33,808 +33,808 @@ import { toast } from "sonner";
 import { formatDate, diffDays, todayIso } from "@/lib/plan";
 import { getChatGPTAiPromptUrl, getChatGPTDayTopicPromptUrl } from "@/lib/aiTutorPrompt";
 import {
-  Camera,
-  Check,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Code2,
-  ExternalLink,
-  Flame,
-  Globe,
-  Image as ImageIcon,
-  Pencil,
-  Plus,
-  Quote,
-  RefreshCw,
-  Share2,
-  Sparkles,
-  Trash2,
-  UserCircle2,
-  ListTodo,
-  Calendar as CalendarIcon,
-  Rocket,
-  HeartHandshake,
-  X,
-  RotateCcw,
-  PauseCircle,
-  PlayCircle,
-  Target,
+ Camera,
+ Check,
+ CheckCircle2,
+ ChevronDown,
+ ChevronUp,
+ Code2,
+ ExternalLink,
+ Flame,
+ Globe,
+ Image as ImageIcon,
+ Pencil,
+ Plus,
+ Quote,
+ RefreshCw,
+ Share2,
+ Sparkles,
+ Trash2,
+ UserCircle2,
+ ListTodo,
+ Calendar as CalendarIcon,
+ Rocket,
+ HeartHandshake,
+ X,
+ RotateCcw,
+ PauseCircle,
+ PlayCircle,
+ Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ── Platform Metadata ────────────────────────────────────────────────────────
 const PLATFORMS: {
-  key: Exclude<keyof CodingProfiles, "customLinks">;
-  label: string;
-  placeholder: string;
-  color: string;
-  bgColor: string;
+ key: Exclude<keyof CodingProfiles, "customLinks">;
+ label: string;
+ placeholder: string;
+ color: string;
+ bgColor: string;
 }[] = [
-    {
-      key: "leetcode",
-      label: "LeetCode",
-      placeholder: "https://leetcode.com/yourname",
-      color: "#FFA116",
-      bgColor: "rgba(255,161,22,0.12)",
-    },
-    {
-      key: "codeforces",
-      label: "Codeforces",
-      placeholder: "https://codeforces.com/profile/yourname",
-      color: "#1F8ACB",
-      bgColor: "rgba(31,138,203,0.12)",
-    },
-    {
-      key: "codechef",
-      label: "CodeChef",
-      placeholder: "https://www.codechef.com/users/yourname",
-      color: "#5B4638",
-      bgColor: "rgba(91,70,56,0.12)",
-    },
-    {
-      key: "atcoder",
-      label: "AtCoder",
-      placeholder: "https://atcoder.jp/users/yourname",
-      color: "#8BC4E8",
-      bgColor: "rgba(139,196,232,0.12)",
-    },
-    {
-      key: "hackerrank",
-      label: "HackerRank",
-      placeholder: "https://www.hackerrank.com/profile/yourname",
-      color: "#00EA64",
-      bgColor: "rgba(0,234,100,0.12)",
-    },
-    {
-      key: "gfg",
-      label: "GeeksforGeeks",
-      placeholder: "https://www.geeksforgeeks.org/user/yourname",
-      color: "#2F8D46",
-      bgColor: "rgba(47,141,70,0.12)",
-    },
-  ];
+ {
+ key: "leetcode",
+ label: "LeetCode",
+ placeholder: "https://leetcode.com/yourname",
+ color: "#FFA116",
+ bgColor: "rgba(255,161,22,0.12)",
+ },
+ {
+ key: "codeforces",
+ label: "Codeforces",
+ placeholder: "https://codeforces.com/profile/yourname",
+ color: "#1F8ACB",
+ bgColor: "rgba(31,138,203,0.12)",
+ },
+ {
+ key: "codechef",
+ label: "CodeChef",
+ placeholder: "https://www.codechef.com/users/yourname",
+ color: "#5B4638",
+ bgColor: "rgba(91,70,56,0.12)",
+ },
+ {
+ key: "atcoder",
+ label: "AtCoder",
+ placeholder: "https://atcoder.jp/users/yourname",
+ color: "#8BC4E8",
+ bgColor: "rgba(139,196,232,0.12)",
+ },
+ {
+ key: "hackerrank",
+ label: "HackerRank",
+ placeholder: "https://www.hackerrank.com/profile/yourname",
+ color: "#00EA64",
+ bgColor: "rgba(0,234,100,0.12)",
+ },
+ {
+ key: "gfg",
+ label: "GeeksforGeeks",
+ placeholder: "https://www.geeksforgeeks.org/user/yourname",
+ color: "#2F8D46",
+ bgColor: "rgba(47,141,70,0.12)",
+ },
+ ];
 
 
 
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+ Tooltip,
+ TooltipContent,
+ TooltipProvider,
+ TooltipTrigger,
 } from "@/components/ui/tooltip";
 
 function ThemedTooltip({ hint, children }: { hint: string; children: React.ReactNode }) {
-  return (
-    <TooltipProvider delayDuration={150}>
-      <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs rounded-xl border border-white/15 bg-popover/95 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-2xl">
-          {hint}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+ return (
+ <TooltipProvider delayDuration={150}>
+ <Tooltip>
+ <TooltipTrigger asChild>{children}</TooltipTrigger>
+ <TooltipContent side="top" className="max-w-xs rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-sm">
+ {hint}
+ </TooltipContent>
+ </Tooltip>
+ </TooltipProvider>
+ );
 }
 
 function MissionWelcomeMascot({ name }: { name: string }) {
-  const [isFirstVisit, setIsFirstVisit] = useState(true);
-  const [mounted, setMounted] = useState(false);
-  const [timeOfDay, setTimeOfDay] = useState<"morning" | "afternoon" | "evening" | "night">("morning");
+ const [isFirstVisit, setIsFirstVisit] = useState(true);
+ const [mounted, setMounted] = useState(false);
+ const [timeOfDay, setTimeOfDay] = useState<"morning" | "afternoon" | "evening" | "night">("morning");
 
-  useEffect(() => {
-    const hour = new Date().getHours();
-    setTimeOfDay(hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night");
-    setMounted(true);
+ useEffect(() => {
+ const hour = new Date().getHours();
+ setTimeOfDay(hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night");
+ setMounted(true);
 
-    try {
-      const visitKey = `dsa404:today-welcome:${todayIso()}`;
-      const hasVisitedToday = window.localStorage.getItem(visitKey) === "true";
-      setIsFirstVisit(!hasVisitedToday);
-      window.localStorage.setItem(visitKey, "true");
-    } catch {
-      // Keep the welcome state when browser storage is unavailable.
-    }
-  }, []);
+ try {
+ const visitKey = `dsa404:today-welcome:${todayIso()}`;
+ const hasVisitedToday = window.localStorage.getItem(visitKey) === "true";
+ setIsFirstVisit(!hasVisitedToday);
+ window.localStorage.setItem(visitKey, "true");
+ } catch {
+ // Keep the welcome state when browser storage is unavailable.
+ }
+ }, []);
 
-  const messages = {
-    morning: "Good morning — let's solve today's problems!",
-    afternoon: "Good afternoon — keep your momentum going!",
-    evening: "Good evening — one focused session can change your day.",
-    night: "Night owl mode — conquer today's problems before bed!",
-  };
-  const message = isFirstVisit ? `Hey ${name}, welcome back! Let's solve your problems.` : messages[timeOfDay];
+ const messages = {
+ morning: "Good morning — let's solve today's problems!",
+ afternoon: "Good afternoon — keep your momentum going!",
+ evening: "Good evening — one focused session can change your day.",
+ night: "Night owl mode — conquer today's problems before bed!",
+ };
+ const message = isFirstVisit ? `Hey ${name}, welcome back! Let's solve your problems.` : messages[timeOfDay];
 
-  return (
-    <div
-      className={cn("hidden min-w-0 flex-1 items-center justify-center gap-3 xl:flex", mounted ? "animate-in fade-in duration-500" : "opacity-0")}
-      aria-live="polite"
-    >
-      <style jsx>{`
-        @keyframes owlWave {
-          0%, 100% { transform: rotate(0deg); }
-          20% { transform: rotate(18deg); }
-          40% { transform: rotate(-12deg); }
-          60% { transform: rotate(18deg); }
-          80% { transform: rotate(-6deg); }
-        }
-        .owl-wave { transform-origin: 80% 85%; animation: owlWave 1.8s ease-in-out 0.25s 2; }
-        @media (prefers-reduced-motion: reduce) { .owl-wave { animation: none; } }
-      `}</style>
-      <div className="relative flex size-16 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-4xl shadow-sm">
-        <span role="img" aria-label="Owl mascot">🦉</span>
-        <span className="owl-wave absolute -right-3 -top-2 text-xl" aria-hidden="true">👋</span>
-      </div>
-      <div className="max-w-[220px] rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm">
-        <p className="text-xs font-bold leading-5 text-foreground">{message}</p>
-        <p className="mt-1 text-[10px] font-medium text-muted-foreground">Your learning companion is ready.</p>
-      </div>
-    </div>
-  );
+ return (
+ <div
+ className={cn("hidden min-w-0 flex-1 items-center justify-center gap-3 xl:flex", mounted ? "animate-in fade-in duration-500" : "opacity-0")}
+ aria-live="polite"
+ >
+ <style jsx>{`
+ @keyframes owlWave {
+ 0%, 100% { transform: rotate(0deg); }
+ 20% { transform: rotate(18deg); }
+ 40% { transform: rotate(-12deg); }
+ 60% { transform: rotate(18deg); }
+ 80% { transform: rotate(-6deg); }
+ }
+ .owl-wave { transform-origin: 80% 85%; animation: owlWave 1.8s ease-in-out 0.25s 2; }
+ @media (prefers-reduced-motion: reduce) { .owl-wave { animation: none; } }
+ `}</style>
+ <div className="relative flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-4xl shadow-sm">
+ <span role="img" aria-label="Owl mascot">🦉</span>
+ <span className="owl-wave absolute -right-3 -top-2 text-xl" aria-hidden="true">👋</span>
+ </div>
+ <div className="max-w-[220px] rounded-lg rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm">
+ <p className="text-xs font-bold leading-5 text-foreground">{message}</p>
+ <p className="mt-1 text-[10px] font-medium text-foreground">Your learning companion is ready.</p>
+ </div>
+ </div>
+ );
 }
 
 export function MergedTodayProfile() {
-  const { user } = useAuth();
-  const { days, loading, shiftSchedule } = usePlan();
-  const { settings, update: updateSettings } = useSettings();
-  const { completed: pbCompleted, submissions } = useProblemCompletions();
-  const [resumingPlan, setResumingPlan] = useState(false);
+ const { user } = useAuth();
+ const { days, loading, shiftSchedule } = usePlan();
+ const { settings, update: updateSettings } = useSettings();
+ const { completed: pbCompleted, submissions } = useProblemCompletions();
+ const [resumingPlan, setResumingPlan] = useState(false);
 
-  const handleResumePlan = useCallback(async () => {
-    setResumingPlan(true);
-    toast.info("Resuming preparation...", {
-      description: "Shifting schedule to today where you left off.",
-    });
-    try {
-      const from = settings.pausedFrom ?? todayIso();
-      const today = todayIso();
-      const finish = await shiftSchedule(from);
-      const gap = Math.max(0, diffDays(from, today));
-      await updateSettings({
-        paused: false,
-        pausedFrom: null,
-        pausedDays: (settings.pausedDays ?? 0) + gap,
-        resumeDate: today,
-      });
-      toast.success("Welcome back!", {
-        description:
-          gap > 0
-            ? `Preparation resumed from today! Schedule shifted forward by ${gap} day(s). New finish date: ${formatDate(finish ?? "")}.`
-            : "Preparation resumed right on schedule.",
-      });
-    } catch (err: any) {
-      toast.error("Failed to resume plan", { description: err?.message || "Please try again." });
-    } finally {
-      setResumingPlan(false);
-    }
-  }, [settings.pausedFrom, settings.pausedDays, shiftSchedule, updateSettings]);
+ const handleResumePlan = useCallback(async () => {
+ setResumingPlan(true);
+ toast.info("Resuming preparation...", {
+ description: "Shifting schedule to today where you left off.",
+ });
+ try {
+ const from = settings.pausedFrom ?? todayIso();
+ const today = todayIso();
+ const finish = await shiftSchedule(from);
+ const gap = Math.max(0, diffDays(from, today));
+ await updateSettings({
+ paused: false,
+ pausedFrom: null,
+ pausedDays: (settings.pausedDays ?? 0) + gap,
+ resumeDate: today,
+ });
+ toast.success("Welcome back!", {
+ description:
+ gap > 0
+ ? `Preparation resumed from today! Schedule shifted forward by ${gap} day(s). New finish date: ${formatDate(finish ?? "")}.`
+ : "Preparation resumed right on schedule.",
+ });
+ } catch (err: any) {
+ toast.error("Failed to resume plan", { description: err?.message || "Please try again." });
+ } finally {
+ setResumingPlan(false);
+ }
+ }, [settings.pausedFrom, settings.pausedDays, shiftSchedule, updateSettings]);
 
-  // Selected date from calendar click
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
+ // Selected date from calendar click
+ const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
 
-  // Selected problem for CodeModal viewer in Solved tab
-  const [selectedProblemForModal, setSelectedProblemForModal] = useState<string | null>(null);
+ // Selected problem for CodeModal viewer in Solved tab
+ const [selectedProblemForModal, setSelectedProblemForModal] = useState<string | null>(null);
 
-  // Profile Drawer Edit toggle
-  const [showProfileCard, setShowProfileCard] = useState(false);
+ // Profile Drawer Edit toggle
+ const [showProfileCard, setShowProfileCard] = useState(false);
 
 
-  // Motivational Quote State
-  const [currentQuote, setCurrentQuote] = useState<MotivationalQuote>(getRandomQuote());
+ // Motivational Quote State
+ const [currentQuote, setCurrentQuote] = useState<MotivationalQuote>(getRandomQuote());
 
-  const [displayName, setDisplayName] = useState("");
+ const [displayName, setDisplayName] = useState("");
 
-  // Record visit activity on mount
-  useEffect(() => {
-    if (user?.uid) recordActivity(user.uid);
-  }, [user]);
+ // Record visit activity on mount
+ useEffect(() => {
+ if (user?.uid) recordActivity(user.uid);
+ }, [user]);
 
-  // Keep public profile solved problems & activity heatmap automatically in sync
-  useEffect(() => {
-    if (!user?.uid || loading) return;
-    const timer = setTimeout(() => {
-      void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions).catch((err) => {
-        console.warn("Background public solved problems sync failed:", err);
-      });
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [user?.uid, loading, days, pbCompleted, submissions]);
+ // Keep public profile solved problems & activity heatmap automatically in sync
+ useEffect(() => {
+ if (!user?.uid || loading) return;
+ const timer = setTimeout(() => {
+ void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions).catch((err) => {
+ console.warn("Background public solved problems sync failed:", err);
+ });
+ }, 1200);
+ return () => clearTimeout(timer);
+ }, [user?.uid, loading, days, pbCompleted, submissions]);
 
-  // Strictly determine Today's Day:
-  // When paused, freeze reference date to pausedFrom
-  const iso = settings.paused && settings.pausedFrom ? settings.pausedFrom : todayIso();
-  // 1. Look for active (non-skipped) day scheduled for today
-  const todayDay = days.find((d) => d.date === iso && !d.skipped);
-  // 2. If today has no exact date match (e.g. today was skipped or gap), find next active day on or after today
-  const upcomingActive = days.find((d) => d.date >= iso && !d.skipped);
-  // 3. If before plan start date, show first active day
-  const firstActive = days.find((d) => !d.skipped);
-  // 4. If after plan finish date, fallback to last active day
-  const lastActive = days.filter((d) => !d.skipped).at(-1);
-  // Strictly avoid falling back to old unfinished past days
-  const currentDay = todayDay ?? upcomingActive ?? firstActive ?? lastActive ?? days[0];
+ // Strictly determine Today's Day:
+ // When paused, freeze reference date to pausedFrom
+ const iso = settings.paused && settings.pausedFrom ? settings.pausedFrom : todayIso();
+ // 1. Look for active (non-skipped) day scheduled for today
+ const todayDay = days.find((d) => d.date === iso && !d.skipped);
+ // 2. If today has no exact date match (e.g. today was skipped or gap), find next active day on or after today
+ const upcomingActive = days.find((d) => d.date >= iso && !d.skipped);
+ // 3. If before plan start date, show first active day
+ const firstActive = days.find((d) => !d.skipped);
+ // 4. If after plan finish date, fallback to last active day
+ const lastActive = days.filter((d) => !d.skipped).at(-1);
+ // Strictly avoid falling back to old unfinished past days
+ const currentDay = todayDay ?? upcomingActive ?? firstActive ?? lastActive ?? days[0];
 
-  // In Today's workspace tab, strictly display Today's day only (never switch to past days)
-  const displayedDay = currentDay;
-  const isExactlyToday = displayedDay?.date === iso;
-  const isPast = false;
+ // In Today's workspace tab, strictly display Today's day only (never switch to past days)
+ const displayedDay = currentDay;
+ const isExactlyToday = displayedDay?.date === iso;
+ const isPast = false;
 
-  // Strictly filter problems to ensure ONLY problems belonging to today are displayed
-  // (strictly exclude any problems carried over from earlier days)
-  const sanitizedDay = useMemo(() => {
-    if (!displayedDay) return null;
-    return {
-      ...displayedDay,
-      problems: displayedDay.problems.filter(
-        (p) => !p.carriedFromDay || p.carriedFromDay === displayedDay.dayNumber
-      ),
-    };
-  }, [displayedDay]);
+ // Strictly filter problems to ensure ONLY problems belonging to today are displayed
+ // (strictly exclude any problems carried over from earlier days)
+ const sanitizedDay = useMemo(() => {
+ if (!displayedDay) return null;
+ return {
+ ...displayedDay,
+ problems: displayedDay.problems.filter(
+ (p) => !p.carriedFromDay || p.carriedFromDay === displayedDay.dayNumber
+ ),
+ };
+ }, [displayedDay]);
 
-  const todayQueue = sanitizedDay?.problems ?? [];
-  const completedTodayCount = todayQueue.filter((problem) => problem.done).length;
-  const nextIncompleteProblem = todayQueue.find((problem) => !problem.done);
-  const tutorTarget = nextIncompleteProblem?.name || sanitizedDay?.topic || "DSA";
-  const tutorHref = sanitizedDay
-    ? getChatGPTDayTopicPromptUrl({
-        dayNumber: sanitizedDay.dayNumber,
-        topic: sanitizedDay.topic,
-        section: sanitizedDay.section,
-        subtopics: sanitizedDay.subtopics,
-        problems: todayQueue.map((problem) => ({
-          name: problem.name,
-          difficulty: problem.difficulty,
-          platform: problem.platform,
-        })),
-      })
-    : getChatGPTAiPromptUrl(tutorTarget);
-  const nextPlanDay = useMemo(
-    () => days.find((day) => !day.skipped && day.dayNumber > (displayedDay?.dayNumber ?? 0)),
-    [days, displayedDay?.dayNumber]
-  );
+ const todayQueue = sanitizedDay?.problems ?? [];
+ const completedTodayCount = todayQueue.filter((problem) => problem.done).length;
+ const nextIncompleteProblem = todayQueue.find((problem) => !problem.done);
+ const tutorTarget = nextIncompleteProblem?.name || sanitizedDay?.topic || "DSA";
+ const tutorHref = sanitizedDay
+ ? getChatGPTDayTopicPromptUrl({
+ dayNumber: sanitizedDay.dayNumber,
+ topic: sanitizedDay.topic,
+ section: sanitizedDay.section,
+ subtopics: sanitizedDay.subtopics,
+ problems: todayQueue.map((problem) => ({
+ name: problem.name,
+ difficulty: problem.difficulty,
+ platform: problem.platform,
+ })),
+ })
+ : getChatGPTAiPromptUrl(tutorTarget);
+ const nextPlanDay = useMemo(
+ () => days.find((day) => !day.skipped && day.dayNumber > (displayedDay?.dayNumber ?? 0)),
+ [days, displayedDay?.dayNumber]
+ );
 
-  // Calculate user inactivity gap
-  const inactivityInfo = useMemo(() => getInactivityDays(days, user?.uid), [days, user]);
+ // Calculate user inactivity gap
+ const inactivityInfo = useMemo(() => getInactivityDays(days, user?.uid), [days, user]);
 
-  // Streak — standard derived streak from active plan days
-  const streakCount = useMemo(() => currentStreak(days), [days]);
+ // Streak — standard derived streak from active plan days
+ const streakCount = useMemo(() => currentStreak(days), [days]);
 
-  const userNameDisplay = displayName || user?.displayName || user?.email?.split("@")[0] || "Coder";
+ const userNameDisplay = displayName || user?.displayName || user?.email?.split("@")[0] || "Coder";
 
-  const timeBasedGreeting = useMemo(() => {
-    const hour = new Date().getHours();
+ const timeBasedGreeting = useMemo(() => {
+ const hour = new Date().getHours();
 
-    if (hour >= 5 && hour < 12) {
-      return {
-        greeting: `Good morning, ${userNameDisplay}! ☀️`,
-        subtext: "Fresh morning start! Target: Tackle today's core problems & build your DSA momentum.",
-      };
-    } else if (hour >= 12 && hour < 17) {
-      return {
-        greeting: `Good afternoon, ${userNameDisplay}! 🌤️`,
-        subtext: "Mid-day coding boost! Target: Solve today's problems & sharpen your DSA patterns.",
-      };
-    } else if (hour >= 17 && hour < 21) {
-      return {
-        greeting: `Good evening, ${userNameDisplay}! 🌙`,
-        subtext: "Evening sprint! Target: Clear today's checklist and keep your streak alive.",
-      };
-    } else {
-      return {
-        greeting: `Late night coding, ${userNameDisplay}! 🌌`,
-        subtext: "Night owl mode activated! Target: Conquer today's problems before calling it a day.",
-      };
-    }
-  }, [userNameDisplay]);
+ if (hour >= 5 && hour < 12) {
+ return {
+ greeting: `Good morning, ${userNameDisplay}! ☀️`,
+ subtext: "Fresh morning start! Target: Tackle today's core problems & build your DSA momentum.",
+ };
+ } else if (hour >= 12 && hour < 17) {
+ return {
+ greeting: `Good afternoon, ${userNameDisplay}! 🌤️`,
+ subtext: "Mid-day coding boost! Target: Solve today's problems & sharpen your DSA patterns.",
+ };
+ } else if (hour >= 17 && hour < 21) {
+ return {
+ greeting: `Good evening, ${userNameDisplay}! 🌙`,
+ subtext: "Evening sprint! Target: Clear today's checklist and keep your streak alive.",
+ };
+ } else {
+ return {
+ greeting: `Late night coding, ${userNameDisplay}! 🌌`,
+ subtext: "Night owl mode activated! Target: Conquer today's problems before calling it a day.",
+ };
+ }
+ }, [userNameDisplay]);
 
-  // Solved problems snapshots
-  const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
-    const seen = new Set<string>();
-    const list: CompletedProblemSnapshot[] = [];
-    const today = new Date().toISOString().slice(0, 10);
+ // Solved problems snapshots
+ const completedProblems = useMemo<CompletedProblemSnapshot[]>(() => {
+ const seen = new Set<string>();
+ const list: CompletedProblemSnapshot[] = [];
+ const today = new Date().toISOString().slice(0, 10);
 
-    for (const day of days) {
-      for (const p of day.problems) {
-        if (p.done && !seen.has(p.name)) {
-          seen.add(p.name);
-          const sub = submissions[p.name];
-          const platLink = getCanonicalProblemLink(p.name) || p.link || "";
-          const rawPlat = p.platform || "DSA";
-          const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
-          const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
-          const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
-          list.push({
-            name: p.name,
-            platform: normPlat,
-            difficulty: p.difficulty || "Medium",
-            link: platLink,
-            completedAt,
-            submittedAt,
-            topic: day.topic,
-            section: day.section,
-            ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
-          });
-        }
-      }
-    }
+ for (const day of days) {
+ for (const p of day.problems) {
+ if (p.done && !seen.has(p.name)) {
+ seen.add(p.name);
+ const sub = submissions[p.name];
+ const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+ const rawPlat = p.platform || "DSA";
+ const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+ const completedAt = p.completedAt?.slice(0, 10) || sub?.submittedAt?.slice(0, 10) || day.date || today;
+ const submittedAt = sub?.submittedAt || p.completedAt || new Date().toISOString();
+ list.push({
+ name: p.name,
+ platform: normPlat,
+ difficulty: p.difficulty || "Medium",
+ link: platLink,
+ completedAt,
+ submittedAt,
+ topic: day.topic,
+ section: day.section,
+ ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+ });
+ }
+ }
+ }
 
-    for (const fp of ALL_PROBLEMS) {
-      if (pbCompleted.has(fp.name) && !seen.has(fp.name)) {
-        seen.add(fp.name);
-        const sub = submissions[fp.name];
-        const platLink = getCanonicalProblemLink(fp.name) || fp.link || "";
-        const rawPlat = fp.platform || "DSA";
-        const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
-        const completedAt = sub?.submittedAt?.slice(0, 10) || today;
-        const submittedAt = sub?.submittedAt || new Date().toISOString();
-        list.push({
-          name: fp.name,
-          platform: normPlat,
-          difficulty: fp.difficulty || "Medium",
-          link: platLink,
-          completedAt,
-          submittedAt,
-          topic: fp.topic,
-          section: fp.sheet,
-          ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
-        });
-      }
-    }
+ for (const fp of ALL_PROBLEMS) {
+ if (pbCompleted.has(fp.name) && !seen.has(fp.name)) {
+ seen.add(fp.name);
+ const sub = submissions[fp.name];
+ const platLink = getCanonicalProblemLink(fp.name) || fp.link || "";
+ const rawPlat = fp.platform || "DSA";
+ const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+ const completedAt = sub?.submittedAt?.slice(0, 10) || today;
+ const submittedAt = sub?.submittedAt || new Date().toISOString();
+ list.push({
+ name: fp.name,
+ platform: normPlat,
+ difficulty: fp.difficulty || "Medium",
+ link: platLink,
+ completedAt,
+ submittedAt,
+ topic: fp.topic,
+ section: fp.sheet,
+ ...(sub ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+ });
+ }
+ }
 
-    // Also include any submissions that were submitted on Problems tab or CodeModal
-    for (const [probName, sub] of Object.entries(submissions ?? {})) {
-      if (!probName || seen.has(probName)) continue;
-      seen.add(probName);
-      const platLink = getCanonicalProblemLink(probName) || sub.link || "";
-      const rawPlat = (sub as any).platform || "DSA";
-      const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
-      const completedAt = sub.submittedAt?.slice(0, 10) || today;
-      const submittedAt = sub.submittedAt || new Date().toISOString();
-      list.push({
-        name: probName,
-        platform: normPlat,
-        difficulty: ((sub as any).difficulty || "Medium") as any,
-        link: platLink,
-        completedAt,
-        submittedAt,
-        topic: (sub as any).topic || "Problems",
-        section: (sub as any).section || "Problems Tab",
-        ...(sub.code ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
-      });
-    }
+ // Also include any submissions that were submitted on Problems tab or CodeModal
+ for (const [probName, sub] of Object.entries(submissions ?? {})) {
+ if (!probName || seen.has(probName)) continue;
+ seen.add(probName);
+ const platLink = getCanonicalProblemLink(probName) || sub.link || "";
+ const rawPlat = (sub as any).platform || "DSA";
+ const normPlat = (rawPlat === "GFG" || rawPlat.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : rawPlat;
+ const completedAt = sub.submittedAt?.slice(0, 10) || today;
+ const submittedAt = sub.submittedAt || new Date().toISOString();
+ list.push({
+ name: probName,
+ platform: normPlat,
+ difficulty: ((sub as any).difficulty || "Medium") as any,
+ link: platLink,
+ completedAt,
+ submittedAt,
+ topic: (sub as any).topic || "Problems",
+ section: (sub as any).section || "Problems Tab",
+ ...(sub.code ? { code: sub.code, submissionLink: sub.link || platLink, keyPoints: sub.keyPoints } : {}),
+ });
+ }
 
-    return list;
-  }, [days, pbCompleted, submissions]);
+ return list;
+ }, [days, pbCompleted, submissions]);
 
-  const stats = useMemo(() => {
-    const byPlatform: Record<string, number> = {};
-    for (const p of completedProblems) {
-      const plat = (p.platform === "GFG" || p.platform?.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : (p.platform || "DSA");
-      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
-    }
-    return { total: completedProblems.length, byPlatform };
-  }, [completedProblems]);
+ const stats = useMemo(() => {
+ const byPlatform: Record<string, number> = {};
+ for (const p of completedProblems) {
+ const plat = (p.platform === "GFG" || p.platform?.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : (p.platform || "DSA");
+ byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
+ }
+ return { total: completedProblems.length, byPlatform };
+ }, [completedProblems]);
 
-  const badges = useMemo(() => computeBadges(days), [days]);
-  const earnedBadgeCount = useMemo(() => badges.filter((badge) => badge.earned).length, [badges]);
+ const badges = useMemo(() => computeBadges(days), [days]);
+ const earnedBadgeCount = useMemo(() => badges.filter((badge) => badge.earned).length, [badges]);
 
-  const missionSolvedCount = sanitizedDay?.problems?.filter((problem) => problem.done).length ?? 0;
-  const missionTotalCount = sanitizedDay?.problems?.length ?? 0;
-  const missionProgress = missionTotalCount > 0
-    ? Math.round((missionSolvedCount / missionTotalCount) * 100)
-    : 0;
-  const journeyProgress = days.length > 0
-    ? Math.min(100, Math.round(((displayedDay?.dayNumber ?? 1) / days.length) * 100))
-    : 0;
-  const nextStreakMilestone = streakCount < 3 ? 3 : streakCount < 7 ? 7 : Math.ceil((streakCount + 1) / 7) * 7;
+ const missionSolvedCount = sanitizedDay?.problems?.filter((problem) => problem.done).length ?? 0;
+ const missionTotalCount = sanitizedDay?.problems?.length ?? 0;
+ const missionProgress = missionTotalCount > 0
+ ? Math.round((missionSolvedCount / missionTotalCount) * 100)
+ : 0;
+ const journeyProgress = days.length > 0
+ ? Math.min(100, Math.round(((displayedDay?.dayNumber ?? 1) / days.length) * 100))
+ : 0;
+ const nextStreakMilestone = streakCount < 3 ? 3 : streakCount < 7 ? 7 : Math.ceil((streakCount + 1) / 7) * 7;
 
-  // Heatmap dataset
-  const { heatmapData, detailMap } = useMemo(() => {
-    const dateMap = new Map<string, any[]>();
+ // Heatmap dataset
+ const { heatmapData, detailMap } = useMemo(() => {
+ const dateMap = new Map<string, any[]>();
 
-    for (const day of days) {
-      const doneProbs = day.problems.filter((p) => p.done);
-      for (const p of doneProbs) {
-        const dateStr = p.completedAt || day.date;
-        const sub = submissions[p.name];
-        const platLink = getCanonicalProblemLink(p.name) || p.link || "";
-        const item = {
-          ...p,
-          submissionLink: sub?.link || (p as any).submissionLink || platLink || undefined,
-          code: sub?.code || (p as any).code || undefined,
-          keyPoints: sub?.keyPoints || (p as any).keyPoints || undefined,
-        };
-        const existing = dateMap.get(dateStr) ?? [];
-        dateMap.set(dateStr, [...existing, item]);
-      }
-    }
+ for (const day of days) {
+ const doneProbs = day.problems.filter((p) => p.done);
+ for (const p of doneProbs) {
+ const dateStr = p.completedAt || day.date;
+ const sub = submissions[p.name];
+ const platLink = getCanonicalProblemLink(p.name) || p.link || "";
+ const item = {
+ ...p,
+ submissionLink: sub?.link || (p as any).submissionLink || platLink || undefined,
+ code: sub?.code || (p as any).code || undefined,
+ keyPoints: sub?.keyPoints || (p as any).keyPoints || undefined,
+ };
+ const existing = dateMap.get(dateStr) ?? [];
+ dateMap.set(dateStr, [...existing, item]);
+ }
+ }
 
-    for (const [probName, sub] of Object.entries(submissions)) {
-      if (sub.submittedAt) {
-        const dateStr = sub.submittedAt.slice(0, 10);
-        const existing = dateMap.get(dateStr) ?? [];
-        if (!existing.some((p) => p.name === probName)) {
-          const platLink = getCanonicalProblemLink(probName) || "";
-          dateMap.set(dateStr, [
-            ...existing,
-            {
-              name: probName,
-              done: true,
-              platform: "Problems Tab",
-              submissionLink: sub.link || platLink || undefined,
-              code: sub.code || undefined,
-              keyPoints: sub.keyPoints || undefined,
-            },
-          ]);
-        }
-      }
-    }
+ for (const [probName, sub] of Object.entries(submissions)) {
+ if (sub.submittedAt) {
+ const dateStr = sub.submittedAt.slice(0, 10);
+ const existing = dateMap.get(dateStr) ?? [];
+ if (!existing.some((p) => p.name === probName)) {
+ const platLink = getCanonicalProblemLink(probName) || "";
+ dateMap.set(dateStr, [
+ ...existing,
+ {
+ name: probName,
+ done: true,
+ platform: "Problems Tab",
+ submissionLink: sub.link || platLink || undefined,
+ code: sub.code || undefined,
+ keyPoints: sub.keyPoints || undefined,
+ },
+ ]);
+ }
+ }
+ }
 
-    const hData: { date: string; solved: number }[] = [];
-    const dMap: Record<string, any[]> = {};
+ const hData: { date: string; solved: number }[] = [];
+ const dMap: Record<string, any[]> = {};
 
-    dateMap.forEach((probs, dateStr) => {
-      hData.push({ date: dateStr, solved: probs.length });
-      dMap[dateStr] = probs;
-    });
+ dateMap.forEach((probs, dateStr) => {
+ hData.push({ date: dateStr, solved: probs.length });
+ dMap[dateStr] = probs;
+ });
 
-    const todayStr = todayIso();
-    for (const day of days) {
-      if (!day.skipped && !dateMap.has(day.date) && day.date <= todayStr) {
-        hData.push({ date: day.date, solved: 0 });
-      }
-    }
+ const todayStr = todayIso();
+ for (const day of days) {
+ if (!day.skipped && !dateMap.has(day.date) && day.date <= todayStr) {
+ hData.push({ date: day.date, solved: 0 });
+ }
+ }
 
-    return { heatmapData: hData, detailMap: dMap };
-  }, [days, submissions]);
+ return { heatmapData: hData, detailMap: dMap };
+ }, [days, submissions]);
 
-  return (
-    <div className="min-h-screen bg-background text-foreground pb-16 animate-fade-in selection:bg-primary/20">
-      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8 space-y-12 pt-6">
+ return (
+ <div className="min-h-screen bg-background text-foreground pb-16 animate-fade-in selection:bg-muted">
+ <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8 space-y-12 pt-6">
 
-        {/* ── PAUSED ALERT ── */}
-        {settings.paused && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <PauseCircle className="size-5 text-amber-500 animate-pulse" />
-              <div className="space-y-0.5">
-                <h3 className="text-sm font-bold text-amber-500">Plan Paused (Day {displayedDay?.dayNumber})</h3>
-                <p className="text-xs text-amber-500/80">
-                  Paused on {formatDate(settings.pausedFrom ?? "")}. Your streak is protected.
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={handleResumePlan}
-              disabled={resumingPlan}
-              size="sm"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs"
-            >
-              <PlayCircle className="size-4 mr-1.5" />
-              {resumingPlan ? "Resuming..." : "Resume Catch Up"}
-            </Button>
-          </div>
-        )}
+ {/* ── PAUSED ALERT ── */}
+ {settings.paused && (
+ <div className="rounded-lg border border-border bg-muted p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+ <div className="flex items-center gap-3">
+ <PauseCircle className="size-5 text-warning animate-pulse" />
+ <div className="space-y-0.5">
+ <h3 className="text-sm font-bold text-warning">Plan Paused (Day {displayedDay?.dayNumber})</h3>
+ <p className="text-xs text-foreground">
+ Paused on {formatDate(settings.pausedFrom ?? "")}. Your streak is protected.
+ </p>
+ </div>
+ </div>
+ <Button
+ onClick={handleResumePlan}
+ disabled={resumingPlan}
+ size="sm"
+ className="bg-warning hover:bg-warning text-black font-bold text-xs"
+ >
+ <PlayCircle className="size-4 mr-1.5" />
+ {resumingPlan ? "Resuming..." : "Resume Catch Up"}
+ </Button>
+ </div>
+ )}
 
-        {/* ── MISSION HERO ── */}
-        <header className="relative overflow-hidden rounded-[2rem] border border-primary/15 bg-gradient-to-br from-primary/[0.08] via-card to-card p-5 shadow-sm sm:p-8">
-          <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-primary/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-32 left-1/3 size-64 rounded-full bg-amber-500/[0.08] blur-3xl" />
+ {/* ── MISSION HERO ── */}
+ <header className="relative overflow-hidden rounded-[2rem] border border-border bg-primary /[0.08]   p-5 shadow-sm sm:p-8">
+ <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-muted blur-3xl" />
+ <div className="pointer-events-none absolute -bottom-32 left-1/3 size-64 rounded-full bg-warning/[0.08] blur-3xl" />
 
-          <div className="relative flex flex-col gap-8 xl:flex-row xl:items-center xl:gap-12">
-            <div className="min-w-0 flex-1 space-y-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
-                  <Target className="size-3.5" aria-hidden="true" />
-                  <span>Today's Mission</span>
-                </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                  <CalendarIcon className="size-3.5" aria-hidden="true" />
-                  Day {displayedDay?.dayNumber ?? 1} of {days.length || 1}
-                </span>
-              </div>
+ <div className="relative flex flex-col gap-8 xl:flex-row xl:items-center xl:gap-12">
+ <div className="min-w-0 flex-1 space-y-5">
+ <div className="flex flex-wrap items-center gap-2">
+ <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-bold text-primary">
+ <Target className="size-3.5" aria-hidden="true" />
+ <span>Today's Mission</span>
+ </div>
+ <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground">
+ <CalendarIcon className="size-3.5" aria-hidden="true" />
+ Day {displayedDay?.dayNumber ?? 1} of {days.length || 1}
+ </span>
+ </div>
 
-              <div className="space-y-3">
-                <h1 className="font-display text-4xl font-black leading-[0.98] tracking-tight text-foreground sm:text-5xl">
-                  {timeBasedGreeting.greeting.split(',')[0]}
-                  <span className="mt-2 block text-2xl text-muted-foreground sm:text-3xl">{userNameDisplay}.</span>
-                </h1>
-                <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  {timeBasedGreeting.subtext}
-                </p>
-              </div>
+ <div className="space-y-3">
+ <h1 className="font-display text-4xl font-black leading-[0.98] tracking-tight text-foreground sm:text-5xl">
+ {timeBasedGreeting.greeting.split(',')[0]}
+ <span className="mt-2 block text-2xl text-foreground sm:text-3xl">{userNameDisplay}.</span>
+ </h1>
+ <p className="max-w-2xl text-sm leading-relaxed text-foreground sm:text-base">
+ {timeBasedGreeting.subtext}
+ </p>
+ </div>
 
-              <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border/80 bg-background/70 p-4">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Today's progress</div>
-                  <div className="mt-2 flex items-end gap-1">
-                    <span className="text-2xl font-black text-foreground">{missionSolvedCount}</span>
-                    <span className="pb-0.5 text-sm text-muted-foreground">/ {missionTotalCount}</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${missionProgress}%` }} />
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-orange-500/20 bg-orange-500/[0.06] p-4">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-600 dark:text-orange-400">
-                    <Flame className="size-3.5" aria-hidden="true" /> Current streak
-                  </div>
-                  <div className="mt-2 text-2xl font-black text-foreground">{streakCount} <span className="text-sm font-semibold text-muted-foreground">days</span></div>
-                  <div className="mt-1 text-xs text-muted-foreground">Next milestone: {nextStreakMilestone} days</div>
-                </div>
-                <div className="rounded-2xl border border-border/80 bg-background/70 p-4">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Journey built</div>
-                  <div className="mt-2 text-2xl font-black text-foreground">{journeyProgress}%</div>
-                  <div className="mt-1 text-xs text-muted-foreground">Keep showing up, one day at a time.</div>
-                </div>
-              </div>
-            </div>
+ <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
+ <div className="rounded-lg border border-border bg-background p-4">
+ <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-foreground">Today's progress</div>
+ <div className="mt-2 flex items-end gap-1">
+ <span className="text-2xl font-black text-foreground">{missionSolvedCount}</span>
+ <span className="pb-0.5 text-sm text-foreground">/ {missionTotalCount}</span>
+ </div>
+ <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+ <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${missionProgress}%` }} />
+ </div>
+ </div>
+ <div className="rounded-lg border border-warning bg-warning/[0.06] p-4">
+ <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-warning dark:text-warning">
+ <Flame className="size-3.5" aria-hidden="true" /> Current streak
+ </div>
+ <div className="mt-2 text-2xl font-black text-foreground">{streakCount} <span className="text-sm font-semibold text-foreground">days</span></div>
+ <div className="mt-1 text-xs text-foreground">Next milestone: {nextStreakMilestone} days</div>
+ </div>
+ <div className="rounded-lg border border-border bg-background p-4">
+ <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-foreground">Journey built</div>
+ <div className="mt-2 text-2xl font-black text-foreground">{journeyProgress}%</div>
+ <div className="mt-1 text-xs text-foreground">Keep showing up, one day at a time.</div>
+ </div>
+ </div>
+ </div>
 
-            <MissionWelcomeMascot name={userNameDisplay} />
+ <MissionWelcomeMascot name={userNameDisplay} />
 
-            <div className="flex w-full min-w-0 items-center justify-center pointer-events-auto xl:w-[280px] xl:shrink-0">
-              <TodayMissionOrbit
-                topic={sanitizedDay?.topic}
-                solvedCount={missionSolvedCount}
-                totalCount={missionTotalCount}
-                streakCount={streakCount}
-                totalSolved={stats.total}
-                activeBadgeCount={badges.filter((badge) => badge.earned).length}
-              />
-            </div>
-          </div>
+ <div className="flex w-full min-w-0 items-center justify-center pointer-events-auto xl:w-[280px] xl:shrink-0">
+ <TodayMissionOrbit
+ topic={sanitizedDay?.topic}
+ solvedCount={missionSolvedCount}
+ totalCount={missionTotalCount}
+ streakCount={streakCount}
+ totalSolved={stats.total}
+ activeBadgeCount={badges.filter((badge) => badge.earned).length}
+ />
+ </div>
+ </div>
 
-          <div className="relative mt-8 border-t border-border/70 pt-5">
-            <div className="mb-3 flex items-center justify-between gap-4 text-xs">
-              <span className="font-bold uppercase tracking-[0.16em] text-muted-foreground">Your learning arc</span>
-              <span className="font-semibold text-primary">{journeyProgress}% complete</span>
-            </div>
-            <div className="relative h-2 rounded-full bg-muted">
-              <div className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary via-primary to-amber-500 transition-[width] duration-700" style={{ width: `${journeyProgress}%` }} />
-              <div className="absolute inset-x-0 -top-1.5 flex justify-between">
-                {Array.from({ length: 5 }).map((_, index) => {
-                  const isReached = index / 4 <= journeyProgress / 100;
-                  return (
-                    <span
-                      key={index}
-                      className={cn(
-                        "size-5 rounded-full border-4 border-card transition-colors",
-                        isReached ? "bg-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]" : "bg-muted-foreground/25"
-                      )}
-                      aria-hidden="true"
-                    />
-                  );
-                })}
-              </div>
-            </div>
-            <div className="mt-3 flex justify-between text-[11px] font-medium text-muted-foreground">
-              <span>Started</span>
-              <span>Building consistency</span>
-              <span>Next chapter</span>
-            </div>
-          </div>
-        </header>
+ <div className="relative mt-8 border-t border-border pt-5">
+ <div className="mb-3 flex items-center justify-between gap-4 text-xs">
+ <span className="font-bold uppercase tracking-[0.16em] text-foreground">Your learning arc</span>
+ <span className="font-semibold text-primary">{journeyProgress}% complete</span>
+ </div>
+ <div className="relative h-2 rounded-full bg-muted">
+ <div className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-700" style={{ width: `${journeyProgress}%` }} />
+ <div className="absolute inset-x-0 -top-1.5 flex justify-between">
+ {Array.from({ length: 5 }).map((_, index) => {
+ const isReached = index / 4 <= journeyProgress / 100;
+ return (
+ <span
+ key={index}
+ className={cn(
+ "size-5 rounded-full border-4 border-card transition-colors",
+ isReached ? "bg-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]" : "bg-muted-foreground/25"
+ )}
+ aria-hidden="true"
+ />
+ );
+ })}
+ </div>
+ </div>
+ <div className="mt-3 flex justify-between text-[11px] font-medium text-foreground">
+ <span>Started</span>
+ <span>Building consistency</span>
+ <span>Next chapter</span>
+ </div>
+ </div>
+ </header>
 
-        
-        {/* ── WORKSPACE SPLIT ── */}
-        <div className="grid grid-cols-1 gap-8 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.8fr)] xl:gap-10">
-          
-          {/* PRIMARY LEARNING COLUMN (Left side, 8 cols) */}
-          <main className="min-w-0 space-y-10">
-            
-            {/* Topic Context (Editorial Style) */}
-            {sanitizedDay && (
-              <section className="space-y-5">
-                <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                  <Target className="size-5 text-primary" /> Current Topic
-                </h2>
-                <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden p-1">
-                  <DayDetail
-                    day={sanitizedDay}
-                    readOnly={false}
-                    lateMode={false}
-                    headerOnly
-                    hideContests
-                  />
-                </div>
-              </section>
-            )}
+ 
+ {/* ── WORKSPACE SPLIT ── */}
+ <div className="grid grid-cols-1 gap-8 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.8fr)] xl:gap-10">
+ 
+ {/* PRIMARY LEARNING COLUMN (Left side, 8 cols) */}
+ <main className="min-w-0 space-y-10">
+ 
+ {/* Topic Context (Editorial Style) */}
+ {sanitizedDay && (
+ <section className="space-y-5">
+ <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+ <Target className="size-5 text-primary" /> Current Topic
+ </h2>
+ <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden p-1">
+ <DayDetail
+ day={sanitizedDay}
+ readOnly={false}
+ lateMode={false}
+ headerOnly
+ hideContests
+ />
+ </div>
+ </section>
+ )}
 
-            {/* Main Problem Queue */}
-            {sanitizedDay && (
-              <section className="space-y-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                    <ListTodo className="size-5 text-primary" /> Daily Problem List
-                  </h2>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-                    {sanitizedDay.problems.filter(p => p.done).length} / {sanitizedDay.problems.length} Done
-                  </span>
-                </div>
-                
-                {/* The actual problems wrapped cleanly */}
-                <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden p-2 sm:p-6">
-                  <DayDetail
-                    day={sanitizedDay}
-                    readOnly={false}
-                    lateMode={false}
-                    hideHeader
-                    hideContests
-                  />
-                </div>
-              </section>
-            )}
-            
-            {/* Review Queue (Placeholder) */}
-            <section className="space-y-5">
-              <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                <RotateCcw className="size-5 text-amber-500" /> Review Queue
-              </h2>
-              <div className="rounded-3xl border border-amber-500/20 bg-amber-500/5 shadow-sm p-8 text-center flex flex-col items-center justify-center">
-                <RotateCcw className="size-8 text-amber-500/50 mb-3" />
-                <h3 className="font-bold text-amber-900 dark:text-amber-100 mb-1">Spaced Repetition</h3>
-                <p className="text-sm text-amber-700/80 dark:text-amber-300/80 max-w-sm mb-4">No problems due for review today. Keep pushing forward!</p>
-              </div>
-            </section>
-            
-          </main>
+ {/* Main Problem Queue */}
+ {sanitizedDay && (
+ <section className="space-y-5">
+ <div className="flex items-center justify-between">
+ <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+ <ListTodo className="size-5 text-primary" /> Daily Problem List
+ </h2>
+ <span className="text-xs font-bold uppercase tracking-wider text-foreground bg-secondary px-3 py-1 rounded-full">
+ {sanitizedDay.problems.filter(p => p.done).length} / {sanitizedDay.problems.length} Done
+ </span>
+ </div>
+ 
+ {/* The actual problems wrapped cleanly */}
+ <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden p-2 sm:p-6">
+ <DayDetail
+ day={sanitizedDay}
+ readOnly={false}
+ lateMode={false}
+ hideHeader
+ hideContests
+ />
+ </div>
+ </section>
+ )}
+ 
+ {/* Review Queue (Placeholder) */}
+ <section className="space-y-5">
+ <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+ <RotateCcw className="size-5 text-warning" /> Review Queue
+ </h2>
+ <div className="rounded-lg border border-border bg-muted shadow-sm p-8 text-center flex flex-col items-center justify-center">
+ <RotateCcw className="size-8 text-foreground mb-3" />
+ <h3 className="font-bold text-warning dark:text-warning mb-1">Spaced Repetition</h3>
+ <p className="text-sm text-foreground dark:text-foreground max-w-sm mb-4">No problems due for review today. Keep pushing forward!</p>
+ </div>
+ </section>
+ 
+ </main>
 
-          {/* SECONDARY SIDEBAR (Right side, 4 cols) */}
-          <aside className="min-w-0 space-y-8 xl:sticky xl:top-6 xl:self-start">
-            
-            {/* Progress Summary & Consistency */}
-            <section className="space-y-4">
-              <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
-                Progress Summary
-              </h2>
-              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
-              </div>
-            </section>
+ {/* SECONDARY SIDEBAR (Right side, 4 cols) */}
+ <aside className="min-w-0 space-y-8 xl:sticky xl:top-6 xl:self-start">
+ 
+ {/* Progress Summary & Consistency */}
+ <section className="space-y-4">
+ <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
+ Progress Summary
+ </h2>
+ <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+ <SubmissionHeatmap data={heatmapData} detailMap={detailMap} />
+ </div>
+ </section>
 
-            {/* Weekly Completion & Milestones */}
-            <section className="space-y-4">
-              <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
-                Milestones
-              </h2>
-              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-6">
-                <div>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className="text-muted-foreground font-bold uppercase tracking-wider">Problems Solved</span>
-                    <span className="font-black text-primary">{stats.total}</span>
-                  </div>
-                  <Progress value={Math.min(100, (stats.total / (ALL_PROBLEMS.length || 1)) * 100)} className="h-2" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className="text-muted-foreground font-bold uppercase tracking-wider">Badges Earned</span>
-                    <span className="font-black text-emerald-500">{earnedBadgeCount}</span>
-                  </div>
-                  <Progress value={Math.min(100, (earnedBadgeCount / 10) * 100)} className="h-2" />
-                </div>
-              </div>
-            </section>
-            
-            {/* AI Tutor Entry Point */}
-            <section className="space-y-4">
-              <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
-                AI Assistance
-              </h2>
-              <div className="rounded-3xl border border-purple-500/30 bg-purple-500/10 p-6 shadow-sm relative overflow-hidden group hover:border-purple-500/50 transition-colors cursor-pointer">
-                <div className="absolute -right-4 -top-4 size-24 bg-purple-500/20 blur-2xl rounded-full group-hover:bg-purple-500/30 transition-all"></div>
-                <Sparkles className="size-6 text-purple-500 mb-3 relative z-10" />
-                <h3 className="font-bold text-foreground mb-1 relative z-10">AI Coding Tutor</h3>
-                <p className="text-xs text-muted-foreground relative z-10 mb-4">Stuck on a problem? Ask your AI tutor for a conceptual hint without revealing the code.</p>
-                <Button asChild size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold relative z-10">
-                  <a
-                    href={tutorHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Launch AI tutor for ${tutorTarget}`}
-                  >
-                    Launch Tutor
-                  </a>
-                </Button>
-              </div>
-            </section>
-            
-            {/* Recommendations */}
-            <section className="space-y-4">
-              <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
-                Recommended Next
-              </h2>
-              <div className="rounded-3xl border border-primary/20 bg-primary/5 p-5 shadow-sm">
-                {nextIncompleteProblem ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Continue today</p>
-                      <h3 className="mt-2 break-words text-base font-bold leading-6 text-foreground">{nextIncompleteProblem.name}</h3>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        {nextIncompleteProblem.difficulty} · {nextIncompleteProblem.platform || "DSA"} · {completedTodayCount}/{todayQueue.length} complete
-                      </p>
-                    </div>
-                    <Button asChild size="sm" className="w-full font-bold">
-                      <Link href={`/day/${displayedDay?.dayNumber ?? ""}`}>Open today&apos;s queue</Link>
-                    </Button>
-                  </div>
-                ) : nextPlanDay ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Up next</p>
-                      <h3 className="mt-2 break-words text-base font-bold leading-6 text-foreground">{nextPlanDay.topic || nextPlanDay.section}</h3>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">Preview Day {nextPlanDay.dayNumber} and prepare for the next topic.</p>
-                    </div>
-                    <Button asChild size="sm" variant="outline" className="w-full font-bold">
-                      <Link href={`/day/${nextPlanDay.dayNumber}`}>Preview next day</Link>
-                    </Button>
-                  </div>
-                ) : completedTodayCount > 0 ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Today complete</p>
-                      <h3 className="mt-2 text-base font-bold leading-6 text-foreground">Keep the momentum going</h3>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">Review a solved problem or strengthen a weak topic.</p>
-                    </div>
-                    <Button asChild size="sm" variant="outline" className="w-full font-bold">
-                      <Link href="/review">Open review queue</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Ready when you are</p>
-                      <h3 className="mt-2 text-base font-bold leading-6 text-foreground">Start today&apos;s learning mission</h3>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">Your next step will appear here once today&apos;s plan is available.</p>
-                    </div>
-                    <Button asChild size="sm" className="w-full font-bold">
-                      <Link href="/problems">Browse problems</Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </section>
+ {/* Weekly Completion & Milestones */}
+ <section className="space-y-4">
+ <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
+ Milestones
+ </h2>
+ <div className="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
+ <div>
+ <div className="flex justify-between text-xs mb-2">
+ <span className="text-foreground font-bold uppercase tracking-wider">Problems Solved</span>
+ <span className="font-black text-primary">{stats.total}</span>
+ </div>
+ <Progress value={Math.min(100, (stats.total / (ALL_PROBLEMS.length || 1)) * 100)} className="h-2" />
+ </div>
+ <div>
+ <div className="flex justify-between text-xs mb-2">
+ <span className="text-foreground font-bold uppercase tracking-wider">Badges Earned</span>
+ <span className="font-black text-success">{earnedBadgeCount}</span>
+ </div>
+ <Progress value={Math.min(100, (earnedBadgeCount / 10) * 100)} className="h-2" />
+ </div>
+ </div>
+ </section>
+ 
+ {/* AI Tutor Entry Point */}
+ <section className="space-y-4">
+ <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
+ AI Assistance
+ </h2>
+ <div className="rounded-lg border border-border bg-muted p-6 shadow-sm relative overflow-hidden group hover:border-border transition-colors cursor-pointer">
+ <div className="absolute -right-4 -top-4 size-24 bg-muted blur-2xl rounded-full group-hover:bg-muted transition-all"></div>
+ <Sparkles className="size-6 text-primary mb-3 relative z-10" />
+ <h3 className="font-bold text-foreground mb-1 relative z-10">AI Coding Tutor</h3>
+ <p className="text-xs text-foreground relative z-10 mb-4">Stuck on a problem? Ask your AI tutor for a conceptual hint without revealing the code.</p>
+ <Button asChild size="sm" className="w-full bg-primary hover:bg-primary text-white font-bold relative z-10">
+ <a
+ href={tutorHref}
+ target="_blank"
+ rel="noreferrer"
+ aria-label={`Launch AI tutor for ${tutorTarget}`}
+ >
+ Launch Tutor
+ </a>
+ </Button>
+ </div>
+ </section>
+ 
+ {/* Recommendations */}
+ <section className="space-y-4">
+ <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
+ Recommended Next
+ </h2>
+ <div className="rounded-lg border border-border bg-muted p-5 shadow-sm">
+ {nextIncompleteProblem ? (
+ <div className="space-y-4">
+ <div>
+ <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Continue today</p>
+ <h3 className="mt-2 break-words text-base font-bold leading-6 text-foreground">{nextIncompleteProblem.name}</h3>
+ <p className="mt-1 text-xs leading-5 text-foreground">
+ {nextIncompleteProblem.difficulty} · {nextIncompleteProblem.platform || "DSA"} · {completedTodayCount}/{todayQueue.length} complete
+ </p>
+ </div>
+ <Button asChild size="sm" className="w-full font-bold">
+ <Link href={`/day/${displayedDay?.dayNumber ?? ""}`}>Open today&apos;s queue</Link>
+ </Button>
+ </div>
+ ) : nextPlanDay ? (
+ <div className="space-y-4">
+ <div>
+ <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Up next</p>
+ <h3 className="mt-2 break-words text-base font-bold leading-6 text-foreground">{nextPlanDay.topic || nextPlanDay.section}</h3>
+ <p className="mt-1 text-xs leading-5 text-foreground">Preview Day {nextPlanDay.dayNumber} and prepare for the next topic.</p>
+ </div>
+ <Button asChild size="sm" variant="outline" className="w-full font-bold">
+ <Link href={`/day/${nextPlanDay.dayNumber}`}>Preview next day</Link>
+ </Button>
+ </div>
+ ) : completedTodayCount > 0 ? (
+ <div className="space-y-4">
+ <div>
+ <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Today complete</p>
+ <h3 className="mt-2 text-base font-bold leading-6 text-foreground">Keep the momentum going</h3>
+ <p className="mt-1 text-xs leading-5 text-foreground">Review a solved problem or strengthen a weak topic.</p>
+ </div>
+ <Button asChild size="sm" variant="outline" className="w-full font-bold">
+ <Link href="/review">Open review queue</Link>
+ </Button>
+ </div>
+ ) : (
+ <div className="space-y-4">
+ <div>
+ <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Ready when you are</p>
+ <h3 className="mt-2 text-base font-bold leading-6 text-foreground">Start today&apos;s learning mission</h3>
+ <p className="mt-1 text-xs leading-5 text-foreground">Your next step will appear here once today&apos;s plan is available.</p>
+ </div>
+ <Button asChild size="sm" className="w-full font-bold">
+ <Link href="/problems">Browse problems</Link>
+ </Button>
+ </div>
+ )}
+ </div>
+ </section>
 
-            {/* Keep contests in the open right-side workspace, not below the full dashboard. */}
-            <section className="min-w-0 pt-2" aria-label="Today&apos;s contests and competitions">
-              <TodayContestsSection />
-            </section>
+ {/* Keep contests in the open right-side workspace, not below the full dashboard. */}
+ <section className="min-w-0 pt-2" aria-label="Today&apos;s contests and competitions">
+ <TodayContestsSection />
+ </section>
 
-          </aside>
+ </aside>
 
-        </div>
+ </div>
 
-        
+ 
 
-        {/* Code Modal for viewing stored solutions from Solved tab */}
-        <CodeModal
-          open={!!selectedProblemForModal}
-          onOpenChange={(open) => !open && setSelectedProblemForModal(null)}
-          problemName={selectedProblemForModal ?? ""}
-          existingSubmission={selectedProblemForModal ? submissions[selectedProblemForModal] : undefined}
-          onSave={async () => { }}
-          readOnly={true}
-        />
-      </div>
-    </div>
-  );
+ {/* Code Modal for viewing stored solutions from Solved tab */}
+ <CodeModal
+ open={!!selectedProblemForModal}
+ onOpenChange={(open) => !open && setSelectedProblemForModal(null)}
+ problemName={selectedProblemForModal ?? ""}
+ existingSubmission={selectedProblemForModal ? submissions[selectedProblemForModal] : undefined}
+ onSave={async () => { }}
+ readOnly={true}
+ />
+ </div>
+ </div>
+ );
 }

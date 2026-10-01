@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: 'dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#000000' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+    { media: '(prefers-color-scheme: light)', color: '#F3F0E8' },
+    { media: '(prefers-color-scheme: dark)', color: '#09090B' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -33,6 +33,11 @@ export const viewport: Viewport = {
 const antiFoucScript = `
 (function() {
   try {
+    if (localStorage.getItem('dsa-theme-version') !== '7') {
+      localStorage.removeItem('dsa-tracker-theme-custom');
+      localStorage.removeItem('dsa-theme-mode');
+      localStorage.setItem('dsa-theme-version', '7');
+    }
     if (typeof Element !== 'undefined' && Element.prototype.releasePointerCapture) {
       var origRelease = Element.prototype.releasePointerCapture;
       Element.prototype.releasePointerCapture = function(pointerId) {
@@ -174,11 +179,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* PWA Title Bar & Auxiliary Wizard Window Colors */}
-        <meta name="theme-color" content="#000000" />
-        <meta name="msapplication-navbutton-color" content="#000000" />
+        <meta name="theme-color" content="#09090B" />
+        <meta name="msapplication-navbutton-color" content="#09090B" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         {/* Synchronous anti-FOUC script — applies saved theme, custom colors, and typography before paint */}
         <Script id="anti-fouc" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: antiFoucScript }} />
@@ -189,4 +194,3 @@ export default function RootLayout({
     </html>
   )
 }
-

@@ -27,18 +27,18 @@ export default function ReviewPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Editorial Header */}
-      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+      <div className="rounded-lg border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8  pointer-events-none">
           <BookmarkCheck className="size-48" />
         </div>
         <div className="space-y-2 relative z-10">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+            <div className="size-10 rounded-lg bg-muted border border-border text-primary flex items-center justify-center shrink-0">
               <BookmarkCheck className="size-5" />
             </div>
             <h1 className="text-2xl md:text-3xl font-display font-black tracking-tight text-foreground">Review Workspace</h1>
           </div>
-          <p className="text-sm text-muted-foreground max-w-xl">
+          <p className="text-sm text-foreground max-w-xl">
             Problems you flagged for another look, gathered from every day. Tap the bookmark on a problem in Today to add or remove it.
           </p>
         </div>
@@ -46,18 +46,18 @@ export default function ReviewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <aside className="lg:col-span-4">
-          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
             <TopicReminderSection />
           </div>
         </aside>
 
         <main className="lg:col-span-8 space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
             <BookmarkCheck className="size-4 text-primary" /> Flagged Problems
           </h2>
           {flagged.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-border bg-secondary/30 p-12 text-center text-sm text-muted-foreground flex flex-col items-center gap-3">
-              <BookmarkCheck className="size-8 opacity-40" />
+            <div className="rounded-lg border border-dashed border-border bg-secondary p-12 text-center text-sm text-foreground flex flex-col items-center gap-3">
+              <BookmarkCheck className="size-8 " />
               <p>Nothing flagged yet — use the bookmark button on any problem in Today to send it here.</p>
             </div>
           ) : (
@@ -65,8 +65,8 @@ export default function ReviewPage() {
               {flagged.map(({ day, problem }) => {
                 const isToday = day.date === todayIso();
                 return (
-                  <li key={`${day.dayNumber}-${problem.name}`} className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-primary/40 transition-colors">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+                  <li key={`${day.dayNumber}-${problem.name}`} className="rounded-lg border border-border bg-card p-4 shadow-sm hover:border-border transition-colors">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-2">
                       <span className="text-primary">Day {day.dayNumber}</span>
                       <span>•</span>
                       <span>{formatDate(day.date)}</span>

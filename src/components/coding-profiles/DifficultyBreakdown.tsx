@@ -12,7 +12,7 @@ interface DifficultyBreakdownProps {
 export function DifficultyBreakdown({ easy, medium, hard, total }: DifficultyBreakdownProps) {
   if (easy === null && medium === null && hard === null) {
     return (
-      <div className="text-xs text-muted-foreground/70 italic py-1">
+      <div className="text-xs text-foreground italic py-1">
         Difficulty statistics not provided by platform
       </div>
     );
@@ -29,23 +29,23 @@ export function DifficultyBreakdown({ easy, medium, hard, total }: DifficultyBre
 
   return (
     <div className="space-y-2">
-      <div className="flex h-2 w-full overflow-hidden rounded-full bg-white/10">
-        <div style={{ width: `${ePct}%` }} className="bg-emerald-500 transition-all" title={`Easy: ${e}`} />
-        <div style={{ width: `${mPct}%` }} className="bg-amber-500 transition-all" title={`Medium: ${m}`} />
-        <div style={{ width: `${hPct}%` }} className="bg-rose-500 transition-all" title={`Hard: ${h}`} />
+      <div className="flex h-2 w-full overflow-hidden rounded-full bg-white">
+        <div style={{ width: `${ePct}%` }} className="bg-success transition-all" title={`Easy: ${e}`} />
+        <div style={{ width: `${mPct}%` }} className="bg-warning transition-all" title={`Medium: ${m}`} />
+        <div style={{ width: `${hPct}%` }} className="bg-destructive transition-all" title={`Hard: ${h}`} />
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center text-xs">
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-1.5 sm:p-2">
-          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 block uppercase truncate">Easy</span>
+        <div className="rounded-lg border border-border bg-muted p-1.5 sm:p-2">
+          <span className="text-[10px] sm:text-[11px] font-bold text-success block uppercase truncate">Easy</span>
           <span className="font-extrabold text-xs sm:text-sm text-foreground tabular-nums">{easy !== null ? easy : "N/A"}</span>
         </div>
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-1.5 sm:p-2">
-          <span className="text-[10px] sm:text-[11px] font-bold text-amber-400 block uppercase truncate">Medium</span>
+        <div className="rounded-lg border border-border bg-muted p-1.5 sm:p-2">
+          <span className="text-[10px] sm:text-[11px] font-bold text-warning block uppercase truncate">Medium</span>
           <span className="font-extrabold text-xs sm:text-sm text-foreground tabular-nums">{medium !== null ? medium : "N/A"}</span>
         </div>
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-1.5 sm:p-2">
-          <span className="text-[10px] sm:text-[11px] font-bold text-rose-400 block uppercase truncate">Hard</span>
+        <div className="rounded-lg border border-border bg-muted p-1.5 sm:p-2">
+          <span className="text-[10px] sm:text-[11px] font-bold text-destructive block uppercase truncate">Hard</span>
           <span className="font-extrabold text-xs sm:text-sm text-foreground tabular-nums">{hard !== null ? hard : "N/A"}</span>
         </div>
       </div>

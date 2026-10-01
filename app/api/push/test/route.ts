@@ -140,11 +140,11 @@ export async function POST(req: Request) {
       tokens,
       notification: {
         title: "🚀 FCM Direct Push Test",
-        body: "Direct FCM server-to-device push notification working successfully!",
+        body: "Direct FCM server- push notification working successfully!",
       },
       data: {
         title: "🚀 FCM Direct Push Test",
-        body: "Direct FCM server-to-device push notification working successfully!",
+        body: "Direct FCM server- push notification working successfully!",
         tag: testTag,
         url: "/today",
         sentAt: new Date().toISOString(),

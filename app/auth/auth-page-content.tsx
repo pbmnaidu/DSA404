@@ -414,9 +414,9 @@ export function AuthPageContent() {
 
   const usernameIcon =
     usernameStatus === "checking" ? (
-      <Loader2 className="size-4 animate-spin text-muted-foreground" />
+      <Loader2 className="size-4 animate-spin text-foreground" />
     ) : usernameStatus === "available" ? (
-      <Check className="size-4 text-emerald-500" />
+      <Check className="size-4 text-success" />
     ) : usernameStatus === "taken" || usernameStatus === "invalid" ? (
       <X className="size-4 text-destructive" />
     ) : null;
@@ -426,17 +426,17 @@ export function AuthPageContent() {
       <div className="w-full max-w-md">
         <Link
           href="/"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+          className="mb-6 inline-flex items-center gap-1.5 text-sm text-foreground hover:text-primary transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           Back to home
         </Link>
-        <Card className="w-full max-w-md border-border bg-card shadow-lg">
+        <Card className="w-full max-w-md border-border bg-card shadow-sm">
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <div className="size-8 rounded-lg overflow-hidden border border-border/60 bg-background shrink-0">
+              <div className="size-8 rounded-lg overflow-hidden border border-border bg-background shrink-0">
                 <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
               </div>
               <span className="font-display font-black tracking-tight text-xl leading-none select-none text-foreground">
@@ -484,7 +484,7 @@ export function AuthPageContent() {
                             usernameStatus === "taken" || usernameStatus === "invalid"
                               ? "border-destructive focus-visible:ring-destructive pr-9"
                               : usernameStatus === "available"
-                                ? "border-emerald-500 focus-visible:ring-emerald-500 pr-9"
+                                ? "border-success focus-visible:ring-success pr-9"
                                 : "pr-9"
                           }
                         />
@@ -499,8 +499,8 @@ export function AuthPageContent() {
                           usernameStatus === "taken" || usernameStatus === "invalid"
                             ? "text-destructive"
                             : usernameStatus === "available"
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : "text-muted-foreground"
+                              ? "text-success dark:text-success"
+                              : "text-foreground"
                         }`}
                       >
                         {usernameStatus === "taken"
@@ -526,7 +526,7 @@ export function AuthPageContent() {
                     disabled={busy}
                   />
                   {mode === "signup" && (
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium leading-tight mt-1 flex items-start gap-1">
+                    <p className="text-[11px] text-warning dark:text-warning font-medium leading-tight mt-1 flex items-start gap-1">
                       <span className="shrink-0">💡</span>
                       <span>Please enter a valid email address for receiving your daily roadmap notifications, progress alerts, and password reset links.</span>
                     </p>
@@ -556,7 +556,7 @@ export function AuthPageContent() {
                 <div className="space-y-2 pt-1">
                   <button
                     type="button"
-                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    className="w-full text-sm text-foreground hover:text-foreground transition-colors cursor-pointer"
                     onClick={() => {
                       setMode(mode === "signin" ? "signup" : "signin");
                       setUsernameStatus("idle");
@@ -575,7 +575,7 @@ export function AuthPageContent() {
                     ) : (
                       <button
                         type="button"
-                        className="w-full text-xs text-primary hover:underline disabled:opacity-50 cursor-pointer"
+                        className="w-full text-xs text-primary hover:underline disabled: cursor-pointer"
                         disabled={busy}
                         onClick={handleForgotPassword}
                       >
@@ -587,18 +587,18 @@ export function AuthPageContent() {
               </TabsContent>
 
               <TabsContent value="google" className="pt-2 space-y-4">
-                <div className="rounded-xl border border-border/80 bg-muted/30 p-3.5 text-left space-y-1">
+                <div className="rounded-lg border border-border bg-muted p-3.5 text-left space-y-1">
                   <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                     <Sparkles className="size-3.5 text-primary" /> 1-Click Instant Sign In
                   </p>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <p className="text-[11px] text-foreground leading-relaxed">
                     Sign in or create your account directly with Google. Your unique handle will be automatically secured based on your account.
                   </p>
                 </div>
 
                 <Button
                   variant="outline"
-                  className="w-full cursor-pointer font-medium text-xs gap-2.5 py-3 h-11 border-border/90 hover:bg-muted"
+                  className="w-full cursor-pointer font-medium text-xs gap-2.5 py-3 h-11 border-border hover:bg-muted"
                   disabled={busy}
                   onClick={handleGoogleSignIn}
                 >
@@ -615,29 +615,29 @@ export function AuthPageContent() {
               </TabsContent>
             </Tabs>
 
-            <div className="pt-2 border-t border-border/60">
+            <div className="pt-2 border-t border-border">
               <div className="relative my-2.5">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border/80" />
+                  <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-[10px] uppercase font-mono tracking-wider">
-                  <span className="bg-card px-2 text-muted-foreground">Demo / Instant Guest Access</span>
+                  <span className="bg-card px-2 text-foreground">Demo / Instant Guest Access</span>
                 </div>
               </div>
 
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-11 border-dashed border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-foreground font-bold text-xs gap-2 cursor-pointer shadow-xs transition-all hover:scale-[1.01]"
+                className="w-full h-11 border-dashed border-border bg-muted hover:bg-muted text-foreground font-bold text-xs gap-2 cursor-pointer shadow-xs transition-all hover:scale-[1.01]"
                 onClick={handleGuestLogin}
               >
-                <Sparkles className="size-4 text-amber-500 animate-pulse shrink-0" />
+                <Sparkles className="size-4 text-warning animate-pulse shrink-0" />
                 <span className="truncate">Continue as Guest (3★ Coder Demo)</span>
-                <Badge variant="secondary" className="ml-auto text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono shrink-0">
+                <Badge variant="secondary" className="ml-auto text-[10px] bg-muted text-warning dark:text-warning font-mono shrink-0">
                   Instant Demo
                 </Badge>
               </Button>
-              <p className="mt-1.5 text-center text-[11px] text-muted-foreground leading-tight">
+              <p className="mt-1.5 text-center text-[11px] text-foreground leading-tight">
                 Explore the workspace with an active 3★ coder profile, 348 solved questions, and live CP stats.
               </p>
             </div>

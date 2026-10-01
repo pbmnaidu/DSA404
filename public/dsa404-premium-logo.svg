@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img" aria-labelledby="title desc">
+  <title id="title">DSA 404 premium logo</title>
+  <desc id="desc">A dark navy rounded square containing a violet and cyan algorithm mark, followed by the DSA 404 wordmark.</desc>
+  <defs>
+    <linearGradient id="mark" x1="36" y1="36" x2="236" y2="236" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A78BFA"/>
+      <stop offset="0.52" stop-color="#6D5DF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="304" y1="80" x2="850" y2="238" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DDE5FF"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#050817" flood-opacity="0.42"/>
+    </filter>
+  </defs>
+
+  <!-- Brand mark -->
+  <g filter="url(#shadow)">
+    <rect x="32" y="32" width="256" height="256" rx="64" fill="#0B1024"/>
+    <rect x="33.5" y="33.5" width="253" height="253" rx="62.5" fill="none" stroke="#28345F" stroke-width="3"/>
+    <path d="M93 222V98h40c40 0 65 22 65 62s-25 62-65 62H93Z" fill="none" stroke="url(#mark)" stroke-width="22" stroke-linejoin="round"/>
+    <path d="M147 222l43-124 43 124M161 183h58" fill="none" stroke="url(#mark)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M83 118 66 135l17 17M237 118l17 17-17 17" fill="none" stroke="#22D3EE" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="83" cy="118" r="5" fill="#A78BFA"/>
+    <circle cx="237" cy="118" r="5" fill="#A78BFA"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">
+    <text x="340" y="145" fill="url(#accent)" font-size="92" font-weight="800" letter-spacing="7">DSA</text>
+    <text x="344" y="226" fill="#22D3EE" font-size="56" font-weight="650" letter-spacing="17">404</text>
+    <path d="M535 207h324" stroke="#2A3769" stroke-width="3"/>
+    <path d="M535 207h126" stroke="url(#mark)" stroke-width="3" stroke-linecap="round"/>
+    <text x="681" y="226" fill="#8B96BB" font-size="17" font-weight="600" letter-spacing="4">LEARN · BUILD · SHIP</text>
+  </g>
+</svg>

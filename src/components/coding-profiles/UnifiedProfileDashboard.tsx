@@ -144,10 +144,10 @@ export function UnifiedProfileDashboard({
       <button
         onClick={() => setSelectedPlatform("all")}
         className={cn(
-          "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all shrink-0",
+          "flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-all shrink-0",
           selectedPlatform === "all"
-            ? "bg-primary text-primary-foreground shadow-md"
-            : "bg-card border border-border text-muted-foreground hover:bg-muted"
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "bg-card border border-border text-foreground hover:bg-muted"
         )}
       >
         <Globe className="size-4" /> Global Overview
@@ -160,8 +160,8 @@ export function UnifiedProfileDashboard({
             key={key}
             onClick={() => setSelectedPlatform(key)}
             className={cn(
-              "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all shrink-0 border border-transparent",
-              isActive ? "shadow-md" : "bg-card border-border text-muted-foreground hover:bg-muted"
+              "flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-all shrink-0 border border-transparent",
+              isActive ? "shadow-sm" : "bg-card border-border text-foreground hover:bg-muted"
             )}
             style={isActive ? { backgroundColor: meta.color, color: "#fff" } : {}}
           >
@@ -175,12 +175,12 @@ export function UnifiedProfileDashboard({
   if (activeProfiles.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-sm">
-          <div className="mx-auto size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+        <div className="rounded-lg border border-border bg-card p-12 text-center shadow-sm">
+          <div className="mx-auto size-16 rounded-lg bg-muted flex items-center justify-center text-primary mb-6">
             <Globe className="size-8" />
           </div>
           <h2 className="text-2xl font-display font-bold mb-2">No Platforms Connected</h2>
-          <p className="text-muted-foreground max-w-md mx-auto mb-8">
+          <p className="text-foreground max-w-md mx-auto mb-8">
             Connect your LeetCode, Codeforces, or CodeChef profiles to see your unified analytics workspace.
           </p>
           {!readOnly && <PlatformConnectCard onConnect={handleConnect} existingPlatforms={connectedProfiles} />}
@@ -194,7 +194,7 @@ export function UnifiedProfileDashboard({
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h2 className="text-2xl font-display font-bold tracking-tight break-words">Platform Analytics</h2>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground break-words">Your performance across all competitive programming platforms.</p>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-foreground break-words">Your performance across all competitive programming platforms.</p>
         </div>
         <Button
           type="button"
@@ -226,23 +226,23 @@ export function UnifiedProfileDashboard({
           {/* Main KPI Panel */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 text-foreground mb-4">
                 <Target className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Total Solved</span>
               </div>
-              <div className="text-5xl font-display font-black text-emerald-500 mb-2">{analytics.totalSolvedAcrossPlatforms}</div>
+              <div className="text-5xl font-display font-black text-success mb-2">{analytics.totalSolvedAcrossPlatforms}</div>
             </div>
             
             <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 text-foreground mb-4">
                 <Trophy className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Peak Rating</span>
               </div>
-              <div className="text-5xl font-display font-black text-amber-500 mb-2">
+              <div className="text-5xl font-display font-black text-warning mb-2">
                 {analytics.highestReportedRating ? analytics.highestReportedRating.rating : "N/A"}
               </div>
             </div>
             
             <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 text-foreground mb-4">
                 <PieChart className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Difficulty Split</span>
               </div>
               {aggregateDifficulty.length > 0 ? (
@@ -260,17 +260,17 @@ export function UnifiedProfileDashboard({
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground text-center py-4">No data</div>
+                <div className="text-sm text-foreground text-center py-4">No data</div>
               )}
             </div>
           </div>
 
           {/* Secondary Global Panel */}
           <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm">
-            <div className="flex items-center gap-2 text-muted-foreground mb-6">
+            <div className="flex items-center gap-2 text-foreground mb-6">
               <BarChart3 className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Platform Distribution</span>
             </div>
-            <div className="h-64 min-w-0 w-full overflow-hidden rounded-xl">
+            <div className="h-64 min-w-0 w-full overflow-hidden rounded-lg">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={platformDistribution} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
                   <XAxis type="number" hide />
@@ -292,7 +292,7 @@ export function UnifiedProfileDashboard({
           
           {/* Header Area (Platform Identity) */}
           <div className="flex items-center gap-4">
-             <div className="size-16 rounded-2xl flex items-center justify-center font-bold text-white shadow-md text-2xl" style={{ backgroundColor: selectedMeta?.color }}>
+             <div className="size-16 rounded-lg flex items-center justify-center font-bold text-white shadow-sm text-2xl" style={{ backgroundColor: selectedMeta?.color }}>
                {selectedMeta?.name.slice(0, 2).toUpperCase()}
              </div>
              <div>
@@ -301,7 +301,7 @@ export function UnifiedProfileDashboard({
                  href={resolvePlatformUrl(selectedPlatform, connectedProfiles[selectedPlatform], selectedProfile?.profileUrl)} 
                  target="_blank" 
                  rel="noreferrer"
-                 className="text-sm text-muted-foreground font-mono hover:text-primary flex items-center gap-1 mt-1"
+                 className="text-sm text-foreground font-mono hover:text-primary flex items-center gap-1 mt-1"
                >
                  @{connectedProfiles[selectedPlatform]} <ExternalLink className="size-3" />
                </a>
@@ -311,16 +311,16 @@ export function UnifiedProfileDashboard({
           {/* Primary Area: Large Ranking Graph */}
           <div className="min-w-0 rounded-[2rem] bg-card border border-border p-4 shadow-sm sm:p-6">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-foreground">
                 <TrendingUp className="size-4 text-primary" /> <span className="text-xs font-bold uppercase tracking-wider text-primary">Rating Progression</span>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black" style={{ color: selectedMeta?.color }}>{selectedProfile?.rating || "Unrated"}</span>
-                <span className="text-xs text-muted-foreground block uppercase tracking-wider font-bold">Current Rating</span>
+                <span className="text-xs text-foreground block uppercase tracking-wider font-bold">Current Rating</span>
               </div>
             </div>
             
-            <div className="h-[280px] min-w-0 w-full overflow-hidden rounded-xl sm:h-[350px]">
+            <div className="h-[280px] min-w-0 w-full overflow-hidden rounded-lg sm:h-[350px]">
               {selectedProfile?.ratingHistory && selectedProfile.ratingHistory.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={selectedProfile.ratingHistory} margin={{ top: 20, right: 20, left: 8, bottom: 8 }}>
@@ -355,10 +355,10 @@ export function UnifiedProfileDashboard({
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center border border-dashed border-border rounded-xl">
-                  <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-4"><LineChart className="size-6" /></div>
+                <div className="h-full flex flex-col items-center justify-center border border-dashed border-border rounded-lg">
+                  <div className="size-12 rounded-full bg-muted flex items-center justify-center text-foreground mb-4"><LineChart className="size-6" /></div>
                   <h4 className="font-bold text-lg mb-2">No Contest History</h4>
-                  <p className="text-muted-foreground text-sm max-w-sm text-center">We couldn't find any rated contest history for this platform profile.</p>
+                  <p className="text-foreground text-sm max-w-sm text-center">We couldn't find any rated contest history for this platform profile.</p>
                 </div>
               )}
             </div>
@@ -367,51 +367,51 @@ export function UnifiedProfileDashboard({
           {/* Secondary Area: Difficulty Breakdown & Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-6">Key Metrics</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-6">Key Metrics</h4>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-background rounded-xl p-4 border border-border">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Solved</p>
+                <div className="bg-background rounded-lg p-4 border border-border">
+                  <p className="text-[10px] uppercase font-bold text-foreground mb-1">Solved</p>
                   <p className="text-2xl font-black">{selectedProfile?.totalSolved || 0}</p>
                 </div>
-                <div className="bg-background rounded-xl p-4 border border-border">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Rank</p>
+                <div className="bg-background rounded-lg p-4 border border-border">
+                  <p className="text-[10px] uppercase font-bold text-foreground mb-1">Rank</p>
                   <p className="text-xl font-bold truncate">{selectedProfile?.rank || "N/A"}</p>
                 </div>
-                <div className="bg-background rounded-xl p-4 border border-border">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Contests</p>
-                  <p className="text-2xl font-black text-purple-500">{selectedProfile?.contestsParticipated || 0}</p>
+                <div className="bg-background rounded-lg p-4 border border-border">
+                  <p className="text-[10px] uppercase font-bold text-foreground mb-1">Contests</p>
+                  <p className="text-2xl font-black text-primary">{selectedProfile?.contestsParticipated || 0}</p>
                 </div>
-                <div className="bg-background rounded-xl p-4 border border-border">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Max Rating</p>
-                  <p className="text-2xl font-black text-amber-500">{selectedProfile?.maxRating || selectedProfile?.rating || "N/A"}</p>
+                <div className="bg-background rounded-lg p-4 border border-border">
+                  <p className="text-[10px] uppercase font-bold text-foreground mb-1">Max Rating</p>
+                  <p className="text-2xl font-black text-warning">{selectedProfile?.maxRating || selectedProfile?.rating || "N/A"}</p>
                 </div>
               </div>
             </div>
 
             {(selectedProfile?.easySolved || selectedProfile?.mediumSolved || selectedProfile?.hardSolved) ? (
               <div className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-6">Difficulty Distribution</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-6">Difficulty Distribution</h4>
                 <div className="space-y-5">
                    {selectedProfile.easySolved !== null && (
                      <div>
-                       <div className="flex justify-between text-xs font-bold mb-1.5 text-emerald-500"><span>Easy</span><span>{selectedProfile.easySolved}</span></div>
-                       <div className="h-2 w-full bg-emerald-500/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(selectedProfile.easySolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
+                       <div className="flex justify-between text-xs font-bold mb-1.5 text-success"><span>Easy</span><span>{selectedProfile.easySolved}</span></div>
+                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                         <div className="h-full bg-success rounded-full" style={{ width: `${(selectedProfile.easySolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
                        </div>
                      </div>
                    )}
                    {selectedProfile.mediumSolved !== null && (
                      <div>
-                       <div className="flex justify-between text-xs font-bold mb-1.5 text-amber-500"><span>Medium</span><span>{selectedProfile.mediumSolved}</span></div>
-                       <div className="h-2 w-full bg-amber-500/10 rounded-full overflow-hidden">
-                         <div className="h-full bg-amber-500 rounded-full" style={{ width: `${(selectedProfile.mediumSolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
+                       <div className="flex justify-between text-xs font-bold mb-1.5 text-warning"><span>Medium</span><span>{selectedProfile.mediumSolved}</span></div>
+                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                         <div className="h-full bg-warning rounded-full" style={{ width: `${(selectedProfile.mediumSolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
                        </div>
                      </div>
                    )}
                    {selectedProfile.hardSolved !== null && (
                      <div>
                        <div className="flex justify-between text-xs font-bold mb-1.5 text-destructive"><span>Hard</span><span>{selectedProfile.hardSolved}</span></div>
-                       <div className="h-2 w-full bg-destructive/10 rounded-full overflow-hidden">
+                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                          <div className="h-full bg-destructive rounded-full" style={{ width: `${(selectedProfile.hardSolved / Math.max(selectedProfile.totalSolved || 1, 1)) * 100}%` }} />
                        </div>
                      </div>
@@ -420,8 +420,8 @@ export function UnifiedProfileDashboard({
               </div>
             ) : (
               <div className="rounded-[2rem] border border-border bg-card p-6 shadow-sm flex flex-col items-center justify-center text-center">
-                 <Target className="size-8 text-muted-foreground mb-3 opacity-20" />
-                 <p className="text-sm text-muted-foreground">Difficulty distribution unavailable.</p>
+                 <Target className="size-8 text-foreground mb-3 " />
+                 <p className="text-sm text-foreground">Difficulty distribution unavailable.</p>
               </div>
             )}
           </div>
@@ -429,17 +429,17 @@ export function UnifiedProfileDashboard({
           {/* Bottom Area: Recent Activity */}
           {selectedProfile?.recentSubmissions && selectedProfile.recentSubmissions.length > 0 && (
             <div className="rounded-[2rem] bg-card border border-border p-6 shadow-sm">
-              <div className="flex items-center gap-2 text-muted-foreground mb-6">
+              <div className="flex items-center gap-2 text-foreground mb-6">
                 <Code2 className="size-4" /> <span className="text-xs font-bold uppercase tracking-wider">Recent Submissions</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {selectedProfile.recentSubmissions.slice(0, 6).map((sub, i) => (
-                  <div key={i} className="flex justify-between items-start p-4 rounded-xl bg-background border border-border">
+                  <div key={i} className="flex justify-between items-start p-4 rounded-lg bg-background border border-border">
                     <div className="min-w-0 pr-4">
                        <span className="font-bold text-sm block truncate" title={sub.problemName}>{sub.problemName || "Submission"}</span>
-                       <span className="text-xs text-muted-foreground">{new Date(sub.timestamp).toLocaleDateString()}</span>
+                       <span className="text-xs text-foreground">{new Date(sub.timestamp).toLocaleDateString()}</span>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">{sub.verdict || "Accepted"}</span>
+                    <span className="text-[10px] font-bold text-success bg-muted px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">{sub.verdict || "Accepted"}</span>
                   </div>
                 ))}
               </div>

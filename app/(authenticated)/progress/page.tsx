@@ -39,8 +39,8 @@ import {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/20">
-      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{label}</p>
+    <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-border">
+      <p className="text-[11px] uppercase tracking-wider text-foreground font-medium">{label}</p>
       <p className="mt-1.5 font-display text-2xl font-bold tabular-nums text-foreground">{value}</p>
     </div>
   );
@@ -153,19 +153,19 @@ export default function ProgressPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Editorial Header */}
-      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col lg:flex-row items-start justify-between gap-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+      <div className="rounded-lg border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col lg:flex-row items-start justify-between gap-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8  pointer-events-none">
           <History className="size-48" />
         </div>
         
         <div className="space-y-4 relative z-10 lg:w-1/2">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+            <div className="size-10 rounded-lg bg-muted border border-border text-primary flex items-center justify-center shrink-0">
               <History className="size-5" />
             </div>
             <h1 className="text-2xl md:text-3xl font-display font-black tracking-tight text-foreground">Analytics & Progress</h1>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-foreground">
             Your overall learning analytics, achievement milestones, and schedule modifications.
           </p>
 
@@ -175,7 +175,7 @@ export default function ProgressPage() {
               <span className="tabular-nums text-primary">{stats.combinedPct}%</span>
             </div>
             <Progress value={stats.combinedPct} className="h-3 rounded-full" />
-            <p className="text-xs text-muted-foreground font-mono">
+            <p className="text-xs text-foreground font-mono">
               {stats.combinedDone} of {stats.combinedTotal} problems solved across all modules
             </p>
           </div>
@@ -190,16 +190,16 @@ export default function ProgressPage() {
       </div>
 
       {stats.skippedProblems > 0 && (
-        <div className="rounded-2xl border border-warning/40 bg-warning/10 p-6 flex items-center justify-between gap-4 shadow-sm">
+        <div className="rounded-lg border border-border bg-muted p-6 flex items-center justify-between gap-4 shadow-sm">
           <div>
             <p className="text-sm font-bold text-warning flex items-center gap-2">
               <AlertTriangle className="size-4" /> {stats.skippedProblems} Problems Skipped
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-foreground mt-1">
               Across {stats.skippedDaysCount} skipped days. Restore them in Topics to count towards completion.
             </p>
           </div>
-          <div className="text-2xl font-black text-warning bg-warning/20 px-4 py-2 rounded-xl">
+          <div className="text-2xl font-black text-warning bg-muted px-4 py-2 rounded-lg">
             {stats.skippedProblems}
           </div>
         </div>
@@ -212,29 +212,29 @@ export default function ProgressPage() {
         <div className="lg:col-span-8 space-y-8">
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-2xl border border-border bg-card p-4 text-center">
-              <p className="text-xs text-muted-foreground uppercase font-bold">This Week</p>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <p className="text-xs text-foreground uppercase font-bold">This Week</p>
               <p className="text-2xl font-black text-foreground mt-1">{week.problemsSolved + stats.pbDone}</p>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-4 text-center">
-              <p className="text-xs text-muted-foreground uppercase font-bold">Time (7d)</p>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <p className="text-xs text-foreground uppercase font-bold">Time (7d)</p>
               <p className="text-2xl font-black text-foreground mt-1">{Math.round(week.minutesSpent / 60)}h</p>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-4 text-center">
-              <p className="text-xs text-muted-foreground uppercase font-bold">Active (7d)</p>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <p className="text-xs text-foreground uppercase font-bold">Active (7d)</p>
               <p className="text-2xl font-black text-foreground mt-1">{week.daysActive}/7</p>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-4 text-center">
-              <p className="text-xs text-muted-foreground uppercase font-bold">Longest</p>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <p className="text-xs text-foreground uppercase font-bold">Longest</p>
               <p className="text-2xl font-black text-foreground mt-1">{streaks.longest}d</p>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6 flex items-center gap-2">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-foreground mb-6 flex items-center gap-2">
               <History className="size-4 text-primary" /> Solving Trajectory
             </h2>
-            <div className="h-64 w-full bg-secondary/30 rounded-2xl p-2">
+            <div className="h-64 w-full bg-secondary rounded-lg p-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
                   <defs>
@@ -259,11 +259,11 @@ export default function ProgressPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6 flex items-center gap-2">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-foreground mb-6 flex items-center gap-2">
               <CheckCircle2 className="size-4 text-primary" /> Difficulty Split
             </h2>
-            <div className="h-64 w-full bg-secondary/30 rounded-2xl p-2">
+            <div className="h-64 w-full bg-secondary rounded-lg p-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={split} margin={{ left: -20, right: 8, top: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -278,19 +278,19 @@ export default function ProgressPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                 <History className="size-4 text-primary" /> Schedule History
               </h2>
-              <span className="text-[10px] text-muted-foreground font-mono bg-secondary px-2.5 py-1 rounded-md">
+              <span className="text-[10px] text-foreground font-mono bg-secondary px-2.5 py-1 rounded-md">
                 1-week revert window
               </span>
             </div>
             
             {events.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-secondary/20 p-8 text-center text-sm text-muted-foreground">
-                <History className="mx-auto size-8 opacity-40 mb-3" />
+              <div className="rounded-lg border border-dashed border-border bg-secondary p-8 text-center text-sm text-foreground">
+                <History className="mx-auto size-8  mb-3" />
                 <p className="font-bold text-foreground">No schedule changes recorded yet.</p>
                 <p className="text-xs mt-1">Actions like postponing or skipping will appear here.</p>
               </div>
@@ -302,13 +302,13 @@ export default function ProgressPage() {
                   const dateStr = isValidDate ? dateObj.toLocaleDateString() : "Recent";
                   
                   return (
-                    <li key={e.id} className="rounded-2xl border border-border bg-secondary/10 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary/30 transition-colors">
+                    <li key={e.id} className="rounded-lg border border-border bg-secondary p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-border transition-colors">
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="rounded-md bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">{e.kind}</span>
-                          <span className="text-xs font-mono text-muted-foreground">{dateStr}</span>
+                          <span className="rounded-md bg-muted text-primary border border-border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">{e.kind}</span>
+                          <span className="text-xs font-mono text-foreground">{dateStr}</span>
                           {e.canRevert && (
-                            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Revertible</span>
+                            <span className="text-[10px] font-bold text-success bg-muted px-2 py-0.5 rounded-full">Revertible</span>
                           )}
                         </div>
                         <p className="text-sm font-semibold text-foreground">{e.detail}</p>
@@ -332,10 +332,10 @@ export default function ProgressPage() {
                                 setRevertingId(null);
                               }
                             }}
-                            trigger={<Button variant="outline" size="sm" disabled={revertingId === e.id} className="h-8 gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"><Undo2 className="size-3" /> Revert</Button>}
+                            trigger={<Button variant="outline" size="sm" disabled={revertingId === e.id} className="h-8 gap-2 border-border text-primary hover:bg-muted hover:text-primary"><Undo2 className="size-3" /> Revert</Button>}
                           />
                         ) : (
-                          <Button variant="outline" size="sm" disabled className="h-8 gap-2 opacity-50"><Undo2 className="size-3" /> Expired</Button>
+                          <Button variant="outline" size="sm" disabled className="h-8 gap-2 "><Undo2 className="size-3" /> Expired</Button>
                         )}
                       </div>
                     </li>
@@ -348,14 +348,14 @@ export default function ProgressPage() {
 
         {/* RIGHT COL: Badges, Section Split, Danger Zone */}
         <div className="lg:col-span-4 space-y-8">
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6 flex items-center justify-between">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-foreground mb-6 flex items-center justify-between">
               <span>Badges</span>
               <span className="text-primary">{earned.length}/{badges.length}</span>
             </h2>
             <ul className="grid grid-cols-2 gap-3">
               {badges.map((b, i) => (
-                <li key={b.code} className={b.earned ? "rounded-xl border border-primary/40 bg-primary/10 p-4 text-center" : "rounded-xl border border-border bg-secondary/30 p-4 text-center opacity-50 grayscale"}>
+                <li key={b.code} className={b.earned ? "rounded-lg border border-border bg-muted p-4 text-center" : "rounded-lg border border-border bg-secondary p-4 text-center  grayscale"}>
                   <div className="text-2xl mb-1">{b.earned ? '🏆' : '🔒'}</div>
                   <p className="text-[10px] font-black uppercase text-foreground leading-tight">{b.label}</p>
                 </li>
@@ -363,8 +363,8 @@ export default function ProgressPage() {
             </ul>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6">Topic Progress</h2>
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-foreground mb-6">Topic Progress</h2>
             <div className="space-y-4">
               {sections.map(([section, s]) => (
                 <div key={section} className="space-y-1.5">
@@ -378,9 +378,9 @@ export default function ProgressPage() {
             </div>
           </div>
           
-          <div className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 text-center">
+          <div className="rounded-lg border border-border bg-muted p-6 text-center">
             <h2 className="text-sm font-bold text-destructive mb-2">Danger Zone</h2>
-            <p className="text-xs text-muted-foreground mb-4">Resetting will permanently wipe your plan, notes, and progress.</p>
+            <p className="text-xs text-foreground mb-4">Resetting will permanently wipe your plan, notes, and progress.</p>
             <ConfirmDialog
               title="Reset all progress?"
               description="This regenerates the full 120-day plan from scratch. Every tick, note, and chat message is deleted."

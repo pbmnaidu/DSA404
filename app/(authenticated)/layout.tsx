@@ -124,7 +124,7 @@ function PlanBoundary({
           onComplete={handleOnboardingComplete}
         />
         {/* Faded background while onboarding */}
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-40" />
+        <div className="fixed inset-0 bg-background  z-40" />
       </>
     )
   }

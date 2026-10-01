@@ -53,7 +53,7 @@ export function ConfirmDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         {preview && (
-          <div className="rounded-lg border border-border bg-secondary/60 p-3 text-sm">{preview}</div>
+          <div className="rounded-lg border border-border bg-secondary p-3 text-sm">{preview}</div>
         )}
         {confirmWord && (
           <div className="space-y-1.5">

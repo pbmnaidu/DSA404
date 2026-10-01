@@ -32,8 +32,8 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
 
   if (!history || history.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-muted-foreground/60 italic rounded-3xl border border-dashed border-white/10 bg-background/20">
-        <Trophy className="size-8 text-muted-foreground/30 mb-2" />
+      <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-foreground italic rounded-lg border border-dashed border-border bg-background">
+        <Trophy className="size-8 text-foreground mb-2" />
         <span>Contest history not available for {platformName}</span>
       </div>
     );
@@ -85,12 +85,12 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
   const gradId = `contestFill-${platformName.replace(/\W+/g, "-")}`;
 
   return (
-    <div className="space-y-4 rounded-3xl border border-border/80 bg-card p-5 shadow-sm transition-all">
+    <div className="space-y-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-all">
       {/* Header Info */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
         <div className="flex items-center gap-2.5">
           <div
-            className="flex size-7 items-center justify-center rounded-lg border border-white/10"
+            className="flex size-7 items-center justify-center rounded-lg border border-border"
             style={{ backgroundColor: `${color}1A`, color }}
           >
             <Trophy className="size-4" />
@@ -105,8 +105,8 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
                 {sortedHistory.length} Contests
               </span>
             </div>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-              <MousePointerClick className="size-3 text-muted-foreground/80" />
+            <p className="text-[11px] text-foreground flex items-center gap-1 mt-0.5">
+              <MousePointerClick className="size-3 text-foreground" />
               <span>Click on any node to view contest rating & rank details</span>
             </p>
           </div>
@@ -114,12 +114,12 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
 
         {/* Metric Badges */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-1.5 shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground">Current</span>
+          <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 shadow-sm">
+            <span className="text-[10px] uppercase font-bold text-foreground">Current</span>
             <span className="font-black tabular-nums text-sm text-foreground">{currentRating}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 shadow-sm text-amber-500">
+          <div className="flex items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 shadow-sm text-warning">
             <Award className="size-3.5" />
             <span className="text-[10px] uppercase font-bold">Peak</span>
             <span className="font-black tabular-nums text-sm">{maxRaw}</span>
@@ -128,10 +128,10 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
           {netDelta !== 0 && (
             <div
               className={cn(
-                "flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold border",
+                "flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold border",
                 netDelta > 0
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400"
-                  : "border-rose-500/30 bg-rose-500/10 text-rose-500 dark:text-rose-400"
+                  ? "border-border bg-muted text-success dark:text-success"
+                  : "border-border bg-muted text-destructive dark:text-destructive"
               )}
             >
               {netDelta > 0 ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
@@ -142,7 +142,7 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
       </div>
 
       {/* Recharts Area Chart */}
-      <div className="h-64 w-full rounded-2xl border border-border bg-background/50 p-3 pt-4">
+      <div className="h-64 w-full rounded-lg border border-border bg-background p-3 pt-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
@@ -193,18 +193,18 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
                 if (!active || !payload || payload.length === 0) return null;
                 const data = payload[0].payload;
                 return (
-                  <div className="rounded-xl border border-white/20 bg-popover/95 p-3 text-xs shadow-2xl backdrop-blur-xl space-y-1 min-w-[200px] max-w-[280px]">
-                    <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-1.5">
+                  <div className="rounded-lg border border-border bg-muted p-3 text-xs shadow-sm  space-y-1 min-w-[200px] max-w-[280px]">
+                    <div className="flex items-start justify-between gap-2 border-b border-border pb-1.5">
                       <span className="font-extrabold text-popover-foreground line-clamp-1">
                         {data.contestName || `Contest #${data.contestNum}`}
                       </span>
-                      <span className="shrink-0 text-[10px] font-mono text-muted-foreground">
+                      <span className="shrink-0 text-[10px] font-mono text-foreground">
                         #{data.contestNum}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between gap-2 pt-1">
-                      <span className="text-[11px] text-muted-foreground font-medium">Contest Rating:</span>
+                      <span className="text-[11px] text-foreground font-medium">Contest Rating:</span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-black tabular-nums" style={{ color }}>
                           {data.rating}
@@ -214,10 +214,10 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
                             className={cn(
                               "text-[10px] font-bold px-1.5 py-0.5 rounded",
                               data.delta > 0
-                                ? "bg-emerald-500/15 text-emerald-400"
+                                ? "bg-muted text-success"
                                 : data.delta < 0
-                                ? "bg-rose-500/15 text-rose-400"
-                                : "bg-muted text-muted-foreground"
+                                ? "bg-muted text-destructive"
+                                : "bg-muted text-foreground"
                             )}
                           >
                             {data.delta > 0 ? `+${data.delta}` : data.delta}
@@ -226,7 +226,7 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/40 pt-1 mt-1">
+                    <div className="flex items-center justify-between text-[10px] text-foreground border-t border-border pt-1 mt-1">
                       <div className="flex items-center gap-1">
                         <Calendar className="size-3" />
                         <span>{data.fullDate || data.date}</span>
@@ -273,7 +273,7 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
 
       {/* Selected Node Details Card (Shown on click) */}
       {selectedNode && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3.5 backdrop-blur-md animate-fade-in flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="rounded-lg border border-border bg-muted p-3.5  animate-fade-in flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5 min-w-0">
             <div
               className="flex size-7 items-center justify-center rounded-lg shrink-0"
@@ -283,7 +283,7 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
             </div>
             <div className="min-w-0">
               <p className="font-bold text-foreground text-xs truncate">{selectedNode.contestName}</p>
-              <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <p className="text-[11px] text-foreground flex items-center gap-1.5">
                 <span>Contest #{selectedNode.contestNum}</span>
                 <span>•</span>
                 <span>{selectedNode.date}</span>
@@ -299,7 +299,7 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
 
           <div className="flex items-center gap-3 shrink-0 tabular-nums">
             <div className="text-right">
-              <p className="text-[10px] uppercase font-bold text-muted-foreground">Rating</p>
+              <p className="text-[10px] uppercase font-bold text-foreground">Rating</p>
               <p className="font-black text-sm" style={{ color }}>{selectedNode.rating}</p>
             </div>
             {selectedNode.contestNum > 1 && (
@@ -307,10 +307,10 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
                 className={cn(
                   "font-bold text-xs px-2 py-1 rounded-lg border",
                   selectedNode.delta > 0
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                    ? "border-border bg-muted text-success"
                     : selectedNode.delta < 0
-                    ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
-                    : "border-border bg-muted text-muted-foreground"
+                    ? "border-border bg-muted text-destructive"
+                    : "border-border bg-muted text-foreground"
                 )}
               >
                 {selectedNode.delta > 0 ? `+${selectedNode.delta}` : selectedNode.delta}
@@ -319,7 +319,7 @@ export function ContestHistoryChart({ history, platformName, color = "#FFA116" }
             <button
               type="button"
               onClick={() => setSelectedNode(null)}
-              className="text-[11px] text-muted-foreground hover:text-foreground underline ml-1"
+              className="text-[11px] text-foreground hover:text-foreground underline ml-1"
             >
               Close
             </button>

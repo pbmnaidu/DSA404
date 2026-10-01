@@ -111,7 +111,7 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
       }}
     >
       <DialogContent
-        className="w-[calc(100vw-2rem)] sm:w-full max-w-lg max-h-[88vh] flex flex-col rounded-2xl border border-border bg-card shadow-2xl p-0 gap-0 overflow-hidden"
+        className="w-[calc(100vw-2rem)] sm:w-full max-w-lg max-h-[88vh] flex flex-col rounded-lg border border-border bg-card shadow-sm p-0 gap-0 overflow-hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => {
           e.preventDefault();
@@ -122,7 +122,7 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-3.5 top-3.5 z-50 rounded-full p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+          className="absolute right-3.5 top-3.5 z-50 rounded-full p-1.5 text-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
           aria-label="Close and return to home"
         >
           <X className="size-4" />
@@ -146,33 +146,33 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
             <div className="space-y-4">
               <DialogHeader className="text-left">
                 <DialogTitle className="text-xl sm:text-2xl font-bold">Welcome to DSA⁴⁰⁴! 🚀</DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+                <DialogDescription className="text-xs sm:text-sm text-foreground">
                   Let's set up your personalised DSA preparation plan. It only takes a minute.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
                 <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
-                  <BookOpen className="mx-auto mb-1 size-4 sm:size-5 text-emerald-600 dark:text-emerald-400" />
+                  <BookOpen className="mx-auto mb-1 size-4 sm:size-5 text-success dark:text-success" />
                   <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 1</p>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">{LEVEL_COUNTS.level1} Problems</p>
-                  <p className="text-[10px] text-muted-foreground/70">Foundations</p>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-foreground">{LEVEL_COUNTS.level1} Problems</p>
+                  <p className="text-[10px] text-foreground">Foundations</p>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
-                  <Zap className="mx-auto mb-1 size-4 sm:size-5 text-amber-600 dark:text-amber-400" />
+                  <Zap className="mx-auto mb-1 size-4 sm:size-5 text-warning dark:text-warning" />
                   <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 2</p>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">{LEVEL_COUNTS.level2} Problems</p>
-                  <p className="text-[10px] text-muted-foreground/70">Intermediate</p>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-foreground">{LEVEL_COUNTS.level2} Problems</p>
+                  <p className="text-[10px] text-foreground">Intermediate</p>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
-                  <Trophy className="mx-auto mb-1 size-4 sm:size-5 text-rose-600 dark:text-rose-400" />
+                  <Trophy className="mx-auto mb-1 size-4 sm:size-5 text-destructive dark:text-destructive" />
                   <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 3</p>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">{LEVEL_COUNTS.level3} Problems</p>
-                  <p className="text-[10px] text-muted-foreground/70">Advanced</p>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-foreground">{LEVEL_COUNTS.level3} Problems</p>
+                  <p className="text-[10px] text-foreground">Advanced</p>
                 </div>
               </div>
 
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs sm:text-sm text-foreground leading-relaxed">
                 {REAL_ROADMAP_PROBLEMS} curated problems across {REAL_SECTIONS_COUNT} core DSA topics — organised in 3 levels to take you from fundamentals to advanced DSA.
               </p>
 
@@ -207,8 +207,8 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                       onClick={() => handleSelectTier(tierKey)}
                       className={`relative flex flex-col items-start p-3 rounded-lg border text-left transition-all cursor-pointer ${
                         isSelected
-                          ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
-                          : "border-border bg-card hover:border-primary/40"
+                          ? "border-primary bg-muted shadow-sm ring-1 ring-primary/30"
+                          : "border-border bg-card hover:border-border"
                       }`}
                     >
                       <div className="flex w-full items-center justify-between gap-1 mb-1">
@@ -218,8 +218,8 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                         {p.badge && (
                           <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
                             tierKey === "balanced"
-                              ? "bg-primary/20 text-primary font-bold"
-                              : "bg-muted text-muted-foreground"
+                              ? "bg-muted text-primary font-bold"
+                              : "bg-muted text-foreground"
                           }`}>
                             {p.badge}
                           </span>
@@ -229,9 +229,9 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                         <span className="text-lg sm:text-xl font-extrabold text-foreground tabular-nums">
                           {p.target}
                         </span>
-                        <span className="text-[11px] text-muted-foreground">problems / day</span>
+                        <span className="text-[11px] text-foreground">problems / day</span>
                       </div>
-                      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
+                      <p className="text-[10px] text-foreground mt-1 line-clamp-2">
                         ~{p.timeEstimateMin}–{p.timeEstimateMax} min/day · {p.tagline.split(" · ")[1] || p.label}
                       </p>
                     </button>
@@ -240,14 +240,14 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
               </div>
 
               {/* Slider for fine adjustment */}
-              <div className="space-y-1.5 rounded-xl border border-border/70 bg-muted/20 p-3.5">
+              <div className="space-y-1.5 rounded-lg border border-border bg-muted p-3.5">
                 <div className="flex items-center justify-between text-xs sm:text-sm">
                   <Label className="flex items-center gap-1.5 font-medium">
                     <Sparkles className="size-3.5 text-primary" />
                     Fine-tune Daily Target:
                   </Label>
                   <span className="font-extrabold text-primary text-base tabular-nums">
-                    {counts.target} <span className="text-xs font-normal text-muted-foreground">problems / day</span>
+                    {counts.target} <span className="text-xs font-normal text-foreground">problems / day</span>
                   </span>
                 </div>
                 <Slider
@@ -258,7 +258,7 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                   onValueChange={([v]) => handleTargetChange(v)}
                   className="py-1"
                 />
-                <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                <div className="flex justify-between text-[10px] text-foreground font-mono">
                   <span>1 (Light)</span>
                   <span>3 (Tutor Standard ⭐)</span>
                   <span>6 (Surgical Sprint)</span>
@@ -300,12 +300,12 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
                 />
               </div>
 
-              <div className="rounded-xl border border-border bg-muted/40 px-3.5 py-3 sm:px-4 space-y-1.5">
+              <div className="rounded-lg border border-border bg-muted px-3.5 py-3 sm:px-4 space-y-1.5">
                 <p className="text-xs sm:text-sm font-semibold">Your plan summary</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground">📅 Starting: {new Date(`${startDate}T00:00:00Z`).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground">⚡ Daily pace: <strong>{counts.target} problems/day</strong> ({activePreset.label} Pace)</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground">⏱ Study time: ~{activePreset.timeEstimateMin} – {activePreset.timeEstimateMax} min/day</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground">⚖️ Weightage: Balanced via 2E = 1M &amp; 3E = 1H rules (Cap: {counts.target} problems/day)</p>
+                <p className="text-[11px] sm:text-xs text-foreground">📅 Starting: {new Date(`${startDate}T00:00:00Z`).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
+                <p className="text-[11px] sm:text-xs text-foreground">⚡ Daily pace: <strong>{counts.target} problems/day</strong> ({activePreset.label} Pace)</p>
+                <p className="text-[11px] sm:text-xs text-foreground">⏱ Study time: ~{activePreset.timeEstimateMin} – {activePreset.timeEstimateMax} min/day</p>
+                <p className="text-[11px] sm:text-xs text-foreground">⚖️ Weightage: Balanced via 2E = 1M &amp; 3E = 1H rules (Cap: {counts.target} problems/day)</p>
               </div>
 
               <div className="flex gap-2 pt-1">
@@ -320,40 +320,40 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
             <div className="space-y-4 sm:space-y-5">
               <DialogHeader className="text-left">
                 <DialogTitle className="text-xl sm:text-2xl font-bold">You're all set! 🎉</DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+                <DialogDescription className="text-xs sm:text-sm text-foreground">
                   Your personalised DSA plan is ready to build. Here's what we've configured:
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-2">
-                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3.5 py-2.5 sm:px-4 sm:py-3">
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
                   <CalendarDays className="size-4 text-primary shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Start Date</p>
+                    <p className="text-[10px] sm:text-xs text-foreground">Start Date</p>
                     <p className="text-xs sm:text-sm font-semibold truncate">
                       {new Date(`${startDate}T00:00:00Z`).toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3.5 py-2.5 sm:px-4 sm:py-3">
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
                   <Sliders className="size-4 text-primary shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Daily Target</p>
+                    <p className="text-[10px] sm:text-xs text-foreground">Daily Target</p>
                     <p className="text-xs sm:text-sm font-semibold truncate">
                       {counts.target} problems / day ({activePreset.label} Pace)
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3.5 py-2.5 sm:px-4 sm:py-3">
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
                   <span className="text-sm sm:text-base">⏱</span>
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Daily Study Time</p>
+                    <p className="text-[10px] sm:text-xs text-foreground">Daily Study Time</p>
                     <p className="text-xs sm:text-sm font-semibold truncate">~{activePreset.timeEstimateMin} to {activePreset.timeEstimateMax} min / day</p>
                   </div>
                 </div>
               </div>
 
-              <p className="text-[11px] sm:text-xs text-muted-foreground">
+              <p className="text-[11px] sm:text-xs text-foreground">
                 You can always fine-tune your daily target and schedule anytime in Settings.
               </p>
 

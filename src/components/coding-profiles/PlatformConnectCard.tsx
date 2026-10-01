@@ -88,22 +88,22 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
   const existingLink = existingPlatforms[selectedPlatform];
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-white/10 bg-card/60 p-6 backdrop-blur-xl shadow-xl space-y-4">
-      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-6  shadow-sm space-y-4">
+      <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <Link2 className="size-5 text-primary" />
           <h3 className="text-base font-bold text-foreground">Connect Coding Platform</h3>
         </div>
-        <span className="text-xs text-muted-foreground font-mono">Auto URL Detection Enabled</span>
+        <span className="text-xs text-foreground font-mono">Auto URL Detection Enabled</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1">
-          <Label className="text-xs font-semibold text-muted-foreground">Select Platform</Label>
+          <Label className="text-xs font-semibold text-foreground">Select Platform</Label>
           <select
             value={selectedPlatform}
             onChange={handlePlatformChange}
-            className="w-full h-10 rounded-xl bg-background/50 border border-white/10 px-3 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full h-10 rounded-lg bg-background border border-border px-3 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             {allAdapters.map((ad) => (
               <option key={ad.id} value={ad.id} className="bg-popover text-popover-foreground">
@@ -114,15 +114,15 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
         </div>
 
         <div className="sm:col-span-2 space-y-1">
-          <Label className="text-xs font-semibold text-muted-foreground">Username or Profile URL</Label>
+          <Label className="text-xs font-semibold text-foreground">Username or Profile URL</Label>
           <div className="flex items-center gap-2">
             <Input
               value={inputUrl}
               onChange={handleInputChange}
               placeholder="e.g. codechef.com/users/handle, leetcode.com/u/handle, or handle"
-              className="bg-background/40 border-white/10 rounded-xl text-xs h-10"
+              className="bg-background border-border rounded-lg text-xs h-10"
             />
-            <Button type="submit" size="sm" className="h-10 rounded-xl px-4 gap-1.5 shrink-0 font-bold">
+            <Button type="submit" size="sm" className="h-10 rounded-lg px-4 gap-1.5 shrink-0 font-bold">
               <Plus className="size-4" /> Save Link
             </Button>
           </div>
@@ -132,15 +132,15 @@ export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformCo
       {/* Connection Status & Auto-Detection Badges */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
         {detectedText ? (
-          <p className="text-emerald-400 font-semibold flex items-center gap-1">
+          <p className="text-success font-semibold flex items-center gap-1">
             <Sparkles className="size-3.5" /> {detectedText}
           </p>
         ) : existingLink && typeof existingLink === "string" ? (
-          <p className="text-emerald-400/90 font-medium flex items-center gap-1">
-            <CheckCircle2 className="size-3.5 text-emerald-400" /> Currently Connected: <span className="font-mono underline">{existingLink}</span>
+          <p className="text-foreground font-medium flex items-center gap-1">
+            <CheckCircle2 className="size-3.5 text-success" /> Currently Connected: <span className="font-mono underline">{existingLink}</span>
           </p>
         ) : (
-          <p className="text-muted-foreground/60 italic text-[11px]">
+          <p className="text-foreground italic text-[11px]">
             Paste full profile URL or handle to auto-detect and fetch statistics.
           </p>
         )}

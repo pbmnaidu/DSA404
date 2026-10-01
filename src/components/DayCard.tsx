@@ -19,8 +19,8 @@ export function DayCard({ day, showSkipAction }: { day: Day; showSkipAction?: bo
   return (
     <div
       className={cn(
-        "relative rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/50 min-w-0 overflow-hidden max-w-full w-full",
-        day.skipped && "opacity-60",
+        "relative rounded-lg border border-border bg-card p-4 transition-colors hover:border-border min-w-0 overflow-hidden max-w-full w-full",
+        day.skipped && "",
       )}
     >
       <Link
@@ -28,18 +28,18 @@ export function DayCard({ day, showSkipAction }: { day: Day; showSkipAction?: bo
         className="block w-full"
       >
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-xs uppercase tracking-wide text-muted-foreground truncate">
+          <span className="text-xs uppercase tracking-wide text-foreground truncate">
             {day.skipped ? "Skipped Topic" : day.isRevisionDay ? "Weekly Revision" : `Day ${day.dayNumber}`} · {formatDate(day.date)}
           </span>
           <span className={`text-xs font-medium ${meta.className} truncate`} title={meta.label}>{meta.icon} {meta.label}</span>
         </div>
         <h3 className="mt-1 font-display text-base font-semibold truncate" title={day.topic}>{day.topic}</h3>
-        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+        <p className="mt-0.5 line-clamp-1 text-xs text-foreground">
           {day.subtopics.join(" · ") || "No subtopics"}
         </p>
         <div className="mt-3 flex items-center gap-3">
           <Progress value={pct} className="h-1.5" />
-          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+          <span className="shrink-0 text-xs tabular-nums text-foreground">
             {done}/{total}
           </span>
         </div>
@@ -68,7 +68,7 @@ export function DayCard({ day, showSkipAction }: { day: Day; showSkipAction?: bo
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                    className="h-7 px-2 text-xs text-foreground hover:text-destructive"
                   >
                     <Ban className="mr-1 size-3" aria-hidden="true" /> Skip
                   </Button>

@@ -164,14 +164,14 @@ export function PlatformActivityHeatmap({
       {/* Activity Summary Bar */}
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-1.5">
-          <Flame className="size-3.5 text-amber-500" />
+          <Flame className="size-3.5 text-warning" />
           <span className="font-bold text-foreground">
             {totalSubmissionsCount} {totalSubmissionsCount === 1 ? "Problem Solved" : "Problems Solved"}
           </span>
-          <span className="text-muted-foreground">•</span>
-          <span className="text-muted-foreground">{totalActiveDays} Active Days</span>
+          <span className="text-foreground">•</span>
+          <span className="text-foreground">{totalActiveDays} Active Days</span>
         </div>
-        <span className="text-[10px] font-mono text-muted-foreground uppercase">Past 6 Months</span>
+        <span className="text-[10px] font-mono text-foreground uppercase">Past 6 Months</span>
       </div>
 
       {/* Mini Heatmap Grid */}
@@ -192,7 +192,7 @@ export function PlatformActivityHeatmap({
                 return (
                   <div key={wIdx} className="w-2.5 sm:w-3 h-4 shrink-0 relative select-none">
                     {isNewMonth && (
-                      <span className="absolute left-0 bottom-0 text-[9px] font-mono font-medium text-muted-foreground whitespace-nowrap select-none">
+                      <span className="absolute left-0 bottom-0 text-[9px] font-mono font-medium text-foreground whitespace-nowrap select-none">
                         {MONTH_NAMES[currMonth]}
                       </span>
                     )}
@@ -217,12 +217,12 @@ export function PlatformActivityHeatmap({
                       onMouseLeave={() => setHoveredDay(null)}
                       className={cn(
                         "size-2.5 sm:size-3 rounded-[3px] transition-all cursor-pointer",
-                        level === 0 && "bg-muted/70 dark:bg-white/10 border border-border/50 dark:border-white/5 hover:bg-muted-foreground/20 hover:border-emerald-500/50",
-                        level === 1 && "bg-emerald-500/30 dark:bg-emerald-600/35 border border-emerald-500/30 hover:scale-125 hover:border-white/60 hover:z-10 shadow-sm",
-                        level === 2 && "bg-emerald-500/55 dark:bg-emerald-500/60 border border-emerald-500/40 hover:scale-125 hover:border-white/60 hover:z-10 shadow-sm",
-                        level === 3 && "bg-emerald-500/80 dark:bg-emerald-500/85 border border-emerald-500/50 hover:scale-125 hover:border-white/60 hover:z-10 shadow-sm",
-                        level === 4 && "bg-emerald-500 dark:bg-emerald-400 border border-emerald-400 hover:scale-125 hover:border-white/60 hover:z-10 shadow-sm",
-                        day.isFuture && "opacity-20 pointer-events-none"
+                        level === 0 && "bg-muted dark:bg-white border border-border dark:border-border hover:bg-muted-foreground/20 hover:border-border",
+                        level === 1 && "bg-muted dark:bg-muted border border-border hover:scale-125 hover:border-border hover:z-10 shadow-sm",
+                        level === 2 && "bg-muted dark:bg-muted border border-border hover:scale-125 hover:border-border hover:z-10 shadow-sm",
+                        level === 3 && "bg-muted dark:bg-muted border border-border hover:scale-125 hover:border-border hover:z-10 shadow-sm",
+                        level === 4 && "bg-success dark:bg-success border border-success hover:scale-125 hover:border-border hover:z-10 shadow-sm",
+                        day.isFuture && " pointer-events-none"
                       )}
                       title={`${day.dateStr}: ${count} problem${count === 1 ? "" : "s"} solved`}
                     />
@@ -235,10 +235,10 @@ export function PlatformActivityHeatmap({
       </div>
 
       {/* Hover Status or Legend */}
-      <div className="flex items-center justify-between text-[11px] min-h-[20px] pt-1 border-t border-white/10 text-muted-foreground">
+      <div className="flex items-center justify-between text-[11px] min-h-[20px] pt-1 border-t border-border text-foreground">
         {hoveredDay ? (
           <span className="font-medium text-foreground truncate animate-fade-in">
-            <strong className="text-emerald-400">{hoveredDay.count}</strong> {hoveredDay.count === 1 ? "problem solved" : "problems solved"} on {(() => {
+            <strong className="text-success">{hoveredDay.count}</strong> {hoveredDay.count === 1 ? "problem solved" : "problems solved"} on {(() => {
               try {
                 const parts = hoveredDay.date.split("-");
                 if (parts.length === 3) {
@@ -260,11 +260,11 @@ export function PlatformActivityHeatmap({
         {/* Intensity Legend */}
         <div className="flex items-center gap-1 shrink-0">
           <span className="text-[10px]">Less</span>
-          <div className="size-2 rounded-[2px] bg-muted/70 dark:bg-white/10 border border-border/50 dark:border-white/5" />
-          <div className="size-2 rounded-[2px] bg-emerald-500/30 dark:bg-emerald-600/35 border border-emerald-500/30" />
-          <div className="size-2 rounded-[2px] bg-emerald-500/55 dark:bg-emerald-500/60 border border-emerald-500/40" />
-          <div className="size-2 rounded-[2px] bg-emerald-500/80 dark:bg-emerald-500/85 border border-emerald-500/50" />
-          <div className="size-2 rounded-[2px] bg-emerald-500 dark:bg-emerald-400 border border-emerald-400" />
+          <div className="size-2 rounded-[2px] bg-muted dark:bg-white border border-border dark:border-border" />
+          <div className="size-2 rounded-[2px] bg-muted dark:bg-muted border border-border" />
+          <div className="size-2 rounded-[2px] bg-muted dark:bg-muted border border-border" />
+          <div className="size-2 rounded-[2px] bg-muted dark:bg-muted border border-border" />
+          <div className="size-2 rounded-[2px] bg-success dark:bg-success border border-success" />
           <span className="text-[10px]">More</span>
         </div>
       </div>

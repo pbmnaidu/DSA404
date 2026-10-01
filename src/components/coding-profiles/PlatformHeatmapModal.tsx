@@ -261,12 +261,12 @@ export function PlatformHeatmapModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl max-h-[92vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 rounded-3xl bg-card/95 backdrop-blur-2xl border border-white/10 shadow-2xl space-y-4">
+      <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl max-h-[92vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 rounded-lg bg-card -2xl border border-border shadow-sm space-y-4">
         <DialogHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3 sm:pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 sm:pb-4">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div
-                className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-white/15 shadow-sm"
+                className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
                 style={{ backgroundColor: `${color}20`, color }}
               >
                 <Flame className="size-4 sm:size-5" />
@@ -285,7 +285,7 @@ export function PlatformHeatmapModal({
                     </a>
                   )}
                 </DialogTitle>
-                <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                <p className="text-[11px] sm:text-xs text-foreground truncate">
                   Daily activity & solved problems record
                 </p>
               </div>
@@ -293,11 +293,11 @@ export function PlatformHeatmapModal({
 
             {/* Quick Badges - XS text size default on mobile */}
             <div className="flex items-center gap-2 text-xs shrink-0">
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/60 px-2.5 py-1 sm:px-3 sm:py-1.5">
-                <span className="text-[10px] sm:text-[11px] uppercase font-bold text-muted-foreground">Problems Solved</span>
+              <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 sm:px-3 sm:py-1.5">
+                <span className="text-[10px] sm:text-[11px] uppercase font-bold text-foreground">Problems Solved</span>
                 <span className="font-black text-xs sm:text-sm text-foreground tabular-nums">{totalSubmissionsCount}</span>
               </div>
-              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 sm:px-3 sm:py-1.5 text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5 py-1 sm:px-3 sm:py-1.5 text-success dark:text-success">
                 <CheckCircle2 className="size-3 sm:size-3.5" />
                 <span className="text-[10px] sm:text-[11px] uppercase font-bold">Active</span>
                 <span className="font-black text-xs sm:text-sm tabular-nums">{totalActiveDays}d</span>
@@ -309,7 +309,7 @@ export function PlatformHeatmapModal({
         {/* ── Duration Selector & Mobile Slide Bar Controls ── */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 px-1 text-xs">
           {/* Duration Pills: 3m (default on mobile), 6m, 1y */}
-          <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-background/60 p-1">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
             <button
               type="button"
               onClick={() => handleRangeChange("3m")}
@@ -317,7 +317,7 @@ export function PlatformHeatmapModal({
                 "px-2.5 py-1 rounded-lg text-xs font-bold transition-all",
                 viewRange === "3m"
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-foreground hover:text-foreground"
               )}
             >
               3 Months
@@ -329,7 +329,7 @@ export function PlatformHeatmapModal({
                 "px-2.5 py-1 rounded-lg text-xs font-bold transition-all",
                 viewRange === "6m"
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-foreground hover:text-foreground"
               )}
             >
               6 Months
@@ -341,7 +341,7 @@ export function PlatformHeatmapModal({
                 "px-2.5 py-1 rounded-lg text-xs font-bold transition-all",
                 viewRange === "1y"
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-foreground hover:text-foreground"
               )}
             >
               1 Year (All)
@@ -350,7 +350,7 @@ export function PlatformHeatmapModal({
 
           {/* Current visible month range label */}
           {visibleDateRangeLabel && (
-            <div className="text-[11px] sm:text-xs font-mono font-medium text-muted-foreground">
+            <div className="text-[11px] sm:text-xs font-mono font-medium text-foreground">
               {visibleDateRangeLabel}
             </div>
           )}
@@ -358,11 +358,11 @@ export function PlatformHeatmapModal({
 
         {/* ── Slide Bar / Slider Control for 3-Month / 6-Month Navigation ── */}
         {viewRange !== "1y" && maxSliderIndex > 0 && (
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-background/40 px-3 py-2 text-xs">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs">
             <Button
               variant="outline"
               size="icon"
-              className="size-7 rounded-lg shrink-0 border-white/10"
+              className="size-7 rounded-lg shrink-0 border-border"
               onClick={() => setSliderIndex((prev) => Math.max(0, prev - 4))}
               disabled={sliderIndex <= 0}
               title="Slide back (1 month earlier)"
@@ -378,7 +378,7 @@ export function PlatformHeatmapModal({
                 max={maxSliderIndex}
                 value={sliderIndex}
                 onChange={(e) => setSliderIndex(Number(e.target.value))}
-                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
+                className="w-full h-1.5 bg-white rounded-lg appearance-none cursor-pointer accent-primary"
                 title="Slide to move heatmap time window"
               />
             </div>
@@ -386,7 +386,7 @@ export function PlatformHeatmapModal({
             <Button
               variant="outline"
               size="icon"
-              className="size-7 rounded-lg shrink-0 border-white/10"
+              className="size-7 rounded-lg shrink-0 border-border"
               onClick={() => setSliderIndex((prev) => Math.min(maxSliderIndex, prev + 4))}
               disabled={sliderIndex >= maxSliderIndex}
               title="Slide forward (1 month later)"
@@ -397,7 +397,7 @@ export function PlatformHeatmapModal({
         )}
 
         {/* ── Heatmap Grid Section (Fixed inside popup box, never overflowing) ── */}
-        <div className="w-full max-w-full overflow-hidden rounded-2xl border border-border bg-background/50 p-3 sm:p-4 space-y-3">
+        <div className="w-full max-w-full overflow-hidden rounded-lg border border-border bg-background p-3 sm:p-4 space-y-3">
           <div className="w-full overflow-x-auto pb-2 scrollbar-thin">
             <div className="inline-block min-w-fit">
               {/* Month Headers Row - Pixel-aligned above each week column */}
@@ -422,7 +422,7 @@ export function PlatformHeatmapModal({
                         className="w-3 sm:w-3.5 h-5 shrink-0 relative select-none"
                       >
                         {isNewMonth && (
-                          <span className="absolute left-0 bottom-0.5 text-[10px] sm:text-[11px] font-mono font-semibold text-muted-foreground whitespace-nowrap select-none">
+                          <span className="absolute left-0 bottom-0.5 text-[10px] sm:text-[11px] font-mono font-semibold text-foreground whitespace-nowrap select-none">
                             {MONTH_NAMES[currMonth]}
                           </span>
                         )}
@@ -435,7 +435,7 @@ export function PlatformHeatmapModal({
               {/* Grid with Day Labels */}
               <div className="flex items-start gap-1">
                 {/* Day Labels Column */}
-                <div className="flex flex-col gap-1 pr-1 text-[9px] sm:text-[10px] font-mono text-muted-foreground select-none shrink-0 pt-0.5 w-5 sm:w-6">
+                <div className="flex flex-col gap-1 pr-1 text-[9px] sm:text-[10px] font-mono text-foreground select-none shrink-0 pt-0.5 w-5 sm:w-6">
                   {DAY_LABELS.map((lbl, idx) => (
                     <div key={idx} className="h-3 sm:h-3.5 leading-3 sm:leading-3.5 flex items-center">
                       {lbl}
@@ -460,13 +460,13 @@ export function PlatformHeatmapModal({
                             onMouseLeave={() => setHoveredDay(null)}
                             className={cn(
                               "size-3 sm:size-3.5 rounded-[3px] transition-all cursor-pointer",
-                              level === 0 && "bg-muted/40 dark:bg-[#161b22] border border-border/20 dark:border-white/5 hover:bg-muted-foreground/20 hover:border-emerald-500/50",
+                              level === 0 && "bg-muted dark:bg-[#161b22] border border-border dark:border-border hover:bg-muted-foreground/20 hover:border-border",
                               level === 1 && "bg-[#9be9a8] dark:bg-[#0e4429] border border-[#7bc98a]/30 dark:border-[#0e4429] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
                               level === 2 && "bg-[#40c463] dark:bg-[#006d32] border border-[#34a853]/30 dark:border-[#006d32] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
                               level === 3 && "bg-[#30a14e] dark:bg-[#26a641] border border-[#238636]/30 dark:border-[#26a641] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
                               level === 4 && "bg-[#216e39] dark:bg-[#39d353] border border-[#1b5e20]/30 dark:border-[#39d353] hover:scale-125 hover:border-white hover:z-10 shadow-sm",
                               isSelected && "ring-2 ring-white border-white scale-125 z-10",
-                              day.isFuture && "opacity-20 pointer-events-none"
+                              day.isFuture && " pointer-events-none"
                             )}
                             title={`${day.dateStr}: ${count} problem${count === 1 ? "" : "s"} solved`}
                           />
@@ -480,13 +480,13 @@ export function PlatformHeatmapModal({
           </div>
 
           {/* Footer Info & Legend */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border text-xs">
             <div className="min-h-[22px] flex items-center">
               {activeDisplay ? (
                 <div className="flex items-center gap-2 font-medium text-foreground animate-fade-in text-xs">
-                  <Calendar className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <Calendar className="size-3.5 text-success dark:text-success shrink-0" />
                   <span>
-                    <strong className="text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm">{activeDisplay.count}</strong>{" "}
+                    <strong className="text-success dark:text-success font-bold text-xs sm:text-sm">{activeDisplay.count}</strong>{" "}
                     {activeDisplay.count === 1 ? "problem solved" : "problems solved"} on {(() => {
                       try {
                         const parts = activeDisplay.date.split("-");
@@ -502,16 +502,16 @@ export function PlatformHeatmapModal({
                   </span>
                 </div>
               ) : (
-                <span className="text-muted-foreground text-[11px] sm:text-xs truncate">
+                <span className="text-foreground text-[11px] sm:text-xs truncate">
                   Tap or hover any day block to inspect solved activity
                 </span>
               )}
             </div>
 
             {/* Intensity Legend */}
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto shrink-0">
+            <div className="flex items-center gap-1.5 text-xs text-foreground ml-auto shrink-0">
               <span className="text-[10px] sm:text-[11px]">Less</span>
-              <div className="size-2.5 sm:size-3 rounded-[2px] bg-muted/40 dark:bg-[#161b22] border border-border/20 dark:border-white/5" />
+              <div className="size-2.5 sm:size-3 rounded-[2px] bg-muted dark:bg-[#161b22] border border-border dark:border-border" />
               <div className="size-2.5 sm:size-3 rounded-[2px] bg-[#9be9a8] dark:bg-[#0e4429] border border-[#7bc98a]/30 dark:border-[#0e4429]" />
               <div className="size-2.5 sm:size-3 rounded-[2px] bg-[#40c463] dark:bg-[#006d32] border border-[#34a853]/30 dark:border-[#006d32]" />
               <div className="size-2.5 sm:size-3 rounded-[2px] bg-[#30a14e] dark:bg-[#26a641] border border-[#238636]/30 dark:border-[#26a641]" />

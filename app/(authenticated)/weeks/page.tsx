@@ -150,15 +150,15 @@ export default function WeeksPage() {
 
   const SkippedSection = ({ list }: { list: Day[] }) =>
     list.length > 0 ? (
-      <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
+      <div className="rounded-lg border border-dashed border-border bg-card p-4">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <div className="flex items-center gap-2">
             <h3 className="font-display font-semibold text-foreground">Skipped Topics</h3>
-            <span className="text-[11px] font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-medium text-success bg-muted border border-border px-2 py-0.5 rounded-full">
               Click to solve anytime
             </span>
           </div>
-          <span className="text-xs tabular-nums text-muted-foreground">
+          <span className="text-xs tabular-nums text-foreground">
             {list.length} topic{list.length === 1 ? "" : "s"}
           </span>
         </div>
@@ -172,27 +172,27 @@ export default function WeeksPage() {
               <div
                 key={d.id}
                 onClick={() => setSelectedSkippedDay(d)}
-                className="group rounded-xl border border-dashed border-border bg-secondary/30 hover:bg-secondary/60 hover:border-primary/50 transition-all p-3.5 flex flex-col justify-between cursor-pointer"
+                className="group rounded-lg border border-dashed border-border bg-secondary hover:bg-secondary hover:border-border transition-all p-3.5 flex flex-col justify-between cursor-pointer"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">{d.section}</p>
+                      <p className="text-[10px] uppercase tracking-wider font-mono text-foreground">{d.section}</p>
                       <h4 className="mt-0.5 truncate text-sm font-bold text-foreground group-hover:text-primary transition-colors">{d.topic}</h4>
                     </div>
                     {total > 0 && (
                       <span className={cn(
                         "shrink-0 text-xs font-semibold tabular-nums px-2 py-0.5 rounded-md border",
                         isAllDone
-                          ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
-                          : "bg-muted text-muted-foreground border-border"
+                          ? "bg-muted text-success border-border"
+                          : "bg-muted text-foreground border-border"
                       )}>
                         {done}/{total}
                       </span>
                     )}
                   </div>
                   {d.subtopics.length > 0 && (
-                    <p className="mt-1.5 line-clamp-1 text-xs text-muted-foreground">
+                    <p className="mt-1.5 line-clamp-1 text-xs text-foreground">
                       {d.subtopics.join(" · ")}
                     </p>
                   )}
@@ -203,10 +203,10 @@ export default function WeeksPage() {
                   )}
                 </div>
 
-                <div className="mt-3.5 flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                <div className="mt-3.5 flex items-center justify-between gap-2 pt-2 border-t border-border">
                   <Button
                     size="sm"
-                    className="h-7 px-2.5 text-xs bg-primary/15 hover:bg-primary/25 text-primary border border-primary/30 font-semibold gap-1.5 cursor-pointer"
+                    className="h-7 px-2.5 text-xs bg-muted hover:bg-muted text-primary border border-border font-semibold gap-1.5 cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedSkippedDay(d);
@@ -219,7 +219,7 @@ export default function WeeksPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="h-7 px-2 text-xs text-foreground hover:text-foreground cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       void skipTopic(d.dayNumber, false);
@@ -268,7 +268,7 @@ export default function WeeksPage() {
             </h1>
             <div className="text-right shrink-0">
               <div className="text-3xl font-black text-foreground tabular-nums leading-none mb-1">{totalPct}%</div>
-              <div className="text-xs font-mono text-muted-foreground uppercase tracking-widest">{doneProbs} / {totalProbs} Completed</div>
+              <div className="text-xs font-mono text-foreground uppercase tracking-widest">{doneProbs} / {totalProbs} Completed</div>
             </div>
           </div>
           <Progress value={totalPct} className="h-2 w-full bg-secondary" />
@@ -287,9 +287,9 @@ export default function WeeksPage() {
                 {/* Timeline Node Indicator */}
                 <div className={cn(
                   "absolute -left-[31px] sm:-left-[39px] top-1.5 flex size-5 items-center justify-center rounded-full border-2 bg-background z-10 transition-colors",
-                  isCompleted ? "border-emerald-500" : isCurrent ? "border-primary" : "border-border"
+                  isCompleted ? "border-success" : isCurrent ? "border-primary" : "border-border"
                 )}>
-                  {isCompleted && <div className="size-2 rounded-full bg-emerald-500" />}
+                  {isCompleted && <div className="size-2 rounded-full bg-success" />}
                   {isCurrent && <div className="size-2 rounded-full bg-primary animate-pulse" />}
                 </div>
 
@@ -298,22 +298,22 @@ export default function WeeksPage() {
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className={cn(
                       "font-display text-2xl font-bold tracking-tight",
-                      isFuture ? "text-muted-foreground" : "text-foreground"
+                      isFuture ? "text-foreground" : "text-foreground"
                     )}>
                       Milestone {weekIdx + 1}
                     </h2>
                     {isCurrent && (
-                      <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-0.5 text-xs font-bold text-primary">
+                      <span className="rounded-full bg-muted border border-border px-3 py-0.5 text-xs font-bold text-primary">
                         Current Focus
                       </span>
                     )}
                     {isCompleted && (
-                      <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-0.5 text-xs font-bold text-emerald-500">
+                      <span className="rounded-full bg-muted border border-border px-3 py-0.5 text-xs font-bold text-success">
                         Mastered
                       </span>
                     )}
                   </div>
-                  <p className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+                  <p className="text-sm font-mono text-foreground uppercase tracking-wider">
                     {formatDate(week[0].date)} — {formatDate(week[week.length - 1].date)}
                   </p>
                 </div>
@@ -332,26 +332,26 @@ export default function WeeksPage() {
                         key={d.id} 
                         onClick={() => router.push(`/day/${d.dayNumber}`)}
                         className={cn(
-                          "group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border p-4 sm:p-5 transition-all cursor-pointer shadow-sm hover:shadow-md",
+                          "group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border p-4 sm:p-5 transition-all cursor-pointer shadow-sm hover:shadow-sm",
                           isToday
-                            ? "border-primary bg-primary/5 ring-1 ring-primary/20 hover:border-primary"
+                            ? "border-primary bg-muted ring-1 ring-primary/20 hover:border-primary"
                             : dCompleted 
-                            ? "border-border bg-card hover:border-emerald-500/30" 
+                            ? "border-border bg-card hover:border-border" 
                             : isCurrent 
-                              ? "border-border bg-card hover:border-primary/50"
-                              : "border-border/50 bg-card/30 hover:bg-card hover:border-border"
+                              ? "border-border bg-card hover:border-border"
+                              : "border-border bg-card hover:bg-card hover:border-border"
                         )}
                       >
                         <div className="space-y-1 flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-mono font-bold text-muted-foreground uppercase">
+                            <span className="text-xs font-mono font-bold text-foreground uppercase">
                               Day {d.dayNumber}
                             </span>
-                            <span className="text-xs text-muted-foreground border-l border-border pl-2">
+                            <span className="text-xs text-foreground border-l border-border pl-2">
                               {d.section}
                             </span>
                             {isToday && (
-                              <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                              <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
                                 Current
                               </span>
                             )}
@@ -364,7 +364,7 @@ export default function WeeksPage() {
                             <span>{formatDayDate(d.date)}</span>
                           </div>
                           {d.subtopics.length > 0 && (
-                            <p className="text-sm text-muted-foreground line-clamp-1">
+                            <p className="text-sm text-foreground line-clamp-1">
                               {d.subtopics.join(" · ")}
                             </p>
                           )}
@@ -373,7 +373,7 @@ export default function WeeksPage() {
                         <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 shrink-0 sm:w-32">
                           <div className={cn(
                             "text-sm font-bold tabular-nums",
-                            dCompleted ? "text-emerald-500" : "text-foreground"
+                            dCompleted ? "text-success" : "text-foreground"
                           )}>
                             {dDone} / {dTotal}
                           </div>

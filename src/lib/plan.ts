@@ -347,13 +347,13 @@ export const isDayComplete = (d: Day) =>
 
 export const STATUS_META: Record<Day["status"], { icon: string; label: string; className: string }> =
 {
-  pending: { icon: "⏳", label: "Pending", className: "text-muted-foreground" },
+  pending: { icon: "⏳", label: "Pending", className: "text-foreground" },
   in_progress: { icon: "◐", label: "In progress", className: "text-warning" },
   completed: { icon: "✅", label: "Completed", className: "text-success" },
   postponed: { icon: "⏸", label: "Postponed", className: "text-warning" },
   merged: { icon: "🔀", label: "Merged", className: "text-accent-foreground" },
   revision: { icon: "🔁", label: "Revision", className: "text-primary" },
-  skipped: { icon: "⛔", label: "Skipped", className: "text-muted-foreground" },
+  skipped: { icon: "⛔", label: "Skipped", className: "text-foreground" },
 };
 /* ------------------------------------------------------------------ */
 /* Upgrade 5b: Tutor & Student Daily Problem Count & Level Ratios      */

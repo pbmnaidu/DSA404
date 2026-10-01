@@ -50,24 +50,24 @@ export const PRESETS: Record<string, { label: string; emoji: string; colors: The
     },
   },
   default: {
-    label: "Ocean Blue",
-    emoji: "🌊",
+    label: "DSA404 Onyx Gold",
+    emoji: "🏆",
     colors: {
       light: {
-        background: "#e8f4fd",
-        foreground: "#0d2d4a",
-        primary: "#0077cc",
-        card: "#f5faff",
-        muted: "#cce5f6",
-        border: "#90c8ee",
+        background: "#F3F0E8",
+        foreground: "#211F1A",
+        primary: "#A96F08",
+        card: "#FCFAF5",
+        muted: "#E8E2D6",
+        border: "#D8D0C1",
       },
       dark: {
-        background: "#060f1a",
-        foreground: "#c8e8ff",
-        primary: "#38a8f5",
-        card: "#0c1e30",
-        muted: "#122b40",
-        border: "#1a3d58",
+        background: "#09090B",
+        foreground: "#F4F1E8",
+        primary: "#E3AF35",
+        card: "#101013",
+        muted: "#17171B",
+        border: "rgba(255,255,255,0.08)",
       },
     },
   },
@@ -348,9 +348,13 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
   const [colors, setColors] = useState<ThemeCustom>(() => {
     if (typeof window !== "undefined") {
       try {
+        if (localStorage.getItem("dsa-theme-version") !== "7") {
+          return PRESETS.default.colors;
+        }
         const saved = localStorage.getItem(THEME_CUSTOM_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved) as { colors: ThemeCustom; preset: string | null };
+          if (parsed?.preset === "default") return PRESETS.default.colors;
           if (parsed?.colors) return parsed.colors;
         }
       } catch {}
@@ -361,6 +365,9 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
   const [activePreset, setActivePreset] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       try {
+        if (localStorage.getItem("dsa-theme-version") !== "7") {
+          return "default";
+        }
         const saved = localStorage.getItem(THEME_CUSTOM_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved) as { colors: ThemeCustom; preset: string | null };
@@ -454,7 +461,14 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
               typeof data.themeCustom === "string"
                 ? JSON.parse(data.themeCustom)
                 : data.themeCustom;
-            if (rawCustom?.colors) {
+            if (rawCustom?.preset === "default") {
+              setColors(PRESETS.default.colors);
+              setActivePreset("default");
+              localStorage.setItem(
+                THEME_CUSTOM_STORAGE_KEY,
+                JSON.stringify({ colors: PRESETS.default.colors, preset: "default" })
+              );
+            } else if (rawCustom?.colors) {
               setColors(rawCustom.colors);
               setActivePreset(rawCustom.preset ?? null);
               localStorage.setItem(

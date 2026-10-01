@@ -19,7 +19,7 @@ export default function DayPage() {
   if (!day)
     return (
       <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">That day is not part of your plan.</p>
+        <p className="text-sm text-foreground">That day is not part of your plan.</p>
         <Link href="/today" className="text-sm font-medium text-primary underline">
           Back to Today
         </Link>
@@ -40,7 +40,7 @@ export default function DayPage() {
         {isSkipped ? `Skipped Topic: ${day.topic}` : `Day ${day.dayNumber}`}
       </h1>
       {!canSolve && (
-        <p className="mb-4 rounded-lg border border-dashed border-border bg-secondary/40 px-3 py-2 text-sm text-muted-foreground">
+        <p className="mb-4 rounded-lg border border-dashed border-border bg-secondary px-3 py-2 text-sm text-foreground">
           View only — only today&apos;s problems can be checked off or rescheduled. Head to the{" "}
           <Link href="/today" className="font-medium text-primary underline">
             Today
@@ -49,7 +49,7 @@ export default function DayPage() {
         </p>
       )}
       {isSkipped && (
-        <p className="mb-4 rounded-lg border border-dashed border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+        <p className="mb-4 rounded-lg border border-dashed border-border bg-muted px-3 py-2 text-sm text-success">
           This is a skipped topic. You can solve its problems anytime — progress is saved to your account and calculated in your overall stats.
         </p>
       )}

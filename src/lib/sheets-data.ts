@@ -42,7 +42,7 @@ export const CURATED_SHEETS: SheetMeta[] = [
     problemCount: 402,
     topicCount: 16,
     badge: "Most Popular",
-    badgeColor: "bg-red-500/10 text-red-500 border-red-500/30",
+    badgeColor: "bg-destructive/10 text-destructive border-destructive/30",
     excelFile: "/sheets/Striver_A2Z_DSA_Sheet.xlsx",
     excelFileName: "Striver_A2Z_DSA_Sheet.xlsx"
   },
@@ -56,7 +56,7 @@ export const CURATED_SHEETS: SheetMeta[] = [
     problemCount: 183,
     topicCount: 26,
     badge: "Interview Classic",
-    badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+    badgeColor: "bg-warning/10 text-warning dark:text-warning border-warning/30",
     excelFile: "/sheets/Striver_SDE_Sheet.xlsx",
     excelFileName: "Striver_SDE_Sheet.xlsx"
   },
@@ -70,7 +70,7 @@ export const CURATED_SHEETS: SheetMeta[] = [
     problemCount: 150,
     topicCount: 18,
     badge: "Pattern Based",
-    badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+    badgeColor: "bg-success/10 text-success dark:text-success border-success/30",
     excelFile: "/sheets/NeetCode_150_Sheet.xlsx",
     excelFileName: "NeetCode_150_Sheet.xlsx"
   },
@@ -84,7 +84,7 @@ export const CURATED_SHEETS: SheetMeta[] = [
     problemCount: 171,
     topicCount: 15,
     badge: "Placement Rigor",
-    badgeColor: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30",
+    badgeColor: "bg-primary/10 text-primary dark:text-primary border-primary/30",
     excelFile: "/sheets/Love_Babbar_450_DSA_Cracker.xlsx",
     excelFileName: "Love_Babbar_450_DSA_Cracker.xlsx"
   },
@@ -98,7 +98,7 @@ export const CURATED_SHEETS: SheetMeta[] = [
     problemCount: 97,
     topicCount: 11,
     badge: "Product Focus",
-    badgeColor: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
+    badgeColor: "bg-info/10 text-info dark:text-info border-info/30",
     excelFile: "/sheets/RisingBrains_DSA_Sheet.xlsx",
     excelFileName: "RisingBrains_DSA_Sheet.xlsx"
   }

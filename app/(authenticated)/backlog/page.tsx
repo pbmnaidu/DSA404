@@ -27,19 +27,19 @@ function AddRevisionDayButton({ onAdd }: { onAdd: () => void }) {
       {showTip && (
         <div
           role="tooltip"
-          className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-72 rounded-xl border border-border bg-popover shadow-xl px-4 py-3 text-sm text-popover-foreground animate-in fade-in-0 zoom-in-95 duration-150"
+          className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-72 rounded-lg border border-border bg-popover shadow-sm px-4 py-3 text-sm text-popover-foreground animate-in fade-in-0 zoom-in-95 duration-150"
         >
           <p className="font-semibold text-primary mb-1 flex items-center gap-1.5">
             <CalendarPlus className="size-4" />
             Add Revision Day
           </p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-xs text-foreground leading-relaxed">
             Inserts an <strong>extra revision/buffer day</strong> after your
             last pending backlog day. Your entire remaining schedule shifts
             forward by 1 day, giving you breathing room to catch up without
             skipping any topics.
           </p>
-          <ul className="mt-2 space-y-1 text-xs text-muted-foreground list-disc list-inside">
+          <ul className="mt-2 space-y-1 text-xs text-foreground list-disc list-inside">
             <li>Protects your schedule from burnout</li>
             <li>Keeps all future days intact — nothing is dropped</li>
             <li>Use it whenever you need one more day to finish a topic</li>
@@ -56,7 +56,7 @@ function AddRevisionDayButton({ onAdd }: { onAdd: () => void }) {
         onMouseLeave={() => setShowTip(false)}
         onFocus={() => setShowTip(true)}
         onBlur={() => setShowTip(false)}
-        className="w-full gap-2 border border-dashed border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/70 transition-all"
+        className="w-full gap-2 border border-dashed border-border bg-muted text-primary hover:bg-muted hover:border-border transition-all"
       >
         <CalendarPlus className="size-4 shrink-0" />
         Add Revision Day
@@ -76,33 +76,33 @@ function BacklogDayCard({ day }: { day: Day }) {
     <Link
       href={`/day/${day.dayNumber}`}
       className={cn(
-        "group block rounded-xl border bg-card p-4 transition-all duration-200 hover:border-primary/60 hover:shadow-md",
+        "group block rounded-lg border bg-card p-4 transition-all duration-200 hover:border-border hover:shadow-sm",
         allDone
-          ? "border-success/40 bg-success/5"
-          : "border-border hover:bg-accent/30"
+          ? "border-border bg-muted"
+          : "border-border hover:bg-muted"
       )}
     >
       {/* Top row: day label + status */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs uppercase tracking-wide text-foreground">
               Day {day.dayNumber} · {formatDate(day.date)}
             </span>
             {allDone ? (
-              <Badge className="text-[10px] px-1.5 py-0 bg-success/15 text-success border-success/30 gap-1">
+              <Badge className="text-[10px] px-1.5 py-0 bg-muted text-success border-border gap-1">
                 <CheckCircle2 className="size-2.5" />
                 Completed Late
               </Badge>
             ) : (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1 bg-warning/10 text-warning border-warning/20">
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1 bg-muted text-warning border-border">
                 <Clock className="size-2.5" />
                 {remaining} problem{remaining !== 1 ? "s" : ""} remaining
               </Badge>
             )}
           </div>
           <h3 className="font-semibold text-base leading-snug">{day.topic}</h3>
-          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+          <p className="text-xs text-foreground mt-0.5 line-clamp-1">
             {day.subtopics.join(" · ") || day.section}
           </p>
         </div>
@@ -129,14 +129,14 @@ function BacklogDayCard({ day }: { day: Day }) {
           value={pct}
           className={cn("h-1.5 flex-1", allDone && "[&>div]:bg-success")}
         />
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+        <span className="shrink-0 text-xs tabular-nums text-foreground">
           {done}/{total}
         </span>
       </div>
 
       {/* Subtle hint for incomplete */}
       {!allDone && (
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-xs text-foreground">
           Tap to open and mark problems done — they count toward your progress even if late.
         </p>
       )}
@@ -168,7 +168,7 @@ export default function BacklogPage() {
 
   if (!hasPending && !hasLateCompleted) {
     return (
-      <p className="text-center text-sm text-muted-foreground py-12">
+      <p className="text-center text-sm text-foreground py-12">
         No pending days — you&apos;re all caught up!
       </p>
     );
@@ -177,18 +177,18 @@ export default function BacklogPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Editorial Header */}
-      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+      <div className="rounded-lg border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8  pointer-events-none">
           <Clock className="size-48" />
         </div>
         <div className="space-y-2 relative z-10">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+            <div className="size-10 rounded-lg bg-muted border border-border text-primary flex items-center justify-center shrink-0">
               <Clock className="size-5" />
             </div>
             <h1 className="text-2xl md:text-3xl font-display font-black tracking-tight text-foreground">Backlog & Catch-Up</h1>
           </div>
-          <p className="text-sm text-muted-foreground max-w-xl">
+          <p className="text-sm text-foreground max-w-xl">
             Incomplete days from the past. Solve problems here to catch up without breaking your schedule. Take your time—consistency beats speed.
           </p>
         </div>
@@ -208,9 +208,9 @@ export default function BacklogPage() {
         {/* Pending Column */}
         {hasPending && (
           <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <div className="size-6 rounded bg-warning/10 text-warning flex items-center justify-center">
+                <div className="size-6 rounded bg-muted text-warning flex items-center justify-center">
                   <Clock className="size-3.5" />
                 </div>
                 <h2 className="text-base font-bold text-foreground">Pending Days</h2>
@@ -228,16 +228,16 @@ export default function BacklogPage() {
         {/* Late Completed Column */}
         {hasLateCompleted && (
           <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <div className="size-6 rounded bg-success/10 text-success flex items-center justify-center">
+                <div className="size-6 rounded bg-muted text-success flex items-center justify-center">
                   <CheckCircle2 className="size-3.5" />
                 </div>
                 <h2 className="text-base font-bold text-foreground">Late Completed</h2>
               </div>
-              <Badge variant="secondary" className="bg-success/10 text-success border-success/20 font-mono">{lateCompleted.length} solved</Badge>
+              <Badge variant="secondary" className="bg-muted text-success border-border font-mono">{lateCompleted.length} solved</Badge>
             </div>
-            <div className="grid gap-4 opacity-70 hover:opacity-100 transition-opacity">
+            <div className="grid gap-4  hover:opacity-100 transition-opacity">
               {lateCompleted.map((d) => (
                 <BacklogDayCard key={d.date} day={d} />
               ))}

@@ -128,22 +128,22 @@ export function ContestsPlatformBar({
   return (
     <>
       {!modalOnly && (
-        <section className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-md p-4 sm:p-5 shadow-sm transition-all">
+        <section className="rounded-lg border border-border bg-card  p-4 sm:p-5 shadow-sm transition-all">
           {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold">
+              <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-primary font-bold">
                 <Sparkles className="size-4" />
               </span>
               <h2 className="text-base font-semibold text-foreground tracking-tight">
                 Linked Coding Accounts &amp; Auto-Attendance
               </h2>
-              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-success dark:text-success border border-border">
                 {linkedCount} / {SUPPORTED_CONTEST_PLATFORMS.length} Connected
               </span>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+            <p className="mt-1 text-xs text-foreground leading-relaxed">
               Connect your contest profile URLs. Contests you attend will be{" "}
               <strong className="text-foreground font-medium">automatically marked as Attended</strong>, and missed contests as{" "}
               <strong className="text-foreground font-medium">Not Attended</strong> with verified ratings.
@@ -178,10 +178,10 @@ export function ContestsPlatformBar({
               <div
                 key={meta.id}
                 className={cn(
-                  "relative flex flex-col justify-between rounded-xl border p-3 transition-all",
+                  "relative flex flex-col justify-between rounded-lg border p-3 transition-all",
                   isLinked
-                    ? "border-border/80 bg-background/50 hover:bg-background/80 shadow-xs"
-                    : "border-dashed border-border/70 bg-muted/20 hover:bg-muted/40 hover:border-primary/40"
+                    ? "border-border bg-background hover:bg-background shadow-xs"
+                    : "border-dashed border-border bg-muted hover:bg-muted hover:border-border"
                 )}
               >
                 {/* Top Row: Platform Icon & Name */}
@@ -193,7 +193,7 @@ export function ContestsPlatformBar({
                     </span>
                   </div>
                   {isLinked && (
-                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-success dark:text-success">
                       <CheckCircle2 className="size-2.5" />
                       Linked
                     </span>
@@ -213,7 +213,7 @@ export function ContestsPlatformBar({
                             href={profileUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-primary transition-colors"
+                            className="text-foreground hover:text-primary transition-colors"
                             title={`Open ${handle} on ${meta.label}`}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -222,29 +222,29 @@ export function ContestsPlatformBar({
                         )}
                       </div>
                       {stats?.rating ? (
-                        <p className="text-[11px] text-muted-foreground font-mono">
+                        <p className="text-[11px] text-foreground font-mono">
                           Rating: <span className="font-semibold text-primary">{stats.rating}</span>
                           {stats.contestsParticipated ? ` · ${stats.contestsParticipated} contests` : ""}
                         </p>
                       ) : (
-                        <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80">
+                        <p className="text-[10px] text-foreground dark:text-foreground">
                           Auto-tracking active
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-[11px] text-muted-foreground line-clamp-1">
+                    <p className="text-[11px] text-foreground line-clamp-1">
                       Not connected yet
                     </p>
                   )}
                 </div>
 
                 {/* Bottom button */}
-                <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
+                <div className="mt-2 pt-2 border-t border-border flex items-center justify-between">
                   {isLinked ? (
                     <button
                       onClick={() => openModal(meta.id)}
-                      className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                      className="inline-flex items-center gap-1 text-[11px] text-foreground hover:text-foreground transition-colors"
                     >
                       <Settings className="size-3" />
                       <span>Edit Account</span>
@@ -302,19 +302,19 @@ export function ContestsPlatformBar({
                       }
                     }}
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Example: <span className="font-mono text-muted-foreground/90">{activeMeta.exampleUrl}</span>
+                  <p className="text-[11px] text-foreground">
+                    Example: <span className="font-mono text-foreground">{activeMeta.exampleUrl}</span>
                   </p>
                 </div>
 
                 {/* Live handle detection preview */}
                 {extractedHandle && (
-                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="rounded-lg border border-border bg-muted p-3 text-xs space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-foreground">Detected Handle:</span>
                       <span className="font-mono font-bold text-primary">@{extractedHandle}</span>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <div className="flex items-center justify-between text-[11px] text-foreground">
                       <span>Canonical Profile:</span>
                       <a
                         href={getCanonicalProfileUrl(activeMeta.id, extractedHandle)}
@@ -329,9 +329,9 @@ export function ContestsPlatformBar({
                   </div>
                 )}
 
-                <div className="rounded-lg border border-border/70 bg-muted/40 p-3 text-[11px] text-muted-foreground space-y-1">
+                <div className="rounded-lg border border-border bg-muted p-3 text-[11px] text-foreground space-y-1">
                   <p className="font-medium text-foreground flex items-center gap-1">
-                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    <CheckCircle2 className="size-3 text-success" />
                     Automatic Contest Tracking
                   </p>
                   <p>
@@ -348,7 +348,7 @@ export function ContestsPlatformBar({
                     size="sm"
                     onClick={handleUnlink}
                     disabled={isSaving}
-                    className="text-destructive hover:bg-destructive/10 text-xs gap-1"
+                    className="text-destructive hover:bg-muted text-xs gap-1"
                   >
                     <Unlink className="size-3" />
                     <span>Unlink Account</span>

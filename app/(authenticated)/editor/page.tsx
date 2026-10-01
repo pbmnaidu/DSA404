@@ -179,7 +179,7 @@ function EditorPageInner() {
            <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex items-center gap-1.5 rounded-md bg-[#238636] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled:opacity-50 transition-colors shadow-sm border border-[rgba(240,253,244,0.1)]"
+            className="flex items-center gap-1.5 rounded-md bg-[#238636] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled: transition-colors shadow-sm border border-[rgba(240,253,244,0.1)]"
           >
             {submitting && <Loader2 size={13} className="animate-spin" />}
             Submit Solution
@@ -199,7 +199,7 @@ function EditorPageInner() {
             <div>
               <h2 className="text-sm font-bold text-[#c9d1d9] mb-1">{problem.name}</h2>
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-1.5 py-0.5 rounded-sm bg-[#1f6feb]/20 text-[#58a6ff] font-mono border border-[#1f6feb]/30">{problem.topic}</span>
+                <span className="px-1.5 py-0.5 rounded-lg bg-[#1f6feb]/20 text-[#58a6ff] font-mono border border-[#1f6feb]/30">{problem.topic}</span>
               </div>
             </div>
             
@@ -235,7 +235,7 @@ function EditorPageInner() {
                 <ChevronDown size={12} className="text-[#8b949e]" />
               </button>
               {langOpen && (
-                <div className="absolute right-0 top-full mt-1 w-40 rounded-md border border-[#30363d] bg-[#161b22] py-1 shadow-xl z-20">
+                <div className="absolute right-0 top-full mt-1 w-40 rounded-md border border-[#30363d] bg-[#161b22] py-1 shadow-sm z-20">
                   {LANGUAGES.map((l) => (
                     <button
                       key={l.id}
@@ -258,7 +258,7 @@ function EditorPageInner() {
               value={code}
               onChange={setCode}
               language={language}
-              className="absolute inset-0 rounded-none border-0"
+              className="absolute inset-0 rounded-lg border-0"
             />
           </div>
         </div>

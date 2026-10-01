@@ -63,8 +63,8 @@ function ColorRow({ label, value, onChange }: { label: string; value: string; on
           onChange={(e) => onChange(e.target.value)}
           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
       </label>
-      <span className="text-sm text-foreground/80 flex-1 truncate">{label}</span>
-      <span className="text-xs font-mono text-muted-foreground">{value}</span>
+      <span className="text-sm text-foreground flex-1 truncate">{label}</span>
+      <span className="text-xs font-mono text-foreground">{value}</span>
     </div>
   );
 }
@@ -74,11 +74,11 @@ function SectionHeader({
 }: { label: string; expanded: boolean; onToggle: () => void; icon: React.ReactNode }) {
   return (
     <button
-      className="w-full flex items-center justify-between px-3 py-2.5 bg-muted/40 text-sm font-medium hover:bg-muted/70 transition-colors"
+      className="w-full flex items-center justify-between px-3 py-2.5 bg-muted text-sm font-medium hover:bg-muted transition-colors"
       onClick={onToggle}
     >
       <span className="flex items-center gap-2">{icon}{label}</span>
-      {expanded ? <ChevronUp className="size-3.5 text-muted-foreground" /> : <ChevronDown className="size-3.5 text-muted-foreground" />}
+      {expanded ? <ChevronUp className="size-3.5 text-foreground" /> : <ChevronDown className="size-3.5 text-foreground" />}
     </button>
   );
 }
@@ -111,11 +111,11 @@ export function ThemeCustomizerPanel() {
   return (
     <>
       {/* Backdrop */}
-      {panelOpen && <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" onClick={closePanel} />}
+      {panelOpen && <div className="fixed inset-0 z-50 bg-black " onClick={closePanel} />}
 
       {/* Panel */}
       <div
-        className={`fixed bottom-0 right-0 z-50 w-full sm:w-[360px] max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl sm:bottom-6 sm:right-6 bg-card border border-border shadow-2xl transition-all duration-300 ease-out ${
+        className={`fixed bottom-0 right-0 z-50 w-full sm:w-[360px] max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:rounded-lg sm:bottom-6 sm:right-6 bg-card border border-border shadow-sm transition-all duration-300 ease-out ${
           panelOpen
             ? "opacity-100 translate-y-0 sm:scale-100"
             : "opacity-0 translate-y-full sm:translate-y-0 sm:scale-95 pointer-events-none"
@@ -130,11 +130,11 @@ export function ThemeCustomizerPanel() {
           </div>
           <div className="flex items-center gap-1">
             <button onClick={resetToDefault} title="Reset all" aria-label="Reset all"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+              className="p-1.5 rounded-md text-foreground hover:text-foreground hover:bg-muted transition-colors">
               <RotateCcw className="size-3.5" />
             </button>
             <button onClick={closePanel} title="Close" aria-label="Close panel"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+              className="p-1.5 rounded-md text-foreground hover:text-foreground hover:bg-muted transition-colors">
               <X className="size-4" />
             </button>
           </div>
@@ -144,7 +144,7 @@ export function ThemeCustomizerPanel() {
 
           {/* ── Mode (Light / Dark / System) ── */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">Theme Mode</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-foreground mb-2.5">Theme Mode</p>
             <div className="grid grid-cols-3 gap-2">
               {(
                 [
@@ -156,10 +156,10 @@ export function ThemeCustomizerPanel() {
                 <button
                   key={mode}
                   onClick={() => applyThemeMode(mode)}
-                  className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
+                  className={`flex items-center justify-center gap-1.5 p-2 rounded-lg border text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
                     themeMode === mode
-                      ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
-                      : "border-border bg-muted/50 text-foreground hover:border-primary/50"
+                      ? "border-primary bg-muted text-primary font-semibold shadow-sm"
+                      : "border-border bg-muted text-foreground hover:border-border"
                   }`}
                 >
                   {icon}
@@ -173,20 +173,20 @@ export function ThemeCustomizerPanel() {
 
           {/* ── Color Presets ── */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">Color Presets</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-foreground mb-2.5">Color Presets</p>
             <div className="grid grid-cols-3 gap-2">
               {Object.entries(PRESETS).map(([key, preset]) => (
                 <button key={key} onClick={() => applyPreset(key)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-medium transition-all duration-150 hover:scale-105 active:scale-95 ${
+                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border text-xs font-medium transition-all duration-150 hover:scale-105 active:scale-95 ${
                     activePreset === key
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-muted/50 text-foreground hover:border-primary/50"
+                      ? "border-primary bg-muted text-primary"
+                      : "border-border bg-muted text-foreground hover:border-border"
                   }`}
                 >
                   <div className="flex gap-0.5 mb-0.5">
-                    <span className="w-4 h-4 rounded-full border border-black/10" style={{ background: preset.colors.light.background }} />
-                    <span className="w-4 h-4 rounded-full border border-black/10" style={{ background: preset.colors.light.primary }} />
-                    <span className="w-4 h-4 rounded-full border border-black/10" style={{ background: preset.colors.dark.background }} />
+                    <span className="w-4 h-4 rounded-full border border-border" style={{ background: preset.colors.light.background }} />
+                    <span className="w-4 h-4 rounded-full border border-border" style={{ background: preset.colors.light.primary }} />
+                    <span className="w-4 h-4 rounded-full border border-border" style={{ background: preset.colors.dark.background }} />
                   </div>
                   <span className="text-[10px] text-center leading-tight">{preset.label}</span>
                 </button>
@@ -198,12 +198,12 @@ export function ThemeCustomizerPanel() {
 
           {/* ── Fine-tune colors ── */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">Fine-tune Colors</p>
-            <div className="rounded-xl border border-border overflow-hidden mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-foreground mb-2.5">Fine-tune Colors</p>
+            <div className="rounded-lg border border-border overflow-hidden mb-2">
               <SectionHeader
                 label="Light Mode Colors" expanded={advancedMode === "light"}
                 onToggle={() => setAdvancedMode(advancedMode === "light" ? null : "light")}
-                icon={<Sun className="size-3.5 text-amber-500" />}
+                icon={<Sun className="size-3.5 text-warning" />}
               />
               {advancedMode === "light" && (
                 <div className="px-3 py-3 space-y-3">
@@ -214,11 +214,11 @@ export function ThemeCustomizerPanel() {
                 </div>
               )}
             </div>
-            <div className="rounded-xl border border-border overflow-hidden">
+            <div className="rounded-lg border border-border overflow-hidden">
               <SectionHeader
                 label="Dark Mode Colors" expanded={advancedMode === "dark"}
                 onToggle={() => setAdvancedMode(advancedMode === "dark" ? null : "dark")}
-                icon={<Moon className="size-3.5 text-indigo-400" />}
+                icon={<Moon className="size-3.5 text-primary" />}
               />
               {advancedMode === "dark" && (
                 <div className="px-3 py-3 space-y-3">
@@ -235,8 +235,8 @@ export function ThemeCustomizerPanel() {
 
           {/* ── Font & Size ── */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">Typography</p>
-            <div className="rounded-xl border border-border overflow-hidden mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-foreground mb-2.5">Typography</p>
+            <div className="rounded-lg border border-border overflow-hidden mb-2">
               <SectionHeader
                 label="Font Family" expanded={fontOpen}
                 onToggle={() => setFontOpen((v) => !v)}
@@ -248,7 +248,7 @@ export function ThemeCustomizerPanel() {
                     <button key={f.value} onClick={() => applyFont(f.value)}
                       className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all ${
                         font === f.value
-                          ? "bg-primary/10 text-primary font-semibold"
+                          ? "bg-muted text-primary font-semibold"
                           : "text-foreground hover:bg-muted"
                       }`}
                       style={{ fontFamily: f.value }}
@@ -262,8 +262,8 @@ export function ThemeCustomizerPanel() {
             </div>
 
             {/* Font Size */}
-            <div className="rounded-xl border border-border overflow-hidden">
-              <div className="px-3 py-2.5 bg-muted/40 flex items-center gap-2 text-sm font-medium">
+            <div className="rounded-lg border border-border overflow-hidden">
+              <div className="px-3 py-2.5 bg-muted flex items-center gap-2 text-sm font-medium">
                 <Type className="size-3.5 text-primary" />
                 <span>Display Size</span>
               </div>
@@ -272,8 +272,8 @@ export function ThemeCustomizerPanel() {
                   <button key={s.value} onClick={() => applySize(s.value)}
                     className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
                       fontSize === s.value
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-foreground hover:border-primary/50"
+                        ? "border-primary bg-muted text-primary"
+                        : "border-border text-foreground hover:border-border"
                     }`}
                     style={{ fontSize: s.value }}
                   >
@@ -288,8 +288,8 @@ export function ThemeCustomizerPanel() {
 
           {/* ── View Mode ── */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">View Mode</p>
-            <div className="rounded-xl border border-border overflow-hidden">
+            <p className="text-xs font-semibold uppercase tracking-wider text-foreground mb-2.5">View Mode</p>
+            <div className="rounded-lg border border-border overflow-hidden">
               <SectionHeader
                 label="Force Layout" expanded={viewOpen}
                 onToggle={() => setViewOpen((v) => !v)}
@@ -305,10 +305,10 @@ export function ThemeCustomizerPanel() {
                     ] as const
                   ).map(({ mode, label, icon }) => (
                     <button key={mode} onClick={() => applyView(mode)}
-                      className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
                         forceView === mode
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border text-foreground hover:border-primary/50"
+                          ? "border-primary bg-muted text-primary"
+                          : "border-border text-foreground hover:border-border"
                       }`}
                     >
                       {icon}
@@ -318,13 +318,13 @@ export function ThemeCustomizerPanel() {
                 </div>
               )}
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground text-center">
+            <p className="mt-2 text-[11px] text-foreground text-center">
               "Desktop" forces a 1280px viewport width on mobile browsers.
             </p>
           </div>
 
           {/* Footer note */}
-          <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+          <p className="text-[11px] text-foreground text-center leading-relaxed">
             All settings are synced automatically across your devices.
           </p>
         </div>

@@ -152,27 +152,27 @@ export default function MessagesPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Editorial Header */}
-      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+      <div className="rounded-lg border border-border bg-card p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8  pointer-events-none">
           <Bell className="size-48" />
         </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+              <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                 <Megaphone className="size-5" />
               </span>
               <h1 className="font-display text-2xl md:text-3xl font-black tracking-tight text-foreground">
                 Messages & Alerts
               </h1>
             </div>
-            <p className="text-sm text-muted-foreground max-w-xl">
+            <p className="text-sm text-foreground max-w-xl">
               Official platform announcements, features updates, and broadcast alerts from the DSA⁴⁰⁴ team.
             </p>
           </div>
 
           {isAdmin && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 self-start md:self-auto">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3.5 py-1.5 text-xs font-semibold text-success dark:text-success self-start md:self-auto">
               <ShieldCheck className="size-4" />
               <span>Admin Broadcast Mode Active</span>
             </div>
@@ -182,7 +182,7 @@ export default function MessagesPage() {
 
       {/* Admin Broadcast Creator (Restricted to Authorized Admins) */}
       {isAdmin && (
-        <section className="rounded-2xl border border-primary/20 bg-card p-6 shadow-sm space-y-6">
+        <section className="rounded-lg border border-border bg-card p-6 shadow-sm space-y-6">
           <div className="flex items-center justify-between border-b border-border pb-4">
             <div className="flex items-center gap-2">
               <Radio className="size-5 text-primary animate-pulse" />
@@ -190,7 +190,7 @@ export default function MessagesPage() {
                 Create & Broadcast Announcement
               </h2>
             </div>
-            <span className="text-xs text-muted-foreground">Targeting: All Registered FCM Tokens</span>
+            <span className="text-xs text-foreground">Targeting: All Registered FCM Tokens</span>
           </div>
 
           <div className="space-y-4">
@@ -230,7 +230,7 @@ export default function MessagesPage() {
                 Target Link (Optional)
               </Label>
               <div className="relative">
-                <LinkIcon className="absolute left-3 top-3 size-4 text-muted-foreground" />
+                <LinkIcon className="absolute left-3 top-3 size-4 text-foreground" />
                 <Input
                   id="msg-url"
                   placeholder="/contests or https://..."
@@ -242,7 +242,7 @@ export default function MessagesPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground">
                 Sends an instant push alert to all devices (foreground, background, and closed-app Web Push).
               </p>
               <ConfirmDialog
@@ -275,14 +275,14 @@ export default function MessagesPage() {
 
           {/* Last Broadcast Statistics Summary */}
           {lastStats && (
-            <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-xs space-y-2 animate-fade-in">
-              <div className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+            <div className="mt-4 rounded-lg border border-border bg-muted p-4 text-xs space-y-2 animate-fade-in">
+              <div className="font-bold text-success dark:text-success flex items-center gap-1.5">
                 <CheckCircle2 className="size-4" /> Broadcast Delivered Successfully
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-foreground font-mono">
                 <div>Tokens Found: <strong>{lastStats.tokensFound}</strong></div>
-                <div>Notifications Sent: <strong className="text-emerald-600 dark:text-emerald-400">{lastStats.successCount}</strong></div>
-                <div>Failed Sends: <strong className="text-amber-600">{lastStats.failureCount}</strong></div>
+                <div>Notifications Sent: <strong className="text-success dark:text-success">{lastStats.successCount}</strong></div>
+                <div>Failed Sends: <strong className="text-warning">{lastStats.failureCount}</strong></div>
                 <div>Tokens Pruned: <strong>{lastStats.invalidTokensRemoved}</strong></div>
               </div>
             </div>
@@ -297,7 +297,7 @@ export default function MessagesPage() {
             <Bell className="size-5 text-primary" />
             Announcement History & Feed
           </h2>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-foreground">
             {messages.length} message{messages.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -305,7 +305,7 @@ export default function MessagesPage() {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-xl border border-border bg-card p-5 space-y-3">
+              <div key={i} className="rounded-lg border border-border bg-card p-5 space-y-3">
                 <Skeleton className="h-5 w-1/3" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-2/3" />
@@ -313,12 +313,12 @@ export default function MessagesPage() {
             ))}
           </div>
         ) : messages.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border p-12 text-center space-y-3">
+          <div className="rounded-lg border border-dashed border-border p-12 text-center space-y-3">
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
-              <Megaphone className="size-6 text-muted-foreground" />
+              <Megaphone className="size-6 text-foreground" />
             </div>
             <h3 className="font-bold text-foreground">No Announcements Yet</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+            <p className="text-sm text-foreground max-w-sm mx-auto">
               Platform news, updates, and contest reminders will appear here when published.
             </p>
           </div>
@@ -327,14 +327,14 @@ export default function MessagesPage() {
             {messages.map((msg) => (
               <article
                 key={msg.id}
-                className="group relative rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+                className="group relative rounded-lg border border-border bg-card p-5 shadow-sm transition-all hover:border-border hover:shadow-sm"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2">
                   <div className="space-y-1">
                     <h3 className="font-display text-base font-bold text-foreground flex items-center gap-2">
                       {msg.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-foreground">
                       <Clock className="size-3.5" />
                       <span>{new Date(msg.createdAt).toLocaleString()}</span>
                       {msg.createdByName && (
@@ -347,18 +347,18 @@ export default function MessagesPage() {
                   </div>
 
                   {isAdmin && msg.successCount !== undefined && (
-                    <div className="shrink-0 rounded-lg border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-mono text-muted-foreground">
+                    <div className="shrink-0 rounded-lg border border-border bg-muted px-2.5 py-1 text-[11px] font-mono text-foreground">
                       Delivered: <span className="font-bold text-foreground">{msg.successCount}</span> / {msg.tokensFound ?? 0}
                     </div>
                   )}
                 </div>
 
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
                   {msg.body}
                 </p>
 
                 {msg.url && (
-                  <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
                     <a
                       href={msg.url}
                       target={msg.url.startsWith("http") ? "_blank" : "_self"}
