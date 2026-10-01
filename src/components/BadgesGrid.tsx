@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Badge } from "@/lib/gamification";
 import { Award, Lock, ShieldCheck, Trophy, Zap, Star, Target, CheckCircle2 } from "lucide-react";
 
@@ -19,6 +20,8 @@ function getBadgeIcon(code: string, earned: boolean) {
 
 export function BadgesGrid({ badges }: BadgesGridProps) {
   const earnedList = badges.filter((b) => b.earned);
+  const [selectedCode, setSelectedCode] = useState<string | null>(earnedList[0]?.code ?? badges[0]?.code ?? null);
+  const selectedBadge = badges.find((badge) => badge.code === selectedCode) ?? null;
 
   return (
     <div className="space-y-4">
@@ -34,13 +37,17 @@ export function BadgesGrid({ badges }: BadgesGridProps) {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {badges.map((b) => (
-          <div
+          <button
             key={b.code}
-            className={`relative flex items-start gap-3 rounded-xl border p-3.5 transition-all ${
+            type="button"
+            onClick={() => setSelectedCode(b.code)}
+            aria-pressed={selectedCode === b.code}
+            aria-label={`${b.label}: ${b.description}`}
+            className={`relative flex min-w-0 w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
               b.earned
                 ? "border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-card to-card shadow-sm hover:border-amber-500/50"
-                : "border-border/60 bg-muted/20 opacity-65"
-            }`}
+                : "border-border/60 bg-muted/20 opacity-65 hover:opacity-90"
+            } ${selectedCode === b.code ? "ring-2 ring-amber-500/30" : ""}`}
           >
             <div
               className={`flex size-10 shrink-0 items-center justify-center rounded-xl border ${
@@ -52,22 +59,37 @@ export function BadgesGrid({ badges }: BadgesGridProps) {
               {getBadgeIcon(b.code, b.earned)}
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-semibold truncate">{b.label}</p>
+                <p className="truncate text-sm font-semibold">{b.label}</p>
                 {b.earned ? (
-                  <CheckCircle2 className="size-3.5 text-amber-500 shrink-0 ml-auto" />
+                  <CheckCircle2 className="ml-auto size-3.5 shrink-0 text-amber-500" />
                 ) : (
-                  <Lock className="size-3.5 text-muted-foreground/60 shrink-0 ml-auto" />
+                  <Lock className="ml-auto size-3.5 shrink-0 text-muted-foreground/60" />
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+              <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                 {b.description}
               </p>
             </div>
-          </div>
+          </button>
         ))}
       </div>
+
+      {selectedBadge && (
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4" aria-live="polite">
+          <div className="flex items-center gap-2">
+            {getBadgeIcon(selectedBadge.code, selectedBadge.earned)}
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-foreground">{selectedBadge.label}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                {selectedBadge.earned ? "Unlocked badge" : "Locked badge"}
+              </p>
+            </div>
+          </div>
+          <p className="mt-2 text-sm leading-5 text-muted-foreground">{selectedBadge.description}</p>
+        </div>
+      )}
     </div>
   );
 }

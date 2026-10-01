@@ -1324,7 +1324,7 @@ export default function PublicProfilePage() {
           </main>
 
           {/* SECONDARY COLUMN: Summary & Narrative */}
-          <aside className="order-2 min-w-0 space-y-6 lg:order-2 lg:col-span-4 lg:sticky lg:top-6 lg:self-start">
+          <aside className="order-2 min-w-0 space-y-6 lg:order-2 lg:row-start-1 lg:col-span-4 lg:self-start">
             
             {/* Top Line Stats */}
             <div className="grid grid-cols-2 gap-4">

@@ -103,63 +103,112 @@ function HeroSection({ onEnterDemo }: { onEnterDemo: () => void }) {
       <div className="mx-auto max-w-6xl mt-16 md:mt-24 px-4 relative">
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-20 pointer-events-none" />
         <div className="relative z-10 rounded-2xl md:rounded-[2rem] border border-border/50 bg-background shadow-2xl p-2 md:p-4 rotate-x-12 scale-100 overflow-hidden transform perspective-1000 origin-top animate-fade-in [animation-duration:1.5s]">
-          {/* Abstracted UI representation */}
+          {/* Product preview: keep the hero visual readable and useful instead of showing empty skeleton bars. */}
           <div className="rounded-xl md:rounded-2xl border border-border bg-card overflow-hidden grid grid-cols-1 md:grid-cols-12 h-[300px] sm:h-[400px] md:h-[600px]">
             {/* Sidebar */}
-            <div className="hidden md:block col-span-3 border-r border-border/60 bg-muted/10 p-4">
-              <div className="flex items-center gap-2 mb-8">
-                <div className="size-8 bg-primary rounded-lg flex items-center justify-center"><Code className="size-4 text-primary-foreground" /></div>
-                <div className="h-4 w-24 bg-foreground/20 rounded" />
-              </div>
-              <div className="space-y-3">
-                <div className="h-8 w-full bg-primary/10 rounded-md border border-primary/20 flex items-center px-3">
-                   <div className="size-3 rounded-full bg-primary mr-2" />
-                   <div className="h-2 w-16 bg-primary/40 rounded" />
+            <div className="hidden md:flex md:col-span-3 flex-col border-r border-border/60 bg-muted/20 p-5">
+              <div className="flex items-center gap-2.5 mb-8">
+                <div className="size-9 bg-primary rounded-xl flex items-center justify-center shadow-sm"><Code className="size-4 text-primary-foreground" /></div>
+                <div>
+                  <p className="text-sm font-black tracking-tight text-foreground">DSA⁴⁰⁴</p>
+                  <p className="text-[10px] text-muted-foreground">Your coding system</p>
                 </div>
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="h-8 w-full hover:bg-muted rounded-md flex items-center px-3">
-                    <div className="size-3 rounded-full bg-foreground/10 mr-2" />
-                    <div className="h-2 w-20 bg-foreground/20 rounded" />
+              </div>
+              <div className="space-y-1.5 text-xs font-medium">
+                <div className="flex items-center gap-2.5 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2.5 text-primary">
+                   <Sparkles className="size-3.5" />
+                   <span>Today</span>
+                </div>
+                {[
+                  { icon: Calendar, label: "Plan & Calendar" },
+                  { icon: LayoutGrid, label: "Problem Library" },
+                  { icon: BarChart3, label: "Progress" },
+                  { icon: Trophy, label: "Contests" },
+                ].map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-muted-foreground">
+                    <Icon className="size-3.5" />
+                    <span>{label}</span>
                   </div>
                 ))}
+              </div>
+              <div className="mt-auto rounded-xl border border-border bg-card p-3">
+                <div className="flex items-center justify-between text-[10px] font-semibold">
+                  <span className="text-muted-foreground">Plan progress</span>
+                  <span className="text-primary">18%</span>
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div className="h-full w-[18%] rounded-full bg-primary" />
+                </div>
+                <p className="mt-2 text-[10px] text-muted-foreground">Day 22 of 120</p>
               </div>
             </div>
             {/* Main Area */}
             <div className="col-span-1 md:col-span-9 p-4 sm:p-6 md:p-8 bg-card flex flex-col">
-              <div className="flex items-center justify-between mb-8">
-                 <div className="h-6 w-32 md:h-8 md:w-48 bg-foreground/10 rounded-lg" />
-                 <div className="size-6 md:size-8 rounded-full bg-foreground/10" />
+              <div className="flex items-start justify-between gap-4 mb-6">
+                 <div>
+                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Wednesday · Day 22</p>
+                   <h3 className="mt-1 text-xl md:text-2xl font-black tracking-tight text-foreground">Today's Mission</h3>
+                   <p className="mt-1 text-xs text-muted-foreground">Build confidence with one focused session.</p>
+                 </div>
+                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted/60 text-xs font-bold text-foreground">BP</div>
               </div>
               {/* Today's Mission Mockup */}
-              <div className="h-32 md:h-40 w-full bg-primary/5 rounded-2xl border border-primary/20 mb-6 p-4 md:p-6 flex flex-col justify-end">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="size-2 rounded-full bg-primary animate-pulse" />
-                  <div className="h-3 w-20 bg-primary/40 rounded" />
+              <div className="h-32 md:h-40 w-full bg-primary/5 rounded-2xl border border-primary/20 mb-6 p-4 md:p-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <span className="size-2 rounded-full bg-primary animate-pulse" />
+                    Current topic
+                  </div>
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">2 / 4 complete</span>
                 </div>
-                <div className="h-6 md:h-8 w-48 md:w-64 bg-primary/60 rounded" />
+                <div>
+                  <p className="text-lg md:text-2xl font-black tracking-tight text-foreground">Arrays &amp; Hashing</p>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-primary/15">
+                    <div className="h-full w-1/2 rounded-full bg-primary" />
+                  </div>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
                 <div className="bg-muted/30 rounded-xl border border-border/50 p-4 space-y-3 hidden sm:block">
-                   <div className="h-3 w-1/3 bg-foreground/20 rounded mb-4" />
-                   {[1,2,3].map(i => (
-                     <div key={i} className="h-10 md:h-12 w-full bg-background rounded-lg border border-border/50 flex items-center px-3 justify-between">
-                       <div className="flex items-center gap-2 w-full">
-                         <div className="size-3 md:size-4 rounded-full border border-border" />
-                         <div className="h-2 md:h-3 w-1/2 bg-foreground/30 rounded" />
+                   <div className="mb-4 flex items-center justify-between">
+                     <p className="text-xs font-bold text-foreground">Daily problem list</p>
+                     <span className="text-[10px] text-muted-foreground">3 problems</span>
+                   </div>
+                   {[
+                     ["Two Sum", "Easy", true],
+                     ["Valid Anagram", "Easy", true],
+                     ["Group Anagrams", "Medium", false],
+                   ].map(([title, difficulty, done]) => (
+                     <div key={title as string} className="flex min-h-10 items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-2">
+                       <CheckCircle2 className={cn("size-4 shrink-0", done ? "text-emerald-500" : "text-muted-foreground/40")} />
+                       <div className="min-w-0 flex-1">
+                         <p className={cn("truncate text-[11px] font-semibold", done && "text-muted-foreground line-through")}>{title}</p>
+                         <p className="text-[10px] text-muted-foreground">{difficulty}</p>
                        </div>
-                       <div className="size-3 md:size-4 rounded-sm bg-emerald-500/40" />
+                       <span className={cn("size-2 rounded-full", done ? "bg-emerald-400" : "bg-muted-foreground/25")} />
                      </div>
                    ))}
                 </div>
                 <div className="bg-muted/30 rounded-xl border border-border/50 p-4">
-                   <div className="h-3 w-1/3 bg-foreground/20 rounded mb-4" />
+                   <p className="mb-4 text-xs font-bold text-foreground">Your momentum</p>
                    <div className="h-full w-full bg-background rounded-lg border border-border/50 flex flex-col p-4 justify-between min-h-[120px]">
-                     <div className="space-y-2 w-full">
-                       <div className="h-2 w-full bg-foreground/10 rounded" />
-                       <div className="h-2 w-4/5 bg-foreground/10 rounded" />
-                       <div className="h-2 w-5/6 bg-foreground/10 rounded" />
+                     <div>
+                       <div className="flex items-end justify-between">
+                         <span className="text-3xl font-black text-foreground">7</span>
+                         <span className="text-[10px] font-bold text-orange-500">day streak</span>
+                       </div>
+                       <div className="mt-4 flex h-12 items-end gap-1.5">
+                         {[35, 52, 42, 68, 58, 82, 100].map((height, index) => (
+                           <div key={index} className="flex-1 rounded-t bg-primary/20" style={{ height: `${height}%` }}>
+                             <div className="h-full rounded-t bg-primary" style={{ opacity: 0.35 + index * 0.08 }} />
+                           </div>
+                         ))}
+                       </div>
                      </div>
-                     <div className="h-6 md:h-8 w-full bg-primary/20 rounded-md mt-4" />
+                     <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-[10px] text-muted-foreground">
+                       <span>12 solved this week</span>
+                       <Activity className="size-3.5 text-primary" />
+                     </div>
                    </div>
                 </div>
               </div>
@@ -461,7 +510,7 @@ function ProductPreview() {
                  <h4 className="font-bold text-sm mb-4 flex items-center gap-2"><Flame className="size-4 text-amber-500" /> 14 Day Streak</h4>
                  <div className="grid grid-cols-7 gap-1">
                    {Array.from({length: 28}).map((_, i) => (
-                     <div key={i} className={cn("aspect-square rounded-sm", Math.random() > 0.3 ? "bg-emerald-500/40" : "bg-muted")} />
+                     <div key={i} className={cn("aspect-square rounded-sm", [1, 2, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27].includes(i) ? "bg-emerald-500/40" : "bg-muted")} />
                    ))}
                  </div>
                </div>

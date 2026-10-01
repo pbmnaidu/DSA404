@@ -137,6 +137,62 @@ function ThemedTooltip({ hint, children }: { hint: string; children: React.React
   );
 }
 
+function MissionWelcomeMascot({ name }: { name: string }) {
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [timeOfDay, setTimeOfDay] = useState<"morning" | "afternoon" | "evening" | "night">("morning");
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setTimeOfDay(hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night");
+    setMounted(true);
+
+    try {
+      const visitKey = `dsa404:today-welcome:${todayIso()}`;
+      const hasVisitedToday = window.localStorage.getItem(visitKey) === "true";
+      setIsFirstVisit(!hasVisitedToday);
+      window.localStorage.setItem(visitKey, "true");
+    } catch {
+      // Keep the welcome state when browser storage is unavailable.
+    }
+  }, []);
+
+  const messages = {
+    morning: "Good morning — let's solve today's problems!",
+    afternoon: "Good afternoon — keep your momentum going!",
+    evening: "Good evening — one focused session can change your day.",
+    night: "Night owl mode — conquer today's problems before bed!",
+  };
+  const message = isFirstVisit ? `Hey ${name}, welcome back! Let's solve your problems.` : messages[timeOfDay];
+
+  return (
+    <div
+      className={cn("hidden min-w-0 flex-1 items-center justify-center gap-3 xl:flex", mounted ? "animate-in fade-in duration-500" : "opacity-0")}
+      aria-live="polite"
+    >
+      <style jsx>{`
+        @keyframes owlWave {
+          0%, 100% { transform: rotate(0deg); }
+          20% { transform: rotate(18deg); }
+          40% { transform: rotate(-12deg); }
+          60% { transform: rotate(18deg); }
+          80% { transform: rotate(-6deg); }
+        }
+        .owl-wave { transform-origin: 80% 85%; animation: owlWave 1.8s ease-in-out 0.25s 2; }
+        @media (prefers-reduced-motion: reduce) { .owl-wave { animation: none; } }
+      `}</style>
+      <div className="relative flex size-16 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-4xl shadow-sm">
+        <span role="img" aria-label="Owl mascot">🦉</span>
+        <span className="owl-wave absolute -right-3 -top-2 text-xl" aria-hidden="true">👋</span>
+      </div>
+      <div className="max-w-[220px] rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm">
+        <p className="text-xs font-bold leading-5 text-foreground">{message}</p>
+        <p className="mt-1 text-[10px] font-medium text-muted-foreground">Your learning companion is ready.</p>
+      </div>
+    </div>
+  );
+}
+
 export function MergedTodayProfile() {
   const { user } = useAuth();
   const { days, loading, shiftSchedule } = usePlan();
@@ -380,6 +436,17 @@ export function MergedTodayProfile() {
   }, [completedProblems]);
 
   const badges = useMemo(() => computeBadges(days), [days]);
+  const earnedBadgeCount = useMemo(() => badges.filter((badge) => badge.earned).length, [badges]);
+
+  const missionSolvedCount = sanitizedDay?.problems?.filter((problem) => problem.done).length ?? 0;
+  const missionTotalCount = sanitizedDay?.problems?.length ?? 0;
+  const missionProgress = missionTotalCount > 0
+    ? Math.round((missionSolvedCount / missionTotalCount) * 100)
+    : 0;
+  const journeyProgress = days.length > 0
+    ? Math.min(100, Math.round(((displayedDay?.dayNumber ?? 1) / days.length) * 100))
+    : 0;
+  const nextStreakMilestone = streakCount < 3 ? 3 : streakCount < 7 ? 7 : Math.ceil((streakCount + 1) / 7) * 7;
 
   // Heatmap dataset
   const { heatmapData, detailMap } = useMemo(() => {
@@ -470,44 +537,100 @@ export function MergedTodayProfile() {
         )}
 
         {/* ── MISSION HERO ── */}
-        <header className="space-y-4 pt-4">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <div className="space-y-2 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                <Target className="size-3.5" />
-                <span>Today's Mission</span>
+        <header className="relative overflow-hidden rounded-[2rem] border border-primary/15 bg-gradient-to-br from-primary/[0.08] via-card to-card p-5 shadow-sm sm:p-8">
+          <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-primary/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-32 left-1/3 size-64 rounded-full bg-amber-500/[0.08] blur-3xl" />
+
+          <div className="relative flex flex-col gap-8 xl:flex-row xl:items-center xl:gap-12">
+            <div className="min-w-0 flex-1 space-y-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
+                  <Target className="size-3.5" aria-hidden="true" />
+                  <span>Today's Mission</span>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                  <CalendarIcon className="size-3.5" aria-hidden="true" />
+                  Day {displayedDay?.dayNumber ?? 1} of {days.length || 1}
+                </span>
               </div>
-              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-foreground leading-none">
-                {timeBasedGreeting.greeting.split(',')[0]}
-                <span className="text-muted-foreground block text-2xl sm:text-3xl mt-1">{userNameDisplay}.</span>
-              </h1>
-              <p className="text-muted-foreground max-w-xl text-sm sm:text-base leading-relaxed mt-2">
-                {timeBasedGreeting.subtext}
-              </p>
+
+              <div className="space-y-3">
+                <h1 className="font-display text-4xl font-black leading-[0.98] tracking-tight text-foreground sm:text-5xl">
+                  {timeBasedGreeting.greeting.split(',')[0]}
+                  <span className="mt-2 block text-2xl text-muted-foreground sm:text-3xl">{userNameDisplay}.</span>
+                </h1>
+                <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {timeBasedGreeting.subtext}
+                </p>
+              </div>
+
+              <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-border/80 bg-background/70 p-4">
+                  <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Today's progress</div>
+                  <div className="mt-2 flex items-end gap-1">
+                    <span className="text-2xl font-black text-foreground">{missionSolvedCount}</span>
+                    <span className="pb-0.5 text-sm text-muted-foreground">/ {missionTotalCount}</span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${missionProgress}%` }} />
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-orange-500/20 bg-orange-500/[0.06] p-4">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-600 dark:text-orange-400">
+                    <Flame className="size-3.5" aria-hidden="true" /> Current streak
+                  </div>
+                  <div className="mt-2 text-2xl font-black text-foreground">{streakCount} <span className="text-sm font-semibold text-muted-foreground">days</span></div>
+                  <div className="mt-1 text-xs text-muted-foreground">Next milestone: {nextStreakMilestone} days</div>
+                </div>
+                <div className="rounded-2xl border border-border/80 bg-background/70 p-4">
+                  <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Journey built</div>
+                  <div className="mt-2 text-2xl font-black text-foreground">{journeyProgress}%</div>
+                  <div className="mt-1 text-xs text-muted-foreground">Keep showing up, one day at a time.</div>
+                </div>
+              </div>
             </div>
 
-            
-            <div className="hidden sm:flex flex-1 items-center justify-end pr-8 xl:pr-16 pointer-events-auto">
-              <TodayMissionOrbit 
+            <MissionWelcomeMascot name={userNameDisplay} />
+
+            <div className="flex w-full min-w-0 items-center justify-center pointer-events-auto xl:w-[280px] xl:shrink-0">
+              <TodayMissionOrbit
                 topic={sanitizedDay?.topic}
-                solvedCount={sanitizedDay?.problems?.filter(p => p.done).length}
-                totalCount={sanitizedDay?.problems?.length}
+                solvedCount={missionSolvedCount}
+                totalCount={missionTotalCount}
                 streakCount={streakCount}
                 totalSolved={stats.total}
+                activeBadgeCount={badges.filter((badge) => badge.earned).length}
               />
             </div>
+          </div>
 
-            <div className="flex flex-col items-end gap-3 shrink-0 z-10">
-
-              <div className={cn(
-                "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-bold shadow-sm transition-all",
-                streakCount > 0
-                  ? "border-2 border-orange-500/30 bg-gradient-to-r from-orange-500/10 to-amber-500/5 text-orange-400"
-                  : "border border-border bg-card text-muted-foreground"
-              )}>
-                <Flame className={cn("size-5", streakCount > 0 && "text-orange-500 animate-pulse")} />
-                <span>{streakCount > 0 ? `${streakCount} Day Streak` : "0 Day Streak"}</span>
+          <div className="relative mt-8 border-t border-border/70 pt-5">
+            <div className="mb-3 flex items-center justify-between gap-4 text-xs">
+              <span className="font-bold uppercase tracking-[0.16em] text-muted-foreground">Your learning arc</span>
+              <span className="font-semibold text-primary">{journeyProgress}% complete</span>
+            </div>
+            <div className="relative h-2 rounded-full bg-muted">
+              <div className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary via-primary to-amber-500 transition-[width] duration-700" style={{ width: `${journeyProgress}%` }} />
+              <div className="absolute inset-x-0 -top-1.5 flex justify-between">
+                {Array.from({ length: 5 }).map((_, index) => {
+                  const isReached = index / 4 <= journeyProgress / 100;
+                  return (
+                    <span
+                      key={index}
+                      className={cn(
+                        "size-5 rounded-full border-4 border-card transition-colors",
+                        isReached ? "bg-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]" : "bg-muted-foreground/25"
+                      )}
+                      aria-hidden="true"
+                    />
+                  );
+                })}
               </div>
+            </div>
+            <div className="mt-3 flex justify-between text-[11px] font-medium text-muted-foreground">
+              <span>Started</span>
+              <span>Building consistency</span>
+              <span>Next chapter</span>
             </div>
           </div>
         </header>
@@ -605,9 +728,9 @@ export function MergedTodayProfile() {
                 <div>
                   <div className="flex justify-between text-xs mb-2">
                     <span className="text-muted-foreground font-bold uppercase tracking-wider">Badges Earned</span>
-                    <span className="font-black text-emerald-500">{badges.length}</span>
+                    <span className="font-black text-emerald-500">{earnedBadgeCount}</span>
                   </div>
-                  <Progress value={Math.min(100, (badges.length / 10) * 100)} className="h-2" />
+                  <Progress value={Math.min(100, (earnedBadgeCount / 10) * 100)} className="h-2" />
                 </div>
               </div>
             </section>
