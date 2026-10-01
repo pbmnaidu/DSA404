@@ -609,7 +609,7 @@ export function MergedTodayProfile() {
  <span className="font-bold uppercase tracking-[0.16em] text-foreground">Your learning arc</span>
  <span className="font-semibold text-primary">{journeyProgress}% complete</span>
  </div>
- <div className="relative h-2 rounded-full bg-muted">
+ <div className="relative h-2 rounded-full bg-white/20">
  <div className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-700" style={{ width: `${journeyProgress}%` }} />
  <div className="absolute inset-x-0 -top-1.5 flex justify-between">
  {Array.from({ length: 5 }).map((_, index) => {
@@ -619,7 +619,7 @@ export function MergedTodayProfile() {
  key={index}
  className={cn(
  "size-5 rounded-full border-4 border-card transition-colors",
- isReached ? "bg-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]" : "bg-muted-foreground/25"
+ isReached ? "bg-primary ring-[3px] ring-primary/15" : "bg-white/40"
  )}
  aria-hidden="true"
  />

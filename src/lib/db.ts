@@ -1096,7 +1096,7 @@ export async function syncPublicSolvedProblems(
   providedCompletedSet?: Set<string>,
   providedSubmissions?: Record<string, CodeSubmission>,
 ): Promise<CompletedProblemSnapshot[]> {
-  if (!uid) return [];
+  if (!uid || isGuestUser(uid)) return [];
   try {
     let days = providedDays;
     if (!days || days.length === 0) {

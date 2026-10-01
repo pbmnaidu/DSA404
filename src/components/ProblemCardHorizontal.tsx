@@ -35,19 +35,19 @@ import { useProblemCompletions } from "@/hooks/useProblemCompletions";
 import { getCanonicalProblemLink } from "@/lib/problems";
 
 const diffClass: Record<string, string> = {
- Easy: "bg-muted text-success border-border",
- Medium: "bg-muted text-warning border-border",
- Hard: "bg-muted text-destructive border-border",
+ Easy: "bg-success/20 text-card-foreground border-success/60",
+ Medium: "bg-warning/20 text-card-foreground border-warning/60",
+ Hard: "bg-destructive/20 text-card-foreground border-destructive/60",
 };
 
 const platformColors: Record<string, string> = {
- LeetCode: "bg-warning text-warning border-warning",
- Codeforces: "bg-primary text-primary border-primary",
- GeeksforGeeks: "bg-muted text-success border-border",
- GFG: "bg-muted text-success border-border",
- HackerRank: "bg-success text-success border-success",
- AtCoder: "bg-muted text-info border-border",
- CodeChef: "bg-muted text-warning border-border",
+ LeetCode: "bg-warning/20 text-card-foreground border-warning/60",
+ Codeforces: "bg-primary/20 text-card-foreground border-primary/60",
+ GeeksforGeeks: "bg-success/20 text-card-foreground border-success/60",
+ GFG: "bg-success/20 text-card-foreground border-success/60",
+ HackerRank: "bg-success/20 text-card-foreground border-success/60",
+ AtCoder: "bg-info/20 text-card-foreground border-info/60",
+ CodeChef: "bg-warning/20 text-card-foreground border-warning/60",
 };
 
 function googleSearchUrl(problemName: string) {
@@ -145,8 +145,8 @@ export function ProblemCardHorizontal({
  {problem.difficulty}
  </span>
  {hasSubmission && (
- <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-success">
- <CheckCircle2 className="size-3 text-success" /> Submitted
+ <span className="inline-flex items-center gap-1 rounded-full border border-success/60 bg-success/20 px-2 py-0.5 text-[10px] font-bold text-card-foreground">
+ <CheckCircle2 className="size-3 text-card-foreground" /> Submitted
  </span>
  )}
  </div>

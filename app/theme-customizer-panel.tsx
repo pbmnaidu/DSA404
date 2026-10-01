@@ -111,7 +111,7 @@ export function ThemeCustomizerPanel() {
   return (
     <>
       {/* Backdrop */}
-      {panelOpen && <div className="fixed inset-0 z-50 bg-black " onClick={closePanel} />}
+      {panelOpen && <div className="fixed inset-0 z-50 bg-black/80 " onClick={closePanel} />}
 
       {/* Panel */}
       <div

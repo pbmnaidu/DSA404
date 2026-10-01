@@ -359,7 +359,7 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
  {/* Backdrop overlay */}
  <div
  className={cn(
- "fixed inset-0 z-40 bg-black transition-opacity duration-300",
+ "fixed inset-0 z-40 bg-black/80 transition-opacity duration-300",
  open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
  )}
  onClick={onClose}

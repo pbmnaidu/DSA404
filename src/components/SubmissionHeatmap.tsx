@@ -24,11 +24,11 @@ function getHeatmapLevel(count: number): number {
 }
 
 const LEVEL_CLASSES: Record<number, string> = {
- 0: "bg-muted dark:bg-[#161b22] border border-border hover:border-border",
- 1: "bg-[#9be9a8] dark:bg-[#0e4429] border border-[#7bc98a]/30 dark:border-[#0e4429]",
- 2: "bg-[#40c463] dark:bg-[#006d32] border border-[#34a853]/30 dark:border-[#006d32]",
- 3: "bg-[#30a14e] dark:bg-[#26a641] border border-[#238636]/30 dark:border-[#26a641]",
- 4: "bg-[#216e39] dark:bg-[#39d353] border border-[#1b5e20]/30 dark:border-[#39d353]",
+ 0: "bg-muted/50 border border-border/50 hover:border-foreground/20",
+ 1: "bg-primary border border-primary opacity-30",
+ 2: "bg-primary border border-primary opacity-50",
+ 3: "bg-primary border border-primary opacity-75",
+ 4: "bg-primary border border-primary opacity-100",
 };
 
 export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {

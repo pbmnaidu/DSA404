@@ -101,7 +101,7 @@ function HeroSection({ onEnterDemo }: { onEnterDemo: () => void }) {
 
  {/* Hero Visual - Layered App Mockup */}
  <div className="mx-auto max-w-6xl mt-16 md:mt-24 px-4 relative">
- <div className="absolute inset-0 bg-primary    z-20 pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-20 pointer-events-none" />
  <div className="relative z-10 rounded-lg md:rounded-[2rem] border border-border bg-background shadow-sm p-2 md:p-4 rotate-x-12 scale-100 overflow-hidden transform perspective-1000 origin-top animate-fade-in [animation-duration:1.5s]">
  {/* Product preview: keep the hero visual readable and useful instead of showing empty skeleton bars. */}
  <div className="rounded-lg md:rounded-lg border border-border bg-card overflow-hidden grid grid-cols-1 md:grid-cols-12 h-[300px] sm:h-[400px] md:h-[600px]">
@@ -396,7 +396,7 @@ function CoreFeaturesBento() {
  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-success font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
  <LayoutGrid className="size-3.5" /> Structured Roadmap
  </div>
- <h3 className="text-xl md:text-2xl font-bold mb-3">Beginner- progression.</h3>
+ <h3 className="text-xl md:text-2xl font-bold mb-3">Beginner-to-advanced progression.</h3>
  <p className="text-foreground text-sm leading-relaxed max-w-lg">
  Follow a meticulously designed topic order that builds dependencies correctly. Understand Hashing before Two Pointers, and Trees before Graphs.
  </p>

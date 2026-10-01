@@ -85,18 +85,18 @@ function daysRequired(days: Day[], counts: DailyCounts) {
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
- LeetCode: "bg-muted text-warning dark:text-warning border-border",
- GeeksforGeeks: "bg-muted text-success dark:text-success border-border",
- GFG: "bg-muted text-success dark:text-success border-border",
- Codeforces: "bg-muted text-info dark:text-info border-border",
- CodeChef: "bg-warning text-warning dark:text-warning border-warning",
- HackerRank: "bg-muted text-success dark:text-success border-border",
+ LeetCode: "bg-warning/20 text-card-foreground border-warning/60",
+ GeeksforGeeks: "bg-success/20 text-card-foreground border-success/60",
+ GFG: "bg-success/20 text-card-foreground border-success/60",
+ Codeforces: "bg-info/20 text-card-foreground border-info/60",
+ CodeChef: "bg-warning/20 text-card-foreground border-warning/60",
+ HackerRank: "bg-success/20 text-card-foreground border-success/60",
 };
 
 const DIFFICULTY_COLORS: Record<string, string> = {
- Easy: "bg-muted text-success dark:text-success border-border",
- Medium: "bg-muted text-warning dark:text-warning border-border",
- Hard: "bg-muted text-destructive dark:text-destructive border-border",
+ Easy: "bg-success/20 text-card-foreground border-success/60",
+ Medium: "bg-warning/20 text-card-foreground border-warning/60",
+ Hard: "bg-destructive/20 text-card-foreground border-destructive/60",
 };
 
 export default function TopicsPage() {

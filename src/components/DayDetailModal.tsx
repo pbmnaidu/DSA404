@@ -29,7 +29,7 @@ export function DayDetailModal({ date, problems, onClose }: DayDetailModalProps)
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black  p-4 animate-fade-in">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 animate-fade-in">
         <div className="relative w-full max-w-lg rounded-lg border border-border bg-card -2xl p-6 shadow-sm space-y-4 max-h-[85vh] flex flex-col">
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div>

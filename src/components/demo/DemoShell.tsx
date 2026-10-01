@@ -1574,7 +1574,7 @@ export function DemoShell() {
 
  {/* Color & Font Customizer Info Modal */}
  {colorModalOpen && (
- <div className="fixed inset-0 z-50 flex items-center justify-center bg-black p-4 animate-in fade-in duration-200">
+ <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 animate-in fade-in duration-200">
  <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm space-y-4">
  <div className="flex items-center justify-between border-b border-border pb-3">
  <div className="flex items-center gap-2.5">

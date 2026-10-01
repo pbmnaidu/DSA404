@@ -206,7 +206,7 @@ export function InAppBrowserModal() {
  role="dialog"
  aria-modal="true"
  aria-label={displayTitle}
- className="fixed inset-0 z-[99999] flex items-center justify-center bg-black animate-in fade-in duration-200 p-0 sm:p-3 md:p-5"
+ className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 animate-in fade-in duration-200 p-0 sm:p-3 md:p-5"
  >
  <div
  className={`bg-background border border-border shadow-sm flex flex-col overflow-hidden transition-all duration-200 ${

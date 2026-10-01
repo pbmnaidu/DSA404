@@ -49,7 +49,7 @@ export function TodayMissionOrbit({
  mounted ? "opacity-100" : "opacity-0"
  )}
  />
- <div className="relative z-10 size-20 rounded-full border border-border bg-card shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.15)] flex flex-col items-center justify-center overflow-hidden">
+ <div className="relative z-10 size-20 rounded-full border border-border bg-card shadow-[0_0_20px_var(--color-primary)] shadow-primary/15 flex flex-col items-center justify-center overflow-hidden">
  {/* Progress fill that slowly rises */}
  <div 
  className="absolute bottom-0 left-0 right-0 bg-muted transition-all duration-[2000ms] ease-out"

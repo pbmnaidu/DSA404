@@ -242,6 +242,19 @@ function DesktopSidebar({
             </div>
           )}
 
+          {/* Theme & Display button */}
+          <button
+            onClick={() => openPanel()}
+            className={cn(
+              "flex w-full items-center gap-2.5 rounded-lg p-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors",
+              collapsed && "justify-center"
+            )}
+            title="Theme & Display"
+          >
+            <Palette className="size-4 shrink-0" />
+            {!collapsed && <span className="text-xs font-semibold truncate">Theme & Display</span>}
+          </button>
+
           {/* User card */}
           <Link
             href="/profile"
@@ -318,7 +331,7 @@ function MobileDrawer({
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-black  transition-opacity duration-300 md:hidden",
+          "fixed inset-0 z-40 bg-black/80 transition-opacity duration-300 md:hidden",
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         aria-hidden="true"
@@ -422,7 +435,7 @@ function MobileDrawer({
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             <Palette className="size-4 shrink-0" />
-            <span>Customize Theme</span>
+            <span>Theme & Display</span>
           </button>
 
           <button
@@ -705,7 +718,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
                     <DropdownMenuItem onSelect={() => setGithubModalOpen(true)}>
                       <FolderGit2 className="mr-2 size-4 text-[var(--success)]" /> GitHub Sync
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => openPanel()}><Palette className="mr-2 size-4" /> Customize Theme</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => openPanel()}><Palette className="mr-2 size-4" /> Theme & Display</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => void signOut()} className="text-destructive focus:text-destructive">
                       <LogOut className="mr-2 size-4" /> Log out
