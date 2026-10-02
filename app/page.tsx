@@ -799,7 +799,7 @@ export default function LandingPage() {
  <span className="text-border">|</span>
  <Link href="/auth?mode=signup" className="hover:text-foreground">Register</Link>
  <span className="text-border">|</span>
- <a href="https://pbmnaiduportfolio.vercel.app" target="_blank" rel="noreferrer" className="text-primary hover:underline">Creator</a>
+ <a href="https://pbmnaidu.vercel.app" target="_blank" rel="noreferrer" className="text-primary hover:underline">Creator</a>
  </div>
  <p className="text-[11px] ">© {new Date().getFullYear()} DSA⁴⁰⁴. Built for students and developers.</p>
  </div>

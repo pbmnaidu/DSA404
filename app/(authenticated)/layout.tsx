@@ -37,8 +37,17 @@ export default function AuthenticatedLayout({
   useInactivityLogout(!!user)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (currentUser) => {
+    const unsub = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
+        try {
+          const token = await currentUser.getIdTokenResult();
+          if (token.claims.admin) {
+            router.push('/admin');
+            return;
+          }
+        } catch {
+          // ignore
+        }
         setUser(currentUser)
       } else if (isGuestMode()) {
         setUser(getGuestUser())

@@ -828,7 +828,7 @@ export async function listEvents(userId: string): Promise<ScheduleEventRow[]> {
   if (!userId) return [];
   if (isGuestUser(userId)) return getGuestScheduleEvents();
   const colRef = revisionEventsCol(userId);
-  const snap = await getDocs(query(colRef, orderBy("createdAt", "desc")));
+  const snap = await getDocs(query(colRef, orderBy("createdAt", "desc"), limit(50)));
   const now = Date.now();
 
   const results: ScheduleEventRow[] = [];

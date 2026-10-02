@@ -17,6 +17,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { auth } from "firebase-functions/v1";
 import { logger } from "firebase-functions/v2";
 import { defineSecret } from "firebase-functions/params";
+import * as nodemailer from "nodemailer";
 
 initializeApp();
 const db = getFirestore();
@@ -27,6 +28,129 @@ const db = getFirestore();
 // instead of a plain .env value. GMAIL_USER isn't sensitive, so it stays a
 // regular env var (set in functions/.env).
 const GMAIL_APP_PASSWORD = defineSecret("GMAIL_APP_PASSWORD");
+
+// ══════════════════════════════════════════════════════════════════════
+// New-user registration email notification
+// ══════════════════════════════════════════════════════════════════════
+// Triggered by Firebase Auth user creation. Sends an email to the
+// platform admin with the new user's details. Uses an idempotency
+// record in Firestore (admin_notifications/{uid}) to prevent duplicates.
+//
+// Required env/secrets:
+//   GMAIL_APP_PASSWORD (secret) — Gmail SMTP app password
+//   GMAIL_USER (env)            — Gmail sender address
+//   ADMIN_NOTIFY_EMAIL (env)    — Recipient for admin notifications
+// ══════════════════════════════════════════════════════════════════════
+
+export const onNewUserCreated = auth.user().onCreate(async (user) => {
+  const uid = user.uid;
+  const email = user.email || "N/A";
+  const displayName = user.displayName || "N/A";
+  const creationTime = user.metadata.creationTime || new Date().toISOString();
+
+  // Determine auth provider
+  let provider = "email/password";
+  if (user.providerData && user.providerData.length > 0) {
+    provider = user.providerData.map((p) => p.providerId).join(", ");
+  }
+
+  // ── Idempotency check ──────────────────────────────────────────
+  const notifRef = db.doc(`admin_notifications/${uid}`);
+  const existing = await notifRef.get();
+  if (existing.exists) {
+    logger.info(`onNewUserCreated: duplicate suppressed for uid=${uid}`);
+    return;
+  }
+
+  // Mark as notified BEFORE sending to prevent race-condition duplicates
+  await notifRef.set({
+    uid,
+    email,
+    displayName,
+    provider,
+    createdAt: creationTime,
+    notifiedAt: FieldValue.serverTimestamp(),
+    status: "pending",
+  });
+
+  // ── Build email ────────────────────────────────────────────────
+  const gmailUser = process.env.GMAIL_USER;
+  const adminEmail = process.env.ADMIN_NOTIFY_EMAIL;
+  const gmailPass = GMAIL_APP_PASSWORD.value();
+
+  if (!gmailUser || !gmailPass || !adminEmail) {
+    logger.warn("onNewUserCreated: Missing GMAIL_USER, GMAIL_APP_PASSWORD, or ADMIN_NOTIFY_EMAIL. Skipping.");
+    await notifRef.update({ status: "skipped_missing_config" });
+    return;
+  }
+
+  const subject = "New user registered on DSA⁴⁰⁴";
+  const textBody = [
+    "A new user has registered on DSA⁴⁰⁴:",
+    "",
+    `  Display Name : ${displayName}`,
+    `  Email        : ${email}`,
+    `  Firebase UID : ${uid}`,
+    `  Registered   : ${creationTime}`,
+    `  Provider     : ${provider}`,
+    "",
+    "— DSA⁴⁰⁴ Admin Notification",
+  ].join("\n");
+
+  const htmlBody = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+      <h2 style="color: #1a1a2e; margin-bottom: 16px;">New User Registered on DSA⁴⁰⁴</h2>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <tr><td style="padding: 8px 0; color: #666; width: 140px;">Display Name</td><td style="padding: 8px 0; font-weight: 600;">${displayName}</td></tr>
+        <tr><td style="padding: 8px 0; color: #666;">Email</td><td style="padding: 8px 0;">${email}</td></tr>
+        <tr><td style="padding: 8px 0; color: #666;">Firebase UID</td><td style="padding: 8px 0; font-family: monospace; font-size: 12px;">${uid}</td></tr>
+        <tr><td style="padding: 8px 0; color: #666;">Registered</td><td style="padding: 8px 0;">${creationTime}</td></tr>
+        <tr><td style="padding: 8px 0; color: #666;">Provider</td><td style="padding: 8px 0;">${provider}</td></tr>
+      </table>
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;" />
+      <p style="color: #999; font-size: 12px;">DSA⁴⁰⁴ Admin Notification</p>
+    </div>
+  `;
+
+  // ── Send with retry ────────────────────────────────────────────
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: gmailUser, pass: gmailPass },
+  });
+
+  const MAX_RETRIES = 3;
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await transporter.sendMail({
+        from: `"DSA⁴⁰⁴ Admin" <${gmailUser}>`,
+        to: adminEmail,
+        subject,
+        text: textBody,
+        html: htmlBody,
+      });
+      await notifRef.update({ status: "sent", sentAt: FieldValue.serverTimestamp() });
+      logger.info(`onNewUserCreated: notification sent for uid=${uid} (attempt ${attempt})`);
+      return;
+    } catch (err) {
+      lastError = err;
+      logger.warn(`onNewUserCreated: attempt ${attempt}/${MAX_RETRIES} failed`, {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      if (attempt < MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, 1000 * attempt)); // backoff
+      }
+    }
+  }
+
+  // All retries exhausted
+  await notifRef.update({
+    status: "failed",
+    error: lastError instanceof Error ? lastError.message : String(lastError),
+  });
+  logger.error(`onNewUserCreated: all ${MAX_RETRIES} retries failed for uid=${uid}`);
+});
 
 interface UserSettingsRow {
   uid: string;

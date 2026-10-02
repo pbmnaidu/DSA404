@@ -138,6 +138,15 @@ export function AuthPageContent() {
 
   async function proceedAfterAuth(user: User, successMessage?: { title: string; description?: string }) {
     if (successMessage) toast.success(successMessage.title, { description: successMessage.description });
+    try {
+      const token = await user.getIdTokenResult(true);
+      if (token.claims.admin) {
+        router.push("/admin");
+        return;
+      }
+    } catch {
+      // Ignored
+    }
     router.push(next);
   }
 
@@ -249,9 +258,13 @@ export function AuthPageContent() {
       } catch {}
 
       // Automatically send 2 welcome & platform feature guide emails upon registration
+      const token = await cred.user.getIdToken();
       fetch("/api/send-email/onboarding", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
       }).catch((err) => console.warn("Onboarding emails trigger error:", err));
 
@@ -345,9 +358,13 @@ export function AuthPageContent() {
 
         // Trigger the 2 onboarding emails for Google registered user automatically!
         if (userEmail) {
+          const token = await cred.user.getIdToken();
           fetch("/api/send-email/onboarding", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
             body: JSON.stringify({
               email: userEmail,
               name: userDisplayName,

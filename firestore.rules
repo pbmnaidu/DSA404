@@ -104,5 +104,26 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if false;
     }
+
+    // ── Admin-only collections ─────────────────────────────────────
+    // These collections are written exclusively by Cloud Functions /
+    // Admin SDK (which bypass rules). No client — including the admin
+    // dashboard — writes to them directly. The dashboard reads are
+    // performed via server-side API routes that use the Admin SDK.
+
+    // New-user notification idempotency records.
+    // Written only by the onNewUserCreated Cloud Function.
+    // No client should ever read or write these.
+    match /admin_notifications/{uid} {
+      allow read, write: if false;
+    }
+
+    // Cached admin statistics (if server chooses to persist).
+    // Only readable by users with the admin custom claim.
+    // Writes are Admin SDK only.
+    match /admin_stats/{docId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;
+    }
   }
 }

@@ -5,10 +5,13 @@ __v0_jsx-dev-runtime.ts
 .v0-trash/
 .vercel/
 
-# Environment variables
+# Environment variables — NEVER commit real secrets
+.env
 .env.local
+.env.*.local
+functions/.env
 
 # Common ignores
 node_modules
 .next/
-.DS_Store
+.DS_Storeservice-account.json 

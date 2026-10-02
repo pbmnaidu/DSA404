@@ -65,7 +65,8 @@ export default function MessagesPage() {
   async function loadMessages() {
     if (!firestore) return;
     try {
-      const q = query(collection(firestore, "messages"), orderBy("createdAt", "desc"));
+      const { limit } = await import("firebase/firestore");
+      const q = query(collection(firestore, "messages"), orderBy("createdAt", "desc"), limit(50));
       const snap = await getDocs(q);
       const list: BroadcastMessage[] = snap.docs.map((docSnap) => ({
         id: docSnap.id,

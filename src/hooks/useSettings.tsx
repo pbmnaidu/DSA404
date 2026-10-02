@@ -4,7 +4,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
-import { onSnapshot } from "firebase/firestore";
 import { settingsDoc } from "@/lib/db";
 import {
   DEFAULT_SETTINGS,
@@ -41,19 +40,14 @@ export function SettingsProvider({ userId, children }: { userId: string; childre
   });
   const [loading, setLoading] = useState(true);
 
-  // Subscribe to real-time Firestore updates on user settings
+  // Fetch settings exactly once on mount, no active listener required
   useEffect(() => {
     if (!userId) return;
     let alive = true;
 
-    const ref = settingsDoc(userId);
-    const unsubscribe = onSnapshot(
-      ref,
-      (snap) => {
-        if (!alive) return;
-        if (snap.exists()) {
-          const raw = snap.data() as Fields;
-          const s = fieldsToSettings(raw);
+    loadSettings(userId)
+      .then((s) => {
+        if (alive) {
           setSettings(s);
           setLoading(false);
           if (s.theme) {
@@ -61,33 +55,12 @@ export function SettingsProvider({ userId, children }: { userId: string; childre
               localStorage.setItem(THEME_MODE_STORAGE_KEY, s.theme);
             } catch {}
           }
-        } else {
-          void loadSettings(userId)
-            .then((s) => {
-              if (alive) {
-                setSettings(s);
-                setLoading(false);
-              }
-            })
-            .catch(() => {
-              if (alive) setLoading(false);
-            });
         }
-      },
-      (error) => {
-        console.warn("[useSettings] onSnapshot error, falling back to loadSettings:", error);
-        void loadSettings(userId)
-          .then((s) => {
-            if (alive) {
-              setSettings(s);
-              setLoading(false);
-            }
-          })
-          .catch(() => {
-            if (alive) setLoading(false);
-          });
-      }
-    );
+      })
+      .catch((error) => {
+        console.warn("[useSettings] getDoc error:", error);
+        if (alive) setLoading(false);
+      });
 
     // Also sync across tabs via local storage event
     const handleStorage = (e: StorageEvent) => {
@@ -102,7 +75,6 @@ export function SettingsProvider({ userId, children }: { userId: string; childre
 
     return () => {
       alive = false;
-      unsubscribe();
       window.removeEventListener("storage", handleStorage);
     };
   }, [userId]);

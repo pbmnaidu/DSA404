@@ -1,12 +1,31 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
+import { getAdminAuth } from "@/integrations/firebase/admin.server";
 
 export async function POST(req: Request) {
   try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.split("Bearer ")[1];
+    
+    const auth = await getAdminAuth();
+    let decodedToken;
+    try {
+      decodedToken = await auth.verifyIdToken(token);
+    } catch (err) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
     const { email, name, username } = await req.json();
     const recipient = email?.trim();
     if (!recipient) {
       return NextResponse.json({ error: "Missing recipient email" }, { status: 400 });
+    }
+    
+    if (decodedToken.email !== recipient) {
+      return NextResponse.json({ error: "Forbidden: Cannot send email to a different address" }, { status: 403 });
     }
 
     const displayName = name || username || "Learner";
