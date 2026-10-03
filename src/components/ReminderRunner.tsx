@@ -10,7 +10,7 @@
  * on top of that.
  */
 import { useEffect, useRef } from "react";
-import { auth } from "@/integrations/firebase/client";
+
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/hooks/useAuth";
@@ -81,7 +81,7 @@ export function ReminderRunner() {
       // exactly the "notifications coming continuously / all at once" bug.
       try {
         const topicReminders = await fetchTopicReminders(user?.uid);
-        const targetEmail = user?.email || auth.currentUser?.email || null;
+        const targetEmail = user?.email || null;
 
         const dueReminders = topicReminders.filter((rem) => {
           if (rem.triggered) return false;

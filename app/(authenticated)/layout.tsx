@@ -2,21 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '@/integrations/firebase/client'
 import { PlanProvider } from '@/hooks/usePlan'
 import { SettingsProvider, useSettings } from '@/hooks/useSettings'
 import { ReminderRunner } from '@/components/ReminderRunner'
 import { AppShell } from '@/components/AppShell'
-import { hasExistingPlan, seedPlan } from '@/lib/db'
+import { hasExistingPlan, seedPlan, ensureProfileExists } from '@/lib/db'
 import { saveSettings } from '@/lib/settings'
 import { QuoteLoader } from '@/components/QuoteLoader'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { useInactivityLogout } from '@/hooks/useInactivityLogout'
 import type { DailyCounts } from '@/lib/plan'
 
-
-import { isGuestMode, getGuestUser } from '@/lib/guest-data'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function AuthenticatedLayout({
   children,
@@ -24,41 +21,30 @@ export default function AuthenticatedLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const [user, setUser] = useState<any>(() => {
-    if (typeof window !== 'undefined' && isGuestMode()) {
-      return getGuestUser()
-    }
-    return null
-  })
+  const { user, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
 
-  // Auto-logout only after 7 days of no visits at all. A normal user who
-  // just keeps clicking "logout" manually (or never does) is unaffected.
   useInactivityLogout(!!user)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        try {
-          const token = await currentUser.getIdTokenResult();
-          if (token.claims.admin) {
-            router.push('/admin');
-            return;
-          }
-        } catch {
-          // ignore
+    if (!authLoading) {
+      if (user) {
+        // If Supabase user (has .id) or Guest user (has .uid)
+        setLoading(false)
+        // Ensure a profiles row exists (covers users before the DB trigger was added)
+        const uid = user.id || (user as any).uid;
+        if (uid && !(uid as string).startsWith('guest-')) {
+          void ensureProfileExists(uid, {
+            email: user.email ?? undefined,
+            displayName: user.user_metadata?.full_name || user.user_metadata?.name || undefined,
+            photoURL: user.user_metadata?.avatar_url || user.user_metadata?.picture || undefined,
+          });
         }
-        setUser(currentUser)
-      } else if (isGuestMode()) {
-        setUser(getGuestUser())
       } else {
         router.push('/auth?next=/today')
       }
-      setLoading(false)
-    })
-
-    return () => unsub()
-  }, [router])
+    }
+  }, [user, authLoading, router])
 
   if (loading) {
     return <QuoteLoader fullScreen />
@@ -68,9 +54,11 @@ export default function AuthenticatedLayout({
     return null
   }
 
+  const activeUserId = user.id || (user as any).uid;
+
   return (
-    <SettingsProvider userId={user.uid}>
-      <PlanBoundary email={user.email ?? ''} userId={user.uid}>
+    <SettingsProvider userId={activeUserId}>
+      <PlanBoundary email={user.email ?? ''} userId={activeUserId}>
         {children}
       </PlanBoundary>
     </SettingsProvider>
@@ -93,28 +81,46 @@ function PlanBoundary({
   const [planReady, setPlanReady] = useState(false)
 
   useEffect(() => {
+    if (!userId) return;
+
+    // Fast path: if we already know this user finished onboarding, skip the DB query
+    const localKey = `dsa404_onboarded_${userId}`;
+    if (typeof window !== 'undefined' && localStorage.getItem(localKey) === 'true') {
+      setPlanReady(true);
+      setCheckingPlan(false);
+      return;
+    }
+
     hasExistingPlan(userId).then((exists) => {
       if (!exists) {
         // New user — show onboarding modal instead of redirecting to settings
-        setShowOnboarding(true)
-        setCheckingPlan(false)
+        setShowOnboarding(true);
+        setCheckingPlan(false);
       } else {
-        setPlanReady(true)
-        setCheckingPlan(false)
+        // Mark as onboarded in localStorage so refresh never re-triggers modal
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(localKey, 'true');
+        }
+        setPlanReady(true);
+        setCheckingPlan(false);
       }
-    })
-  }, [userId])
+    });
+  }, [userId]);
 
   const handleOnboardingComplete = async (startDate: string, counts: DailyCounts) => {
     // Save their chosen settings
-    await updateSettings({ counts })
-    await saveSettings(userId, { counts })
+    await updateSettings({ counts });
+    await saveSettings(userId, { counts });
     // Seed the plan with their chosen start date and pace counts
-    await seedPlan(userId, startDate, counts)
+    await seedPlan(userId, startDate, counts);
+    // Persist flag so refresh won't show onboarding again
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
+    }
     // Show the app — land on Today's Workspace
-    setShowOnboarding(false)
-    setPlanReady(true)
-    router.push('/today')
+    setShowOnboarding(false);
+    setPlanReady(true);
+    router.push('/today');
   }
 
   if (checkingPlan || settingsLoading) {

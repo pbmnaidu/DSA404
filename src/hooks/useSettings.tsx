@@ -4,7 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
-import { settingsDoc } from "@/lib/db";
+
 import {
   DEFAULT_SETTINGS,
   fieldsToSettings,

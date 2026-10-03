@@ -1,8 +1,5 @@
 // src/lib/github-sync.ts
 
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, db as firestore } from "@/integrations/firebase/client";
-
 export interface GitHubSyncConfig {
   enabled: boolean;
   token: string;
@@ -120,7 +117,7 @@ export function sanitizeFileName(name: string): string {
 export function getLocalGitHubSyncConfig(userId?: string | null): GitHubSyncConfig | null {
   if (typeof window === "undefined") return null;
   try {
-    const targetUid = userId || auth?.currentUser?.uid || "default";
+    const targetUid = userId || "default";
     const key = `${STORAGE_KEY_PREFIX}${targetUid}`;
     const raw = localStorage.getItem(key) || localStorage.getItem("dsa404_github_sync_config_default");
     if (!raw) return null;
@@ -130,99 +127,24 @@ export function getLocalGitHubSyncConfig(userId?: string | null): GitHubSyncConf
   }
 }
 
-/** Saves config to both localStorage and Firestore (AES-GCM encrypted in private collection) */
+/** Saves config to both localStorage */
 export async function saveGitHubSyncConfig(
   userId: string | null | undefined,
   config: GitHubSyncConfig,
 ): Promise<void> {
-  const targetUid = userId || auth?.currentUser?.uid || null;
+  const targetUid = userId || null;
 
   if (typeof window !== "undefined") {
     const key = `${STORAGE_KEY_PREFIX}${targetUid || "default"}`;
     localStorage.setItem(key, JSON.stringify(config));
     localStorage.setItem("dsa404_github_sync_config_default", JSON.stringify(config));
   }
-
-  if (targetUid && firestore) {
-    try {
-      const ref = doc(firestore, "users", targetUid, "private", "githubSync");
-      let encryptedToken = "";
-      if (config.token) {
-        encryptedToken = await encryptSecret(config.token, targetUid);
-      }
-      const maskedToken = config.token
-        ? `${config.token.slice(0, 4)}••••••••${config.token.slice(-4)}`
-        : "";
-
-      await setDoc(
-        ref,
-        {
-          enabled: config.enabled ?? true,
-          owner: config.owner || "",
-          repo: config.repo || "",
-          branch: config.branch || "main",
-          folderPath: config.folderPath ?? "solutions",
-          lastSyncedAt: config.lastSyncedAt || new Date().toISOString(),
-          autoPromptDismissed: config.autoPromptDismissed ?? false,
-          encryptedToken,
-          maskedToken,
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
-    } catch (err) {
-      console.warn("Could not persist GitHub sync config to cloud:", err);
-    }
-  }
 }
 
-/** Loads sync config from cloud Firestore with automatic AES decryption, syncing to local storage */
+/** Loads sync config from cloud (mocked to local) */
 export async function loadCloudGitHubSyncConfig(userId?: string | null): Promise<GitHubSyncConfig | null> {
-  const targetUid = userId || auth?.currentUser?.uid || null;
+  const targetUid = userId || null;
   const local = getLocalGitHubSyncConfig(targetUid);
-  if (!targetUid || !firestore) return local;
-
-  try {
-    const ref = doc(firestore, "users", targetUid, "private", "githubSync");
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      const data = snap.data() as any;
-      let token = "";
-
-      if (data.encryptedToken) {
-        token = await decryptSecret(data.encryptedToken, targetUid);
-      } else if (data.token) {
-        // Legacy unencrypted token fallback
-        token = data.token;
-      }
-
-      // If token decrypt produced nothing, fallback to local token
-      if (!token && local?.token) {
-        token = local.token;
-      }
-
-      const cloudConfig: GitHubSyncConfig = {
-        enabled: data.enabled ?? true,
-        token: token || "",
-        owner: data.owner || "",
-        repo: data.repo || "",
-        branch: data.branch || "main",
-        folderPath: data.folderPath ?? "solutions",
-        lastSyncedAt: data.lastSyncedAt,
-        autoPromptDismissed: data.autoPromptDismissed ?? false,
-      };
-
-      if (typeof window !== "undefined" && token) {
-        const key = `${STORAGE_KEY_PREFIX}${targetUid}`;
-        localStorage.setItem(key, JSON.stringify(cloudConfig));
-        localStorage.setItem("dsa404_github_sync_config_default", JSON.stringify(cloudConfig));
-      }
-
-      return cloudConfig;
-    }
-  } catch (err) {
-    console.warn("Failed to load GitHub sync config from cloud:", err);
-  }
   return local;
 }
 

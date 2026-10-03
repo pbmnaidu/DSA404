@@ -124,7 +124,7 @@ export async function verifyIdToken(idToken: string) {
 }
 
 /**
- * Wipes every document under `users/{uid}` (all subcollections), used by the
+ * Wipes every document under \`users/{uid}\` (all subcollections), used by the
  * "Delete my account & data" flow.
  */
 export async function deleteAllUserData(uid: string): Promise<void> {

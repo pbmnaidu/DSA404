@@ -253,7 +253,7 @@ export function MergedTodayProfile() {
  useEffect(() => {
  if (!user?.uid || loading) return;
  const timer = setTimeout(() => {
- void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions).catch((err) => {
+ void syncPublicSolvedProblems(user.uid, Array.from(pbCompleted).map(p => ({ name: p, platform: 'Unknown', difficulty: 'Unknown', link: '' })) as any).catch((err) => {
  console.warn("Background public solved problems sync failed:", err);
  });
  }, 1200);

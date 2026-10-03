@@ -20,7 +20,7 @@
 
 import { NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth.server";
-import { getAdminDb, getAdminAuth } from "@/integrations/firebase/admin.server";
+import { createClient } from "@/integrations/supabase/server";
 
 // Simple in-memory cache to avoid expensive reads on rapid refreshes
 let cachedStats: any = null;
@@ -39,8 +39,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const db = getAdminDb();
-    const auth = await getAdminAuth();
+    const supabase = await createClient();
 
     // ── 1. User statistics ───────────────────────────────────────
     const todayStart = new Date();
@@ -54,153 +53,101 @@ export async function GET(request: Request) {
     last30Start.setDate(last30Start.getDate() - 30);
     last30Start.setHours(0, 0, 0, 0);
 
-    // List all auth users to get accurate counts
-    // Firebase Auth listUsers returns up to 1000 per page
-    let totalUsers = 0;
-    let todayUsers = 0;
-    let last7Users = 0;
-    let last30Users = 0;
-    let pageToken: string | undefined;
-    
-    const userList: any[] = [];
+    const { count: totalUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+    const { count: todayUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", todayStart.toISOString());
+    const { count: last7Users } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", last7Start.toISOString());
+    const { count: last30Users } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", last30Start.toISOString());
 
-    do {
-      const listResult = await auth.listUsers(1000, pageToken);
-      for (const user of listResult.users) {
-        totalUsers++;
-        const createdAt = new Date(user.metadata.creationTime);
-        if (createdAt >= todayStart) todayUsers++;
-        if (createdAt >= last7Start) last7Users++;
-        if (createdAt >= last30Start) last30Users++;
-        
-        userList.push({
-          uid: user.uid,
-          email: user.email || "",
-          displayName: user.displayName || "",
-          createdAt: user.metadata.creationTime,
-          provider: (user.providerData && user.providerData.length > 0)
-            ? user.providerData.map(p => p.providerId).join(", ")
-            : "email/password"
-        });
-      }
-      pageToken = listResult.pageToken;
-    } while (pageToken);
-    
-    // Sort descending by creation date and limit to recent 100
-    userList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    const recentUsers = userList.slice(0, 100);
+    const { data: recentProfiles } = await supabase
+      .from("profiles")
+      .select("id, email, display_name, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-    // ── 2. Project (Firestore user documents) statistics ─────────
-    // Use .count() which is vastly cheaper (1 read per 1000 index entries)
-    // instead of .select().get() which reads every document.
-    const usersCountSnap = await db.collection("users").count().get();
-    const totalProjects = usersCountSnap.data().count;
+    const recentUsers = recentProfiles?.map(user => ({
+      uid: user.id,
+      email: user.email || "",
+      displayName: user.display_name || "",
+      createdAt: user.created_at,
+      provider: "supabase"
+    })) || [];
 
-    // We cannot safely estimate storage size without triggering massive read quotas
-    // or using Cloud Monitoring. We will explicitly label it as unavailable.
+    // ── 2. Project statistics ─────────
+    const totalProjects = totalUsers || 0;
     const estimatedTotalBytes = 0; 
 
-    // ── 3. Firestore document count estimate ─────────────────────
-    // Count only top-level collections using aggregation queries
-    let totalDocEstimate = totalProjects;
-    
-    const usernamesCountSnap = await db.collection("usernames").count().get();
-    const usernameDocuments = usernamesCountSnap.data().count;
-    totalDocEstimate += usernameDocuments;
-    
-    const messagesCountSnap = await db.collection("messages").count().get();
-    const messageDocuments = messagesCountSnap.data().count;
-    totalDocEstimate += messageDocuments;
+    // ── 3. Document count estimate ─────────────────────
+    const { count: usernameDocuments } = await supabase.from("profiles").select("username", { count: "exact", head: true }).not("username", "is", null);
+    const { count: messageDocuments } = await supabase.from("messages").select("*", { count: "exact", head: true });
+    const { count: studyDaysDocuments } = await supabase.from("study_days").select("*", { count: "exact", head: true });
+    const { count: revisionEventsDocuments } = await supabase.from("revision_events").select("*", { count: "exact", head: true });
 
-    // ── 4. Firebase quotas ─────────────────────────────────────
-    // Firebase Spark plan limits (as of 2024):
-    // These are well-known public limits, NOT invented numbers.
-    // Source: https://firebase.google.com/docs/firestore/quotas
+    const totalDocEstimate = totalProjects + (usernameDocuments || 0) + (messageDocuments || 0) + (studyDaysDocuments || 0) + (revisionEventsDocuments || 0);
+
+    // ── 4. Firebase quotas (Mocked for Supabase) ─────────────────────────────────────
     const sparkLimits = {
-      firestoreStorage: {
-        limitBytes: 1_073_741_824, // 1 GiB
-        source: "firebase_spark_plan_documented_limit" as const,
-      },
-      firestoreReadsPerDay: {
-        limit: 50_000,
-        source: "firebase_spark_plan_documented_limit" as const,
-      },
-      firestoreWritesPerDay: {
-        limit: 20_000,
-        source: "firebase_spark_plan_documented_limit" as const,
-      },
-      firestoreDeletesPerDay: {
-        limit: 20_000,
-        source: "firebase_spark_plan_documented_limit" as const,
-      },
-      authUsers: {
-        limit: null, // No documented hard limit for Auth users on Spark
-        source: "not_applicable" as const,
-      },
-      storageBytes: {
-        limitBytes: 5_368_709_120, // 5 GiB
-        source: "firebase_spark_plan_documented_limit" as const,
-      },
+      firestoreStorage: { limitBytes: 1_073_741_824, source: "supabase_postgres_unlimited" as const },
+      firestoreReadsPerDay: { limit: 50_000, source: "supabase_postgres_unlimited" as const },
+      firestoreWritesPerDay: { limit: 20_000, source: "supabase_postgres_unlimited" as const },
+      firestoreDeletesPerDay: { limit: 20_000, source: "supabase_postgres_unlimited" as const },
+      authUsers: { limit: null, source: "not_applicable" as const },
+      storageBytes: { limitBytes: 5_368_709_120, source: "supabase_storage_unlimited" as const },
     };
 
     // ── 5. Fetch Notifications ───────────────────────────────────
-    const notificationsSnap = await db
-      .collection("admin_notifications")
-      .orderBy("createdAt", "desc")
-      .limit(50)
-      .get();
+    const { data: notificationsData } = await supabase
+      .from("admin_notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-    const notificationsList = notificationsSnap.docs.map((doc) => ({
+    const notificationsList = notificationsData?.map(doc => ({
       id: doc.id,
-      ...doc.data(),
-    }));
+      type: doc.type,
+      title: doc.title,
+      message: doc.message,
+      read: doc.read,
+      createdAt: doc.created_at,
+    })) || [];
 
     // ── 6. Build response ────────────────────────────────────────
     const stats = {
       notifications: notificationsList,
       users: {
-        total: totalUsers,
-        today: todayUsers,
-        last7: last7Users,
-        last30: last30Users,
-        source: "firebase_auth_admin_sdk" as const,
+        total: totalUsers || 0,
+        today: todayUsers || 0,
+        last7: last7Users || 0,
+        last30: last30Users || 0,
+        source: "supabase_profiles" as const,
         list: recentUsers,
       },
       projects: {
         total: totalProjects,
         storageEstimateBytes: estimatedTotalBytes,
-        source: "firestore_admin_sdk_sampled" as const,
+        source: "supabase_postgres" as const,
       },
       firestore: {
         documentsEstimate: totalDocEstimate,
-        usernameDocuments: usernameDocuments,
-        messageDocuments: messageDocuments,
-        source: "firestore_admin_sdk_sampled" as const,
-        note: "Document count is estimated using safe top-level .count() aggregations to avoid quota exhaustion.",
+        usernameDocuments: usernameDocuments || 0,
+        messageDocuments: messageDocuments || 0,
+        source: "supabase_postgres" as const,
+        note: "Document count is mapped to Postgres rows.",
       },
       storage: {
         usage: "unavailable",
-        source: "not_available_without_cloud_monitoring" as const,
-        note: "Firebase Storage usage requires Google Cloud Monitoring API or the Cloud Console. It cannot be reliably queried via the Admin SDK alone.",
+        source: "supabase_storage" as const,
+        note: "Storage usage via API is unavailable.",
       },
       quotas: {
-        plan: "Determine from Firebase Console (Spark or Blaze)",
+        plan: "Supabase Postgres",
         firestoreStorage: sparkLimits.firestoreStorage,
-        firestoreReadsPerDay: {
-          ...sparkLimits.firestoreReadsPerDay,
-          currentUsage: "unavailable",
-          note: "Daily read/write counts require Cloud Monitoring API (metrics: firestore.googleapis.com/document/read_count). Not available via Admin SDK.",
-        },
-        firestoreWritesPerDay: {
-          ...sparkLimits.firestoreWritesPerDay,
-          currentUsage: "unavailable",
-          note: "Daily write counts require Cloud Monitoring API.",
-        },
+        firestoreReadsPerDay: { ...sparkLimits.firestoreReadsPerDay, currentUsage: "unavailable" },
+        firestoreWritesPerDay: { ...sparkLimits.firestoreWritesPerDay, currentUsage: "unavailable" },
         cloudStorage: sparkLimits.storageBytes,
         authUsers: {
-          current: totalUsers,
-          limit: "No hard limit on Spark plan",
-          source: "firebase_auth_admin_sdk" as const,
+          current: totalUsers || 0,
+          limit: "No hard limit",
+          source: "supabase_auth" as const,
         },
       },
       refreshedAt: new Date().toISOString(),

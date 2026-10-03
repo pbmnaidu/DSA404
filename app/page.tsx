@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import type { User } from "firebase/auth";
-import { auth } from "@/integrations/firebase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -710,16 +708,14 @@ export default function LandingPage() {
  router.push("/today");
  }, [router]);
 
+ const { user } = useAuth();
  useEffect(() => {
- const unsub = onAuthStateChanged(auth, (u) => {
  const searchParams = new URLSearchParams(window.location.search);
  const isClosedOnboarding = searchParams.get("onboarding") === "closed";
- if (u && !isClosedOnboarding) {
+ if (user && !isClosedOnboarding) {
  router.replace("/today");
  }
- });
- return unsub;
- }, [router]);
+ }, [user, router]);
 
  return (
  <div className="min-h-screen font-sans selection:bg-muted text-foreground">

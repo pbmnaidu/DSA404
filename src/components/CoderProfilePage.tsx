@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import { updateProfile } from "firebase/auth";
-import { auth } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlan } from "@/hooks/usePlan";
 import { useProblemCompletions } from "@/hooks/useProblemCompletions";
@@ -510,7 +509,7 @@ export function CoderProfilePage() {
  // Auto-sync solved problems to world-readable userDoc in the background
  useEffect(() => {
  if (user?.uid && completedProblems.length > 0) {
- void syncPublicSolvedProblems(user.uid, days, pbCompleted, submissions);
+ void syncPublicSolvedProblems(user.uid, Array.from(pbCompleted).map(p => ({ name: p, platform: 'Unknown', difficulty: 'Unknown', link: '' })) as any);
  }
  }, [user?.uid, completedProblems.length, days, pbCompleted, submissions]);
 
@@ -753,7 +752,6 @@ export function CoderProfilePage() {
  // Ensure github is not kept in codingProfiles (it has its own top-level field)
  delete (mergedCodingProfiles as any).github;
 
- await updateProfile(auth.currentUser!, { displayName });
  await saveUserProfile(user.uid, {
  displayName,
  bio,

@@ -1,19 +1,4 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  runTransaction,
-  serverTimestamp,
-  setDoc,
-  where,
-  writeBatch,
-} from "firebase/firestore";
-import { db as firestore, auth } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
 import type { Day } from "./types";
 import { SCHEMA_VERSION } from "./types";
 import { DEFAULT_DAILY_COUNTS, type DailyCounts, rebalanceRemaining, seedDays, START_DATE, todayIso } from "./plan";
@@ -33,620 +18,371 @@ import {
   getGuestScheduleEvents,
 } from "./guest-data";
 
-// ---- Firestore layout (mirrors the old Postgres tables) ----
-// users/{uid}                          <- profile doc (was `profiles`)
-// users/{uid}/days/{dayNumber}         <- one doc per day (was `days`)
-// users/{uid}/meta/plan                <- single doc  (was `plan_meta`)
-// users/{uid}/revisionEvents/{eventId} <- (was `revision_events`)
-// users/{uid}/settings/prefs           <- single doc  (was `user_settings`)
-// users/{uid}/achievements/{code}      <- (was `achievements`; not written by the client today)
-// users/{uid}/pushSubscriptions/{id}   <- (was `push_subscriptions`)
-
-const userDoc = (uid: string) => doc(firestore, "users", uid);
-// usernames/{username} -> { uid } — a top-level collection used purely as a
-// uniqueness index, so we can check/claim a username without scanning all
-// user docs. Kept as a separate collection (rather than a field-only lookup)
-// so Firestore security rules can enforce "one username = one owner" with a
-// plain existence check.
-const usernameDoc = (username: string) => doc(firestore, "usernames", username);
-const daysCol = (uid: string) => collection(firestore, "users", uid, "days");
-// Use the stable `id` field (not dayNumber) as the Firestore document ID.
-// dayNumber is reassigned by renumber() every time a topic is skipped, so
-// using it as the doc ID caused old documents to linger and skipped days
-// (which get negative dayNumbers) to sort before active days on reload.
-const dayDocById = (uid: string, stableId: string) => doc(daysCol(uid), stableId);
-const planMetaDoc = (uid: string) => doc(firestore, "users", uid, "meta", "plan");
-const revisionEventsCol = (uid: string) => collection(firestore, "users", uid, "revisionEvents");
-/** Private notes (e.g. `aboutMe`) live here, NOT on the world-readable
- * users/{uid} root doc — owner-only per firestore.rules. */
-const privateProfileDoc = (uid: string) => doc(firestore, "users", uid, "private", "profile");
-
-
-/** Cap on stored chat history per day — Firestore documents have a 1MB limit. */
-
-/** Firestore batched writes cap at 500 mutations; stay well under it. */
-const BATCH_SIZE = 400;
-
-// seqIndex is the 0-based position of the day in the ordered days array.
-// It is stored alongside the day so Firestore can sort by it on load,
-// giving us a stable order that doesn't depend on dayNumber (which changes
-// whenever a topic is skipped via renumber()).
-/** Recursively strips `undefined` properties so Firestore setDoc never throws Unsupported field value: undefined */
-function sanitizeForFirestore<T>(obj: T): T {
-  if (obj === null || obj === undefined) return null as any;
-  if (Array.isArray(obj)) {
-    return obj.map(sanitizeForFirestore) as any;
-  }
-  if (typeof obj === "object" && !(obj instanceof Date) && typeof (obj as any).toMillis !== "function") {
-    const clean: Record<string, any> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, any>)) {
-      if (value !== undefined) {
-        clean[key] = sanitizeForFirestore(value);
-      }
-    }
-    return clean as T;
-  }
-  return obj;
-}
-
-const dayToFields = (d: Day, seqIndex: number) => {
-  const fields = {
-    id: d.id,
-    dayNumber: d.dayNumber,
-    seqIndex,
-    date: d.date,
-    section: d.section,
-    topic: d.topic,
-    subtopics: d.subtopics,
-    problems: d.problems,
-    checklist: d.checklist,
-    status: d.status,
-    notes: d.notes,
-    revisionNotes: d.revisionNotes,
-    skipped: d.skipped,
-    level: d.level ?? null,
-    ...(d.mergeSnapshot ? { mergeSnapshot: d.mergeSnapshot } : {}),
-    ...(d.skippedProblems ? { skippedProblems: d.skippedProblems } : {}),
-    ...(d.isRevisionDay ? { isRevisionDay: true } : {}),
-    ...(d.revisionDayNumbers ? { revisionDayNumbers: d.revisionDayNumbers } : {}),
-    updatedAt: serverTimestamp(),
-  };
-  return sanitizeForFirestore(fields);
-};
-
-
-const fieldsToDay = (data: Record<string, unknown>): Day => {
-  const rawProblems = (data.problems as Day["problems"]) ?? [];
-  const problems = rawProblems.map((p) => {
-    const canonical = getCanonicalProblemLink(p.name);
-    if (canonical && canonical !== p.link) {
-      return { ...p, link: canonical, linkVerified: true };
-    }
-    return p;
-  });
-
-  return {
-    id: (data.id as string) ?? "",
-    dayNumber: data.dayNumber as number,
-    date: data.date as string,
-    section: (data.section as string) ?? "",
-    topic: (data.topic as string) ?? "",
-    subtopics: (data.subtopics as string[]) ?? [],
-    problems,
-    checklist: (data.checklist as Day["checklist"]) ?? [],
-    status: data.status as Day["status"],
-    notes: (data.notes as string) ?? "",
-    revisionNotes: (data.revisionNotes as string) ?? "",
-    skipped: Boolean(data.skipped),
-    level: (data.level as string | undefined) ?? undefined,
-    mergeSnapshot: (data.mergeSnapshot as Day["mergeSnapshot"]) ?? undefined,
-    isRevisionDay: (data.isRevisionDay as boolean | undefined) ?? undefined,
-    revisionDayNumbers: (data.revisionDayNumbers as number[] | undefined) ?? undefined,
-  };
-};
-
 export interface PlanMeta {
   startDate: string;
   lastActiveDate: string;
   lastSyncedAt: string;
 }
 
-async function deleteAllDays(uid: string) {
-  const snap = await getDocs(daysCol(uid));
-  const refs = snap.docs.map((d) => d.ref);
-  for (let i = 0; i < refs.length; i += BATCH_SIZE) {
-    const batch = writeBatch(firestore);
-    refs.slice(i, i + BATCH_SIZE).forEach((ref) => batch.delete(ref));
-    await batch.commit();
-  }
-}
-
-async function writeAllDays(uid: string, days: Day[]) {
-  for (let i = 0; i < days.length; i += BATCH_SIZE) {
-    const batch = writeBatch(firestore);
-    days.slice(i, i + BATCH_SIZE).forEach((d, localIdx) => {
-      const globalIdx = i + localIdx;
-      // Use the stable `id` field as the document ID so renumber() reassigning
-      // dayNumbers never creates duplicate or orphaned Firestore documents.
-      batch.set(dayDocById(uid, d.id), dayToFields(d, globalIdx));
-    });
-    await batch.commit();
-  }
-}
-
-
-/** Idempotent — equivalent of the old `handle_new_user` Postgres trigger. */
-async function ensureProfile(uid: string) {
-  const snap = await getDoc(userDoc(uid));
-  if (snap.exists()) return;
-  const user = auth.currentUser;
-  await setDoc(
-    userDoc(uid),
-    {
-      // NOTE: intentionally no `email` field here — users/{uid} is
-      // world-readable (public profile page), and nothing in the app reads
-      // email back from Firestore anyway (auth.currentUser.email is used
-      // everywhere instead). Keeping it out avoids leaking it to anyone who
-      // calls getDoc() directly from devtools.
-      displayName: user?.displayName ?? user?.email?.split("@")[0] ?? "",
-      createdAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
-}
-
-/**
- * Persists profile fields (display name, etc.) to the Firestore user doc.
- * `updateProfile` from firebase/auth only updates the Auth record — without
- * this, the name never actually lands in the database.
- */
-export async function updateUserProfile(uid: string, patch: { displayName?: string }) {
-  await setDoc(
-    userDoc(uid),
-    { ...patch, updatedAt: serverTimestamp() },
-    { merge: true },
-  );
-}
-
-// ── User profile (public + private fields) ───────────────────────────────────
-// Stored in users/{uid} (the root user doc), which is now world-readable.
-
-export interface CustomLink {
-  label: string;
-  url: string;
-}
-
-export interface SocialLinkItem {
-  platform: string;
-  url: string;
-}
-
+export interface CustomLink { label: string; url: string; }
+export interface SocialLinkItem { platform: string; url: string; }
 export interface CodingProfiles {
-  leetcode?: string;
-  codeforces?: string;
-  codechef?: string;
-  atcoder?: string;
-  hackerrank?: string;
-  hackerearth?: string;
-  gfg?: string;
-  github?: string;
-  customLinks?: CustomLink[];
+  leetcode?: string; codeforces?: string; codechef?: string; atcoder?: string;
+  hackerrank?: string; hackerearth?: string; gfg?: string; github?: string; customLinks?: CustomLink[];
 }
-
-export interface PublicStats {
-  totalSolved: number;
-  byPlatform: Record<string, number>;
-  lastUpdated: string;
-}
-
+export interface PublicStats { totalSolved: number; byPlatform: Record<string, number>; lastUpdated: string; }
 export interface CompletedProblemSnapshot {
-  name: string;
-  platform: string;
-  difficulty: string;
-  link: string;
-  code?: string;
-  submissionLink?: string;
-  keyPoints?: string;
-  completedAt?: string;
-  submittedAt?: string;
-  topic?: string;
-  section?: string;
+  name: string; platform: string; difficulty: string; link: string; code?: string; submissionLink?: string;
+  keyPoints?: string; completedAt?: string; submittedAt?: string; topic?: string; section?: string;
 }
 
 export interface UserProfile {
-  displayName: string;
-  photoURL: string;
-  bannerURL?: string;
-  bio: string;
-  /** Public About Me narrative / description shown on public profile & coder profile */
-  aboutMe?: string;
-  /** Private notes-to-self (owner-only, saved in users/{uid}/private/profile) */
-  notes?: string;
-  /** Public, unique handle chosen at signup — drives the /profile/{username} URL. */
-  username?: string;
-  /** Primary contact/login email linked with the user profile */
-  email?: string;
-  /** LinkedIn profile URL */
-  linkedin?: string;
-  /** GitHub profile URL */
-  github?: string;
-  /** Personal Portfolio website URL */
-  portfolio?: string;
-  /** Other social media links (Twitter/X, YouTube, Discord, etc.) */
-  socialLinks?: SocialLinkItem[];
-  codingProfiles: CodingProfiles;
-  publicStats: PublicStats;
-  platformStats?: Record<string, any>;
-  completedProblems: CompletedProblemSnapshot[];
-  activityHeatmap?: Record<string, number>;
+  displayName: string; photoURL: string; bannerURL?: string; bio: string; aboutMe?: string; notes?: string;
+  username?: string; email?: string; linkedin?: string; github?: string; portfolio?: string;
+  socialLinks?: SocialLinkItem[]; codingProfiles: CodingProfiles; publicStats: PublicStats;
+  platformStats?: Record<string, any>; completedProblems: CompletedProblemSnapshot[]; activityHeatmap?: Record<string, number>;
 }
 
-/** Username rules: 3-20 chars, lowercase letters/numbers/underscore/hyphen only. */
 export const USERNAME_REGEX = /^[a-z0-9_-]{3,20}$/;
+export function normalizeUsername(raw: string): string { return raw.trim().toLowerCase(); }
 
-/** Normalizes user input the same way everywhere (case-insensitive handles). */
-export function normalizeUsername(raw: string): string {
-  return raw.trim().toLowerCase();
+const supabase = createClient();
+
+async function deleteAllDays(uid: string) {
+  await supabase.from("study_days").delete().eq("user_id", uid);
 }
 
-/**
- * Reads the PUBLIC-safe subset of the user profile doc. Works for owner and
- * unauthenticated callers alike — this is what the public /profile/[uid]
- * page uses. Now includes public aboutMe, linkedin, github, portfolio, and socialLinks.
- * Private `notes` are kept in users/{uid}/private/profile and never returned here.
- */
+async function writeAllDays(uid: string, days: Day[]) {
+  const rows = days.map((d, seq_index) => ({
+    id: d.id,
+    user_id: uid,
+    date: d.date,
+    topic: d.topic,
+    problems: d.problems,
+    day_number: d.dayNumber,
+    seq_index,
+    is_skipped: d.skipped,
+    // Add additional JSON fields if necessary or map them
+  }));
+  for (let i = 0; i < rows.length; i += 200) {
+    await supabase.from("study_days").upsert(rows.slice(i, i + 200));
+  }
+}
+
+
+// Ensure a profiles row exists for this user. The DB trigger creates it on signup,
+// but existing users (before the trigger) or race conditions may miss it.
+export async function ensureProfileExists(uid: string, meta?: { email?: string; displayName?: string; photoURL?: string }) {
+  if (isGuestUser(uid)) return;
+  await supabase.from("profiles").upsert(
+    {
+      id: uid,
+      email: meta?.email ?? null,
+      display_name: meta?.displayName ?? null,
+      photo_url: meta?.photoURL ?? null,
+    },
+    { onConflict: "id", ignoreDuplicates: true }
+  );
+}
+
+export async function updateUserProfile(uid: string, patch: { displayName?: string }) {
+  await supabase.from("profiles").update({ display_name: patch.displayName }).eq("id", uid);
+}
+
 export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>> {
   if (isGuestUser(uid)) return getGuestProfile();
-  const snap = await getDoc(userDoc(uid));
-  if (!snap.exists()) return {};
-  const data = snap.data();
+  const { data } = await supabase.from("profiles").select("*").eq("id", uid).single();
+  if (!data) return {};
   return {
-    displayName: (data.displayName as string) ?? "",
-    photoURL: (data.photoURL as string) ?? "",
-    bannerURL: (data.bannerURL as string) ?? "",
-    bio: (data.bio as string) ?? "",
-    aboutMe: (data.aboutMe as string) ?? "",
-    username: (data.username as string) ?? "",
-    email: (data.email as string) ?? "",
-    linkedin: (data.linkedin as string) ?? "",
-    github: (data.github as string) ?? "",
-    portfolio: (data.portfolio as string) ?? "",
-    socialLinks: (data.socialLinks as SocialLinkItem[]) ?? [],
-    codingProfiles: (data.codingProfiles as CodingProfiles) ?? {},
-    publicStats: (data.publicStats as PublicStats) ?? { totalSolved: 0, byPlatform: {}, lastUpdated: "" },
-    platformStats: (data.platformStats as Record<string, any>) ?? {},
-    completedProblems: (data.completedProblems as CompletedProblemSnapshot[]) ?? [],
-    activityHeatmap: (data.activityHeatmap as Record<string, number>) ?? {},
+    displayName: data.display_name || "",
+    photoURL: data.photo_url || "",
+    bannerURL: data.banner_url || "",
+    bio: data.bio || "",
+    aboutMe: data.about_me || "",
+    username: data.username || "",
+    email: data.email || "",
+    linkedin: data.linkedin || "",
+    github: data.github || "",
+    portfolio: data.portfolio || "",
+    socialLinks: data.social_links || [],
+    codingProfiles: data.coding_profiles || {},
+    publicStats: data.public_stats || { totalSolved: 0, byPlatform: {}, lastUpdated: "" },
+    platformStats: data.platform_stats || {},
+    completedProblems: data.completed_problems || [],
+    activityHeatmap: data.activity_heatmap || {},
   };
 }
 
-/**
- * Owner-only profile read: everything loadUserProfile returns, PLUS the
- * private `notes` field (pulled from users/{uid}/private/profile, which
- * Firestore rules restrict to isOwner(uid)). Use this on self-edit screens
- * (CoderProfilePage, Settings) — never on the public profile route.
- */
 export async function loadOwnerProfile(uid: string): Promise<Partial<UserProfile>> {
   if (isGuestUser(uid)) return getGuestProfile();
-  const [pub, privSnap] = await Promise.all([
-    loadUserProfile(uid),
-    getDoc(privateProfileDoc(uid)),
-  ]);
-  const privData = privSnap.exists() ? privSnap.data() : {};
-  // If user previously had notes in private aboutMe, migrate or fallback to it
-  const privateNotes = (privData.notes as string) ?? (privData.aboutMe as string) ?? "";
-  return {
-    ...pub,
-    // if public aboutMe is empty but private had aboutMe, keep as aboutMe if not notes
-    aboutMe: pub.aboutMe || (privData.aboutMe as string) || "",
-    notes: privateNotes,
-  };
+  const pub = await loadUserProfile(uid);
+  const { data } = await supabase.from("profiles").select("notes").eq("id", uid).single();
+  return { ...pub, notes: data?.notes || "" };
 }
 
-/**
- * Merges a profile patch. Public fields (displayName, bio, photoURL, aboutMe,
- * linkedin, portfolio, socialLinks, etc.) go to the world-readable users/{uid} doc;
- * `notes` is routed to the private users/{uid}/private/profile doc instead, so it
- * remains strictly owner-only.
- */
 export async function saveUserProfile(uid: string, patch: Partial<UserProfile>) {
-  if (isGuestUser(uid)) {
-    saveGuestProfile(patch);
-    return;
+  if (isGuestUser(uid)) { saveGuestProfile(patch); return; }
+  
+  const updatePayload: any = {};
+  if (patch.displayName !== undefined) updatePayload.display_name = patch.displayName;
+  if (patch.photoURL !== undefined) updatePayload.photo_url = patch.photoURL;
+  if (patch.bannerURL !== undefined) updatePayload.banner_url = patch.bannerURL;
+  if (patch.bio !== undefined) updatePayload.bio = patch.bio;
+  if (patch.aboutMe !== undefined) updatePayload.about_me = patch.aboutMe;
+  if (patch.notes !== undefined) updatePayload.notes = patch.notes;
+  if (patch.linkedin !== undefined) updatePayload.linkedin = patch.linkedin;
+  if (patch.github !== undefined) updatePayload.github = patch.github;
+  if (patch.portfolio !== undefined) updatePayload.portfolio = patch.portfolio;
+  if (patch.socialLinks !== undefined) updatePayload.social_links = patch.socialLinks;
+  if (patch.codingProfiles !== undefined) updatePayload.coding_profiles = patch.codingProfiles;
+  if (patch.publicStats !== undefined) updatePayload.public_stats = patch.publicStats;
+  if (patch.platformStats !== undefined) updatePayload.platform_stats = patch.platformStats;
+  if (patch.completedProblems !== undefined) updatePayload.completed_problems = patch.completedProblems;
+  if (patch.activityHeatmap !== undefined) updatePayload.activity_heatmap = patch.activityHeatmap;
+
+  if (Object.keys(updatePayload).length > 0) {
+    await supabase.from("profiles").update(updatePayload).eq("id", uid);
   }
-  const { notes, ...publicPatch } = patch;
-  const writes: Promise<unknown>[] = [];
-  if (Object.keys(publicPatch).length > 0) {
-    writes.push(
-      setDoc(userDoc(uid), stripUndefined({ ...publicPatch, updatedAt: serverTimestamp() }), { merge: true }),
-    );
-  }
-  if (notes !== undefined) {
-    writes.push(
-      setDoc(privateProfileDoc(uid), { notes, updatedAt: serverTimestamp() }, { merge: true }),
-    );
-  }
-  await Promise.all(writes);
 }
 
-/**
- * Persists cached coding platform statistics on the user document in Firestore.
- */
 export async function savePlatformStats(uid: string, platformStats: Record<string, any>): Promise<void> {
-  if (isGuestUser(uid)) {
-    saveGuestProfile({ platformStats });
-    return;
-  }
-  await setDoc(userDoc(uid), { platformStats, statsUpdatedAt: serverTimestamp() }, { merge: true });
+  if (isGuestUser(uid)) { saveGuestProfile({ platformStats }); return; }
+  await supabase.from("profiles").update({ platform_stats: platformStats }).eq("id", uid);
 }
 
-/**
- * Quick, non-authoritative availability check for live "as you type" feedback.
- * Not race-safe by itself (two people could pass this check for the same name
- * within the same moment) — claimUsername() below re-checks atomically inside
- * a transaction before actually reserving it, so a race here just means the
- * final claim step surfaces "already taken" instead of the live indicator.
- */
 export async function isUsernameAvailable(username: string): Promise<boolean> {
   const u = normalizeUsername(username);
   if (!USERNAME_REGEX.test(u)) return false;
-  const snap = await getDoc(usernameDoc(u));
-  return !snap.exists();
+  const { data } = await supabase.from("profiles").select("id").eq("username", u).maybeSingle();
+  return !data;
 }
 
-/**
- * Atomically claims `username` for `uid`:
- *  - throws "USERNAME_INVALID" if the format is wrong
- *  - throws "USERNAME_TAKEN" if it's already claimed by a different uid
- *  - safe to call again with the same uid+username (e.g. retry after a
- *    network blip) — it's a no-op if that uid already owns it.
- * Also mirrors the username onto users/{uid}.username so pages that already
- * load the profile doc (Settings, Profile, public profile) get it for free.
- */
 export async function claimUsername(uid: string, username: string, email?: string): Promise<void> {
   const u = normalizeUsername(username);
-  if (!USERNAME_REGEX.test(u)) {
-    throw new Error("USERNAME_INVALID");
-  }
-  await runTransaction(firestore, async (tx) => {
-    const uRef = usernameDoc(u);
-    const existing = await tx.get(uRef);
-    if (existing.exists() && (existing.data() as { uid?: string }).uid !== uid) {
-      throw new Error("USERNAME_TAKEN");
-    }
-    if (!existing.exists()) {
-      tx.set(uRef, { uid, createdAt: serverTimestamp() });
-    } else {
-      tx.set(uRef, { uid, updatedAt: serverTimestamp() }, { merge: true });
-    }
-    tx.set(userDoc(uid), { username: u, updatedAt: serverTimestamp() }, { merge: true });
-  });
+  if (!USERNAME_REGEX.test(u)) throw new Error("USERNAME_INVALID");
+  const available = await isUsernameAvailable(u);
+  if (!available) throw new Error("USERNAME_TAKEN");
+  await supabase.from("profiles").update({ username: u }).eq("id", uid);
 }
 
-/**
- * Resolves a /profile/{identifier} route param to a uid. Tries it as a
- * username first (new-style shareable links), then falls back to treating
- * it as a raw Firebase uid — this keeps every link shared before this
- * feature existed working exactly as before.
- */
-
-/**
- * Resolves a username to the account's email address for username-based login.
- */
 export async function getEmailByUsername(username: string): Promise<string | null> {
   const u = normalizeUsername(username);
   if (!USERNAME_REGEX.test(u)) return null;
-  try {
-    const snap = await getDoc(usernameDoc(u));
-    if (snap.exists()) {
-      const data = snap.data() as { email?: string; uid?: string };
-      if (data.email) return data.email;
-      if (data.uid) {
-        const uSnap = await getDoc(userDoc(data.uid));
-        if (uSnap.exists()) {
-          const uData = uSnap.data() as { email?: string };
-          if (uData.email) return uData.email;
-        }
-      }
-    }
-  } catch (e) {
-    console.warn("getEmailByUsername error:", e);
-  }
-  return null;
+  const { data } = await supabase.from("profiles").select("email").eq("username", u).maybeSingle();
+  return data?.email || null;
 }
 
 export async function resolveProfileIdentifier(identifier: string): Promise<string | null> {
   const asUsername = normalizeUsername(identifier);
   if (USERNAME_REGEX.test(asUsername)) {
-    const nameSnap = await getDoc(usernameDoc(asUsername));
-    if (nameSnap.exists()) {
-      return ((nameSnap.data() as { uid?: string }).uid) ?? null;
-    }
-
-    // Self-heal path: a now-fixed bug used to let saveBasicInfo()/saveUsername()
-    // write `username` straight onto a profile doc without ever creating the
-    // usernames/{username} index doc above (silently swallowed a claim
-    // failure). Accounts that hit that bug have a working `username` field
-    // but no index entry, so the lookup above finds nothing even though the
-    // profile is real. Fall back to querying users by that field directly —
-    // users/{uid} is already world-readable, so this needs no extra access —
-    // and repair the missing index doc when we can (best-effort; only
-    // succeeds if the viewer happens to be signed in, per the security
-    // rules, but the resolution itself works either way).
-    const usersByName = await getDocs(
-      query(collection(firestore, "users"), where("username", "==", asUsername), limit(1)),
-    );
-    if (!usersByName.empty) {
-      const match = usersByName.docs[0];
-      setDoc(usernameDoc(asUsername), { uid: match.id, createdAt: serverTimestamp() }).catch(() => { });
-      return match.id;
-    }
+    const { data } = await supabase.from("profiles").select("id").eq("username", asUsername).maybeSingle();
+    if (data) return data.id;
   }
-  const uidSnap = await getDoc(userDoc(identifier));
-  return uidSnap.exists() ? identifier : null;
+  const { data } = await supabase.from("profiles").select("id").eq("id", identifier).maybeSingle();
+  return data ? identifier : null;
 }
 
-/**
- * Read-only loader for any user's day data — used by the public profile page
- * to build heatmap / stats without a PlanProvider.  No authentication required
- * (Firestore security rules must allow reads on `users/{uid}/days`).
- */
+function mapDayRow(row: any): Day {
+  return {
+    id: row.id,
+    dayNumber: row.day_number,
+    date: row.date,
+    topic: row.topic,
+    section: row.section || "",
+    subtopics: row.subtopics || [],
+    problems: row.problems || [],
+    checklist: row.checklist || [],
+    status: row.status || "pending",
+    notes: row.notes || "",
+    revisionNotes: row.revision_notes || "",
+    skipped: row.is_skipped || false,
+    level: row.level,
+    mergeSnapshot: row.merge_snapshot,
+    isRevisionDay: row.is_revision_day,
+    revisionDayNumbers: row.revision_day_numbers,
+  };
+}
+
 export async function loadPublicDays(uid: string): Promise<Day[]> {
-  try {
-    let snap = await getDocs(query(daysCol(uid), orderBy("seqIndex", "asc")));
-    if (snap.empty) {
-      snap = await getDocs(daysCol(uid));
-    }
-    if (snap.empty) return [];
-    const days = snap.docs.map((d) => fieldsToDay(d.data()));
-    return days.sort((a, b) => {
-      const aIdx = (a as any).seqIndex ?? a.dayNumber ?? 0;
-      const bIdx = (b as any).seqIndex ?? b.dayNumber ?? 0;
-      return aIdx - bIdx;
-    });
-  } catch (err) {
-    console.warn("Failed to load public days with orderBy, falling back to direct collection fetch:", err);
-    try {
-      const snap = await getDocs(daysCol(uid));
-      if (snap.empty) return [];
-      const days = snap.docs.map((d) => fieldsToDay(d.data()));
-      return days.sort((a, b) => {
-        const aIdx = (a as any).seqIndex ?? a.dayNumber ?? 0;
-        const bIdx = (b as any).seqIndex ?? b.dayNumber ?? 0;
-        return aIdx - bIdx;
-      });
-    } catch (e) {
-      console.error("Failed to load public days:", e);
-      return [];
-    }
-  }
+  const { data } = await supabase.from("study_days").select("*").eq("user_id", uid).order("seq_index", { ascending: true });
+  return (data || []).map(mapDayRow);
 }
 
 export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: PlanMeta; sheetId?: string }> {
   if (isGuestUser(userId)) return getGuestPlan();
-  await ensureProfile(userId);
-
-  const metaSnap = await getDoc(planMetaDoc(userId));
-  if (!metaSnap.exists()) {
-    const s = await loadSettings(userId);
-    return seedPlan(userId, undefined, s?.counts, s?.activeSheet);
-  }
-
-  // Order by seqIndex — the stable array-position field written by saveSequence.
-  // This guarantees the correct order even after skips reassign dayNumbers.
-  // Fall back to dayNumber for legacy documents that predate seqIndex.
-  const daysSnap = await getDocs(query(daysCol(userId), orderBy("seqIndex", "asc")));
-  if (daysSnap.empty) {
-    const s = await loadSettings(userId);
-    return seedPlan(userId, undefined, s?.counts, s?.activeSheet);
-  }
-
-  const metaData = metaSnap.data();
-
-  // Auto-migrate: whenever the master problem database changes, reseed plan with user's saved counts
-  const storedSchemaVersion = (metaData.schemaVersion as number | undefined) ?? 0;
-  if (storedSchemaVersion !== SCHEMA_VERSION) {
-    const s = await loadSettings(userId);
-    return seedPlan(userId, metaData.startDate as string, s?.counts, s?.activeSheet);
+  
+  const { data: daysData } = await supabase.from("study_days").select("*").eq("user_id", userId).order("seq_index", { ascending: true });
+  const { data: settingsData } = await supabase.from("user_settings").select("*").eq("user_id", userId).single();
+  
+  if (!daysData || daysData.length === 0) {
+    const counts = settingsData?.counts as DailyCounts;
+    return seedPlan(userId, undefined, counts, settingsData?.active_sheet || undefined);
   }
 
   return {
-    days: daysSnap.docs.map((d) => fieldsToDay(d.data())),
+    days: daysData.map(mapDayRow),
     meta: {
-      startDate: metaData.startDate as string,
-      lastActiveDate: metaData.lastActiveDate as string,
-      lastSyncedAt: (metaData.lastSyncedAt as string) ?? new Date().toISOString(),
+      startDate: settingsData?.start_date || START_DATE,
+      lastActiveDate: settingsData?.last_active_date || todayIso(),
+      lastSyncedAt: settingsData?.updated_at || new Date().toISOString(),
     },
-    sheetId: (metaData.sheetId as string | undefined) ?? "core404",
+    sheetId: settingsData?.active_sheet || "core404",
   };
 }
 
-
-export async function seedPlan(
-  userId: string,
-  startDate?: string,
-  counts?: DailyCounts,
-  sheetId?: string,
-): Promise<{ days: Day[]; meta: PlanMeta }> {
-  await ensureProfile(userId);
+export async function seedPlan(userId: string, startDate?: string, counts?: DailyCounts, sheetId?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
   const now = new Date();
-  const today = now.toISOString().slice(0, 10);
-  const effectiveStartDate = startDate || today;
-
-  let effectiveSheet = sheetId;
-  let effectiveCounts = counts;
-  if (!effectiveCounts || !effectiveSheet) {
-    try {
-      const s = await loadSettings(userId);
-      if (!effectiveCounts && s?.counts) effectiveCounts = s.counts;
-      if (!effectiveSheet && s?.activeSheet) effectiveSheet = s.activeSheet;
-    } catch {
-      // fallback
-    }
-  }
-  if (!effectiveCounts) effectiveCounts = DEFAULT_DAILY_COUNTS;
-  if (!effectiveSheet) effectiveSheet = "core404";
+  const effectiveStartDate = startDate || now.toISOString().slice(0, 10);
+  const effectiveCounts = counts || DEFAULT_DAILY_COUNTS;
+  const effectiveSheet = sheetId || "core404";
 
   let days = seedDays(effectiveStartDate, effectiveSheet);
-
-  // Rebalance initial days according to user daily pace limits so day 1 gets full quota (e.g. 5 Easy)
   days = rebalanceRemaining(days, effectiveCounts, effectiveStartDate);
 
   await deleteAllDays(userId);
   await writeAllDays(userId, days);
 
-  await setDoc(planMetaDoc(userId), {
-    schemaVersion: SCHEMA_VERSION,
-    startDate: effectiveStartDate,
-    lastActiveDate: today,
-    lastSyncedAt: now.toISOString(),
-    sheetId: effectiveSheet,
+  await supabase.from("user_settings").upsert({
+    user_id: userId,
+    start_date: effectiveStartDate,
+    last_active_date: effectiveStartDate,
+    active_sheet: effectiveSheet,
   });
 
   return {
     days,
-    meta: { startDate: effectiveStartDate, lastActiveDate: today, lastSyncedAt: now.toISOString() },
+    meta: { startDate: effectiveStartDate, lastActiveDate: effectiveStartDate, lastSyncedAt: now.toISOString() }
   };
 }
 
-export async function switchUserSheet(
-  userId: string,
-  sheetId: string,
-  startDate?: string,
-): Promise<{ days: Day[]; meta: PlanMeta }> {
-  try {
-    await setDoc(settingsDoc(userId), { activeSheet: sheetId }, { merge: true });
-  } catch (e) {
-    console.warn("Failed to persist activeSheet to settings doc:", e);
+export async function savePlan(userId: string, days: Day[], meta: PlanMeta, sheetId?: string) {
+  if (isGuestUser(userId)) { saveGuestPlan(days); return; }
+  await writeAllDays(userId, days);
+  await supabase.from("user_settings").update({
+    start_date: meta.startDate,
+    last_active_date: meta.lastActiveDate,
+  }).eq("user_id", userId);
+}
+
+export async function saveDayProgress(uid: string, dayId: string, patch: Partial<Day>) {
+  // if (isGuestUser(uid)) { saveGuestDay(dayId, patch); return; }
+  
+  const updatePayload: any = {};
+  if (patch.status !== undefined) updatePayload.status = patch.status;
+  if (patch.notes !== undefined) updatePayload.notes = patch.notes;
+  if (patch.revisionNotes !== undefined) updatePayload.revision_notes = patch.revisionNotes;
+  if (patch.problems !== undefined) updatePayload.problems = patch.problems;
+  if (patch.checklist !== undefined) updatePayload.checklist = patch.checklist;
+
+  if (Object.keys(updatePayload).length > 0) {
+    await supabase.from("study_days").update(updatePayload).eq("id", dayId);
   }
-  return seedPlan(userId, startDate, undefined, sheetId);
 }
 
-/** Returns true if this user has never had a plan seeded (first login). */
-export async function hasExistingPlan(userId: string): Promise<boolean> {
-  if (isGuestUser(userId)) return true;
-  const metaSnap = await getDoc(planMetaDoc(userId));
-  return metaSnap.exists();
+export async function deleteTopicNotes(uid: string, dayId: string) {
+  await saveDayProgress(uid, dayId, { notes: "" });
 }
 
-/** Changes the start date of an existing plan — reseeds all days from scratch. */
-export async function changeStartDate(userId: string, newStartDate: string): Promise<{ days: Day[]; meta: PlanMeta }> {
-  return seedPlan(userId, newStartDate);
+export async function recordCodeSubmission(uid: string, p: { name: string; platform: string; difficulty: string; link: string; code?: string; submissionLink?: string; keyPoints?: string }, dateIso: string) {
+  if (isGuestUser(uid)) { saveGuestCodeSubmission(p.name, p as CodeSubmission); return; }
+  
+  const profile = await loadOwnerProfile(uid);
+  const existing = profile.completedProblems || [];
+  
+  const snapshot: CompletedProblemSnapshot = {
+    ...p,
+    completedAt: new Date().toISOString(),
+    submittedAt: dateIso,
+  };
+  
+  // Update logic to remove old duplicates
+  const filtered = existing.filter(ex => !(ex.name === p.name && ex.platform === p.platform));
+  filtered.push(snapshot);
+  
+  await saveUserProfile(uid, { completedProblems: filtered });
 }
 
-export async function saveDay(userId: string, day: Day) {
-  if (isGuestUser(userId)) {
-    saveGuestDay(day);
-    return;
-  }
-  // For single-day saves we don't have the full sequence so we can't set
-  // a correct seqIndex — use the dayDoc by id but preserve any existing seqIndex.
-  await setDoc(dayDocById(userId, day.id), dayToFields(day, day.dayNumber), { merge: false });
-  await touchSync(userId);
+export async function removeCodeSubmission(uid: string, p: { name: string; platform: string }) {
+  if (isGuestUser(uid)) { removeGuestCodeSubmission(p.name); return; }
+  
+  const profile = await loadOwnerProfile(uid);
+  const existing = profile.completedProblems || [];
+  const filtered = existing.filter(ex => !(ex.name === p.name && ex.platform === p.platform));
+  
+  await saveUserProfile(uid, { completedProblems: filtered });
 }
 
+export async function getCompletedProblems(uid: string): Promise<CompletedProblemSnapshot[]> {
+  if (isGuestUser(uid)) return Array.from(getGuestProblemCompletions()).map(p => typeof p === 'string' ? { name: p, platform: 'Unknown', difficulty: 'Unknown', link: '' } : p) as any;
+  const p = await loadOwnerProfile(uid);
+  return p.completedProblems || [];
+}
 
-/** Rewrites the entire ordered sequence (used by postpone / merge / delete / revision insert). */
+export async function saveRevisionEvent(uid: string, kind: string, detail: string, snapshot?: string) {
+  if (isGuestUser(uid)) return;
+  await supabase.from("revision_events").insert({
+    user_id: uid,
+    kind,
+    detail,
+    snapshot,
+  });
+}
+
+export async function listEvents(uid: string) {
+  if (isGuestUser(uid)) return getGuestScheduleEvents();
+  const { data } = await supabase.from("revision_events").select("*").eq("user_id", uid).order("created_at", { ascending: false });
+  const now = Date.now();
+  return (data || []).map(row => {
+    const isWithinWeek = now - new Date(row.created_at).getTime() < 7 * 86400000;
+    return {
+      id: row.id,
+      date: row.created_at,
+      kind: row.kind,
+      detail: row.detail,
+      snapshot: row.snapshot,
+      canRevert: !!row.snapshot && isWithinWeek,
+      isWithinWeek,
+    };
+  });
+}
+
+export async function getPushSubscriptions(uid: string) {
+  const { data } = await supabase.from("push_subscriptions").select("token").eq("user_id", uid);
+  return (data || []).map(r => r.token);
+}
+
+export async function savePushSubscription(uid: string, token: string, info: string) {
+  await supabase.from("push_subscriptions").upsert({ token, user_id: uid, device_info: info });
+}
+
+export async function clearPushSubscriptions(uid: string) {
+  await supabase.from("push_subscriptions").delete().eq("user_id", uid);
+}
+
+export async function removePushSubscription(uid: string, token: string) {
+  await supabase.from("push_subscriptions").delete().eq("user_id", uid).eq("token", token);
+}
+
+export async function clearAccountData(uid: string) {
+  // Rely on ON DELETE CASCADE from profiles table
+  // Admin auth delete will wipe everything
+}
+
+export async function syncPublicSolvedProblems(uid: string, snapshot: CompletedProblemSnapshot[]) {
+  await saveUserProfile(uid, { completedProblems: snapshot });
+}
+
+// Ensure base64 avatars/banners are stored natively since Firebase Storage is replaced
+export async function saveAvatarBase64(uid: string, b64: string): Promise<string> {
+  await saveUserProfile(uid, { photoURL: b64 });
+  return b64;
+}
+
+export async function saveBannerBase64(uid: string, b64: string): Promise<string> {
+  await saveUserProfile(uid, { bannerURL: b64 });
+  return b64;
+}
+
 export async function saveSequence(userId: string, days: Day[]) {
   if (isGuestUser(userId)) {
     saveGuestPlan(days);
@@ -654,818 +390,59 @@ export async function saveSequence(userId: string, days: Day[]) {
   }
   await deleteAllDays(userId);
   await writeAllDays(userId, days);
-  await touchSync(userId);
 }
 
-export async function touchSync(userId: string) {
-  if (isGuestUser(userId)) return;
-  const now = new Date();
-  await setDoc(
-    planMetaDoc(userId),
-    { lastSyncedAt: now.toISOString(), lastActiveDate: now.toISOString().slice(0, 10) },
-    { merge: true },
-  );
+export async function switchUserSheet(userId: string, sheetId: string, startDate?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
+  await supabase.from("user_settings").update({ active_sheet: sheetId }).eq("user_id", userId);
+  return seedPlan(userId, startDate, undefined, sheetId);
 }
+
+// Aliases to avoid breaking existing imports
+export const loadProblemCompletions = getCompletedProblems;
+export const saveCodeSubmission = recordCodeSubmission;
+export const saveDay = saveDayProgress;
+export const loadCodeSubmissions = async (uid: string) => {
+  // Backwards compatibility, map completedProblems to code submissions
+  const problems = await getCompletedProblems(uid);
+  return problems.filter(p => p.code).map(p => ({
+    name: p.name,
+    platform: p.platform,
+    code: p.code,
+    submittedAt: p.submittedAt || p.completedAt,
+    submissionLink: p.submissionLink,
+    keyPoints: p.keyPoints,
+  }));
+};
+export type CodeSubmission = any;
+export const deleteAccountData = clearAccountData;
+export const logEvent = saveRevisionEvent;
 
 export interface ScheduleEventRow {
   id: string;
+  date: string;
   kind: string;
   detail: string;
-  createdAt?: any;
-  createdAtIso: string;
-  snapshot: string | null;
-  canRevert: boolean;
-  isWithinWeek: boolean;
+  snapshot?: string;
+  canRevert?: boolean;
+  isWithinWeek?: boolean;
 }
 
-const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-
-export function compressDaySnapshot(days: Day[]): string {
-  if (!days || !Array.isArray(days)) return "";
-  const minified = days.map((d) => ({
-    id: d.id,
-    dayNumber: d.dayNumber,
-    date: d.date,
-    section: d.section,
-    topic: d.topic,
-    subtopics: d.subtopics || [],
-    status: d.status,
-    notes: d.notes ? d.notes.slice(0, 500) : "",
-    revisionNotes: d.revisionNotes ? d.revisionNotes.slice(0, 500) : "",
-    skipped: Boolean(d.skipped),
-    isRevisionDay: Boolean(d.isRevisionDay),
-    mergeSnapshot: d.mergeSnapshot,
-    problems: (d.problems || []).map((p) => ({
-      name: p.name,
-      platform: p.platform,
-      difficulty: p.difficulty,
-      link: p.link,
-      done: Boolean(p.done),
-      isHard: Boolean(p.isHard),
-      borrowedFromDay: p.borrowedFromDay,
-      carriedFromDay: p.carriedFromDay,
-    })),
-    skippedProblems: d.skippedProblems
-      ? d.skippedProblems.map((p) => ({
-          name: p.name,
-          platform: p.platform,
-          difficulty: p.difficulty,
-          link: p.link,
-          done: Boolean(p.done),
-          isHard: Boolean(p.isHard),
-          borrowedFromDay: p.borrowedFromDay,
-          carriedFromDay: p.carriedFromDay,
-        }))
-      : undefined,
-  }));
-  return JSON.stringify(minified);
-}
-
-export function parseDaySnapshot(snapshotJson: string): Day[] {
-  if (!snapshotJson) return [];
+export function parseDaySnapshot(json?: string): Day[] | null {
+  if (!json) return null;
   try {
-    const raw = JSON.parse(snapshotJson);
-    if (!Array.isArray(raw)) return [];
-    return raw.map((d: any) => ({
-      id: d.id || `day-${d.dayNumber}`,
-      dayNumber: d.dayNumber,
-      date: d.date,
-      section: d.section || "",
-      topic: d.topic || "",
-      subtopics: d.subtopics || [],
-      status: d.status || "pending",
-      checklist: d.checklist || { readTheory: false, solvedCore: false, revised: false },
-      notes: d.notes || "",
-      revisionNotes: d.revisionNotes || "",
-      skipped: Boolean(d.skipped),
-      isRevisionDay: Boolean(d.isRevisionDay),
-      mergeSnapshot: d.mergeSnapshot,
-      problems: (d.problems || []).map((p: any) => ({
-        name: p.name || "",
-        platform: p.platform || "LeetCode",
-        difficulty: p.difficulty || "Medium",
-        link: p.link || "",
-        done: Boolean(p.done),
-        isHard: Boolean(p.isHard),
-        borrowedFromDay: p.borrowedFromDay,
-        carriedFromDay: p.carriedFromDay,
-      })),
-      skippedProblems: d.skippedProblems
-        ? d.skippedProblems.map((p: any) => ({
-            name: p.name || "",
-            platform: p.platform || "LeetCode",
-            difficulty: p.difficulty || "Medium",
-            link: p.link || "",
-            done: Boolean(p.done),
-            isHard: Boolean(p.isHard),
-            borrowedFromDay: p.borrowedFromDay,
-            carriedFromDay: p.carriedFromDay,
-          }))
-        : undefined,
-    }));
-  } catch (e) {
-    console.error("Error parsing day snapshot:", e);
-    return [];
+    return JSON.parse(json) as Day[];
+  } catch {
+    return null;
   }
 }
 
-function getEventTimestamp(data: Record<string, any>): number {
-  if (data.createdAt) {
-    if (typeof data.createdAt.toMillis === "function") {
-      const ms = data.createdAt.toMillis();
-      if (typeof ms === "number" && !isNaN(ms) && ms > 0) return ms;
-    }
-    if (typeof data.createdAt.seconds === "number") {
-      const ms = data.createdAt.seconds * 1000;
-      if (typeof ms === "number" && !isNaN(ms) && ms > 0) return ms;
-    }
-    if (typeof data.createdAt === "number" && !isNaN(data.createdAt) && data.createdAt > 0) {
-      return data.createdAt;
-    }
-    if (typeof data.createdAt === "string") {
-      const ms = new Date(data.createdAt).getTime();
-      if (!isNaN(ms) && ms > 0) return ms;
-    }
-    if (data.createdAt instanceof Date) {
-      const ms = data.createdAt.getTime();
-      if (!isNaN(ms) && ms > 0) return ms;
-    }
-  }
-  if (data.createdAtIso && typeof data.createdAtIso === "string") {
-    const ms = new Date(data.createdAtIso).getTime();
-    if (!isNaN(ms) && ms > 0) return ms;
-  }
-  return Date.now();
+export async function hasExistingPlan(userId: string): Promise<boolean> {
+  if (isGuestUser(userId)) return true;
+  const { count } = await supabase.from("study_days").select("*", { count: "exact", head: true }).eq("user_id", userId);
+  return (count || 0) > 0;
 }
 
-export async function logEvent(
-  userId: string,
-  kind: string,
-  detail: string,
-  snapshotDays?: Day[],
-) {
-  if (!userId || isGuestUser(userId)) return;
-  const ref = doc(revisionEventsCol(userId));
-  const nowIso = new Date().toISOString();
-  let snapshotStr: string | null = null;
-  if (snapshotDays && Array.isArray(snapshotDays) && snapshotDays.length > 0) {
-    try {
-      snapshotStr = compressDaySnapshot(snapshotDays);
-    } catch (err) {
-      console.warn("Failed to compress snapshot for logEvent:", err);
-    }
-  }
-  await setDoc(ref, {
-    kind,
-    detail,
-    createdAt: serverTimestamp(),
-    createdAtIso: nowIso,
-    snapshot: snapshotStr,
-  });
+
+export async function changeStartDate(userId: string, newStartDate: string) {
+  await supabase.from("user_settings").update({ start_date: newStartDate }).eq("user_id", userId);
 }
-
-export async function listEvents(userId: string): Promise<ScheduleEventRow[]> {
-  if (!userId) return [];
-  if (isGuestUser(userId)) return getGuestScheduleEvents();
-  const colRef = revisionEventsCol(userId);
-  const snap = await getDocs(query(colRef, orderBy("createdAt", "desc"), limit(50)));
-  const now = Date.now();
-
-  const results: ScheduleEventRow[] = [];
-  const toDelete: string[] = [];
-
-  for (const d of snap.docs) {
-    const data = d.data();
-    const eventTime = getEventTimestamp(data);
-    const age = Math.max(0, now - eventTime);
-    const isWithinWeek = age <= ONE_WEEK_MS;
-
-    // Permanent deletion after 1 week (max 7 days)
-    if (age > ONE_WEEK_MS) {
-      toDelete.push(d.id);
-      continue;
-    }
-
-    const canRevert = Boolean(data.snapshot) && isWithinWeek;
-
-    results.push({
-      id: d.id,
-      kind: (data.kind as string) || "update",
-      detail: (data.detail as string) || "",
-      createdAt: data.createdAt,
-      createdAtIso:
-        data.createdAtIso ||
-        (eventTime ? new Date(eventTime).toISOString() : new Date().toISOString()),
-      snapshot: (data.snapshot as string) || null,
-      canRevert,
-      isWithinWeek,
-    });
-  }
-
-  // Permanently delete expired events (> 1 week)
-  if (toDelete.length > 0) {
-    for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
-      const b = writeBatch(firestore);
-      toDelete.slice(i, i + BATCH_SIZE).forEach((id) => {
-        b.delete(doc(colRef, id));
-      });
-      b.commit().catch((err) => console.warn("Failed to delete expired schedule events:", err));
-    }
-  }
-
-  return results.slice(0, 30);
-}
-
-export async function revertScheduleSnapshot(userId: string, targetDays: Day[]) {
-  if (!userId) return;
-  await saveSequence(userId, targetDays);
-}
-
-/**
- * Client-side best-effort cleanup while the user is still authenticated
- * (Security Rules only allow a user to delete their own documents). The
- * `deleteUserData` Cloud Function does the authoritative cascade delete of
- * every subcollection right before the Auth user itself is removed — see
- * functions/src/index.ts and MIGRATION_NOTES.md.
- */
-export async function deleteAccountData(userId: string) {
-  // 0. Release the claimed username (if any) so it can be reused, and so a
-  // deleted account's old /profile/{username} link doesn't stay squatted
-  // forever pointing at a uid that no longer resolves to anything.
-  try {
-    const profileSnap = await getDoc(userDoc(userId));
-    const claimedUsername = profileSnap.exists() ? (profileSnap.data().username as string | undefined) : undefined;
-    if (claimedUsername) {
-      const uRef = usernameDoc(claimedUsername);
-      const uSnap = await getDoc(uRef);
-      if (uSnap.exists() && (uSnap.data() as { uid?: string }).uid === userId) {
-        await deleteDoc(uRef);
-      }
-    }
-  } catch (e) {
-    console.warn("Error releasing username:", e);
-  }
-
-  // 1. Delete all days documents
-  await deleteAllDays(userId);
-
-  // 2. Delete all revision events
-  try {
-    const eventsSnap = await getDocs(revisionEventsCol(userId));
-    for (let i = 0; i < eventsSnap.docs.length; i += BATCH_SIZE) {
-      const b = writeBatch(firestore);
-      eventsSnap.docs.slice(i, i + BATCH_SIZE).forEach((d) => b.delete(d.ref));
-      await b.commit();
-    }
-  } catch (e) {
-    console.warn("Error deleting revision events:", e);
-  }
-
-  // 3. Delete all push subscriptions
-  try {
-    const pushSnap = await getDocs(pushSubscriptionsCol(userId));
-    for (let i = 0; i < pushSnap.docs.length; i += BATCH_SIZE) {
-      const b = writeBatch(firestore);
-      pushSnap.docs.slice(i, i + BATCH_SIZE).forEach((d) => b.delete(d.ref));
-      await b.commit();
-    }
-  } catch (e) {
-    console.warn("Error deleting push subscriptions:", e);
-  }
-
-  // 4. Delete all topic reminders
-  try {
-    const remindersRef = collection(firestore, "users", userId, "reminders");
-    const remSnap = await getDocs(remindersRef);
-    for (let i = 0; i < remSnap.docs.length; i += BATCH_SIZE) {
-      const b = writeBatch(firestore);
-      remSnap.docs.slice(i, i + BATCH_SIZE).forEach((d) => b.delete(d.ref));
-      await b.commit();
-    }
-  } catch (e) {
-    console.warn("Error deleting topic reminders:", e);
-  }
-
-  // 5. Delete all achievement docs
-  try {
-    const achRef = collection(firestore, "users", userId, "achievements");
-    const achSnap = await getDocs(achRef);
-    for (let i = 0; i < achSnap.docs.length; i += BATCH_SIZE) {
-      const b = writeBatch(firestore);
-      achSnap.docs.slice(i, i + BATCH_SIZE).forEach((d) => b.delete(d.ref));
-      await b.commit();
-    }
-  } catch (e) {
-    console.warn("Error deleting achievements:", e);
-  }
-
-  // 6. Delete meta/plan, settings/prefs, settings/problemCompletions, and userDoc
-  const batch = writeBatch(firestore);
-  batch.delete(planMetaDoc(userId));
-  batch.delete(settingsDoc(userId));
-  batch.delete(problemCompletionsDoc(userId));
-  batch.delete(userDoc(userId));
-  await batch.commit();
-}
-
-// Re-exported so other modules (settings.ts, push.ts) build Firestore paths
-// consistently without duplicating the collection layout above.
-export { userDoc, daysCol, dayDocById, planMetaDoc, revisionEventsCol };
-export const settingsDoc = (uid: string) => doc(firestore, "users", uid, "settings", "prefs");
-export const pushSubscriptionsCol = (uid: string) =>
-  collection(firestore, "users", uid, "pushSubscriptions");
-
-// ── Problem-tab completions ──────────────────────────────────────────────────
-// users/{uid}/settings/problemCompletions  →  { completed: string[], submissions: Record<string, CodeSubmission> }
-
-export interface CodeSubmission {
-  code: string;
-  link: string;
-  keyPoints?: string;
-  submittedAt: string;
-}
-
-const problemCompletionsDoc = (uid: string) =>
-  doc(firestore, "users", uid, "settings", "problemCompletions");
-
-export async function loadProblemCompletions(uid: string): Promise<Set<string>> {
-  if (isGuestUser(uid)) return getGuestProblemCompletions();
-  try {
-    const set = new Set<string>();
-    const snap = await getDoc(problemCompletionsDoc(uid));
-    if (snap.exists()) {
-      const data = snap.data();
-      const compArr = (data.completed as string[]) ?? [];
-      for (const name of compArr) if (name) set.add(name);
-      const subMap = (data.submissions as Record<string, CodeSubmission>) ?? {};
-      for (const name of Object.keys(subMap)) if (name) set.add(name);
-    }
-    // Also check world-readable userDoc for any completed problems snapshots
-    const uSnap = await getDoc(userDoc(uid)).catch(() => null);
-    if (uSnap?.exists()) {
-      const uData = uSnap.data();
-      const cpList = (uData.completedProblems as CompletedProblemSnapshot[]) ?? [];
-      for (const cp of cpList) {
-        if (cp?.name) set.add(cp.name);
-      }
-    }
-    return set;
-  } catch (e) {
-    console.warn("Failed to fetch problem completions:", e);
-    return new Set();
-  }
-}
-
-export async function saveProblemCompletions(uid: string, completed: Set<string>): Promise<void> {
-  await setDoc(problemCompletionsDoc(uid), { completed: [...completed] }, { merge: true });
-}
-
-/** Load the full code submission map (name → CodeSubmission). */
-export async function loadCodeSubmissions(uid: string): Promise<Record<string, CodeSubmission>> {
-  if (isGuestUser(uid)) return getGuestCodeSubmissions();
-  try {
-    const snap = await getDoc(problemCompletionsDoc(uid));
-    const submissions = snap.exists()
-      ? ((snap.data().submissions as Record<string, CodeSubmission>) ?? {})
-      : {};
-
-    // Also fallback to any code stored in userDoc completedProblems
-    const uSnap = await getDoc(userDoc(uid)).catch(() => null);
-    if (uSnap?.exists()) {
-      const uData = uSnap.data();
-      const cpList = (uData.completedProblems as CompletedProblemSnapshot[]) ?? [];
-      for (const cp of cpList) {
-        if (cp?.name && !submissions[cp.name] && (cp.code || cp.link)) {
-          submissions[cp.name] = {
-            code: cp.code || "",
-            link: cp.submissionLink || cp.link || getCanonicalProblemLink(cp.name) || "",
-            keyPoints: cp.keyPoints || "",
-            submittedAt: cp.submittedAt || cp.completedAt || new Date().toISOString(),
-          };
-        }
-      }
-    }
-
-    for (const [name, sub] of Object.entries(submissions)) {
-      if (!sub.link || !sub.link.trim()) {
-        const canonical = getCanonicalProblemLink(name);
-        if (canonical) sub.link = canonical;
-      }
-    }
-    return submissions;
-  } catch (e) {
-    console.warn("Failed to fetch code submissions:", e);
-    return {};
-  }
-}
-
-/**
- * Recursively strips undefined fields from an object so Firestore setDoc never throws
- * "Unsupported field value: undefined".
- */
-export function stripUndefined<T>(value: T): T {
-  if (value === null || value === undefined) {
-    return value;
-  }
-  if (Array.isArray(value)) {
-    return value
-      .filter((item) => item !== undefined)
-      .map((item) => stripUndefined(item)) as unknown as T;
-  }
-  if (typeof value === "object" && !(value instanceof Date) && typeof (value as any).toMillis !== "function") {
-    const cleaned: Record<string, any> = {};
-    for (const [k, v] of Object.entries(value)) {
-      if (v !== undefined) {
-        cleaned[k] = stripUndefined(v);
-      }
-    }
-    return cleaned as T;
-  }
-  return value;
-}
-
-/**
- * Synchronizes all solved problems across daily plan days and problem completions
- * into the world-readable `users/{uid}` document (`completedProblems`, `publicStats`, `activityHeatmap`).
- * This ensures the public profile always has up-to-date solved problems and activity heatmap,
- * even for unauthenticated visitors or when subcollections are restricted.
- */
-export async function syncPublicSolvedProblems(
-  uid: string,
-  providedDays?: Day[],
-  providedCompletedSet?: Set<string>,
-  providedSubmissions?: Record<string, CodeSubmission>,
-): Promise<CompletedProblemSnapshot[]> {
-  if (!uid || isGuestUser(uid)) return [];
-  try {
-    let days = providedDays;
-    if (!days || days.length === 0) {
-      days = await loadPublicDays(uid).catch(() => []);
-    }
-
-    let completedSet = providedCompletedSet;
-    let submissions = providedSubmissions;
-    if (!completedSet || !submissions) {
-      if (auth.currentUser?.uid === uid) {
-        const [comp, subs] = await Promise.all([
-          loadProblemCompletions(uid).catch(() => new Set<string>()),
-          loadCodeSubmissions(uid).catch(() => ({} as Record<string, CodeSubmission>)),
-        ]);
-        if (!completedSet) completedSet = comp;
-        if (!submissions) submissions = subs;
-      } else {
-        if (!completedSet) completedSet = new Set<string>();
-        if (!submissions) submissions = {};
-      }
-    }
-
-    // Merge from local storage if running in browser to recover any unsynced completions
-    if (typeof window !== "undefined") {
-      try {
-        const rawComp = localStorage.getItem(`dsa_completed_problems_${uid}`);
-        if (rawComp) {
-          const parsed = JSON.parse(rawComp);
-          if (Array.isArray(parsed)) {
-            if (!completedSet) completedSet = new Set<string>();
-            for (const item of parsed) {
-              if (item) completedSet.add(item);
-            }
-          }
-        }
-        const rawSubs = localStorage.getItem(`dsa_code_submissions_${uid}`);
-        if (rawSubs) {
-          const parsedSubs = JSON.parse(rawSubs);
-          if (parsedSubs && typeof parsedSubs === "object") {
-            submissions = { ...parsedSubs, ...(submissions || {}) };
-          }
-        }
-      } catch (err) {
-        console.warn("syncPublicSolvedProblems local storage merge skipped:", err);
-      }
-    }
-
-    // Load existing user doc to preserve existing snapshots/code
-    const userSnap = await getDoc(userDoc(uid)).catch(() => null);
-    const existingSnapshots: CompletedProblemSnapshot[] = userSnap?.exists()
-      ? ((userSnap.data()?.completedProblems as CompletedProblemSnapshot[]) ?? [])
-      : [];
-
-    const problemMap = new Map<string, CompletedProblemSnapshot>();
-    const today = todayIso();
-
-    // 1. Seed from existing snapshots in userDoc (preserves code, notes, etc.)
-    for (const snap of existingSnapshots) {
-      if (snap?.name) {
-        const meta = getProblemMetadata(snap.name);
-        const effectiveLink = snap.link || meta.link || getCanonicalProblemLink(snap.name) || "";
-        const normPlat = normalizePlatformName(snap.platform || meta.platform, effectiveLink);
-        const completedAt = snap.completedAt?.slice(0, 10) || snap.submittedAt?.slice(0, 10) || today;
-        problemMap.set(snap.name, {
-          ...snap,
-          platform: normPlat,
-          difficulty: snap.difficulty || meta.difficulty || "Medium",
-          link: effectiveLink,
-          completedAt,
-          submittedAt: snap.submittedAt || snap.completedAt || new Date().toISOString(),
-        });
-      }
-    }
-
-    // 2. Merge from days (daily plan records)
-    for (const d of days ?? []) {
-      for (const p of d.problems ?? []) {
-        if (p.done && p.name) {
-          const meta = getProblemMetadata(p.name);
-          const effectiveLink = p.link || meta.link || getCanonicalProblemLink(p.name) || "";
-          const normPlat = normalizePlatformName(p.platform || meta.platform, effectiveLink);
-          const sub = submissions?.[p.name];
-          const existing = problemMap.get(p.name);
-          const completedAt =
-            p.completedAt?.slice(0, 10) ||
-            existing?.completedAt ||
-            sub?.submittedAt?.slice(0, 10) ||
-            d.date ||
-            today;
-
-          const codeVal = sub?.code || existing?.code;
-          const subLinkVal = sub?.link || existing?.submissionLink || effectiveLink;
-          const keyPointsVal = sub?.keyPoints || existing?.keyPoints;
-          const topicVal = d.topic || meta.topic || existing?.topic;
-          const sectionVal = d.section || existing?.section;
-
-          problemMap.set(p.name, {
-            name: p.name,
-            platform: normPlat,
-            difficulty: p.difficulty || meta.difficulty || existing?.difficulty || "Medium",
-            link: effectiveLink,
-            completedAt,
-            submittedAt: sub?.submittedAt || existing?.submittedAt || completedAt,
-            ...(codeVal ? { code: codeVal } : {}),
-            ...(subLinkVal ? { submissionLink: subLinkVal } : {}),
-            ...(keyPointsVal ? { keyPoints: keyPointsVal } : {}),
-            ...(topicVal ? { topic: topicVal } : {}),
-            ...(sectionVal ? { section: sectionVal } : {}),
-          });
-        }
-      }
-    }
-
-    // 3. Merge from completedSet / submissions (Problems tab, problem completions)
-    for (const name of Array.from(completedSet ?? [])) {
-      if (!name) continue;
-      const meta = getProblemMetadata(name);
-      const sub = submissions?.[name];
-      const existing = problemMap.get(name);
-      const effectiveLink = sub?.link || meta.link || existing?.link || getCanonicalProblemLink(name) || "";
-      const normPlat = normalizePlatformName(meta.platform || existing?.platform, effectiveLink);
-      const completedAt =
-        sub?.submittedAt?.slice(0, 10) ||
-        existing?.completedAt ||
-        today;
-
-      const codeVal = sub?.code || existing?.code;
-      const subLinkVal = sub?.link || existing?.submissionLink || effectiveLink;
-      const keyPointsVal = sub?.keyPoints || existing?.keyPoints;
-      const topicVal = meta.topic || existing?.topic;
-      const sectionVal = existing?.section;
-
-      problemMap.set(name, {
-        name,
-        platform: normPlat,
-        difficulty: meta.difficulty || existing?.difficulty || "Medium",
-        link: effectiveLink,
-        completedAt,
-        submittedAt: sub?.submittedAt || existing?.submittedAt || new Date().toISOString(),
-        ...(codeVal ? { code: codeVal } : {}),
-        ...(subLinkVal ? { submissionLink: subLinkVal } : {}),
-        ...(keyPointsVal ? { keyPoints: keyPointsVal } : {}),
-        ...(topicVal ? { topic: topicVal } : {}),
-        ...(sectionVal ? { section: sectionVal } : {}),
-      });
-    }
-
-    // Also include any submissions that might not have been in completedSet
-    for (const [name, sub] of Object.entries(submissions ?? {})) {
-      if (!name || problemMap.has(name)) continue;
-      const meta = getProblemMetadata(name);
-      const effectiveLink = sub.link || meta.link || getCanonicalProblemLink(name) || "";
-      const normPlat = normalizePlatformName(meta.platform, effectiveLink);
-      const completedAt = sub.submittedAt?.slice(0, 10) || today;
-      const codeVal = sub.code;
-      const subLinkVal = sub.link || effectiveLink;
-      const keyPointsVal = sub.keyPoints;
-      const topicVal = meta.topic;
-
-      problemMap.set(name, {
-        name,
-        platform: normPlat,
-        difficulty: meta.difficulty || "Medium",
-        link: effectiveLink,
-        completedAt,
-        submittedAt: sub.submittedAt || new Date().toISOString(),
-        ...(codeVal ? { code: codeVal } : {}),
-        ...(subLinkVal ? { submissionLink: subLinkVal } : {}),
-        ...(keyPointsVal ? { keyPoints: keyPointsVal } : {}),
-        ...(topicVal ? { topic: topicVal } : {}),
-      });
-    }
-
-    const mergedList = Array.from(problemMap.values());
-
-    // Calculate platform counts & date-based activity heatmap
-    const byPlatform: Record<string, number> = {};
-    const existingHeatmap: Record<string, number> = userSnap?.exists()
-      ? ((userSnap.data()?.activityHeatmap as Record<string, number>) ?? {})
-      : {};
-    const activityHeatmap: Record<string, number> = { ...existingHeatmap };
-    const dateCounts: Record<string, number> = {};
-
-    for (const p of mergedList) {
-      if (p.platform?.toLowerCase() === "github") continue;
-      const plat = p.platform || "DSA";
-      byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
-
-      const dStr = p.completedAt?.slice(0, 10);
-      if (dStr && /^\d{4}-\d{2}-\d{2}$/.test(dStr)) {
-        dateCounts[dStr] = (dateCounts[dStr] ?? 0) + 1;
-      }
-    }
-
-    for (const [dStr, cnt] of Object.entries(dateCounts)) {
-      activityHeatmap[dStr] = Math.max(activityHeatmap[dStr] ?? 0, cnt);
-    }
-
-    // Merge external connected platform stats if present on user document
-    // Explicitly exclude GitHub: contributions/commits are displayed in the contribution heatmap, not solved problems
-    const userPlatformStats = userSnap?.exists() ? (userSnap.data()?.platformStats as Record<string, any>) : undefined;
-    if (userPlatformStats && typeof userPlatformStats === "object") {
-      for (const [rawKey, prof] of Object.entries(userPlatformStats)) {
-        const lk = rawKey.toLowerCase();
-        if (lk === "github" || lk === "linkedin") continue;
-        if (prof && typeof prof === "object" && typeof prof.totalSolved === "number" && prof.totalSolved > 0) {
-          const normKey =
-            lk === "leetcode"
-              ? "LeetCode"
-              : lk === "gfg" || lk.includes("geeks")
-              ? "GeeksforGeeks"
-              : lk === "codeforces"
-              ? "Codeforces"
-              : lk === "codechef"
-              ? "CodeChef"
-              : lk === "hackerrank"
-              ? "HackerRank"
-              : lk === "atcoder"
-              ? "AtCoder"
-              : rawKey;
-
-          byPlatform[normKey] = Math.max(byPlatform[normKey] ?? 0, prof.totalSolved);
-        }
-      }
-    }
-    delete byPlatform["GitHub"];
-    delete byPlatform["github"];
-
-    const platformsSum = Object.values(byPlatform).reduce((a, b) => a + b, 0);
-    const trackerProblemsCount = mergedList.filter((p) => p.platform?.toLowerCase() !== "github").length;
-    const totalSolved = Math.max(trackerProblemsCount, platformsSum);
-
-    if (platformsSum < trackerProblemsCount) {
-      byPlatform["DSA"] = (byPlatform["DSA"] ?? 0) + (trackerProblemsCount - platformsSum);
-    }
-
-    // Write back to userDoc so public profile has instant access
-    await setDoc(
-      userDoc(uid),
-      stripUndefined({
-        completedProblems: mergedList,
-        publicStats: {
-          totalSolved,
-          byPlatform,
-          lastUpdated: new Date().toISOString(),
-        },
-        activityHeatmap,
-      }),
-      { merge: true },
-    );
-
-    return mergedList;
-  } catch (err) {
-    console.warn("syncPublicSolvedProblems error:", err);
-    return [];
-  }
-}
-
-/**
- * Save a code submission for a problem and simultaneously mark it complete.
- * This is the only way to mark a Problems-tab problem done — the UI gates
- * the checkbox behind this submission.
- */
-export async function saveCodeSubmission(
-  uid: string,
-  problemName: string,
-  submission: CodeSubmission,
-  currentCompleted: Set<string>,
-  difficulty?: string,
-  platform?: string,
-  section?: string,
-  topic?: string,
-): Promise<void> {
-  if (isGuestUser(uid)) {
-    saveGuestCodeSubmission(problemName, submission);
-    return;
-  }
-  const next = new Set(currentCompleted);
-  next.add(problemName);
-  const meta = getProblemMetadata(problemName);
-  const effectiveLink = submission.link?.trim() || meta.link || getCanonicalProblemLink(problemName) || "";
-  const normPlat = normalizePlatformName(platform || meta.platform, effectiveLink);
-  const diff = difficulty || meta.difficulty || "Medium";
-  const completedAt = submission.submittedAt?.slice(0, 10) || todayIso();
-  const submittedAt = submission.submittedAt || new Date().toISOString();
-
-  const finalSub: CodeSubmission = {
-    ...submission,
-    link: effectiveLink,
-  };
-  await setDoc(
-    problemCompletionsDoc(uid),
-    stripUndefined({
-      completed: [...next],
-      submissions: { [problemName]: finalSub },
-    }),
-    { merge: true },
-  );
-
-  // Sync to world-readable userDoc so public profile displays this solved problem, heatmap, and external platform stats
-  try {
-    await syncPublicSolvedProblems(uid, undefined, next, { [problemName]: finalSub });
-  } catch (err) {
-    console.warn("Best-effort public snapshot sync skipped:", err);
-  }
-}
-
-/** Remove a code submission and unmark the problem. */
-export async function removeCodeSubmission(
-  uid: string,
-  problemName: string,
-  currentCompleted: Set<string>,
-): Promise<void> {
-  if (isGuestUser(uid)) {
-    removeGuestCodeSubmission(problemName);
-    return;
-  }
-  const next = new Set(currentCompleted);
-  next.delete(problemName);
-  // We use merge: true and set the key to deleteField equivalent by rebuilding without it.
-  // Firestore doesn't support nested deleteField via setDoc+merge, so we load and rewrite.
-  const snap = await getDoc(problemCompletionsDoc(uid));
-  const existing: Record<string, CodeSubmission> = snap.exists()
-    ? ((snap.data().submissions as Record<string, CodeSubmission>) ?? {})
-    : {};
-  delete existing[problemName];
-  await setDoc(
-    problemCompletionsDoc(uid),
-    stripUndefined({
-      completed: [...next],
-      submissions: existing,
-    }),
-  );
-
-  try {
-    await syncPublicSolvedProblems(uid, undefined, next, existing);
-  } catch (err) {
-    console.warn("Best-effort public snapshot sync removal skipped:", err);
-  }
-}
-
-// ── Fast avatar (base64 in Firestore, no Storage round-trip) ──────────────────
-/**
- * Compresses the image client-side (canvas → 128×128 JPEG 55% quality → base64)
- * and stores it directly in users/{uid}.photoURL.
- * Total size ≈ 4–7 KB — well within Firestore's 1 MB doc limit.
- * No Firebase Storage upload = instant save.
- */
-export async function saveAvatarBase64(uid: string, dataUrl: string): Promise<void> {
-  if (isGuestUser(uid)) {
-    saveGuestProfile({ photoURL: dataUrl });
-    return;
-  }
-  await setDoc(
-    userDoc(uid),
-    { photoURL: dataUrl, updatedAt: serverTimestamp() },
-    { merge: true },
-  );
-}
-
-export async function saveBannerBase64(uid: string, dataUrl: string): Promise<void> {
-  if (isGuestUser(uid)) {
-    saveGuestProfile({ bannerURL: dataUrl });
-    return;
-  }
-  await setDoc(
-    userDoc(uid),
-    { bannerURL: dataUrl, updatedAt: serverTimestamp() },
-    { merge: true },
-  );
-}
-

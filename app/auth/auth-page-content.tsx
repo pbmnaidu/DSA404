@@ -5,18 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  updateProfile,
-  type User,
-} from "firebase/auth";
-import { FirebaseError } from "firebase/app";
-import { auth, isClosingOrHiddenError } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -39,42 +29,17 @@ import {
 const emailSchema = z.string().trim().email("Enter a valid email address").max(255);
 const passwordSchema = z.string().min(8, "Password must be at least 8 characters").max(72);
 
-/** Firebase's auth/* error codes -> user-friendly messages. */
-function authErrorMessage(e: unknown): string {
-  if (e instanceof FirebaseError) {
-    switch (e.code) {
-      case "auth/invalid-credential":
-      case "auth/wrong-password":
-      case "auth/user-not-found":
-        return "Invalid email/username or password.";
-      case "auth/email-already-in-use":
-        return "An account with this email already exists.";
-      case "auth/weak-password":
-        return "Password is too weak. Use at least 8 characters.";
-      case "auth/too-many-requests":
-        return "Too many attempts. Try again later.";
-      case "auth/popup-closed-by-user":
-        return "Sign-in popup was closed before completing.";
-      case "auth/cancelled-popup-request":
-        return "Previous sign-in attempt was cancelled.";
-      case "auth/popup-blocked":
-        return "The sign-in popup was blocked by your browser. Please allow popups and try again.";
-      case "auth/network-request-failed":
-        return "Network connection issue. Please check your internet connection.";
-      default:
-        break;
-    }
-  }
-  if (isClosingOrHiddenError(e)) {
-    return "Browser tab was hidden or connection interrupted. Please tap Google sign-in again.";
-  }
-  if (e instanceof FirebaseError) {
-    return e.message || "An error occurred";
+function authErrorMessage(e: any): string {
+  if (e?.message) {
+    if (e.message.includes("Invalid login credentials")) return "Invalid email/username or password.";
+    if (e.message.includes("already registered")) return "An account with this email already exists.";
+    return e.message;
   }
   return String(e || "An error occurred");
 }
 
 export function AuthPageContent() {
+  const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/today";
@@ -139,8 +104,7 @@ export function AuthPageContent() {
   async function proceedAfterAuth(user: User, successMessage?: { title: string; description?: string }) {
     if (successMessage) toast.success(successMessage.title, { description: successMessage.description });
     try {
-      const token = await user.getIdTokenResult(true);
-      if (token.claims.admin) {
+      if (user.app_metadata?.admin || user.user_metadata?.admin) {
         router.push("/admin");
         return;
       }
@@ -151,11 +115,6 @@ export function AuthPageContent() {
   }
 
   async function handleSignIn() {
-    if (!auth) {
-      toast.error("Firebase not initialized. Check your configuration.");
-      return;
-    }
-
     const identifier = email.trim();
     if (!identifier) {
       toast.error("Please enter your email or username.");
@@ -174,7 +133,6 @@ export function AuthPageContent() {
     setBusy(true);
     try {
       let targetEmail = identifier;
-      // If identifier doesn't contain '@', resolve it as a username
       if (!identifier.includes("@")) {
         const resolved = await getEmailByUsername(identifier);
         if (!resolved) {
@@ -185,8 +143,15 @@ export function AuthPageContent() {
         targetEmail = resolved;
       }
 
-      const cred = await signInWithEmailAndPassword(auth, targetEmail, password);
-      await proceedAfterAuth(cred.user, {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: targetEmail,
+        password,
+      });
+
+      if (error) throw error;
+      if (!data.user) throw new Error("No user returned");
+
+      await proceedAfterAuth(data.user, {
         title: "Welcome back! Thanks for logging in to our website.",
         description: "Ready to solve today's DSA problems?",
       });
@@ -198,22 +163,15 @@ export function AuthPageContent() {
   }
 
   async function handleSignUp() {
-    if (!auth) {
-      toast.error("Firebase not initialized. Check your configuration.");
-      return;
-    }
-
     const trimmedEmail = email.trim();
     const trimmedName = fullName.trim();
     const u = normalizeUsername(username);
 
-    // 1. Validate full name
     if (!trimmedName) {
       toast.error("Please enter your full name.");
       return;
     }
 
-    // 2. Validate username
     if (!u) {
       toast.error("Please choose a username.");
       return;
@@ -223,7 +181,6 @@ export function AuthPageContent() {
       return;
     }
 
-    // 3. Validate email & password
     try {
       emailSchema.parse(trimmedEmail);
       passwordSchema.parse(password);
@@ -236,7 +193,6 @@ export function AuthPageContent() {
 
     setBusy(true);
     try {
-      // Re-verify username availability before creating account
       const available = await isUsernameAvailable(u);
       if (!available) {
         toast.error("That username is already taken. Please choose another.");
@@ -245,30 +201,38 @@ export function AuthPageContent() {
         return;
       }
 
-      // Create Firebase Auth user
-      const cred = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
+      const { data, error } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password,
+        options: {
+          data: {
+            full_name: trimmedName,
+            username: u,
+          }
+        }
+      });
 
-      // Claim the username and store email for username login
-      await claimUsername(cred.user.uid, u, trimmedEmail);
+      if (error) throw error;
+      if (!data.user) throw new Error("Sign up failed");
 
-      // Save user display name and profile
-      await saveUserProfile(cred.user.uid, { displayName: trimmedName });
-      try {
-        await updateProfile(cred.user, { displayName: trimmedName });
-      } catch {}
+      // Claim username in legacy DB
+      await claimUsername(data.user.id, u, trimmedEmail);
+      await saveUserProfile(data.user.id, { displayName: trimmedName });
 
       // Automatically send 2 welcome & platform feature guide emails upon registration
-      const token = await cred.user.getIdToken();
-      fetch("/api/send-email/onboarding", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
-      }).catch((err) => console.warn("Onboarding emails trigger error:", err));
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        fetch("/api/send-email/onboarding", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
+        }).catch((err) => console.warn("Onboarding emails trigger error:", err));
+      }
 
-      await proceedAfterAuth(cred.user, {
+      await proceedAfterAuth(data.user, {
         title: "Account created successfully! 🎉",
         description: `Welcome @${u}! Let's set up your plan.`,
       });
@@ -280,120 +244,23 @@ export function AuthPageContent() {
   }
 
   async function handleGoogleSignIn() {
-    if (!auth) {
-      toast.error("Firebase not initialized. Check your configuration.");
-      return;
-    }
-
     setBusy(true);
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-
-      let cred;
-      try {
-        cred = await signInWithPopup(auth, provider);
-      } catch (popupErr: any) {
-        if (isClosingOrHiddenError(popupErr)) {
-          // If a mobile browser triggered a background visibility / IndexedDB closing glitch, retry once
-          console.warn("[Auth] IndexedDB closing/hidden error detected, retrying signInWithPopup...", popupErr);
-          await new Promise((res) => setTimeout(res, 500));
-          cred = await signInWithPopup(auth, provider);
-        } else {
-          throw popupErr;
-        }
-      }
-
-      const userEmail = cred.user.email ?? "";
-      const userDisplayName = cred.user.displayName ?? cred.user.email?.split("@")[0] ?? "Learner";
-
-      // Check if user profile already exists
-      const existingProfile = await loadOwnerProfile(cred.user.uid);
-      const isNewUser = !existingProfile || !existingProfile.username;
-
-      let finalUsername = existingProfile?.username;
-
-      if (isNewUser) {
-        // Automatically derive clean, fixed unique handle from Google email
-        let rawHandle = (userEmail.split("@")[0] || "user")
-          .toLowerCase()
-          .replace(/[^a-z0-9_-]/g, "_")
-          .replace(/_{2,}/g, "_")
-          .replace(/^_+|_+$/g, "")
-          .slice(0, 16);
-        if (rawHandle.length < 3) rawHandle = `user_${rawHandle}`;
-        let candidateHandle = normalizeUsername(rawHandle);
-        if (!USERNAME_REGEX.test(candidateHandle)) {
-          candidateHandle = `user_${cred.user.uid.slice(0, 6).toLowerCase()}`;
-        }
-
-        // Ensure candidate handle is available, appending number suffix if taken
-        let isAvail = await isUsernameAvailable(candidateHandle);
-        let counter = 1;
-        while (!isAvail && counter <= 20) {
-          const nextCandidate = `${candidateHandle.slice(0, 14)}_${counter}`;
-          if (await isUsernameAvailable(nextCandidate)) {
-            candidateHandle = nextCandidate;
-            isAvail = true;
-            break;
-          }
-          counter++;
-        }
-        if (!isAvail) {
-          candidateHandle = `u_${Date.now().toString(36)}`;
-        }
-
-        try {
-          await claimUsername(cred.user.uid, candidateHandle, userEmail);
-          finalUsername = candidateHandle;
-        } catch (err) {
-          console.warn("Claiming username for Google user failed:", err);
-        }
-
-        await saveUserProfile(cred.user.uid, {
-          username: finalUsername || candidateHandle,
-          displayName: userDisplayName,
-          photoURL: cred.user.photoURL ?? undefined,
-        });
-
-        // Trigger the 2 onboarding emails for Google registered user automatically!
-        if (userEmail) {
-          const token = await cred.user.getIdToken();
-          fetch("/api/send-email/onboarding", {
-            method: "POST",
-            headers: { 
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              email: userEmail,
-              name: userDisplayName,
-              username: finalUsername || candidateHandle,
-            }),
-          }).catch((err) => console.warn("Google onboarding emails trigger error:", err));
-        }
-      }
-
-      await proceedAfterAuth(cred.user, {
-        title: isNewUser ? "Account created with Google! 🎉" : "Welcome back! Thanks for logging in.",
-        description: isNewUser ? `Welcome @${finalUsername || "learner"}! Your plan is ready.` : "Ready to solve today's DSA problems?",
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
+      if (error) throw error;
     } catch (e: any) {
-      if (e?.code === "auth/popup-closed-by-user") {
-        toast.info("Google sign-in was cancelled.");
-      } else {
-        toast.error(authErrorMessage(e));
-      }
+      toast.error(authErrorMessage(e));
     } finally {
       setBusy(false);
     }
   }
 
   async function handleForgotPassword() {
-    if (!auth) {
-      toast.error("Firebase not initialized. Check your configuration.");
-      return;
-    }
     const identifier = email.trim();
     if (!identifier) {
       toast.error("Enter your email or username above first, then click Forgot password.");
@@ -411,7 +278,13 @@ export function AuthPageContent() {
         }
         targetEmail = resolved;
       }
-      await sendPasswordResetEmail(auth, targetEmail);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(targetEmail, {
+        redirectTo: `${window.location.origin}/auth/update-password`,
+      });
+      
+      if (error) throw error;
+      
       setResetSent(true);
       toast.success(`Reset email sent to ${targetEmail} — check your inbox.`);
     } catch (e) {
@@ -422,11 +295,12 @@ export function AuthPageContent() {
   }
 
   useEffect(() => {
-    if (!auth) return;
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) router.push(next);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user && event === "SIGNED_IN") {
+        router.push(next);
+      }
     });
-    return () => unsub();
+    return () => subscription.unsubscribe();
   }, [router, next]);
 
   const usernameIcon =
@@ -629,6 +503,8 @@ export function AuthPageContent() {
                   )}
                   <span>Continue with Google</span>
                 </Button>
+
+
               </TabsContent>
             </Tabs>
 

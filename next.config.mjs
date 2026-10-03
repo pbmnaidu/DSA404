@@ -57,7 +57,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ["firebase-admin"],
+  serverExternalPackages: [],
   experimental: {
     turbopackFileSystemCacheForDev: false,
   },

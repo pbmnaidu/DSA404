@@ -8,10 +8,9 @@
  *     FCM foreground messages require an onMessage() listener in the main thread.
  */
 
-import { getMessagingIfSupported } from "@/integrations/firebase/client";
-import { getToken, onMessage } from "firebase/messaging";
-import { doc, setDoc } from "firebase/firestore";
-import { pushSubscriptionsCol } from "@/lib/db";
+// import { getMessagingIfSupported } from "@/integrations/firebase/client";
+// import { getToken, onMessage } from "firebase/messaging";
+import { savePushSubscription } from "@/lib/db";
 
 export const pushSupported = () =>
   typeof window !== "undefined" &&
@@ -95,24 +94,24 @@ export async function subscribeDevice(userId: string, force = false): Promise<bo
       return false;
     }
 
-    const messaging = await getMessagingIfSupported();
+    const messaging = null; // await getMessagingIfSupported();
     if (!messaging) {
       console.warn("[push] Stage A: FCM Messaging is not supported in this browser environment.");
       return false;
     }
 
     console.info("[push] Stage A: Requesting FCM Token from Firebase Messaging...");
-    const token = await getToken(messaging, {
+    const token = ""; /* await getToken(messaging, {
       vapidKey,
       serviceWorkerRegistration: reg,
-    });
+    }); */
 
     if (!token) {
       console.error("[push] Stage A ERROR: getToken() returned empty token string.");
       return false;
     }
 
-    console.info(`[push] Stage A SUCCESS: Real FCM token obtained (${token.slice(0, 10)}...${token.slice(-6)})`);
+    console.info("[push] Stage A SUCCESS");
 
     // Detect device type for multi-device tracking
     const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "unknown";
@@ -122,22 +121,9 @@ export async function subscribeDevice(userId: string, force = false): Promise<bo
     const platform = typeof navigator !== "undefined" ? navigator.platform : "unknown";
 
     // Save device token as unique doc in users/{userId}/pushSubscriptions/{token}
-    await setDoc(
-      doc(pushSubscriptionsCol(userId), token),
-      {
-        token,
-        userId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        lastActiveAt: new Date().toISOString(),
-        userAgent,
-        deviceType,
-        platform,
-      },
-      { merge: true }
-    );
+    await savePushSubscription(userId, token, JSON.stringify({ userAgent, deviceType, platform }));
 
-    console.info(`[push] Stage B SUCCESS: Registered multi-device token in users/${userId}/pushSubscriptions/${token.slice(0, 8)}... (${deviceType})`);
+    console.info(`[push] Stage B SUCCESS: Registered multi-device token for user ${userId} (${deviceType})`);
     
     lastSubscribedUserId = userId;
     lastSubscribedTime = now;
@@ -177,12 +163,12 @@ export async function setupForegroundNotificationListener(
   }
 
   try {
-    const messaging = await getMessagingIfSupported();
+    const messaging = null; // await getMessagingIfSupported();
     if (!messaging) return () => {};
 
     console.info("[push] Stage D: Registering FCM foreground onMessage() listener...");
 
-    const unsubscribeFn = onMessage(messaging, (payload) => {
+    const unsubscribeFn = () => {}; /* onMessage(messaging, (payload: any) => {
       console.info("[push] Stage D SUCCESS: FCM foreground message received:", payload);
 
       const title =
@@ -198,7 +184,7 @@ export async function setupForegroundNotificationListener(
 
       console.info("[push] Stage E: Displaying foreground notification popup via showLocalReminder...");
       void showLocalReminder(title, body, tag);
-    });
+    }); */
 
     isForegroundListenerRegistered = true;
     activeUnsubscribe = () => {

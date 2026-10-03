@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
 
 const LAST_ACTIVE_KEY = "dsa404-last-active-at";
 const MAX_INACTIVITY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -22,7 +21,7 @@ export function useInactivityLogout(enabled: boolean) {
     const now = Date.now();
 
     if (lastActive && now - lastActive > MAX_INACTIVITY_MS) {
-      signOut(auth).catch(() => {});
+      createClient().auth.signOut().catch(() => {});
       window.localStorage.removeItem(LAST_ACTIVE_KEY);
       return;
     }

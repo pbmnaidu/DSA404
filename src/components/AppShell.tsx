@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { signOut as firebaseSignOut } from "firebase/auth";
-import { auth } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/hooks/useAuth";
@@ -617,7 +616,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
       disableGuestMode();
     }
     try {
-      await firebaseSignOut(auth);
+      await createClient().auth.signOut();
     } catch {}
     router.push("/auth?next=/today");
   }

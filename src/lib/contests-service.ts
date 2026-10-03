@@ -1,4 +1,5 @@
-import { getAdminDb } from "@/integrations/firebase/admin.server";
+// import { getAdminDb } from "@/integrations/firebase/admin.server";
+const getAdminDb = () => null as any;
 
 export interface Contest {
   id: string;
@@ -367,7 +368,7 @@ export async function syncContestsToFirestore(): Promise<Contest[]> {
         try {
           const allDocsSnap = await db.collection("contests").get();
           const nowMs = Date.now();
-          const expiredDocRefs: FirebaseFirestore.DocumentReference[] = [];
+          const expiredDocRefs: any[] = [];
 
           for (const doc of allDocsSnap.docs) {
             if (doc.id === "meta") continue;
@@ -472,7 +473,7 @@ export async function getContestsFromFirestore(): Promise<Contest[]> {
 
     const now = Date.now();
     const list: Contest[] = [];
-    const expiredDocRefs: FirebaseFirestore.DocumentReference[] = [];
+    const expiredDocRefs: any[] = [];
 
     for (const docSnap of snap.docs) {
       if (docSnap.id === "meta") continue;

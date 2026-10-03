@@ -1,26 +1,16 @@
 // src/lib/profileService.ts
-// Handles profile CRUD in Firestore.
+// Handles profile CRUD in Supabase.
 // Profile photo is compressed to ≤50KB base64 and stored as a string field
-// (avoids Firebase Storage bucket; keeps storage cheap).
 
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-import { db } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
+import { loadUserProfile, saveUserProfile, resolveProfileIdentifier } from "./db";
 import type { UserProfile } from "./db";
 
 // ─── Image compression ────────────────────────────────────────────────────────
 
 /**
  * Compresses an image File to a low-quality JPEG data-URL (≤50 KB by default).
- * Stored as a plain string field in Firestore — no Storage bucket needed.
+ * Stored as a plain string field.
  */
 export async function compressImageToDataURL(
   file: File,
@@ -56,57 +46,26 @@ export async function compressImageToDataURL(
   });
 }
 
-// ─── Firestore helpers ────────────────────────────────────────────────────────
-
-function profileRef(uid: string) {
-  return doc(db, "profiles", uid);
-}
+// ─── Supabase helpers ────────────────────────────────────────────────────────
 
 export async function getProfile(uid: string): Promise<UserProfile | null> {
-  const snap = await getDoc(profileRef(uid));
-  if (!snap.exists()) return null;
-  return snap.data() as UserProfile;
+  const data = await loadUserProfile(uid);
+  if (Object.keys(data).length === 0) return null;
+  return data as UserProfile;
 }
 
 export async function upsertProfile(
   uid: string,
   data: Partial<UserProfile>
 ): Promise<void> {
-  const ref = profileRef(uid);
-  const snap = await getDoc(ref);
-  if (snap.exists()) {
-    await updateDoc(ref, { ...data, updatedAt: Date.now() });
-  } else {
-    await setDoc(ref, {
-      uid,
-      displayName: "",
-      bio: "",
-      photoURL: "",
-      platforms: {},
-      isPublic: true,
-      shareSlug: uid, // default slug = uid; user can keep it
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      ...data,
-    });
-  }
+  await saveUserProfile(uid, data);
 }
 
-/** Look up a profile by shareSlug (for public profile page). */
+/** Look up a profile by shareSlug (username) for public profile page. */
 export async function getProfileBySlug(
   slug: string
 ): Promise<UserProfile | null> {
-  // Fast path: slug is usually the uid
-  const byUid = await getProfile(slug);
-  if (byUid) return byUid;
-
-  // Fallback: query by shareSlug field
-  const q = query(
-    collection(db, "profiles"),
-    where("shareSlug", "==", slug),
-    where("isPublic", "==", true)
-  );
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-  return snap.docs[0].data() as UserProfile;
+  const uid = await resolveProfileIdentifier(slug);
+  if (!uid) return null;
+  return getProfile(uid);
 }

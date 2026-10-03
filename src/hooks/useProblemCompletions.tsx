@@ -72,7 +72,7 @@ export function useProblemCompletions() {
       .then(([set, subMap]) => {
         if (!isMounted) return;
         const mergedSubs = { ...localSubs, ...subMap };
-        for (const [probName, subObj] of Object.entries(mergedSubs)) {
+        for (const [probName, subObj] of Object.entries(mergedSubs) as [string, CodeSubmission][]) {
           if (!subObj.link || !subObj.link.trim()) {
             const canonical = getCanonicalProblemLink(probName);
             if (canonical) subObj.link = canonical;
@@ -80,7 +80,7 @@ export function useProblemCompletions() {
         }
         const mergedComp = new Set([
           ...Array.from(localComp),
-          ...Array.from(set),
+          ...Array.from(set).map(s => typeof s === 'string' ? s : (s as any).name),
           ...Object.keys(mergedSubs),
         ]);
         if (typeof window !== "undefined") {
@@ -115,8 +115,9 @@ export function useProblemCompletions() {
       section?: string,
       difficulty?: string,
     ) => {
-      if (!user?.uid) return;
-      const currentUid = user.uid;
+      if (!user) return;
+      const currentUid = user.uid || user.id || null;
+      if (!currentUid) return;
 
       const effectiveLink = link.trim() || getCanonicalProblemLink(name) || "";
 
@@ -148,7 +149,7 @@ export function useProblemCompletions() {
       // fails — but the user should know their submission hasn't synced to
       // their account yet (e.g. won't show on another device or the public
       // profile) rather than silently believing it's fully saved.
-      await saveCodeSubmission(currentUid, name, sub, completed, difficulty, undefined, section, topic).catch(() => {
+      await saveCodeSubmission(currentUid, { name, platform: 'Unknown', difficulty: difficulty || "Unknown", link: '', code: sub.code, submissionLink: sub.url, keyPoints: sub.notes }, sub.date).catch(() => {
         toast.error("Saved on this device, but couldn't sync to your account. Check your connection.");
       });
 
@@ -190,8 +191,9 @@ export function useProblemCompletions() {
   /** Remove code submission for a problem, unmarking it as completed. */
   const removeCode = useCallback(
     async (name: string) => {
-      if (!user?.uid) return;
-      const currentUid = user.uid;
+      if (!user) return;
+      const currentUid = user.uid || user.id || null;
+      if (!currentUid) return;
 
       setSubmissions((prev) => {
         const next = { ...prev };
@@ -211,7 +213,7 @@ export function useProblemCompletions() {
         return next;
       });
 
-      await removeCodeSubmission(currentUid, name, completed).catch(() => {
+      await removeCodeSubmission(currentUid, { name, platform: 'Unknown' }).catch(() => {
         toast.error("Removed on this device, but couldn't sync the change to your account.");
       });
     },

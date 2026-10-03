@@ -4,17 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import {
- deleteUser,
- EmailAuthProvider,
- GoogleAuthProvider,
- linkWithCredential,
- linkWithPopup,
- updatePassword,
- updateProfile,
-} from "firebase/auth";
-import { FirebaseError } from "firebase/app";
-import { auth, isClosingOrHiddenError } from "@/integrations/firebase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
 import { changeStartDate, deleteAccountData, updateUserProfile } from "@/lib/db";
@@ -167,7 +156,7 @@ export default function SettingsPage() {
 
 
 
- const [name, setName] = useState(() => auth.currentUser?.displayName ?? "");
+ const [name, setName] = useState("");
  const [password, setPassword] = useState("");
  const [confirm, setConfirm] = useState("");
  const [busy, setBusy] = useState(false);
@@ -208,48 +197,25 @@ export default function SettingsPage() {
  if (password.length < 8) throw new Error("Password must be at least 8 characters.");
  if (password !== confirm) throw new Error("The two passwords do not match.");
  }
- const user = auth.currentUser;
+ const { createClient } = await import("@/integrations/supabase/client");
+ const supabase = createClient();
+ const { data: { user } } = await supabase.auth.getUser();
  if (!user) throw new Error("Not signed in.");
  if (!name.trim() && !password) throw new Error("Nothing to update.");
  if (name.trim()) {
- await updateProfile(user, { displayName: name.trim() });
  await updateUserProfile(userId, { displayName: name.trim() });
+ await supabase.auth.updateUser({ data: { displayName: name.trim() } });
  }
  if (password) {
- try {
- await updatePassword(user, password);
- } catch (e: any) {
- // If account was created via Google Auth, link an Email/Password credential
- if (user.email) {
- try {
- const cred = EmailAuthProvider.credential(user.email, password);
- await linkWithCredential(user, cred);
- } catch (linkErr: any) {
- if (
- linkErr?.code === "auth/provider-already-linked" ||
- linkErr?.code === "auth/credential-already-in-use"
- ) {
- await updatePassword(user, password);
- } else {
- throw e;
- }
- }
- } else {
- throw e;
- }
- }
+ const { error } = await supabase.auth.updateUser({ password });
+ if (error) throw error;
  }
  setPassword("");
  setConfirm("");
  toast.success("Account updated");
- } catch (e) {
- const needsReauth = e instanceof FirebaseError && e.code === "auth/requires-recent-login";
+ } catch (e: any) {
  toast.error("Could not update your account", {
- description: needsReauth
- ? "For security, please sign out and sign back in before changing your password."
- : e instanceof Error
- ? e.message
- : "Please try again.",
+ description: e?.message || "Please try again.",
  });
  } finally {
  setBusy(false);
@@ -258,32 +224,14 @@ export default function SettingsPage() {
 
  async function linkGoogle() {
  try {
- const user = auth.currentUser;
- if (!user) throw new Error("Not signed in.");
- const provider = new GoogleAuthProvider();
- provider.setCustomParameters({ prompt: "select_account" });
- try {
- await linkWithPopup(user, provider);
- } catch (linkErr: any) {
- if (isClosingOrHiddenError(linkErr)) {
- console.warn("[Auth] IndexedDB closing/hidden error during linkGoogle, retrying...", linkErr);
- await new Promise((res) => setTimeout(res, 500));
- await linkWithPopup(user, provider);
- } else {
- throw linkErr;
- }
- }
+ const { createClient } = await import("@/integrations/supabase/client");
+ const supabase = createClient();
+ const { data, error } = await supabase.auth.linkIdentity({ provider: 'google' });
+ if (error) throw error;
  toast.success("Google account connected");
  } catch (e: any) {
- if (e?.code === "auth/popup-closed-by-user") {
- toast.info("Google linking was cancelled.");
- return;
- }
- const already = e instanceof FirebaseError && e.code === "auth/credential-already-in-use";
- toast.error(already ? "That Google account is already linked elsewhere" : "Google sign-in failed", {
- description: isClosingOrHiddenError(e)
- ? "Connection temporarily interrupted. Please try again."
- : e instanceof Error ? e.message : String(e),
+ toast.error("Google sign-in failed", {
+ description: e?.message || "Please try again.",
  });
  }
  }
@@ -398,58 +346,19 @@ export default function SettingsPage() {
  async function deleteAccount() {
  setDeleting(true);
  try {
- const user = auth.currentUser;
+ const { createClient } = await import("@/integrations/supabase/client");
+ const supabase = createClient();
+ const { data: { user } } = await supabase.auth.getUser();
  if (!user) throw new Error("No active user session.");
-
- // 1. Delete Firestore data FIRST, while the user is still authenticated.
- // Firestore's security rules key off request.auth.uid — once the Auth
- // account is deleted below, request.auth becomes null and every
- // isOwner(uid) check fails, silently skipping the entire cleanup
- // (it was previously swallowed by a .catch(console.warn)). Doing this
- // step first guarantees the DB is actually wiped.
  if (userId) {
  await deleteAccountData(userId);
  }
-
- // 2. Delete user from Firebase Auth
- try {
- await deleteUser(user);
- } catch (e: any) {
- if (e?.code === "auth/requires-recent-login") {
- const providerData = user.providerData;
- const isGoogle = providerData.some((p) => p.providerId === "google.com");
- if (isGoogle) {
- toast.info("Re-authenticating with Google to confirm deletion...");
- const provider = new GoogleAuthProvider();
- provider.setCustomParameters({ prompt: "select_account" });
- try {
- await linkWithPopup(user, provider);
- } catch (linkErr: any) {
- if (isClosingOrHiddenError(linkErr)) {
- await new Promise((res) => setTimeout(res, 500));
- await linkWithPopup(user, provider);
- } else {
- throw linkErr;
- }
- }
- await deleteUser(user);
- } else {
- toast.error("Security timeout: Please sign out and sign back in to delete your account.");
- setDeleting(false);
- return;
- }
- } else {
- throw e;
- }
- }
-
- // 3. Clear local caches
  await qc.cancelQueries();
  qc.clear();
  if (typeof window !== "undefined") {
  window.localStorage.clear();
  }
-
+ await supabase.auth.signOut();
  toast.success("Your account and all associated data have been permanently deleted.");
  router.push("/auth?next=/today");
  } catch (e: any) {

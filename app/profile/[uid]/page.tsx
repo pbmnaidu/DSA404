@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
  loadUserProfile,
@@ -489,17 +488,15 @@ export default function PublicProfilePage() {
  async function syncOwnerData() {
  try {
  const [userCompletions, userSubmissions] = await Promise.all([
- loadProblemCompletions(resolvedUid).catch(() => new Set<string>()),
+ loadProblemCompletions(resolvedUid).catch(() => [] as CompletedProblemSnapshot[]),
  loadCodeSubmissions(resolvedUid).catch(() => ({} as Record<string, CodeSubmission>)),
  ]);
  const syncedList = await syncPublicSolvedProblems(
  resolvedUid,
- days.length > 0 ? days : undefined,
- userCompletions,
- userSubmissions,
+ userCompletions
  );
- if (!isCancelled && syncedList && syncedList.length > 0) {
- setCompletedProblems(syncedList);
+ if (!isCancelled && userCompletions.length > 0) {
+ setCompletedProblems(userCompletions);
  const fresh = await loadUserProfile(resolvedUid);
  if (fresh.publicStats) setPublicStats(fresh.publicStats);
  if (fresh.activityHeatmap) setActivityHeatmap(fresh.activityHeatmap);
@@ -566,17 +563,14 @@ export default function PublicProfilePage() {
  ]);
 
  // If authenticated user is viewing their own profile, ensure latest completions & code submissions sync
- const isOwnerViewing = Boolean(
- (auth.currentUser?.uid && auth.currentUser.uid === uid) ||
- (authUser?.uid && authUser.uid === uid)
- );
+ const isOwnerViewing = Boolean(authUser?.uid && authUser.uid === uid);
  if (isOwnerViewing) {
  try {
  const [userCompletions, userSubmissions] = await Promise.all([
- loadProblemCompletions(uid).catch(() => new Set<string>()),
+ loadProblemCompletions(uid).catch(() => [] as CompletedProblemSnapshot[]),
  loadCodeSubmissions(uid).catch(() => ({} as Record<string, CodeSubmission>)),
  ]);
- await syncPublicSolvedProblems(uid, loadedDays, userCompletions, userSubmissions);
+ await syncPublicSolvedProblems(uid, userCompletions);
  p = await loadUserProfile(uid);
  } catch (syncErr) {
  console.warn("Auto-sync of public solved problems skipped:", syncErr);
@@ -590,7 +584,7 @@ export default function PublicProfilePage() {
  const compArr = JSON.parse(localCompRaw);
  if (Array.isArray(compArr) && compArr.length > 0) {
  const subsObj = localSubsRaw ? JSON.parse(localSubsRaw) : {};
- await syncPublicSolvedProblems(uid, loadedDays, new Set(compArr), subsObj);
+ await syncPublicSolvedProblems(uid, compArr.map((p: any) => typeof p === 'string' ? { name: p, platform: 'Unknown', difficulty: 'Unknown', link: '' } : p) as any);
  p = await loadUserProfile(uid);
  }
  }
@@ -1052,15 +1046,14 @@ export default function PublicProfilePage() {
  const allPlatformsStats = useMemo(() => {
  const byPlatform: Record<string, number> = {};
 
- // 1. Count from completed problems in DSA tracker (exclude GitHub)
+ // 1. Count from completed problems in DSA tracker
  for (const cp of completedProblems) {
  if (cp.platform?.toLowerCase() === "github") continue;
  const plat = normalizePlatformName(cp.platform) || "DSA";
  byPlatform[plat] = (byPlatform[plat] ?? 0) + 1;
  }
 
- // 2. External connected platforms (LeetCode, GFG, Codeforces, CodeChef, HackerRank, etc.)
- // Explicitly exclude GitHub: contributions/commits are displayed in the contribution heatmap, not solved problems
+ // 2. External connected platforms
  let externalPlatformsTotal = 0;
  const statsObj = platformStats && typeof platformStats === "object" ? platformStats : {};
  for (const [rawKey, prof] of Object.entries(statsObj)) {
@@ -1074,43 +1067,32 @@ export default function PublicProfilePage() {
  }
  }
 
- // 3. Merge publicStats.byPlatform if recorded higher
+ // 3. Merge publicStats.byPlatform if recorded higher (ignore if it's the old 'DSA' dump bug)
  if (publicStats?.byPlatform) {
  for (const [k, v] of Object.entries(publicStats.byPlatform)) {
  if (k.toLowerCase() === "github" || k.toLowerCase() === "linkedin") continue;
  if (typeof v === "number" && v > 0) {
  const norm = normalizePlatformName(k);
- if (!byPlatform[norm] || byPlatform[norm] < v) {
- byPlatform[norm] = v;
- }
+ // Avoid carrying over the old bug where all problems were dumped into DSA
+ if (norm === "DSA" && v >= completedProblems.length) continue;
+ byPlatform[norm] = Math.max(byPlatform[norm] ?? 0, v);
  }
  }
  }
  delete byPlatform["GitHub"];
  delete byPlatform["github"];
 
- // 4. Heatmap total solved count & tracker total (problems completed within 404 DSA milestone)
- const heatmapTotal = heatmapData.reduce((acc, d) => acc + (d.solved > 0 ? d.solved : 0), 0);
  const trackerProblemsCount = completedProblems.filter((p) => p.platform?.toLowerCase() !== "github").length;
- const trackerTotal = Math.max(trackerProblemsCount, heatmapTotal);
-
- // 5. Grand total solved across all platforms is the sum of each platform's solved count
  const platformsSum = Object.values(byPlatform).reduce((acc, count) => acc + count, 0);
- const grandTotalSolved = Math.max(platformsSum, trackerTotal);
-
- // If platformsSum < trackerTotal (e.g. untagged DSA problems not in byPlatform), balance it
- if (platformsSum < trackerTotal) {
- const diff = trackerTotal - platformsSum;
- byPlatform["DSA"] = (byPlatform["DSA"] ?? 0) + diff;
- }
+ const grandTotalSolved = Math.max(platformsSum, trackerProblemsCount);
 
  return {
  grandTotalSolved,
- trackerTotal,
+ trackerTotal: trackerProblemsCount,
  externalPlatformsTotal,
  byPlatform,
  };
- }, [completedProblems, publicStats, heatmapData, platformStats]);
+ }, [completedProblems, publicStats, platformStats]);
 
  if (loading) {
  return <QuoteLoader fullScreen />;
@@ -1197,9 +1179,9 @@ export default function PublicProfilePage() {
  <div className="absolute inset-0 bg-primary  /50 " />
  </div>
 
- <div className="relative px-6 md:px-10 pb-8 -mt-20 md:-mt-24 flex flex-col md:flex-row items-end gap-6 md:gap-8">
+  <div className="relative px-6 md:px-10 pb-8 -mt-16 md:-mt-20 flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 text-center md:text-left">
  {/* Avatar */}
- <div className="size-32 md:size-40 rounded-[2rem] border-4 border-card shadow-sm overflow-hidden shrink-0 bg-secondary flex items-center justify-center hover:scale-[1.02] transition-transform duration-300">
+ <div className="size-28 md:size-36 rounded-full md:rounded-[2rem] border-4 border-card shadow-sm overflow-hidden shrink-0 bg-secondary flex items-center justify-center hover:scale-[1.02] transition-transform duration-300">
  {photoURL ? (
  <img src={photoURL} alt="Avatar" className="size-full object-cover" />
  ) : (
@@ -1208,23 +1190,21 @@ export default function PublicProfilePage() {
  </div>
 
  {/* Core Info */}
- <div className="flex-1 min-w-0 w-full pb-2">
- <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
- <div className="space-y-1.5">
- <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight text-foreground truncate">
+ <div className="flex-1 min-w-0 w-full pb-2 flex flex-col items-center md:items-start">
+ <div className="space-y-1.5 w-full">
+ <h1 className="text-2xl md:text-5xl font-display font-black tracking-tight text-foreground truncate">
  {displayName || "Anonymous Coder"}
  </h1>
- <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+ <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2 text-sm">
  {username && username !== effectiveGithubUsername && (
  <span className="font-mono text-primary font-bold">@{username}</span>
  )}
  <span className="text-foreground font-medium">{bio || "Software Engineer Aspirant"}</span>
  </div>
  </div>
- </div>
  
  {/* External Link Rail */}
- <div className="flex flex-wrap items-center gap-3 mt-4">
+ <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4">
  {githubProfileUrl && (
  <a href={githubProfileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground transition-colors bg-secondary px-3 py-1.5 rounded-lg border border-border shadow-sm">
  <GitHubIcon className="size-3.5" /> GitHub <ExternalLink className="size-3 " />

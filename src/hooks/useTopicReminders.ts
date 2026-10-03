@@ -6,7 +6,7 @@ import {
   TopicReminder,
   fetchTopicReminders,
   addTopicReminder,
-  deleteTopicReminder,
+  removeTopicReminder,
   markTopicReminderTriggered,
 } from "@/lib/reminders";
 
@@ -38,7 +38,7 @@ export function useTopicReminders() {
   };
 
   const removeReminder = async (id: string) => {
-    await deleteTopicReminder(user?.uid, id);
+    await removeTopicReminder(user?.uid, id);
     setReminders((prev) => prev.filter((r) => r.id !== id));
   };
 

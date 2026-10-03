@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "@/integrations/firebase/client";
+// Removed firebase imports
 import { useAuth } from "./useAuth";
 import {
   evaluateContestAttendance,
@@ -95,28 +89,14 @@ export function getContestStatus(c: Contest, now: number): ContestStatus {
   return "missed";
 }
 
-// ─── Firestore & LocalStorage helpers ─────────────────────────────────────────
-
-function storeDoc(uid: string) {
-  return doc(db!, "users", uid, "contestMeta", "tracking");
-}
+// ─── LocalStorage helpers ─────────────────────────────────────────
 
 async function loadStored(uid: string): Promise<StoredData | null> {
-  try {
-    const snap = await getDoc(storeDoc(uid));
-    if (!snap.exists()) return null;
-    return snap.data() as StoredData;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 async function saveStored(uid: string, data: Partial<StoredData>) {
-  try {
-    await setDoc(storeDoc(uid), { ...data, updatedAt: serverTimestamp() }, { merge: true });
-  } catch {
-    // non-critical
-  }
+  // no-op
 }
 
 function getLocalData(): {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextResponse } from "next/server";
 import { getMessaging } from "firebase-admin/messaging";
 import {

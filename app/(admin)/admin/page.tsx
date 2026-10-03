@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
 import { QuoteLoader } from "@/components/QuoteLoader";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsProvider } from "@/hooks/useSettings";
@@ -245,17 +244,17 @@ export default function AdminDashboardPage() {
 
   // ── Verify admin claim ─────────────────────────────────────
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    async function checkAuth() {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         router.replace("/auth");
         return;
       }
-
-      setAdminEmail(user.email || "");
-      setUserId(user.uid);
-
+      setAdminEmail(session.user.email || "");
+      setUserId(session.user.id);
       try {
-        const token = await user.getIdToken(true); // force refresh
+        const token = session.access_token;
         const res = await fetch("/api/admin/verify", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -269,8 +268,8 @@ export default function AdminDashboardPage() {
       } finally {
         setVerifying(false);
       }
-    });
-    return () => unsub();
+    }
+    checkAuth();
   }, [router]);
 
   // ── Fetch stats ────────────────────────────────────────────
@@ -278,9 +277,10 @@ export default function AdminDashboardPage() {
     setLoading(true);
     setError(false);
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No auth");
-      const token = await user.getIdToken();
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No auth");
+      const token = session.access_token;
 
       const res = await fetch("/api/admin/stats", {
         headers: { Authorization: `Bearer ${token}` },
@@ -300,7 +300,8 @@ export default function AdminDashboardPage() {
   }, [isAdmin, fetchStats]);
 
   const handleLogout = async () => {
-    await signOut(auth);
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.replace("/auth");
   };
 

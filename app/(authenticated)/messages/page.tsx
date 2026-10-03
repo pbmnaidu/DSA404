@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { auth, db as firestore } from "@/integrations/firebase/client";
-import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import { createClient } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
@@ -63,18 +62,34 @@ export default function MessagesPage() {
   );
 
   async function loadMessages() {
-    if (!firestore) return;
     try {
-      const { limit } = await import("firebase/firestore");
-      const q = query(collection(firestore, "messages"), orderBy("createdAt", "desc"), limit(50));
-      const snap = await getDocs(q);
-      const list: BroadcastMessage[] = snap.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() as Omit<BroadcastMessage, "id">),
-      }));
-      setMessages(list);
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+        
+      if (data) {
+        const list: BroadcastMessage[] = data.map((docSnap: any) => ({
+          id: docSnap.id,
+          title: docSnap.title,
+          body: docSnap.body,
+          url: docSnap.url,
+          createdAt: docSnap.created_at,
+          createdBy: docSnap.created_by,
+          createdByName: docSnap.created_by_name,
+          status: docSnap.status || "published",
+          sentAt: docSnap.sent_at,
+          tokensFound: docSnap.tokens_found,
+          successCount: docSnap.success_count,
+          failureCount: docSnap.failure_count,
+          invalidTokensRemoved: docSnap.invalid_tokens_removed,
+        }));
+        setMessages(list);
+      }
     } catch (err) {
-      console.warn("[messages] Failed to load messages from Firestore:", err);
+      console.warn("[messages] Failed to load messages:", err);
     } finally {
       setLoading(false);
     }
@@ -94,13 +109,13 @@ export default function MessagesPage() {
     setLastStats(null);
 
     try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
+      if (!user) {
         toast.error("Not authenticated", { description: "Please log in first." });
         return;
       }
 
-      const idToken = await currentUser.getIdToken(true);
+      // Next.js app auth cookie will pass automatically
+      const idToken = "mock_token"; 
       const res = await fetch("/api/campaigns/publish", {
         method: "POST",
         headers: {

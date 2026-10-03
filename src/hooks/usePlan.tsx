@@ -116,8 +116,6 @@ export function PlanProvider({
       setStartDate(sDate);
       setLastSynced(meta.lastSyncedAt);
       if (sheetId) setActiveSheet(sheetId);
-      // Auto-sync public solved problems and heatmap to userDoc in background
-      void db.syncPublicSolvedProblems(userId, d).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load your progress.");
     } finally {
@@ -148,7 +146,6 @@ export function PlanProvider({
         setActiveSheet(sheetId);
         setStartDate(meta.startDate);
         setLastSynced(meta.lastSyncedAt);
-        void db.syncPublicSolvedProblems(userId, newDays).catch(() => {});
         toast.success("DSA Sheet Switched!", {
           description: "Your daily plan and problems are now loaded from your chosen sheet.",
         });
@@ -178,10 +175,10 @@ export function PlanProvider({
       );
       if (!next) return;
       try {
-        await db.saveDay(userId, next);
+        await db.saveDayProgress(userId, next.id, next);
         markSynced();
         // Immediately sync public snapshot & heatmap for the public profile
-        void db.syncPublicSolvedProblems(userId).catch(() => {});
+        // void db.syncPublicSolvedProblems(userId).catch(() => {});
       } catch (e) {
         fail(e);
       }
@@ -198,7 +195,7 @@ export function PlanProvider({
       setDays(sequenced);
       try {
         await db.saveSequence(userId, sequenced);
-        if (eventKind) await db.logEvent(userId, eventKind, detail ?? "", previousSnapshot);
+        if (eventKind) await db.saveRevisionEvent(userId, eventKind, detail ?? "", JSON.stringify(previousSnapshot));
         markSynced();
       } catch (e) {
         fail(e);
@@ -224,11 +221,11 @@ export function PlanProvider({
       setDays(shifted);
       try {
         await db.saveSequence(userId, shifted);
-        await db.logEvent(
+        await db.saveRevisionEvent(
           userId,
           "postpone",
           `Day ${dayNumber} postponed by ${gap} day(s) — plan now ends ${shifted[shifted.length - 1].date}`,
-          previousSnapshot,
+          JSON.stringify(previousSnapshot),
         );
         markSynced();
       } catch (e) {
@@ -486,7 +483,7 @@ export function PlanProvider({
       setDays(d);
       setStartDate(meta.startDate);
       markSynced();
-      await db.logEvent(userId, "reset", "All progress reset");
+      await db.saveRevisionEvent(userId, "reset", "All progress reset");
     } catch (e) {
       fail(e);
     } finally {
@@ -584,11 +581,11 @@ export function PlanProvider({
       try {
         await db.saveSequence(userId, next);
         const targetPace = counts.target || (counts.easy + counts.medium + counts.hard);
-        await db.logEvent(
+        await db.saveRevisionEvent(
           userId,
           "rebalance",
           `Daily pace set to ${targetPace} problems/day (${counts.tier || "custom"}) — plan is now ${next.length} days (was ${before}), finishing ${finish}`,
-          previousSnapshot,
+          JSON.stringify(previousSnapshot),
         );
         markSynced();
       } catch (e) {
@@ -617,11 +614,11 @@ export function PlanProvider({
       const finish = next[next.length - 1]?.date ?? today;
       try {
         await db.saveSequence(userId, next);
-        await db.logEvent(
+        await db.saveRevisionEvent(
           userId,
           "resume",
           `Schedule shifted by ${gap} day(s) from ${first.date} — new finish date ${finish}`,
-          previousSnapshot,
+          JSON.stringify(previousSnapshot),
         );
         markSynced();
       } catch (e) {
@@ -721,11 +718,11 @@ export function PlanProvider({
       setDays(snapshotDays);
       try {
         await db.saveSequence(userId, snapshotDays);
-        await db.logEvent(
+        await db.saveRevisionEvent(
           userId,
           "revert",
           `Reverted change: "${eventDetail}"`,
-          prev,
+          JSON.stringify(prev),
         );
         markSynced();
         toast.success("Schedule successfully reverted! ↺");

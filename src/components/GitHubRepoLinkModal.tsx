@@ -23,7 +23,7 @@ import {
  createGitHubRepository,
  type GitHubSyncConfig,
 } from "@/lib/github-sync";
-import { auth } from "@/integrations/firebase/client";
+import { createClient } from "@/integrations/supabase/client";
 import { GitHubIcon } from "./SocialIcons";
 import { CheckCircle2, ExternalLink, FolderGit2, Key, RefreshCw, Sparkles, AlertCircle, Plus, Lock, Globe } from "lucide-react";
 import { toast } from "sonner";
@@ -65,7 +65,7 @@ export function GitHubRepoLinkModal({
  useEffect(() => {
  if (open) {
  let active = true;
- const targetUid = userId || auth?.currentUser?.uid || null;
+ const targetUid = userId || null;
  const cfg = getLocalGitHubSyncConfig(targetUid);
  if (cfg) {
  setToken(cfg.token || "");
@@ -214,7 +214,7 @@ export function GitHubRepoLinkModal({
  autoPromptDismissed: true,
  };
 
- const targetUid = userId || auth?.currentUser?.uid || null;
+ const targetUid = userId || null;
  await saveGitHubSyncConfig(targetUid, config);
  setIsConnected(true);
  if (onConfigSaved) onConfigSaved(config);
@@ -240,7 +240,7 @@ export function GitHubRepoLinkModal({
  folderPath: "solutions",
  autoPromptDismissed: true,
  };
- const targetUid = userId || auth?.currentUser?.uid || null;
+ const targetUid = userId || null;
  await saveGitHubSyncConfig(targetUid, config);
  setToken("");
  setOwner("");
@@ -251,7 +251,7 @@ export function GitHubRepoLinkModal({
  };
 
  const handleDismiss = () => {
- const targetUid = userId || auth?.currentUser?.uid || null;
+ const targetUid = userId || null;
  const existing = getLocalGitHubSyncConfig(targetUid);
  if (!existing) {
  // Mark as dismissed so startup popup doesn't reappear repeatedly

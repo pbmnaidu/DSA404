@@ -44,14 +44,14 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <aside className="lg:col-span-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <aside className="w-full">
           <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
             <TopicReminderSection />
           </div>
         </aside>
 
-        <main className="lg:col-span-8 space-y-4">
+        <main className="w-full space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
             <BookmarkCheck className="size-4 text-primary" /> Flagged Problems
           </h2>

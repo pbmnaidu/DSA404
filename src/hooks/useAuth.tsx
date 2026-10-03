@@ -1,32 +1,63 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { User } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/integrations/firebase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { createClient } from "@/integrations/supabase/client";
 import { isGuestMode, getGuestUser, disableGuestMode } from "@/lib/guest-data";
 
+export type CustomUser = SupabaseUser & {
+  uid: string;
+  displayName: string | null;
+  photoURL: string | null;
+};
+
+function mapUser(su: SupabaseUser | null): CustomUser | null {
+  if (!su) return null;
+  return {
+    ...su,
+    uid: su.id,
+    displayName: su.user_metadata?.full_name || su.user_metadata?.displayName || null,
+    photoURL: su.user_metadata?.avatar_url || su.user_metadata?.photoURL || null,
+  };
+}
+
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(() => {
+  const [user, setUser] = useState<CustomUser | null>(() => {
     if (typeof window !== "undefined" && isGuestMode()) {
-      return getGuestUser() as unknown as User;
+      return getGuestUser() as unknown as CustomUser;
     }
     return null;
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) {
-        setUser(u);
+    const supabase = createClient();
+    
+    // Initial fetch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(mapUser(session.user));
       } else if (isGuestMode()) {
-        setUser(getGuestUser() as unknown as User);
+        setUser(getGuestUser() as unknown as CustomUser);
       } else {
         setUser(null);
       }
       setLoading(false);
     });
-    return () => unsub();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(mapUser(session.user));
+      } else if (isGuestMode()) {
+        setUser(getGuestUser() as unknown as CustomUser);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
@@ -35,8 +66,8 @@ export function useAuth() {
       setUser(null);
     }
     try {
-      const { signOut: firebaseSignOut } = await import("firebase/auth");
-      await firebaseSignOut(auth);
+      const supabase = createClient();
+      await supabase.auth.signOut();
     } catch {}
   };
 

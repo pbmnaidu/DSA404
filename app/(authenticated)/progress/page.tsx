@@ -297,7 +297,7 @@ export default function ProgressPage() {
             ) : (
               <ul className="space-y-4">
                 {events.map((e) => {
-                  const dateObj = new Date(e.createdAtIso);
+                  const dateObj = new Date(e.date);
                   const isValidDate = !isNaN(dateObj.getTime());
                   const dateStr = isValidDate ? dateObj.toLocaleDateString() : "Recent";
                   
@@ -324,7 +324,9 @@ export default function ProgressPage() {
                               if (!e.snapshot) return;
                               setRevertingId(e.id);
                               try {
-                                await revertSchedule(parseDaySnapshot(e.snapshot), e.detail);
+                                const parsed = parseDaySnapshot(e.snapshot);
+                                if (!parsed) throw new Error("No snapshot data available.");
+                                await revertSchedule(parsed, e.detail);
                                 if (userId) setEvents(await listEvents(userId));
                               } catch (err: any) {
                                 toast.error("Error", { description: err.message });

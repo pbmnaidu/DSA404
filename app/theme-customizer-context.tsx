@@ -1,9 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { auth, db } from "@/integrations/firebase/client";
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, onSnapshot, setDoc, type DocumentSnapshot } from "firebase/firestore";
+import { createClient } from "@/integrations/supabase/client";
+import { loadSettings, saveSettings } from "@/lib/settings";
 import { isGuestMode } from "@/lib/guest-data";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -431,18 +430,25 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     return "auto";
   });
 
-  const [userId, setUserId] = useState<string | null>(() => auth?.currentUser?.uid ?? null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const openPanel = useCallback(() => setPanelOpen(true), []);
   const closePanel = useCallback(() => setPanelOpen(false), []);
 
-  // Track authenticated user for Firestore sync
+  // Track authenticated user for Supabase sync
   useEffect(() => {
-    if (!auth) return;
-    const unsub = onAuthStateChanged(auth, (u: User | null) => {
-      setUserId(u?.uid ?? null);
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id ?? null);
     });
-    return () => unsub();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUserId(session?.user?.id ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Apply initial theme, font, size, view to document
@@ -453,91 +459,70 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     applyViewModeToDocument(forceView);
   }, []);
 
-  // Subscribe to real-time Firestore updates on user's theme settings
+  // Fetch initial user settings from Supabase
   useEffect(() => {
-    if (!userId || !db || isGuestMode()) return;
+    if (!userId || isGuestMode()) return;
     let alive = true;
 
-    const ref = doc(db, "users", userId, "settings", "prefs");
-    const unsub = onSnapshot(
-      ref,
-      (snap: DocumentSnapshot) => {
-        if (!alive || !snap.exists()) return;
-        const data = snap.data();
+    loadSettings(userId).then(data => {
+      if (!alive) return;
 
-        // 1. Theme Mode (Light / Dark / System)
-        if (data.theme && typeof data.theme === "string") {
-          const m = data.theme as ThemeMode;
-          if (["light", "dark", "system"].includes(m)) {
-            setThemeMode(m);
-            applyThemeModeToDocument(m);
-            try {
-              localStorage.setItem("dsa-theme-mode", m);
-            } catch {}
-          }
-        }
-
-        // 2. Theme Custom (Preset & fine-tuned colors)
-        if (data.themeCustom) {
-          try {
-            const rawCustom =
-              typeof data.themeCustom === "string"
-                ? JSON.parse(data.themeCustom)
-                : data.themeCustom;
-            if (rawCustom?.preset === "default") {
-              setColors(PRESETS.default.colors);
-              setActivePreset("default");
-              localStorage.setItem(
-                THEME_CUSTOM_STORAGE_KEY,
-                JSON.stringify({ colors: PRESETS.default.colors, preset: "default" })
-              );
-            } else if (rawCustom?.colors) {
-              setColors(rawCustom.colors);
-              setActivePreset(rawCustom.preset ?? null);
-              localStorage.setItem(
-                THEME_CUSTOM_STORAGE_KEY,
-                JSON.stringify({ colors: rawCustom.colors, preset: rawCustom.preset ?? null })
-              );
-            }
-          } catch {}
-        }
-
-        // 3. Font
-        if (data.themeFont && typeof data.themeFont === "string") {
-          setFont(data.themeFont);
-          applyFontToDocument(data.themeFont);
-          try {
-            localStorage.setItem(FONT_STORAGE_KEY, data.themeFont);
-          } catch {}
-        }
-
-        // 4. Display Size
-        if (data.themeFontSize && typeof data.themeFontSize === "string") {
-          setFontSize(data.themeFontSize);
-          applySizeToDocument(data.themeFontSize);
-          try {
-            localStorage.setItem(SIZE_STORAGE_KEY, data.themeFontSize);
-          } catch {}
-        }
-
-        // 5. Force View Mode
-        if (data.themeForceView && typeof data.themeForceView === "string") {
-          const v = data.themeForceView as ForceView;
-          setForceView(v);
-          applyViewModeToDocument(v);
-          try {
-            localStorage.setItem(VIEW_STORAGE_KEY, v);
-          } catch {}
-        }
-      },
-      (err: unknown) => {
-        console.warn("[ThemeCustomizer] onSnapshot error:", err);
+      // 1. Theme Mode
+      if (data.theme) {
+        setThemeMode(data.theme);
+        applyThemeModeToDocument(data.theme);
+        try {
+          localStorage.setItem("dsa-theme-mode", data.theme);
+        } catch {}
       }
-    );
+
+      // 2. Theme Custom
+      if (data.themeCustom) {
+        try {
+          const rawCustom = data.themeCustom;
+          if (rawCustom?.preset === "default") {
+            setColors(PRESETS.default.colors);
+            setActivePreset("default");
+            localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: PRESETS.default.colors, preset: "default" }));
+          } else if (rawCustom?.colors) {
+            setColors(rawCustom.colors);
+            setActivePreset(rawCustom.preset ?? null);
+            localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: rawCustom.colors, preset: rawCustom.preset ?? null }));
+          }
+        } catch {}
+      }
+
+      // 3. Font
+      if (data.themeFont) {
+        setFont(data.themeFont);
+        applyFontToDocument(data.themeFont);
+        try {
+          localStorage.setItem(FONT_STORAGE_KEY, data.themeFont);
+        } catch {}
+      }
+
+      // 4. Display Size
+      if (data.themeFontSize) {
+        setFontSize(data.themeFontSize);
+        applySizeToDocument(data.themeFontSize);
+        try {
+          localStorage.setItem(SIZE_STORAGE_KEY, data.themeFontSize);
+        } catch {}
+      }
+
+      // 5. Force View Mode
+      if (data.themeForceView) {
+        const v = data.themeForceView as ForceView;
+        setForceView(v);
+        applyViewModeToDocument(v);
+        try {
+          localStorage.setItem(VIEW_STORAGE_KEY, v);
+        } catch {}
+      }
+    }).catch(err => console.warn("Failed to load settings:", err));
 
     return () => {
       alive = false;
-      unsub();
     };
   }, [userId]);
 
@@ -596,13 +581,9 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
 
   const persistToFirestore = useCallback(
     (patch: Record<string, any>) => {
-      if (!userId || !db || isGuestMode()) return;
-      void setDoc(
-        doc(db, "users", userId, "settings", "prefs"),
-        { ...patch, updatedAt: new Date().toISOString() },
-        { merge: true }
-      ).catch((err: unknown) => {
-        console.warn("[ThemeCustomizer] Failed to sync to Firestore:", err);
+      if (!userId || isGuestMode()) return;
+      saveSettings(userId, patch).catch(err => {
+        console.warn("[ThemeCustomizer] Failed to sync to Supabase:", err);
       });
     },
     [userId]

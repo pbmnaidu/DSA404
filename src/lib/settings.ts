@@ -1,5 +1,4 @@
-import { getDoc, setDoc } from "firebase/firestore";
-import { settingsDoc } from "./db";
+import { createClient } from "@/integrations/supabase/client";
 import { DEFAULT_DAILY_COUNTS, type DailyCounts, normalizeDailyCounts } from "./plan";
 import { isGuestUser, getGuestSettings, saveGuestSettings } from "./guest-data";
 
@@ -167,27 +166,43 @@ export async function loadSettings(userId: string): Promise<UserSettings> {
   if (isGuestUser(userId)) {
     return getGuestSettings();
   }
-  const ref = settingsDoc(userId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
+  const supabase = createClient();
+  const { data } = await supabase.from("user_settings").select("*").eq("user_id", userId).single();
+  
+  if (!data) {
     const seeded = { ...DEFAULT_SETTINGS };
-    await setDoc(ref, { ...settingsToFields(seeded), updatedAt: new Date().toISOString() });
+    await supabase.from("user_settings").insert({
+      user_id: userId,
+      theme: seeded.theme,
+      counts: seeded.counts,
+      push_enabled: seeded.pushEnabled,
+      email_enabled: seeded.emailEnabled,
+      reminder_time: seeded.reminderTime,
+      timezone: seeded.timezone,
+      paused: seeded.paused,
+      active_sheet: seeded.activeSheet,
+    });
     return seeded;
   }
 
-  const raw = snap.data() as Fields;
+  // To preserve maximum compatibility with old Fields structure since the JSON wasn't fully normalized in Supabase schema yet
+  // We combine the direct columns and any generic Fields we'd expect
+  const raw: Fields = {
+    theme: data.theme,
+    pushEnabled: data.push_enabled,
+    emailEnabled: data.email_enabled,
+    reminderTime: data.reminder_time,
+    timezone: data.timezone,
+    paused: data.paused,
+    activeSheet: data.active_sheet,
+    counts: data.counts as any,
+    ...data
+  };
 
-  // Backfill missing `timezone` for accounts created before this field
-  // existed. Without this, the value is only ever defaulted in-memory for
-  // display — the Firestore doc itself stays without it, so the server-side
-  // reminder cron (which has no other way to know the user's local time)
-  // silently falls back to UTC and reminder-time comparisons are wrong by
-  // the user's UTC offset (e.g. reminders set for 9:30 PM IST never fire,
-  // since the server thinks 9:30 PM UTC hasn't happened yet).
   if (!raw.timezone) {
     const detectedTz =
       typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
-    void setDoc(ref, { timezone: detectedTz, updatedAt: new Date().toISOString() }, { merge: true });
+    await supabase.from("user_settings").update({ timezone: detectedTz }).eq("user_id", userId);
     raw.timezone = detectedTz;
   }
 
@@ -199,10 +214,22 @@ export async function saveSettings(userId: string, patch: Partial<UserSettings>)
     saveGuestSettings(patch);
     return;
   }
-  const ref = settingsDoc(userId);
-  await setDoc(
-    ref,
-    { ...settingsToFields(patch), updatedAt: new Date().toISOString() },
-    { merge: true },
-  );
+  const supabase = createClient();
+  const fields = settingsToFields(patch);
+  
+  const updatePayload: any = {};
+  if (fields.theme !== undefined) updatePayload.theme = fields.theme;
+  if (fields.pushEnabled !== undefined) updatePayload.push_enabled = fields.pushEnabled;
+  if (fields.emailEnabled !== undefined) updatePayload.email_enabled = fields.emailEnabled;
+  if (fields.reminderTime !== undefined) updatePayload.reminder_time = fields.reminderTime;
+  if (fields.timezone !== undefined) updatePayload.timezone = fields.timezone;
+  if (fields.paused !== undefined) updatePayload.paused = fields.paused;
+  if (fields.activeSheet !== undefined) updatePayload.active_sheet = fields.activeSheet;
+  
+  // For other custom fields, we just dump them into counts/etc or keep the object
+  // For simplicity since the SQL table doesn't have all `ThemeCustomizerData` explicitly 
+  // We can just dump the rest of the fields into the record or skip them if they don't map.
+  if (patch.counts !== undefined) updatePayload.counts = patch.counts;
+
+  await supabase.from("user_settings").update(updatePayload).eq("user_id", userId);
 }

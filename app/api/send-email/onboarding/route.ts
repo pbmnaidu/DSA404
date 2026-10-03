@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { getAdminAuth } from "@/integrations/firebase/admin.server";

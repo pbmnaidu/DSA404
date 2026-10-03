@@ -13,13 +13,13 @@
  *    server-verified custom claim is used.
  */
 
-import { verifyIdToken, extractBearerToken } from "@/integrations/firebase/admin.server";
+import { createClient } from "@/integrations/supabase/server";
 import { NextResponse } from "next/server";
-import type { DecodedIdToken } from "firebase-admin/auth";
+import type { User } from "@supabase/supabase-js";
 
 export interface AdminVerifyResult {
   authorized: true;
-  decoded?: DecodedIdToken;
+  user?: User;
 }
 
 export interface AdminDenyResult {
@@ -27,39 +27,31 @@ export interface AdminDenyResult {
   response: NextResponse;
 }
 
-/**
- * Verifies the Authorization header contains a valid Firebase ID token
- * with the custom claim `admin: true`, or a hardcoded fallback token.
- */
 export async function verifyAdmin(
-  request: Request
+  request?: Request
 ): Promise<AdminVerifyResult | AdminDenyResult> {
-  const authHeader = request.headers.get("authorization");
-  const token = extractBearerToken(authHeader);
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!token) {
+  if (!user) {
     return {
       authorized: false,
       response: NextResponse.json({ error: "Not found" }, { status: 404 }),
     };
   }
 
-  let decoded: DecodedIdToken;
-  try {
-    decoded = await verifyIdToken(token);
-  } catch {
+  const { data: adminRole } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!adminRole) {
     return {
       authorized: false,
       response: NextResponse.json({ error: "Not found" }, { status: 404 }),
     };
   }
 
-  if (!decoded.admin) {
-    return {
-      authorized: false,
-      response: NextResponse.json({ error: "Not found" }, { status: 404 }),
-    };
-  }
-
-  return { authorized: true, decoded };
+  return { authorized: true, user };
 }
