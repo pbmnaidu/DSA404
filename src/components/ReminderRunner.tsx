@@ -24,244 +24,244 @@ const STORAGE_KEY_MORNING = "dsa:last-morning-reminder";
 const STORAGE_KEY_CONTEST = "dsa:last-contest-reminder";
 
 export function ReminderRunner() {
-  const { settings } = useSettings();
-  const { days } = usePlan();
-  const { user } = useAuth();
-  const { contests } = useContests();
-  const daysRef = useRef(days);
-  daysRef.current = days;
+ const { settings } = useSettings();
+ const { days } = usePlan();
+ const { user } = useAuth();
+ const { contests } = useContests();
+ const daysRef = useRef(days);
+ daysRef.current = days;
 
-  // 1. Multi-device FCM Push Setup (registers token for current device on load, focus, or permission grant)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!user?.uid || !settings.pushEnabled) return;
+ // 1. Multi-device FCM Push Setup (registers token for current device on load, focus, or permission grant)
+ useEffect(() => {
+ if (typeof window === "undefined") return;
+ if (!user?.uid || !settings.pushEnabled) return;
 
-    const checkAndSubscribe = async () => {
-      if (!("Notification" in window)) return;
+ const checkAndSubscribe = async () => {
+ if (!("Notification" in window)) return;
 
-      if (Notification.permission === "granted") {
-        await registerReminderWorker();
-        await subscribeDevice(user.uid);
-        await setupForegroundNotificationListener();
-      }
-    };
+ if (Notification.permission === "granted") {
+ await registerReminderWorker();
+ await subscribeDevice(user.uid);
+ await setupForegroundNotificationListener();
+ }
+ };
 
-    void checkAndSubscribe();
+ void checkAndSubscribe();
 
-    // Re-check on tab focus / PWA visibility change to ensure device token is active
-    const handleFocusOrVisibility = () => {
-      if (document.visibilityState === "visible") {
-        void checkAndSubscribe();
-      }
-    };
+ // Re-check on tab focus / PWA visibility change to ensure device token is active
+ const handleFocusOrVisibility = () => {
+ if (document.visibilityState === "visible") {
+ void checkAndSubscribe();
+ }
+ };
 
-    window.addEventListener("focus", handleFocusOrVisibility);
-    document.addEventListener("visibilitychange", handleFocusOrVisibility);
+ window.addEventListener("focus", handleFocusOrVisibility);
+ document.addEventListener("visibilitychange", handleFocusOrVisibility);
 
-    return () => {
-      window.removeEventListener("focus", handleFocusOrVisibility);
-      document.removeEventListener("visibilitychange", handleFocusOrVisibility);
-    };
-  }, [user?.uid, settings.pushEnabled]);
+ return () => {
+ window.removeEventListener("focus", handleFocusOrVisibility);
+ document.removeEventListener("visibilitychange", handleFocusOrVisibility);
+ };
+ }, [user?.uid, settings.pushEnabled]);
 
-  // 2. Scheduled Local In-Tab Reminders Loop (ticks every 30s)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+ // 2. Scheduled Local In-Tab Reminders Loop (ticks every 30s)
+ useEffect(() => {
+ if (typeof window === "undefined") return;
 
-    const tick = async () => {
-      const now = new Date();
-      const nowMs = now.getTime();
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      const today = todayIso();
+ const tick = async () => {
+ const now = new Date();
+ const nowMs = now.getTime();
+ const nowMinutes = now.getHours() * 60 + now.getMinutes();
+ const today = todayIso();
 
-      // --- 1. Check Revision Tab Topic Reminders (Email & Browser) ---
-      // Collected and shown as ONE combined notification instead of one
-      // per overdue reminder — firing N separate notifications the moment
-      // the app opens (when N reminders piled up while it was closed) is
-      // exactly the "notifications coming continuously / all at once" bug.
-      try {
-        const topicReminders = await fetchTopicReminders(user?.uid);
-        const targetEmail = user?.email || null;
+ // --- 1. Check Revision Tab Topic Reminders (Email & Browser) ---
+ // Collected and shown as ONE combined notification instead of one
+ // per overdue reminder — firing N separate notifications the moment
+ // the app opens (when N reminders piled up while it was closed) is
+ // exactly the "notifications coming continuously / all at once" bug.
+ try {
+ const topicReminders = await fetchTopicReminders(user?.uid);
+ const targetEmail = user?.email || null;
 
-        const dueReminders = topicReminders.filter((rem) => {
-          if (rem.triggered) return false;
-          const remTimeMinutes = timeToMinutes(rem.time);
-          return rem.date < today || (rem.date === today && nowMinutes >= remTimeMinutes);
-        });
+ const dueReminders = topicReminders.filter((rem) => {
+ if (rem.triggered) return false;
+ const remTimeMinutes = timeToMinutes(rem.time);
+ return rem.date < today || (rem.date === today && nowMinutes >= remTimeMinutes);
+ });
 
-        if (dueReminders.length === 1) {
-          const rem = dueReminders[0];
-          void showLocalReminder(
-            `🔔 Revision Reminder: ${rem.topic}`,
-            rem.note ? rem.note : `Time to revise your scheduled topic: ${rem.topic}`
-          );
-        } else if (dueReminders.length > 1) {
-          const topics = dueReminders.map((r) => r.topic).join(", ");
-          void showLocalReminder(
-            `🔔 ${dueReminders.length} Revision Reminders`,
-            `Pending topics: ${topics}`
-          );
-        }
+ if (dueReminders.length === 1) {
+ const rem = dueReminders[0];
+ void showLocalReminder(
+ `🔔 Revision Reminder: ${rem.topic}`,
+ rem.note ? rem.note : `Time to revise your scheduled topic: ${rem.topic}`
+ );
+ } else if (dueReminders.length > 1) {
+ const topics = dueReminders.map((r) => r.topic).join(", ");
+ void showLocalReminder(
+ `🔔 ${dueReminders.length} Revision Reminders`,
+ `Pending topics: ${topics}`
+ );
+ }
 
-        for (const rem of dueReminders) {
-          if (targetEmail && settings.emailEnabled) {
-            try {
-              await fetch("/api/send-email", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  email: targetEmail,
-                  subject: `🔔 DSA Topic Revision Reminder: ${rem.topic}`,
-                  message: `Hello!\n\nThis is your scheduled reminder to revise the topic "${rem.topic}".\n${
-                    rem.note ? `Note: ${rem.note}\n\n` : ""
-                  }Log in to DSA⁴⁰⁴ to complete your practice!\n\n- DSA⁴⁰⁴ Team`,
-                }),
-              });
-            } catch (err) {
-              console.error("Failed to send topic reminder email:", err);
-            }
-          }
+ for (const rem of dueReminders) {
+ if (targetEmail && settings.emailEnabled) {
+ try {
+ await fetch("/api/send-email", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify({
+ email: targetEmail,
+ subject: `🔔 DSA Topic Revision Reminder: ${rem.topic}`,
+ message: `Hello!\n\nThis is your scheduled reminder to revise the topic "${rem.topic}".\n${
+ rem.note ? `Note: ${rem.note}\n\n` : ""
+ }Log in to DSA⁴⁰⁴ to complete your practice!\n\n- DSA⁴⁰⁴ Team`,
+ }),
+ });
+ } catch (err) {
+ console.error("Failed to send topic reminder email:", err);
+ }
+ }
 
-          await markTopicReminderTriggered(user?.uid, rem.id);
-        }
-      } catch (err) {
-        console.error("Error processing topic reminders:", err);
-      }
+ await markTopicReminderTriggered(user?.uid, rem.id);
+ }
+ } catch (err) {
+ console.error("Error processing topic reminders:", err);
+ }
 
-      if (!settings.pushEnabled) return;
+ if (!settings.pushEnabled) return;
 
-      // --- 2. Contest Starts in 1 Hour / 10 Minutes Browser Notification ---
-      // IMPORTANT: Contest reminders MUST run even when preparation is paused!
-      // (The user specified: only contests & reminders in reminder section when paused)
-      if (settings.contestReminderEnabled && contests && contests.length > 0) {
-        let contestDelay = 0;
-        for (const contest of contests) {
-          const diffMs = contest.startMs - nowMs;
-          // Check if contest is starting between 50 and 70 minutes from now (~1 hour)
-          if (diffMs > 50 * 60 * 1000 && diffMs <= 70 * 60 * 1000) {
-            const contestStorageKey = `${STORAGE_KEY_CONTEST}:${contest.id}`;
-            if (!window.localStorage.getItem(contestStorageKey)) {
-              window.localStorage.setItem(contestStorageKey, "true");
-              const delay = contestDelay;
-              contestDelay += 4000;
-              setTimeout(() => {
-                void showLocalReminder(
-                  `🏆 Contest Starting Soon!`,
-                  `"${contest.title}" on ${contest.platform} starts in 1 hour!`
-                );
-              }, delay);
-            }
-          }
-          // Check if contest is starting between 5 and 15 minutes from now (~10 mins)
-          if (diffMs > 5 * 60 * 1000 && diffMs <= 15 * 60 * 1000) {
-            const contestStorageKey10 = `${STORAGE_KEY_CONTEST}_10m:${contest.id}`;
-            if (!window.localStorage.getItem(contestStorageKey10)) {
-              window.localStorage.setItem(contestStorageKey10, "true");
-              const delay = contestDelay;
-              contestDelay += 4000;
-              setTimeout(() => {
-                void showLocalReminder(
-                  `🏆 Contest in 10 mins!`,
-                  `"${contest.title}" on ${contest.platform} is starting soon. Don't miss it!`
-                );
-              }, delay);
-            }
-          }
-        }
-      }
+ // --- 2. Contest Starts in 1 Hour / 10 Minutes Browser Notification ---
+ // IMPORTANT: Contest reminders MUST run even when preparation is paused!
+ // (The user specified: only contests & reminders in reminder section when paused)
+ if (settings.contestReminderEnabled && contests && contests.length > 0) {
+ let contestDelay = 0;
+ for (const contest of contests) {
+ const diffMs = contest.startMs - nowMs;
+ // Check if contest is starting between 50 and 70 minutes from now (~1 hour)
+ if (diffMs > 50 * 60 * 1000 && diffMs <= 70 * 60 * 1000) {
+ const contestStorageKey = `${STORAGE_KEY_CONTEST}:${contest.id}`;
+ if (!window.localStorage.getItem(contestStorageKey)) {
+ window.localStorage.setItem(contestStorageKey, "true");
+ const delay = contestDelay;
+ contestDelay += 4000;
+ setTimeout(() => {
+ void showLocalReminder(
+ `🏆 Contest Starting Soon!`,
+ `"${contest.title}" on ${contest.platform} starts in 1 hour!`
+ );
+ }, delay);
+ }
+ }
+ // Check if contest is starting between 5 and 15 minutes from now (~10 mins)
+ if (diffMs > 5 * 60 * 1000 && diffMs <= 15 * 60 * 1000) {
+ const contestStorageKey10 = `${STORAGE_KEY_CONTEST}_10m:${contest.id}`;
+ if (!window.localStorage.getItem(contestStorageKey10)) {
+ window.localStorage.setItem(contestStorageKey10, "true");
+ const delay = contestDelay;
+ contestDelay += 4000;
+ setTimeout(() => {
+ void showLocalReminder(
+ `🏆 Contest in 10 mins!`,
+ `"${contest.title}" on ${contest.platform} is starting soon. Don't miss it!`
+ );
+ }, delay);
+ }
+ }
+ }
+ }
 
-      // --- 3. STRICT GUARD: PLAN & DAILY PROBLEMS REMINDERS ---
-      // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
-      if (settings.paused) return;
+ // --- 3. STRICT GUARD: PLAN & DAILY PROBLEMS REMINDERS ---
+ // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
+ if (settings.paused) return;
 
-      // --- 4. Morning Browser Notification (Topic & Problems) ---
-      // Only fire within a reasonable window after morningReminderTime (4h).
-      // Without this, opening the app for the first time that day late in
-      // the evening still fires a "Good morning" nudge — stale and, combined
-      // with the evening reminder + daily quote also becoming due in that
-      // same tick, feels like a burst of unrelated notifications at once.
-      if (settings.morningReminderEnabled) {
-        const morningTargetMinutes = timeToMinutes(settings.morningReminderTime);
-        const minutesPastMorning = nowMinutes - morningTargetMinutes;
-        const withinMorningWindow = minutesPastMorning >= 0 && minutesPastMorning <= 240;
+ // --- 4. Morning Browser Notification (Topic & Problems) ---
+ // Only fire within a reasonable window after morningReminderTime (4h).
+ // Without this, opening the app for the first time that day late in
+ // the evening still fires a "Good morning" nudge — stale and, combined
+ // with the evening reminder + daily quote also becoming due in that
+ // same tick, feels like a burst of unrelated notifications at once.
+ if (settings.morningReminderEnabled) {
+ const morningTargetMinutes = timeToMinutes(settings.morningReminderTime);
+ const minutesPastMorning = nowMinutes - morningTargetMinutes;
+ const withinMorningWindow = minutesPastMorning >= 0 && minutesPastMorning <= 240;
 
-        if (withinMorningWindow) {
-          const morningStorageVal = `${today}-${settings.morningReminderTime}`;
-          if (window.localStorage.getItem(STORAGE_KEY_MORNING) !== morningStorageVal) {
-            const todayPlanDay = daysRef.current.find((d) => d.date === today && !d.skipped);
-            const topicName = todayPlanDay?.topic || "Today's Topic";
-            const pendingCount = todayPlanDay
-              ? todayPlanDay.problems.filter((p) => !p.done).length
-              : 0;
+ if (withinMorningWindow) {
+ const morningStorageVal = `${today}-${settings.morningReminderTime}`;
+ if (window.localStorage.getItem(STORAGE_KEY_MORNING) !== morningStorageVal) {
+ const todayPlanDay = daysRef.current.find((d) => d.date === today && !d.skipped);
+ const topicName = todayPlanDay?.topic || "Today's Topic";
+ const pendingCount = todayPlanDay
+ ? todayPlanDay.problems.filter((p) => !p.done).length
+ : 0;
 
-            window.localStorage.setItem(STORAGE_KEY_MORNING, morningStorageVal);
+ window.localStorage.setItem(STORAGE_KEY_MORNING, morningStorageVal);
 
-            void showLocalReminder(
-              `☀️ Morning DSA Reminder: ${topicName}`,
-              pendingCount > 0
-                ? `Good morning! You have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} scheduled today in ${topicName}.`
-                : `Good morning! Time to start practicing ${topicName}.`
-            );
-          }
-        } else if (minutesPastMorning > 240) {
-          // Too late in the day for a "morning" nudge to make sense — mark
-          // it as handled for today so it doesn't try again once it's night.
-          const morningStorageVal = `${today}-${settings.morningReminderTime}`;
-          if (window.localStorage.getItem(STORAGE_KEY_MORNING) !== morningStorageVal) {
-            window.localStorage.setItem(STORAGE_KEY_MORNING, morningStorageVal);
-          }
-        }
-      }
+ void showLocalReminder(
+ `☀️ Morning DSA Reminder: ${topicName}`,
+ pendingCount > 0
+ ? `Good morning! You have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} scheduled today in ${topicName}.`
+ : `Good morning! Time to start practicing ${topicName}.`
+ );
+ }
+ } else if (minutesPastMorning > 240) {
+ // Too late in the day for a "morning" nudge to make sense — mark
+ // it as handled for today so it doesn't try again once it's night.
+ const morningStorageVal = `${today}-${settings.morningReminderTime}`;
+ if (window.localStorage.getItem(STORAGE_KEY_MORNING) !== morningStorageVal) {
+ window.localStorage.setItem(STORAGE_KEY_MORNING, morningStorageVal);
+ }
+ }
+ }
 
 
 
-      // --- 5. Evening Daily Backlog Nudge ---
-      if (nowMinutes < timeToMinutes(settings.reminderTime)) return;
+ // --- 5. Evening Daily Backlog Nudge ---
+ if (nowMinutes < timeToMinutes(settings.reminderTime)) return;
 
-      const storageVal = `${today}-${settings.reminderTime}`;
-      if (window.localStorage.getItem(STORAGE_KEY_EVENING) === storageVal) return;
+ const storageVal = `${today}-${settings.reminderTime}`;
+ if (window.localStorage.getItem(STORAGE_KEY_EVENING) === storageVal) return;
 
-      const pastAndToday = daysRef.current.filter((d) => d.date <= today && !d.skipped);
-      let pendingCount = 0;
-      let pendingToday = 0;
-      
-      for (const d of pastAndToday) {
-        const pCount = d.problems.filter((p) => !p.done).length;
-        pendingCount += pCount;
-        if (d.date === today) {
-          pendingToday += pCount;
-        }
-      }
+ const pastAndToday = daysRef.current.filter((d) => d.date <= today && !d.skipped);
+ let pendingCount = 0;
+ let pendingToday = 0;
+ 
+ for (const d of pastAndToday) {
+ const pCount = d.problems.filter((p) => !p.done).length;
+ pendingCount += pCount;
+ if (d.date === today) {
+ pendingToday += pCount;
+ }
+ }
 
-      if (pendingCount === 0) return;
+ if (pendingCount === 0) return;
 
-      window.localStorage.setItem(STORAGE_KEY_EVENING, storageVal);
-      setTimeout(() => {
-        void showLocalReminder(
-          "DSA⁴⁰⁴ Reminder",
-          pendingToday > 0 
-            ? `You have ${pendingToday} problem${pendingToday !== 1 ? "s" : ""} left today. Complete them to save your streak!`
-            : `You have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} waiting to be completed in your backlog.`
-        );
-      }, 12000);
-    };
+ window.localStorage.setItem(STORAGE_KEY_EVENING, storageVal);
+ setTimeout(() => {
+ void showLocalReminder(
+ "DSA⁴⁰⁴ Reminder",
+ pendingToday > 0 
+ ? `You have ${pendingToday} problem${pendingToday !== 1 ? "s" : ""} left today. Complete them to save your streak!`
+ : `You have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} waiting to be completed in your backlog.`
+ );
+ }, 12000);
+ };
 
-    void tick();
-    const id = window.setInterval(() => void tick(), 30_000);
-    return () => window.clearInterval(id);
-  }, [
-    settings.pushEnabled,
-    settings.paused,
-    settings.reminderTime,
-    settings.morningReminderEnabled,
-    settings.morningReminderTime,
-    settings.contestReminderEnabled,
-    settings.emailEnabled,
-    user?.uid,
-    user?.email,
-    user,
-    contests,
-  ]);
+ void tick();
+ const id = window.setInterval(() => void tick(), 30_000);
+ return () => window.clearInterval(id);
+ }, [
+ settings.pushEnabled,
+ settings.paused,
+ settings.reminderTime,
+ settings.morningReminderEnabled,
+ settings.morningReminderTime,
+ settings.contestReminderEnabled,
+ settings.emailEnabled,
+ user?.uid,
+ user?.email,
+ user,
+ contests,
+ ]);
 
-  return null;
+ return null;
 }

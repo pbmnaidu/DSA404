@@ -83,7 +83,8 @@ function PlanBoundary({
   useEffect(() => {
     if (!userId) return;
 
-    // Fast path: if we already know this user finished onboarding, skip the DB query
+    // Fast path: if we already know this user finished onboarding, skip the DB query.
+    // This is a performance optimisation only — the DB is always authoritative.
     const localKey = `dsa404_onboarded_${userId}`;
     if (typeof window !== 'undefined' && localStorage.getItem(localKey) === 'true') {
       setPlanReady(true);
@@ -91,19 +92,28 @@ function PlanBoundary({
       return;
     }
 
-    hasExistingPlan(userId).then((exists) => {
-      if (!exists) {
-        // New user — show onboarding modal instead of redirecting to settings
-        setShowOnboarding(true);
-        setCheckingPlan(false);
-      } else {
-        // Mark as onboarded in localStorage so refresh never re-triggers modal
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(localKey, 'true');
+    // Always check the DB. Check explicit onboarding_completed flag.
+    import('@/lib/db').then(({ isOnboardingCompleted }) => {
+      isOnboardingCompleted(userId).then((isCompleted) => {
+        if (!isCompleted) {
+          // Brand new user — show the onboarding wizard
+          setShowOnboarding(true);
+          setCheckingPlan(false);
+        } else {
+          // Onboarding already completed in DB (could be a returning user on a new device).
+          // Persist the flag locally so future navigations skip this async check.
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(localKey, 'true');
+          }
+          setPlanReady(true);
+          setCheckingPlan(false);
         }
+      }).catch((err) => {
+        console.warn("Error checking onboarding status:", err);
+        // On error (network offline), optimistically skip onboarding to prevent blocking the user.
         setPlanReady(true);
         setCheckingPlan(false);
-      }
+      });
     });
   }, [userId]);
 
@@ -113,6 +123,11 @@ function PlanBoundary({
     await saveSettings(userId, { counts });
     // Seed the plan with their chosen start date and pace counts
     await seedPlan(userId, startDate, counts);
+    
+    // Mark onboarding as complete in the DB (source of truth)
+    const { markOnboardingCompleted } = await import('@/lib/db');
+    await markOnboardingCompleted(userId);
+
     // Persist flag so refresh won't show onboarding again
     if (typeof window !== 'undefined') {
       localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');

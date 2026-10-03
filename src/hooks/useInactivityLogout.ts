@@ -14,22 +14,22 @@ const MAX_INACTIVITY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
  * refreshes the timestamp, so normal usage never triggers it.
  */
 export function useInactivityLogout(enabled: boolean) {
-  useEffect(() => {
-    if (!enabled || typeof window === "undefined") return;
+ useEffect(() => {
+ if (!enabled || typeof window === "undefined") return;
 
-    const lastActive = Number(window.localStorage.getItem(LAST_ACTIVE_KEY) || 0);
-    const now = Date.now();
+ const lastActive = Number(window.localStorage.getItem(LAST_ACTIVE_KEY) || 0);
+ const now = Date.now();
 
-    if (lastActive && now - lastActive > MAX_INACTIVITY_MS) {
-      createClient().auth.signOut().catch(() => {});
-      window.localStorage.removeItem(LAST_ACTIVE_KEY);
-      return;
-    }
+ if (lastActive && now - lastActive > MAX_INACTIVITY_MS) {
+ createClient().auth.signOut().catch(() => {});
+ window.localStorage.removeItem(LAST_ACTIVE_KEY);
+ return;
+ }
 
-    window.localStorage.setItem(LAST_ACTIVE_KEY, String(now));
+ window.localStorage.setItem(LAST_ACTIVE_KEY, String(now));
 
-    const refresh = () => window.localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
-    window.addEventListener("focus", refresh);
-    return () => window.removeEventListener("focus", refresh);
-  }, [enabled]);
+ const refresh = () => window.localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+ window.addEventListener("focus", refresh);
+ return () => window.removeEventListener("focus", refresh);
+ }, [enabled]);
 }

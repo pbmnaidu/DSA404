@@ -156,11 +156,11 @@ export const PRESETS: Record<string, ThemePreset> = {
   
   // Monochrome / Default
   "default": {
-    label: "Slate & Sapphire (Default)",
-    group: "Monochrome",
+    label: "Pearl & Royal (Default)",
+    group: "Premium Light",
     colors: {
-      light: { background: "#f8fafc", foreground: "#0f172a", primary: "#334155", card: "#ffffff", muted: "#f1f5f9", border: "#e2e8f0" },
-      dark: { background: "#0f172a", foreground: "#f8fafc", primary: "#94a3b8", card: "#1e293b", muted: "#334155", border: "#475569" }
+      light: { background: "#fdfdfc", foreground: "#172033", primary: "#1d4ed8", card: "#ffffff", muted: "#f3f4f6", border: "#e5e7eb" },
+      dark: { background: "#101623", foreground: "#fdfdfc", primary: "#3b82f6", card: "#161e2e", muted: "#1f2937", border: "#374151" }
     }
   },
   "slate-sapphire": {
@@ -266,6 +266,14 @@ function buildCssVars(colors: ThemeColors, mode: ColorMode): Record<string, stri
     "--sidebar-accent-foreground": fg,
     "--sidebar-border": bd,
     "--sidebar-ring": pr,
+    "--destructive": mode === "dark" ? "oklch(0.65 0.15 25)" : "oklch(0.6 0.18 25)",
+    "--destructive-foreground": mode === "dark" ? "oklch(0.2 0.05 25)" : "oklch(0.98 0 0)",
+    "--success": mode === "dark" ? "oklch(0.7 0.15 140)" : "oklch(0.65 0.15 140)",
+    "--success-foreground": mode === "dark" ? "oklch(0.2 0.05 140)" : "oklch(0.98 0 0)",
+    "--warning": mode === "dark" ? "oklch(0.8 0.15 80)" : "oklch(0.7 0.15 80)",
+    "--warning-foreground": mode === "dark" ? "oklch(0.2 0.05 80)" : "oklch(0.98 0 0)",
+    "--info": mode === "dark" ? "oklch(0.7 0.15 250)" : "oklch(0.6 0.15 250)",
+    "--info-foreground": mode === "dark" ? "oklch(0.2 0.05 250)" : "oklch(0.98 0 0)",
   };
 }
 
@@ -371,24 +379,24 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     if (typeof window !== "undefined") {
       try {
         if (localStorage.getItem("dsa-theme-version") !== "7") {
-          return PRESETS["default"].colors;
+          return PRESETS["pearl-royal"].colors;
         }
         const saved = localStorage.getItem(THEME_CUSTOM_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved) as { colors: ThemeCustom; preset: string | null };
-          if (parsed?.preset === "default") return PRESETS["default"].colors;
+          if (parsed?.preset === "default") return PRESETS["pearl-royal"].colors;
           if (parsed?.colors) return parsed.colors;
         }
       } catch {}
     }
-    return PRESETS["default"].colors;
+    return PRESETS["pearl-royal"].colors;
   });
 
   const [activePreset, setActivePreset] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       try {
         if (localStorage.getItem("dsa-theme-version") !== "7") {
-          return "default";
+          return "pearl-royal";
         }
         const saved = localStorage.getItem(THEME_CUSTOM_STORAGE_KEY);
         if (saved) {
@@ -397,7 +405,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
         }
       } catch {}
     }
-    return "default";
+    return "pearl-royal";
   });
 
   const [font, setFont] = useState<string>(() => {

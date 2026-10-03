@@ -439,7 +439,7 @@ export function CodeChefCompilerModal({
  {/* GitHub Auto-Sync Status */}
  <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg border border-border bg-background">
  <div className="flex items-center gap-2.5 min-w-0">
- <div className="size-7 rounded-lg bg-muted dark:bg-white text-white flex items-center justify-center shrink-0 shadow-xs">
+ <div className="size-7 rounded-lg bg-muted text-white flex items-center justify-center shrink-0 shadow-xs">
  <GitHubIcon className="size-4" />
  </div>
  {ghConfig?.enabled && ghConfig?.repo ? (

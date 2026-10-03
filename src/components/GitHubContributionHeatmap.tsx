@@ -69,7 +69,7 @@ export function GitHubContributionHeatmap({
  {/* Header */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4 mb-4">
  <div className="flex items-center gap-3">
- <div className="size-9 rounded-lg bg-muted dark:bg-white text-white flex items-center justify-center shrink-0 border border-border shadow-sm">
+ <div className="size-9 rounded-lg bg-muted text-white flex items-center justify-center shrink-0 border border-border shadow-sm">
  <GitHubIcon className="size-5" />
  </div>
  <div>

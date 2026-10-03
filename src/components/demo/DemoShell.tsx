@@ -186,7 +186,7 @@ function TodayPanel() {
  </div>
 
  <div className="flex items-center gap-2">
- <div className="flex items-center gap-1.5 rounded-full border border-warning bg-warning px-3 py-1 text-xs font-mono font-semibold text-warning dark:text-warning">
+ <div className="flex items-center gap-1.5 rounded-full border border-warning bg-warning px-3 py-1 text-xs font-mono font-semibold text-warning ">
  <Flame className="size-3.5" /> {FAKE_USER.streak}-day streak
  </div>
  </div>
@@ -206,21 +206,21 @@ function TodayPanel() {
  <button
  type="button"
  title="Borrow: Borrow a problem from a future day into today's workload"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-semibold text-info dark:text-info hover:bg-muted transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-semibold text-info hover:bg-muted transition-colors"
  >
  <PlusCircle className="size-3" /> Borrow
  </button>
  <button
  type="button"
  title="Merge: Merge today's workload with tomorrow's study day"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-semibold text-primary dark:text-primary hover:bg-muted transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-semibold text-primary hover:bg-muted transition-colors"
  >
  <Combine className="size-3" /> Merge
  </button>
  <button
  type="button"
  title="Delete / Skip: Skip or delete this day's topic — remaining syllabus rebalances automatically"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-semibold text-destructive dark:text-destructive hover:bg-muted transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-semibold text-destructive hover:bg-muted transition-colors"
  >
  <Ban className="size-3" /> Delete / Skip
  </button>
@@ -241,11 +241,11 @@ function TodayPanel() {
  </span>
  </div>
  <p className="text-[11px] text-foreground mt-0.5">
- Target Repo: <span className="font-mono font-semibold text-success dark:text-success">aditi-sharma/dsa-solutions</span> (branch: <code className="text-foreground">main</code>) · Pushing code &amp; patterns as .txt files
+ Target Repo: <span className="font-mono font-semibold text-success ">aditi-sharma/dsa-solutions</span> (branch: <code className="text-foreground">main</code>) · Pushing code &amp; patterns as .txt files
  </p>
  </div>
  </div>
- <span className="text-[11px] font-mono text-success dark:text-success font-semibold shrink-0">
+ <span className="text-[11px] font-mono text-success font-semibold shrink-0">
  2 Commits Pushed Today ✓
  </span>
  </div>
@@ -278,7 +278,7 @@ function TodayPanel() {
  <button
  type="button"
  title="Solve: Launch interactive ChatGPT Socratic AI Tutor with step-by-step logic hints and zero code spoilers"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-warning dark:text-warning hover:bg-muted transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-warning hover:bg-muted transition-colors"
  >
  <Zap className="size-3 fill-amber-500/20" /> ⚡ Solve
  </button>
@@ -286,7 +286,7 @@ function TodayPanel() {
  <button
  type="button"
  title="YouTube: Search YouTube video tutorials and editorial explanations"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-destructive dark:text-destructive hover:bg-muted transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-destructive hover:bg-muted transition-colors"
  >
  <Video className="size-3" /> ▶ YouTube
  </button>
@@ -294,7 +294,7 @@ function TodayPanel() {
  <button
  type="button"
  title="ChatGPT: Open pre-filled ChatGPT prompt for brute-force to optimal logic analysis"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-success dark:text-success hover:bg-muted transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-success hover:bg-muted transition-colors"
  >
  <Bot className="size-3" /> ✦ ChatGPT
  </button>
@@ -302,7 +302,7 @@ function TodayPanel() {
  <button
  type="button"
  title="Google Search: Search Google across LeetCode, GFG, TUF & YouTube"
- className="inline-flex items-center gap-1 rounded-lg border border-primary bg-primary px-2 py-1 text-[11px] font-mono font-bold text-primary dark:text-primary hover:bg-primary transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-primary bg-primary px-2 py-1 text-[11px] font-mono font-bold text-primary hover:bg-primary transition-colors"
  >
  <Search className="size-3" /> 🔍 Search
  </button>
@@ -310,7 +310,7 @@ function TodayPanel() {
  <button
  type="button"
  title="Code / Solution: View canonical C++/Java/Python solution code"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-primary dark:text-primary hover:bg-muted transition-colors"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2 py-1 text-[11px] font-mono font-bold text-primary hover:bg-muted transition-colors"
  >
  <Code className="size-3" /> 💻 Code
  </button>
@@ -468,8 +468,8 @@ function TopicsPanel() {
  className={cn(
  "inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-mono font-bold transition-colors cursor-pointer",
  t.isSkipped
- ? "border-border bg-muted text-success dark:text-success hover:bg-muted"
- : "border-border bg-muted text-destructive dark:text-destructive hover:bg-muted"
+ ? "border-border bg-muted text-success hover:bg-muted"
+ : "border-border bg-muted text-destructive hover:bg-muted"
  )}
  >
  {t.isSkipped ? (
@@ -586,14 +586,14 @@ function ReviewPanel() {
  <button
  type="button"
  title="Solve with Socratic AI Tutor"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-bold text-warning dark:text-warning hover:bg-muted"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-bold text-warning hover:bg-muted"
  >
  <Zap className="size-3" /> ⚡ Solve
  </button>
  <button
  type="button"
  title="View solution code"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-bold text-primary dark:text-primary hover:bg-muted"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-bold text-primary hover:bg-muted"
  >
  <Code className="size-3" /> Code
  </button>
@@ -649,7 +649,7 @@ function BacklogPanel() {
  <button
  type="button"
  title="Merge into tomorrow's workload"
- className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-bold text-primary dark:text-primary hover:bg-muted"
+ className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-mono font-bold text-primary hover:bg-muted"
  >
  <Combine className="size-3" /> Merge
  </button>
@@ -858,7 +858,7 @@ function ProfilePanel() {
  href="https://github.com/aditisharma_codes"
  target="_blank"
  rel="noopener noreferrer"
- className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-muted text-muted dark:text-muted hover:bg-muted dark:hover:bg-muted border border-muted transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
+ className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-muted text-muted hover:bg-muted border border-muted transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer group"
  title="Open GitHub profile: https://github.com/aditisharma_codes"
  >
  <GitHubIcon className="size-3.5 shrink-0" />
@@ -873,7 +873,7 @@ function ProfilePanel() {
 
  <div className="flex items-center gap-2 shrink-0">
  <div className="rounded-lg border border-warning bg-warning px-3 py-1.5 text-center">
- <p className="font-mono text-lg font-black text-warning dark:text-warning">{FAKE_USER.streak} 🔥</p>
+ <p className="font-mono text-lg font-black text-warning ">{FAKE_USER.streak} 🔥</p>
  <p className="text-[10px] font-mono text-foreground">Active Streak</p>
  </div>
  </div>
@@ -1045,7 +1045,7 @@ function ProfilePanel() {
  <div className="space-y-2.5">
  <div>
  <div className="flex justify-between text-[11px] font-mono mb-1">
- <span className="text-success dark:text-success font-semibold">Easy</span>
+ <span className="text-success font-semibold">Easy</span>
  <span className="text-foreground">{extractedState.easy.solved} / {extractedState.easy.total}</span>
  </div>
  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
@@ -1054,7 +1054,7 @@ function ProfilePanel() {
  </div>
  <div>
  <div className="flex justify-between text-[11px] font-mono mb-1">
- <span className="text-warning dark:text-warning font-semibold">Medium</span>
+ <span className="text-warning font-semibold">Medium</span>
  <span className="text-foreground">{extractedState.medium.solved} / {extractedState.medium.total}</span>
  </div>
  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
@@ -1063,7 +1063,7 @@ function ProfilePanel() {
  </div>
  <div>
  <div className="flex justify-between text-[11px] font-mono mb-1">
- <span className="text-destructive dark:text-destructive font-semibold">Hard</span>
+ <span className="text-destructive font-semibold">Hard</span>
  <span className="text-foreground">{extractedState.hard.solved} / {extractedState.hard.total}</span>
  </div>
  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
@@ -1076,7 +1076,7 @@ function ProfilePanel() {
  )}
 
  {/* Combined Public URL Callout Banner */}
- <div className="rounded-lg border border-border bg-primary /5  /10 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+ <div className="rounded-lg border border-border bg-primary /5 /10 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
  <div className="flex items-center gap-2.5">
  <span className="size-8 rounded-lg bg-muted text-primary flex items-center justify-center shrink-0">
  <Globe className="size-4" />

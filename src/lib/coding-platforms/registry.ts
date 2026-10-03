@@ -18,47 +18,47 @@ import { KaggleAdapter } from "./adapters/kaggle";
 import { detectPlatformAndUsername } from "./detector";
 
 class PlatformAdapterRegistry {
-  private adapters: Map<PlatformId, PlatformAdapter> = new Map();
+ private adapters: Map<PlatformId, PlatformAdapter> = new Map();
 
-  constructor() {
-    this.register(new LeetCodeAdapter());
-    this.register(new CodeforcesAdapter());
-    this.register(new CodeChefAdapter());
-    this.register(new AtCoderAdapter());
-    this.register(new HackerRankAdapter());
-    this.register(new GFGAdapter());
-    this.register(new CodewarsAdapter());
-    this.register(new HackerEarthAdapter());
-    this.register(new Code360Adapter());
-    this.register(new InterviewBitAdapter());
-    this.register(new CSESAdapter());
-    this.register(new SPOJAdapter());
-    this.register(new TopcoderAdapter());
-    this.register(new KattisAdapter());
-    this.register(new ExercismAdapter());
-    this.register(new KaggleAdapter());
-  }
+ constructor() {
+ this.register(new LeetCodeAdapter());
+ this.register(new CodeforcesAdapter());
+ this.register(new CodeChefAdapter());
+ this.register(new AtCoderAdapter());
+ this.register(new HackerRankAdapter());
+ this.register(new GFGAdapter());
+ this.register(new CodewarsAdapter());
+ this.register(new HackerEarthAdapter());
+ this.register(new Code360Adapter());
+ this.register(new InterviewBitAdapter());
+ this.register(new CSESAdapter());
+ this.register(new SPOJAdapter());
+ this.register(new TopcoderAdapter());
+ this.register(new KattisAdapter());
+ this.register(new ExercismAdapter());
+ this.register(new KaggleAdapter());
+ }
 
-  public register(adapter: PlatformAdapter): void {
-    this.adapters.set(adapter.id, adapter);
-  }
+ public register(adapter: PlatformAdapter): void {
+ this.adapters.set(adapter.id, adapter);
+ }
 
-  public getAdapter(platform: PlatformId): PlatformAdapter | null {
-    return this.adapters.get(platform) || null;
-  }
+ public getAdapter(platform: PlatformId): PlatformAdapter | null {
+ return this.adapters.get(platform) || null;
+ }
 
-  public getAllAdapters(): PlatformAdapter[] {
-    return Array.from(this.adapters.values());
-  }
+ public getAllAdapters(): PlatformAdapter[] {
+ return Array.from(this.adapters.values());
+ }
 
-  public resolveInput(input: string): { platform: PlatformId | null; username: string; adapter: PlatformAdapter | null } {
-    const detection = detectPlatformAndUsername(input);
-    if (detection.platform !== "UNKNOWN") {
-      const adapter = this.getAdapter(detection.platform);
-      return { platform: detection.platform, username: detection.username, adapter };
-    }
-    return { platform: null, username: detection.username, adapter: null };
-  }
+ public resolveInput(input: string): { platform: PlatformId | null; username: string; adapter: PlatformAdapter | null } {
+ const detection = detectPlatformAndUsername(input);
+ if (detection.platform !== "UNKNOWN") {
+ const adapter = this.getAdapter(detection.platform);
+ return { platform: detection.platform, username: detection.username, adapter };
+ }
+ return { platform: null, username: detection.username, adapter: null };
+ }
 }
 
 export const registry = new PlatformAdapterRegistry();

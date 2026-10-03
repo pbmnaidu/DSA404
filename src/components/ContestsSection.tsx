@@ -90,27 +90,27 @@ export function isToday(ms: number): boolean {
 
 const PLATFORM_STYLES: Record<string, string> = {
  LeetCode:
- "bg-warning/20 text-yellow-700 dark:text-warning",
+ "bg-warning/20 text-yellow-700 ",
  Codeforces:
- "bg-info/20 text-blue-700 dark:text-info",
+ "bg-info/20 text-blue-700 ",
  CodeChef:
- "bg-[#5B4638]/20 text-[#5B4638] dark:text-[#A07B64]",
+ "bg-[#5B4638]/20 text-[#5B4638] ",
  HackerRank:
- "bg-success/20 text-green-700 dark:text-success",
+ "bg-success/20 text-green-700 ",
  HackerEarth:
- "bg-primary/20 text-primary-foreground dark:text-primary",
+ "bg-primary/20 text-primary-foreground ",
  AtCoder:
- "bg-blue-500/20 text-blue-700 dark:text-blue-400",
+ "bg-blue-500/20 text-blue-700 ",
  GeeksforGeeks:
- "bg-green-600/20 text-green-700 dark:text-green-400",
+ "bg-green-600/20 text-green-700 ",
 };
 
 const STATUS_STYLES = {
- live: "bg-destructive/20 text-red-700 dark:bg-muted dark:text-destructive animate-pulse",
+ live: "bg-destructive/20 text-red-700 animate-pulse",
  upcoming:
- "bg-info/20 text-blue-700 dark:bg-muted dark:text-info",
+ "bg-info/20 text-blue-700 ",
  missed:
- "bg-muted text-foreground dark:bg-muted dark:text-foreground",
+ "bg-muted text-foreground ",
 } as const;
 
 // ─── Countdown display ────────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ function Countdown({
  <span
  className={cn(
  "inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 font-mono text-[12px] font-semibold tabular-nums",
- left < 60_000 && left > 0 && "text-destructive dark:text-destructive"
+ left < 60_000 && left > 0 && "text-destructive "
  )}
  >
  <Timer className="size-3 shrink-0" aria-hidden="true" />
@@ -156,7 +156,7 @@ function MarkBar({
  if (attendanceInfo?.isLinked) {
  return (
  <div className="mt-2 flex items-center justify-between text-[11px] text-foreground pt-1.5 border-t border-border">
- <span className="inline-flex items-center gap-1 text-success dark:text-success font-medium">
+ <span className="inline-flex items-center gap-1 text-success font-medium">
  <CheckCircle2 className="size-3 text-success" />
  Linked: @{attendanceInfo.handle}
  </span>
@@ -172,7 +172,7 @@ function MarkBar({
  if (mark === "attended") {
  return (
  <div className="mt-2 flex items-center justify-between gap-2 pt-1.5 border-t border-border">
- <span className="flex items-center gap-1 text-[11px] font-semibold text-success dark:text-success">
+ <span className="flex items-center gap-1 text-[11px] font-semibold text-success ">
  <CheckCircle2 className="size-3" />
  Attended ✓
  </span>
@@ -192,7 +192,7 @@ function MarkBar({
  if (mark === "missed_intentional") {
  return (
  <div className="mt-2 flex items-center justify-between gap-2 pt-1.5 border-t border-border">
- <span className="flex items-center gap-1 text-[11px] font-semibold text-foreground dark:text-foreground">
+ <span className="flex items-center gap-1 text-[11px] font-semibold text-foreground ">
  <XCircle className="size-3" />
  Marked missed
  </span>
@@ -219,7 +219,7 @@ function MarkBar({
  e.preventDefault();
  onMark(contestId, "attended");
  }}
- className="flex items-center gap-1 rounded-md bg-success px-2 py-0.5 text-[11px] font-semibold text-success transition-colors hover:bg-success dark:bg-muted dark:text-success dark:hover:bg-muted"
+ className="flex items-center gap-1 rounded-md bg-success px-2 py-0.5 text-[11px] font-semibold text-success transition-colors hover:bg-success "
  >
  <CheckCircle2 className="size-3" />
  Attended
@@ -229,14 +229,14 @@ function MarkBar({
  e.preventDefault();
  onMark(contestId, "missed_intentional");
  }}
- className="flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-muted dark:bg-muted dark:text-foreground dark:hover:bg-muted"
+ className="flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-muted "
  >
  <XCircle className="size-3" />
  Missed
  </button>
  </div>
  {attendanceInfo?.isLinked && attendanceInfo.handle ? (
- <div className="text-[10px] text-success dark:text-success font-medium inline-flex items-center gap-1">
+ <div className="text-[10px] text-success font-medium inline-flex items-center gap-1">
  <CheckCircle2 className="size-3 text-success" />
  <span>Auto-tracking active for @{attendanceInfo.handle}</span>
  </div>
@@ -261,12 +261,12 @@ function MarkBar({
  <div className="mt-2 flex flex-col gap-1 pt-1.5 border-t border-border">
  <div className="flex items-center justify-between gap-2 flex-wrap">
  <div className="flex items-center gap-1.5 flex-wrap">
- <span className="inline-flex items-center gap-1 rounded-md bg-success px-2 py-0.5 text-[11px] font-semibold text-success dark:bg-muted dark:text-success">
+ <span className="inline-flex items-center gap-1 rounded-md bg-success px-2 py-0.5 text-[11px] font-semibold text-success ">
  <CheckCircle2 className="size-3" />
  Attended ✓
  </span>
  {attendanceInfo.source === "auto_platform" ? (
- <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success dark:text-success bg-muted px-1.5 py-0.5 rounded border border-border">
+ <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success bg-muted px-1.5 py-0.5 rounded border border-border">
  Verified ({attendanceInfo.platformMeta?.label})
  </span>
  ) : (
@@ -300,7 +300,7 @@ function MarkBar({
  return (
  <div className="mt-2 flex items-center justify-between gap-2 flex-wrap pt-1.5 border-t border-border">
  <div className="flex items-center gap-1.5 flex-wrap">
- <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground dark:bg-muted dark:text-foreground">
+ <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground ">
  <XCircle className="size-3" />
  Not Attended
  </span>
@@ -350,7 +350,7 @@ function ContestCard({
  className={cn(
  "group flex h-full w-full min-w-0 flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-all shadow-2xs hover:shadow-xs",
  c.status === "missed" && !attended && "opacity-75 hover:opacity-100",
- attended && "border-border bg-success dark:bg-success"
+ attended && "border-border bg-success "
  )}
  >
  {/* Header row */}
@@ -441,7 +441,7 @@ function ContestCard({
  href={c.url}
  target="_blank"
  rel="noopener noreferrer"
- className="mt-0.5 text-[11px] text-info underline underline-offset-2 hover:text-info dark:text-info"
+ className="mt-0.5 text-[11px] text-info underline underline-offset-2 hover:text-info "
  onClick={(e) => e.stopPropagation()}
  >
  Practice in virtual/upsolve mode →
@@ -534,7 +534,7 @@ export function ContestProgress({ contests }: { contests: ContestWithStatus[] })
  <BarChart3 className="size-4 text-primary" />
  <h2 className="text-base font-semibold">Contest Attendance &amp; Upsolve Progress</h2>
  </div>
- <span className="text-xs font-semibold text-success dark:text-success">
+ <span className="text-xs font-semibold text-success ">
  {attended.length} / {total} Completed ({pct}%)
  </span>
  </div>
@@ -547,14 +547,14 @@ export function ContestProgress({ contests }: { contests: ContestWithStatus[] })
  style={{ width: `${pct}%` }}
  />
  </div>
- <span className="w-12 text-right font-mono text-sm font-bold tabular-nums text-success dark:text-success">
+ <span className="w-12 text-right font-mono text-sm font-bold tabular-nums text-success ">
  {pct}%
  </span>
  </div>
 
  {/* Summary stats */}
  <div className="mb-4 flex flex-wrap items-center gap-4 text-xs">
- <span className="flex items-center gap-1 font-medium text-success dark:text-success">
+ <span className="flex items-center gap-1 font-medium text-success ">
  <CheckCircle2 className="size-3.5" />
  {attended.length} Completed / Attended
  {autoAttended.length > 0 && (
@@ -592,11 +592,11 @@ export function ContestProgress({ contests }: { contests: ContestWithStatus[] })
  className="flex items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 py-1 text-[11px]"
  >
  <span className="font-semibold text-foreground">{s.platform}</span>
- <span className="font-mono text-success dark:text-success">
+ <span className="font-mono text-success ">
  {s.attended}/{s.total}
  </span>
  {s.isLinked && (
- <span className="text-[10px] text-success dark:text-success font-medium" title="Account connected for auto-attendance">
+ <span className="text-[10px] text-success font-medium" title="Account connected for auto-attendance">
  ✓ Linked
  </span>
  )}
@@ -705,10 +705,10 @@ export function TodayContestsSection() {
  return (
  <section
  aria-label="Today's Contests & Competitions"
- className="rounded-lg border border-border dark:border-border bg-card p-5 sm:p-6 shadow-sm space-y-5 relative overflow-hidden mt-6"
+ className="rounded-lg border border-border bg-card p-5 sm:p-6 shadow-sm space-y-5 relative overflow-hidden mt-6"
  >
  <div className="absolute top-0 left-0 right-0 h-1 bg-primary " />
- <div className="flex items-center justify-between gap-3 border-b border-border dark:border-border pb-4">
+ <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
  <div className="flex items-center gap-3">
  <div className="rounded-lg bg-muted p-2.5 border border-border text-warning shrink-0">
  <Trophy className="size-5" />
@@ -760,12 +760,12 @@ export function TodayContestsSection() {
  return (
  <section
  aria-label="Today's Contests & Competitions"
- className="rounded-lg border border-border dark:border-border bg-card p-5 sm:p-6 shadow-sm space-y-5 relative overflow-hidden mt-6"
+ className="rounded-lg border border-border bg-card p-5 sm:p-6 shadow-sm space-y-5 relative overflow-hidden mt-6"
  >
  <div className="absolute top-0 left-0 right-0 h-1 bg-primary " />
 
  {/* Header */}
- <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border dark:border-border pb-4">
+ <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
  <div className="flex items-center gap-3">
  <div className="rounded-lg bg-muted p-2.5 border border-border text-warning shrink-0">
  <Trophy className="size-5" />
@@ -835,7 +835,7 @@ export function TodayContestsSection() {
  <div className="absolute top-0 left-0 right-0 h-1 bg-primary " />
 
  {/* Header */}
- <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border dark:border-border pb-4">
+ <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
  <div className="flex items-center gap-3">
  <div className="rounded-lg bg-muted p-2.5 border border-border text-warning shrink-0">
  <Trophy className="size-5" />
@@ -947,31 +947,31 @@ const PRACTICE_HUB_LINKS = [
  platform: "Codeforces",
  url: "https://codeforces.com/contests",
  label: "Contest Archive & Upsolve",
- bg: "border-border bg-muted text-info dark:text-info hover:bg-muted",
+ bg: "border-border bg-muted text-info hover:bg-muted",
  },
  {
  platform: "LeetCode",
  url: "https://leetcode.com/contest/",
  label: "Past Contests & Virtual Rounds",
- bg: "border-border bg-muted text-warning dark:text-warning hover:bg-muted",
+ bg: "border-border bg-muted text-warning hover:bg-muted",
  },
  {
  platform: "CodeChef",
  url: "https://www.codechef.com/contests",
  label: "Past Contests & Practice",
- bg: "border-warning bg-warning text-warning dark:text-warning hover:bg-warning",
+ bg: "border-warning bg-warning text-warning hover:bg-warning",
  },
  {
  platform: "HackerRank",
  url: "https://www.hackerrank.com/contests",
  label: "Contest Archives",
- bg: "border-border bg-muted text-success dark:text-success hover:bg-muted",
+ bg: "border-border bg-muted text-success hover:bg-muted",
  },
  {
  platform: "HackerEarth",
  url: "https://www.hackerearth.com/challenges/",
  label: "Past Challenges & Hackathons",
- bg: "border-border bg-muted text-primary dark:text-primary hover:bg-muted",
+ bg: "border-border bg-muted text-primary hover:bg-muted",
  },
 ];
 

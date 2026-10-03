@@ -42,7 +42,7 @@ export function DailyCombinationsBreakdown({
  }, [days]);
 
  return (
- <div className={cn("space-y-4 rounded-lg border border-border bg-primary /5 /80  p-4 sm:p-5 shadow-sm", className)}>
+ <div className={cn("space-y-4 rounded-lg border border-border bg-primary /5 /80 p-4 sm:p-5 shadow-sm", className)}>
  {/* Header */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
  <div>
@@ -108,17 +108,17 @@ export function DailyCombinationsBreakdown({
  {/* Difficulty Pills Breakdown */}
  <div className="flex flex-wrap items-center gap-1.5 my-1">
  {c.easy > 0 && (
- <span className="inline-flex items-center gap-1 rounded-md bg-muted text-success dark:text-success border border-border px-2 py-0.5 text-xs font-mono font-bold">
+ <span className="inline-flex items-center gap-1 rounded-md bg-muted text-success border border-border px-2 py-0.5 text-xs font-mono font-bold">
  {c.easy} Easy
  </span>
  )}
  {c.medium > 0 && (
- <span className="inline-flex items-center gap-1 rounded-md bg-muted text-warning dark:text-warning border border-border px-2 py-0.5 text-xs font-mono font-bold">
+ <span className="inline-flex items-center gap-1 rounded-md bg-muted text-warning border border-border px-2 py-0.5 text-xs font-mono font-bold">
  {c.medium} Medium
  </span>
  )}
  {c.hard > 0 && (
- <span className="inline-flex items-center gap-1 rounded-md bg-muted text-destructive dark:text-destructive border border-border px-2 py-0.5 text-xs font-mono font-bold">
+ <span className="inline-flex items-center gap-1 rounded-md bg-muted text-destructive border border-border px-2 py-0.5 text-xs font-mono font-bold">
  {c.hard} Hard
  </span>
  )}
@@ -184,8 +184,8 @@ export function DailyCombinationsBreakdown({
  )}
 
  {/* Tutor Pedagogical Workload Guarantee Banner */}
- <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted p-3 text-xs text-success dark:text-success">
- <CheckCircle2 className="size-4 shrink-0 text-success dark:text-success mt-0.5" />
+ <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted p-3 text-xs text-success ">
+ <CheckCircle2 className="size-4 shrink-0 text-success mt-0.5" />
  <p className="leading-relaxed">
  <strong>Student Anti-Burnout Guarantee:</strong> You will never be burdened with an impossible load such as <em>3 Easy + 2 Medium + 1 Hard</em> on a single day. Daily workloads strictly cap at your chosen capacity (~{activeTab * 15}–{activeTab * 25} mins/day).
  </p>

@@ -51,8 +51,8 @@ const platformColors: Record<string, string> = {
 };
 
 function googleSearchUrl(problemName: string) {
-  const query = `${problemName} DSA solution explanation site:leetcode.com OR site:geeksforgeeks.org OR site:takeuforward.org OR site:naukri.com OR site:interviewbit.com OR site:programiz.com OR site:w3schools.com OR site:hackerrank.com OR site:hackerearth.com OR site:codechef.com OR site:codeforces.com OR site:neetcode.io OR site:cp-algorithms.com`;
-  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+ const query = `${problemName} DSA solution explanation site:leetcode.com OR site:geeksforgeeks.org OR site:takeuforward.org OR site:naukri.com OR site:interviewbit.com OR site:programiz.com OR site:w3schools.com OR site:hackerrank.com OR site:hackerearth.com OR site:codechef.com OR site:codeforces.com OR site:neetcode.io OR site:cp-algorithms.com`;
+ return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
 function youtubeSearchUrl(problemName: string) {
@@ -115,8 +115,8 @@ export function ProblemCardHorizontal({
  className={cn(
  "group relative flex min-w-0 w-full flex-col justify-between overflow-hidden rounded-lg border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-sm select-none min-h-[170px]",
  problem.done
- ? "border-border bg-muted shadow-sm shadow-success dark:border-border"
- : "border-border dark:border-border bg-card dark:bg-card shadow-sm hover:border-border dark:hover:border-primary hover:shadow-sm"
+ ? "border-border bg-muted shadow-sm shadow-success "
+ : "border-border bg-card shadow-sm hover:border-border hover:shadow-sm"
  )}
  >
 
@@ -201,7 +201,7 @@ export function ProblemCardHorizontal({
  }
  }}
  disabled={readOnly}
- className="size-5 rounded-md border-border dark:border-border text-success data-[state=checked]:bg-success data-[state=checked]:border-success hover:border-primary transition-colors cursor-pointer"
+ className="size-5 rounded-md border-border text-success data-[state=checked]:bg-success data-[state=checked]:border-success hover:border-primary transition-colors cursor-pointer"
  />
  </div>
  </ThemedTooltip>
@@ -220,7 +220,7 @@ export function ProblemCardHorizontal({
  </div>
 
  {/* Card Footer: Links Dropdown & Action Buttons */}
- <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 pt-3 border-t border-border dark:border-border text-xs">
+ <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 pt-3 border-t border-border text-xs">
  <div className="flex shrink-0 items-center gap-1">
  {/* Links Dropdown Button */}
  <DropdownMenu>
@@ -234,7 +234,7 @@ export function ProblemCardHorizontal({
  </ThemedTooltip>
  </button>
  </DropdownMenuTrigger>
- <DropdownMenuContent align="start" className="w-56 rounded-lg border border-border dark:border-border bg-card ">
+ <DropdownMenuContent align="start" className="w-56 rounded-lg border border-border bg-card ">
  <DropdownMenuLabel className="text-xs font-semibold text-foreground">Resource Links</DropdownMenuLabel>
  <DropdownMenuSeparator />
 
@@ -309,7 +309,7 @@ export function ProblemCardHorizontal({
  "inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium transition-colors text-xs",
  hasSubmission
  ? "bg-muted hover:bg-muted text-success border border-border"
- : "border border-border dark:border-border bg-muted hover:bg-white text-foreground hover:text-foreground"
+ : "border border-border bg-muted hover:bg-white text-foreground hover:text-foreground"
  )}
  >
  <Code2 className="size-3.5" />

@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { getMessaging } from "firebase-admin/messaging";
-import { getAdminDb } from "@/integrations/firebase/admin.server";
 import { createClient } from "@/integrations/supabase/server";
 
 export async function POST(req: Request) {
@@ -21,11 +20,13 @@ export async function POST(req: Request) {
     const uid = user.id;
     console.info(`[api/push/test] Authenticated user uid=${uid.slice(0, 8)}... Querying stored FCM tokens...`);
 
-    const db = getAdminDb();
-    const pushSnap = await db.collection(`users/${uid}/pushSubscriptions`).get();
+    const { data: pushSnap, error: dbError } = await supabase
+      .from("push_subscriptions")
+      .select("token")
+      .eq("user_id", uid);
 
-    if (pushSnap.empty) {
-      console.info(`[api/push/test] No stored FCM tokens found in Firestore for uid=${uid}`);
+    if (dbError || !pushSnap || pushSnap.length === 0) {
+      console.info(`[api/push/test] No stored FCM tokens found in Supabase for uid=${uid}`);
       return NextResponse.json({
         success: false,
         stage: "B",
@@ -35,13 +36,13 @@ export async function POST(req: Request) {
       });
     }
 
-    const tokens = pushSnap.docs.map((d) => (d.data().token as string) ?? d.id).filter(Boolean);
+    const tokens = pushSnap.map((row) => row.token).filter(Boolean);
     if (tokens.length === 0) {
       return NextResponse.json({
         success: false,
         stage: "B",
         reason: "NO_VALID_TOKENS",
-        message: "Push subscription documents existed but contained no valid token string.",
+        message: "Push subscription rows existed but contained no valid token string.",
         tokensFound: 0,
       });
     }
@@ -84,8 +85,11 @@ export async function POST(req: Request) {
             errCode === "messaging/registration-token-not-registered" ||
             errCode === "messaging/invalid-registration-token"
           ) {
-            console.info(`[api/push/test] Pruning invalid token doc for uid=${uid}`);
-            await db.doc(`users/${uid}/pushSubscriptions/${tokens[i]}`).delete().catch(() => {});
+            console.info(`[api/push/test] Pruning invalid token row for uid=${uid}`);
+            await supabase
+              .from("push_subscriptions")
+              .delete()
+              .eq("token", tokens[i]);
           }
         }
       })

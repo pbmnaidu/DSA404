@@ -284,7 +284,7 @@ export function InAppBrowserModal() {
  onClick={() => setShowPermissionsMenu((prev) => !prev)}
  className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
  permissionsGranted
- ? 'border-border bg-muted text-success dark:text-success'
+ ? 'border-border bg-muted text-success '
  : 'border-border bg-muted hover:bg-muted text-foreground hover:text-foreground'
  }`}
  title="Manage or take permissions from Chrome"
@@ -360,7 +360,7 @@ export function InAppBrowserModal() {
 
  {/* Security / Framing Info Banner */}
  {showHelperBanner && (
- <div className="px-3 sm:px-4 py-1.5 bg-muted dark:bg-muted border-b border-border flex items-center justify-between text-xs text-foreground shrink-0">
+ <div className="px-3 sm:px-4 py-1.5 bg-muted border-b border-border flex items-center justify-between text-xs text-foreground shrink-0">
  <div className="flex items-center gap-2 overflow-hidden">
  <Info className="size-3.5 text-primary shrink-0" />
  <span className="truncate text-[11.5px]">
@@ -389,7 +389,7 @@ export function InAppBrowserModal() {
  )}
 
  {/* Browser Body with Embedded Iframe */}
- <div className="relative flex-1 w-full h-full bg-white dark:bg-muted overflow-hidden flex flex-col">
+ <div className="relative flex-1 w-full h-full bg-white overflow-hidden flex flex-col">
  {isLoading && (
  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-muted ">
  <Loader2 className="size-8 text-primary animate-spin" />

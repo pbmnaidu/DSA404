@@ -9,7 +9,7 @@ export interface BadgesGridProps {
 }
 
 function getBadgeIcon(code: string, earned: boolean) {
- const iconClass = earned ? "size-5 text-warning dark:text-warning" : "size-5 text-foreground";
+ const iconClass = earned ? "size-5 text-warning " : "size-5 text-foreground";
  if (code.startsWith("streak_")) return <Zap className={iconClass} />;
  if (code.startsWith("first_")) return <Target className={iconClass} />;
  if (code === "halfway") return <Star className={iconClass} />;
@@ -45,7 +45,7 @@ export function BadgesGrid({ badges }: BadgesGridProps) {
  aria-label={`${b.label}: ${b.description}`}
  className={`relative flex min-w-0 w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
  b.earned
- ? "border-border bg-primary   shadow-sm hover:border-border"
+ ? "border-border bg-primary shadow-sm hover:border-border"
  : "border-border bg-muted opacity-65 hover:"
  } ${selectedCode === b.code ? "ring-2 ring-warning/30" : ""}`}
  >
@@ -82,7 +82,7 @@ export function BadgesGrid({ badges }: BadgesGridProps) {
  {getBadgeIcon(selectedBadge.code, selectedBadge.earned)}
  <div className="min-w-0">
  <p className="text-sm font-bold text-foreground">{selectedBadge.label}</p>
- <p className="text-[11px] font-semibold uppercase tracking-wider text-warning dark:text-warning">
+ <p className="text-[11px] font-semibold uppercase tracking-wider text-warning ">
  {selectedBadge.earned ? "Unlocked badge" : "Locked badge"}
  </p>
  </div>

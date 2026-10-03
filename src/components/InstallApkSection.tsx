@@ -43,7 +43,7 @@ export function InstallApkSection() {
  }
 
  return (
- <section className="relative my-14 overflow-hidden rounded-lg border border-border bg-primary /90  /60 p-6 sm:p-10 shadow-sm ">
+ <section className="relative my-14 overflow-hidden rounded-lg border border-border bg-primary /90 /60 p-6 sm:p-10 shadow-sm ">
  {/* Background glow effects */}
  <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-muted blur-3xl" />
  <div className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full bg-warning blur-3xl" />
@@ -66,7 +66,7 @@ export function InstallApkSection() {
  </p>
 
  {/* Verified Safe PWA Note */}
- <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted p-3.5 text-xs text-success dark:text-success">
+ <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted p-3.5 text-xs text-success ">
  <ShieldCheck className="size-4.5 shrink-0 text-success mt-0.5" />
  <div className="space-y-0.5">
  <span className="font-bold font-mono uppercase tracking-wider text-[11px] block text-success">

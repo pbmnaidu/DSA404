@@ -537,7 +537,7 @@ function FeatureWalkthrough() {
  const cards = [
  {
  icon: ListTodo,
- color: "bg-success text-success dark:text-success",
+ color: "bg-success text-success ",
  title: "Today's Workspace — Your daily command centre",
  bullets: [
  'See today\'s topic and section (e.g. "Binary Search › BS on 1D Arrays")',
@@ -551,7 +551,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: CalendarRange,
- color: "bg-muted text-info dark:text-info",
+ color: "bg-muted text-info ",
  title: `Week View — Your ${REAL_WEEKS_COUNT}-week roadmap at a glance`,
  bullets: [
  `See all ${REAL_TOTAL_DAYS} days grouped into ${REAL_WEEKS_COUNT} weeks`,
@@ -564,7 +564,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: BarChart3,
- color: "bg-warning text-warning dark:text-warning",
+ color: "bg-warning text-warning ",
  title: "Progress — Stats that tell the truth",
  bullets: [
  `Overall completion: X / ${REAL_TOTAL_PROBLEMS} problems done`,
@@ -577,7 +577,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: CalendarDays,
- color: "bg-muted text-destructive dark:text-destructive",
+ color: "bg-muted text-destructive ",
  title: "Backlog — Nothing falls through the cracks",
  bullets: [
  "Shows every past day you haven't fully completed",
@@ -589,7 +589,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: LayoutGrid,
- color: "bg-muted text-primary dark:text-primary",
+ color: "bg-muted text-primary ",
  title: `Topic View — All ${REAL_SECTIONS_COUNT} topics at once`,
  bullets: [
  `Accordion of all ${REAL_SECTIONS_COUNT} Core 404 topics in study order`,
@@ -602,7 +602,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: BookmarkCheck,
- color: "bg-muted text-warning dark:text-warning",
+ color: "bg-muted text-warning ",
  title: "Review — Your personal \"revisit later\" list",
  bullets: [
  "Bookmark any problem in Today's Workspace with one tap",
@@ -614,7 +614,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: Trophy,
- color: "bg-muted text-warning dark:text-warning",
+ color: "bg-muted text-warning ",
  title: "Contests — Never miss a CP round",
  bullets: [
  "Live, upcoming, and missed contests from LeetCode, Codeforces, CodeChef, AtCoder & HackerRank",
@@ -627,7 +627,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: Code2,
- color: "bg-muted text-primary dark:text-primary",
+ color: "bg-muted text-primary ",
  title: `Problems — ${REAL_ALL_PROBLEMS_COUNT}+ problems, 2 curated sets`,
  bullets: [
  `${REAL_TOTAL_PROBLEMS} Core 404 problems + ${REAL_PRACTICE_PROBLEMS_COUNT} extra practice problems in one searchable table`,
@@ -640,7 +640,7 @@ function FeatureWalkthrough() {
  },
  {
  icon: Settings,
- color: "bg-muted text-muted dark:text-muted",
+ color: "bg-muted text-muted ",
  title: "Settings — Your plan, your pace",
  bullets: [
  "Account: update name, change password, link Google account",
@@ -690,7 +690,7 @@ function AISection() {
  <div ref={ref} className="ai-col flex flex-col sm:flex-row items-start gap-10 rounded-lg border border-border bg-card p-8 sm:p-10">
  {/* left: text */}
  <div className="flex-1 min-w-0">
- <div className="inline-flex items-center gap-2 rounded-full border border-success bg-success px-3 py-1 text-xs text-success dark:text-success font-mono mb-5">
+ <div className="inline-flex items-center gap-2 rounded-full border border-success bg-success px-3 py-1 text-xs text-success font-mono mb-5">
  <Sparkles className="size-3" />
  ChatGPT integration
  </div>
@@ -725,7 +725,7 @@ function AISection() {
  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" stroke="currentColor" strokeWidth="1.5" className="text-success"/>
  <path d="M8 12h8M14 9l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-success"/>
  </svg>
- <span className="text-success dark:text-success font-semibold">Explain with ChatGPT</span>
+ <span className="text-success font-semibold">Explain with ChatGPT</span>
  </div>
  <p className="text-foreground mt-3 text-[10px] leading-4">
  ↳ Opens ChatGPT with prompt pre-filled:<br />

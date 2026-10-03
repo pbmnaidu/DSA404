@@ -8,12 +8,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
  * rather than the (pointer-events: none) control itself.
  */
 export function HoverHint({ hint, children }: { hint: string; children: ReactNode }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="inline-flex">{children}</span>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-56 text-center">{hint}</TooltipContent>
-    </Tooltip>
-  );
+ return (
+ <Tooltip>
+ <TooltipTrigger asChild>
+ <span className="inline-flex">{children}</span>
+ </TooltipTrigger>
+ <TooltipContent className="max-w-56 text-center">{hint}</TooltipContent>
+ </Tooltip>
+ );
 }

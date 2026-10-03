@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
+/* Dark mode variant intentionally disabled — Premium Light is the permanent theme */
+/* @custom-variant dark (&:is(.dark *)); */
 
 /* ═══════════════════════════════════════════════════════════════════
    DSA⁴⁰⁴ — Obsidian Scholar Design System
@@ -68,70 +69,128 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* ─── STRICT UNIFIED 5-COLOR SYSTEM ─── */
-:root, .dark {
-  color-scheme: dark;
+/* ─── PREMIUM LIGHT — PEARL & ROYAL ─── */
+:root {
+  color-scheme: light;
 
-  --background:          #3C493F;
-  --foreground:          #F0F7F4;
+  --background:          #FAF9F6;
+  --foreground:          #172554;
   
-  --card:                #B3BFB8;
-  --card-foreground:     #3C493F;
+  --card:                #FFFFFF;
+  --card-foreground:     #172554;
   
-  --popover:             #F0F7F4;
-  --popover-foreground:  #3C493F;
+  --popover:             #FFFFFF;
+  --popover-foreground:  #172554;
 
-  --primary:             #A2E3C4;
-  --primary-foreground:  #3C493F;
+  --primary:             #4169E1;
+  --primary-foreground:  #FFFFFF;
 
-  --secondary:           #7E8D85;
-  --secondary-foreground: #F0F7F4;
+  --secondary:           #F1F5F9;
+  --secondary-foreground: #1E293B;
 
-  --muted:               #7E8D85;
-  --muted-foreground:    #F0F7F4;
+  --muted:               #F1F5F9;
+  --muted-foreground:    #64748B;
 
-  --accent:              #A2E3C4;
-  --accent-foreground:   #3C493F;
+  --accent:              #E0E7FF;
+  --accent-foreground:   #4169E1;
 
-  --destructive:         #F0F7F4;
-  --success:             #A2E3C4;
-  --warning:             #B3BFB8;
-  --info:                #B3BFB8;
-  --streak:              #A2E3C4;
+  --destructive:         #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --success:             #22C55E;
+  --success-foreground:  #FFFFFF;
+  --warning:             #F59E0B;
+  --warning-foreground:  #FFFFFF;
+  --info:                #3B82F6;
+  --info-foreground:     #FFFFFF;
+  --streak:              #F97316;
 
-  --border:              #7E8D85;
-  --input:               #F0F7F4;
-  --ring:                #A2E3C4;
+  --border:              #E2E8F0;
+  --input:               #E2E8F0;
+  --ring:                #4169E1;
 
-  --chart-1:             #F0F7F4;
-  --chart-2:             #B3BFB8;
-  --chart-3:             #7E8D85;
-  --chart-4:             #A2E3C4;
-  --chart-5:             #F0F7F4;
+  --chart-1:             #4169E1;
+  --chart-2:             #60A5FA;
+  --chart-3:             #93C5FD;
+  --chart-4:             #BFDBFE;
+  --chart-5:             #DBEAFE;
 
   --radius: 0.5rem;
 
-  --sidebar:             #3C493F;
-  --sidebar-foreground:  #F0F7F4;
-  --sidebar-primary:     #A2E3C4;
-  --sidebar-primary-foreground: #3C493F;
-  --sidebar-accent:      #7E8D85;
-  --sidebar-accent-foreground: #F0F7F4;
-  --sidebar-border:      #7E8D85;
-  --sidebar-ring:        #A2E3C4;
+  --sidebar:             #FFFFFF;
+  --sidebar-foreground:  #172554;
+  --sidebar-primary:     #4169E1;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:      #F1F5F9;
+  --sidebar-accent-foreground: #1E293B;
+  --sidebar-border:      #E2E8F0;
+  --sidebar-ring:        #4169E1;
 
-  --difficulty-easy:     #A2E3C4;
-  --difficulty-medium:   #B3BFB8;
-  --difficulty-hard:     #F0F7F4;
+  --difficulty-easy:     #22C55E;
+  --difficulty-medium:   #F59E0B;
+  --difficulty-hard:     #EF4444;
 }
 
-/* Hard override for text inside cards to force correct contrast */
-.card, [data-card] {
-    color: var(--card-foreground);
+.dark {
+  color-scheme: dark;
+
+  --background:          #101623;
+  --foreground:          #FDFDFC;
+  
+  --card:                #161E2E;
+  --card-foreground:     #FDFDFC;
+  
+  --popover:             #161E2E;
+  --popover-foreground:  #FDFDFC;
+
+  --primary:             #3B82F6;
+  --primary-foreground:  #FFFFFF;
+
+  --secondary:           #1F2937;
+  --secondary-foreground: #F9FAFB;
+
+  --muted:               #1F2937;
+  --muted-foreground:    #9CA3AF;
+
+  --accent:              #1E3A8A;
+  --accent-foreground:   #60A5FA;
+
+  --destructive:         #F87171;
+  --destructive-foreground: #450A0A;
+  --success:             #4ADE80;
+  --success-foreground:  #052E16;
+  --warning:             #FBBF24;
+  --warning-foreground:  #451A03;
+  --info:                #60A5FA;
+  --info-foreground:     #1E3A8A;
+  --streak:              #FB923C;
+
+  --border:              #374151;
+  --input:               #374151;
+  --ring:                #3B82F6;
+
+  --chart-1:             #3B82F6;
+  --chart-2:             #60A5FA;
+  --chart-3:             #93C5FD;
+  --chart-4:             #BFDBFE;
+  --chart-5:             #DBEAFE;
+
+  --radius: 0.5rem;
+
+  --sidebar:             #161E2E;
+  --sidebar-foreground:  #FDFDFC;
+  --sidebar-primary:     #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:      #1F2937;
+  --sidebar-accent-foreground: #F9FAFB;
+  --sidebar-border:      #374151;
+  --sidebar-ring:        #3B82F6;
+
+  --difficulty-easy:     #4ADE80;
+  --difficulty-medium:   #FBBF24;
+  --difficulty-hard:     #F87171;
 }
-.card .text-muted-foreground {
-    color: var(--card-foreground) !important;
-}
+
+/* Cards use token colors — no override needed with the Premium Light theme */
 
 /* ═══════════════════════════════════════════════════════════════════
    BASE LAYER
@@ -146,10 +205,9 @@
     @apply text-foreground;
     background-color: var(--background);
     background-image: radial-gradient(
-      circle at 50% 35%,
-      var(--bg-glow, color-mix(in oklab, var(--primary) 8%, var(--background))) 0%,
-      var(--background) 50%,
-      var(--bg-edge, color-mix(in oklab, #000 30%, var(--background))) 100%
+      circle at 50% 0%,
+      color-mix(in oklab, var(--primary) 5%, var(--background)) 0%,
+      var(--background) 60%
     );
     background-attachment: fixed;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -173,13 +231,6 @@
     transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
   }
 
-  /* Table row hover */
-  tr:hover > td {
-    background-color: color-mix(in srgb, var(--primary) 6%, transparent);
-  }
-  .dark tr:hover > td {
-    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-  }
 
   /* Selection color */
   ::selection {

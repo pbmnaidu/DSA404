@@ -13,26 +13,26 @@ import { PRACTICE_PROBLEMS } from "./practice-problems";
 export type Sheet = "Practice 404 Sheet";
 
 export interface ExtraProblem {
-  name: string;
-  difficulty: Difficulty;
-  platform: "LeetCode" | "GeeksforGeeks" | "GFG" | "HackerRank" | "CodeStudio";
-  link: string;
-  sheet: Sheet;
-  topic: string;
+ name: string;
+ difficulty: Difficulty;
+ platform: "LeetCode" | "GeeksforGeeks" | "GFG" | "HackerRank" | "CodeStudio";
+ link: string;
+ sheet: Sheet;
+ topic: string;
 }
 
 const canonicalPlatform = (p: string): ExtraProblem["platform"] => {
-  if (p === "GeeksforGeeks" || p === "GFG") return "GeeksforGeeks";
-  if (p === "HackerRank") return "HackerRank";
-  if (p === "CodeStudio") return "CodeStudio";
-  return "LeetCode";
+ if (p === "GeeksforGeeks" || p === "GFG") return "GeeksforGeeks";
+ if (p === "HackerRank") return "HackerRank";
+ if (p === "CodeStudio") return "CodeStudio";
+ return "LeetCode";
 };
 
 export const EXTRA_PROBLEMS: ExtraProblem[] = PRACTICE_PROBLEMS.map((p) => ({
-  name: p.name,
-  difficulty: p.difficulty,
-  platform: canonicalPlatform(p.platform),
-  link: p.link,
-  sheet: "Practice 404 Sheet" as Sheet,
-  topic: p.topic,
+ name: p.name,
+ difficulty: p.difficulty,
+ platform: canonicalPlatform(p.platform),
+ link: p.link,
+ sheet: "Practice 404 Sheet" as Sheet,
+ topic: p.topic,
 }));

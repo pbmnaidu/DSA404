@@ -11,140 +11,140 @@ import { Plus, CheckCircle2, Sparkles, Link2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface PlatformConnectCardProps {
-  onConnect: (platform: PlatformId, username: string) => void;
-  existingPlatforms: Record<string, string>;
+ onConnect: (platform: PlatformId, username: string) => void;
+ existingPlatforms: Record<string, string>;
 }
 
 export function PlatformConnectCard({ onConnect, existingPlatforms }: PlatformConnectCardProps) {
-  const [inputUrl, setInputUrl] = useState("");
-  const [selectedPlatform, setSelectedPlatform] = useState<PlatformId>("leetcode");
-  const [detectedText, setDetectedText] = useState("");
+ const [inputUrl, setInputUrl] = useState("");
+ const [selectedPlatform, setSelectedPlatform] = useState<PlatformId>("leetcode");
+ const [detectedText, setDetectedText] = useState("");
 
-  const allAdapters = registry.getAllAdapters();
+ const allAdapters = registry.getAllAdapters();
 
-  // When selected platform changes, pre-fill input with existing link/handle if present
-  useEffect(() => {
-    const existing = existingPlatforms[selectedPlatform];
-    if (existing && typeof existing === "string") {
-      setInputUrl(existing);
-    } else {
-      setInputUrl("");
-    }
-  }, [selectedPlatform, existingPlatforms]);
+ // When selected platform changes, pre-fill input with existing link/handle if present
+ useEffect(() => {
+ const existing = existingPlatforms[selectedPlatform];
+ if (existing && typeof existing === "string") {
+ setInputUrl(existing);
+ } else {
+ setInputUrl("");
+ }
+ }, [selectedPlatform, existingPlatforms]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setInputUrl(val);
+ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const val = e.target.value;
+ setInputUrl(val);
 
-    const detection = detectPlatformAndUsername(val);
-    if (detection.platform !== "UNKNOWN") {
-      setSelectedPlatform(detection.platform);
-      setDetectedText(`Auto-detected: ${detection.platform.toUpperCase()} (${detection.username})`);
-    } else {
-      // If user typed a URL for selected platform (e.g. CodeChef), filter URL through adapter
-      const adapter = registry.getAdapter(selectedPlatform);
-      if (adapter && val.trim()) {
-        const user = adapter.extractUsername(val);
-        if (user && user !== val) {
-          setDetectedText(`Filtered ${adapter.name} Handle: ${user}`);
-        } else {
-          setDetectedText("");
-        }
-      } else {
-        setDetectedText("");
-      }
-    }
-  };
+ const detection = detectPlatformAndUsername(val);
+ if (detection.platform !== "UNKNOWN") {
+ setSelectedPlatform(detection.platform);
+ setDetectedText(`Auto-detected: ${detection.platform.toUpperCase()} (${detection.username})`);
+ } else {
+ // If user typed a URL for selected platform (e.g. CodeChef), filter URL through adapter
+ const adapter = registry.getAdapter(selectedPlatform);
+ if (adapter && val.trim()) {
+ const user = adapter.extractUsername(val);
+ if (user && user !== val) {
+ setDetectedText(`Filtered ${adapter.name} Handle: ${user}`);
+ } else {
+ setDetectedText("");
+ }
+ } else {
+ setDetectedText("");
+ }
+ }
+ };
 
-  const handlePlatformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const plat = e.target.value as PlatformId;
-    setSelectedPlatform(plat);
-    setDetectedText("");
-  };
+ const handlePlatformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+ const plat = e.target.value as PlatformId;
+ setSelectedPlatform(plat);
+ setDetectedText("");
+ };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const rawVal = inputUrl.trim();
-    if (!rawVal) return;
+ const handleSubmit = (e: React.FormEvent) => {
+ e.preventDefault();
+ const rawVal = inputUrl.trim();
+ if (!rawVal) return;
 
-    const detection = detectPlatformAndUsername(rawVal);
-    const finalPlatform = detection.platform !== "UNKNOWN" ? detection.platform : selectedPlatform;
-    const adapter = registry.getAdapter(finalPlatform);
+ const detection = detectPlatformAndUsername(rawVal);
+ const finalPlatform = detection.platform !== "UNKNOWN" ? detection.platform : selectedPlatform;
+ const adapter = registry.getAdapter(finalPlatform);
 
-    // Apply URL filter to extract clean username handle
-    let finalUsername = adapter ? adapter.extractUsername(rawVal) : (detection.username || rawVal);
-    finalUsername = (finalUsername || "").replace(/^@+/, "").trim();
+ // Apply URL filter to extract clean username handle
+ let finalUsername = adapter ? adapter.extractUsername(rawVal) : (detection.username || rawVal);
+ finalUsername = (finalUsername || "").replace(/^@+/, "").trim();
 
-    if (!finalUsername) {
-      toast.error("Please enter a valid username or profile URL");
-      return;
-    }
+ if (!finalUsername) {
+ toast.error("Please enter a valid username or profile URL");
+ return;
+ }
 
-    onConnect(finalPlatform, finalUsername);
-    setDetectedText("");
-    toast.success(`Saved ${finalPlatform.toUpperCase()} profile link (${finalUsername})!`);
-  };
+ onConnect(finalPlatform, finalUsername);
+ setDetectedText("");
+ toast.success(`Saved ${finalPlatform.toUpperCase()} profile link (${finalUsername})!`);
+ };
 
-  const existingLink = existingPlatforms[selectedPlatform];
+ const existingLink = existingPlatforms[selectedPlatform];
 
-  return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-6  shadow-sm space-y-4">
-      <div className="flex items-center justify-between border-b border-border pb-3">
-        <div className="flex items-center gap-2">
-          <Link2 className="size-5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">Connect Coding Platform</h3>
-        </div>
-        <span className="text-xs text-foreground font-mono">Auto URL Detection Enabled</span>
-      </div>
+ return (
+ <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-6 shadow-sm space-y-4">
+ <div className="flex items-center justify-between border-b border-border pb-3">
+ <div className="flex items-center gap-2">
+ <Link2 className="size-5 text-primary" />
+ <h3 className="text-base font-bold text-foreground">Connect Coding Platform</h3>
+ </div>
+ <span className="text-xs text-foreground font-mono">Auto URL Detection Enabled</span>
+ </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs font-semibold text-foreground">Select Platform</Label>
-          <select
-            value={selectedPlatform}
-            onChange={handlePlatformChange}
-            className="w-full h-10 rounded-lg bg-background border border-border px-3 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-          >
-            {allAdapters.map((ad) => (
-              <option key={ad.id} value={ad.id} className="bg-popover text-popover-foreground">
-                {ad.name} {existingPlatforms[ad.id] ? "✓ (Connected)" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ <div className="space-y-1">
+ <Label className="text-xs font-semibold text-foreground">Select Platform</Label>
+ <select
+ value={selectedPlatform}
+ onChange={handlePlatformChange}
+ className="w-full h-10 rounded-lg bg-background border border-border px-3 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+ >
+ {allAdapters.map((ad) => (
+ <option key={ad.id} value={ad.id} className="bg-popover text-popover-foreground">
+ {ad.name} {existingPlatforms[ad.id] ? "✓ (Connected)" : ""}
+ </option>
+ ))}
+ </select>
+ </div>
 
-        <div className="sm:col-span-2 space-y-1">
-          <Label className="text-xs font-semibold text-foreground">Username or Profile URL</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              value={inputUrl}
-              onChange={handleInputChange}
-              placeholder="e.g. codechef.com/users/handle, leetcode.com/u/handle, or handle"
-              className="bg-background border-border rounded-lg text-xs h-10"
-            />
-            <Button type="submit" size="sm" className="h-10 rounded-lg px-4 gap-1.5 shrink-0 font-bold">
-              <Plus className="size-4" /> Save Link
-            </Button>
-          </div>
-        </div>
-      </div>
+ <div className="sm:col-span-2 space-y-1">
+ <Label className="text-xs font-semibold text-foreground">Username or Profile URL</Label>
+ <div className="flex items-center gap-2">
+ <Input
+ value={inputUrl}
+ onChange={handleInputChange}
+ placeholder="e.g. codechef.com/users/handle, leetcode.com/u/handle, or handle"
+ className="bg-background border-border rounded-lg text-xs h-10"
+ />
+ <Button type="submit" size="sm" className="h-10 rounded-lg px-4 gap-1.5 shrink-0 font-bold">
+ <Plus className="size-4" /> Save Link
+ </Button>
+ </div>
+ </div>
+ </div>
 
-      {/* Connection Status & Auto-Detection Badges */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
-        {detectedText ? (
-          <p className="text-success font-semibold flex items-center gap-1">
-            <Sparkles className="size-3.5" /> {detectedText}
-          </p>
-        ) : existingLink && typeof existingLink === "string" ? (
-          <p className="text-foreground font-medium flex items-center gap-1">
-            <CheckCircle2 className="size-3.5 text-success" /> Currently Connected: <span className="font-mono underline">{existingLink}</span>
-          </p>
-        ) : (
-          <p className="text-foreground italic text-[11px]">
-            Paste full profile URL or handle to auto-detect and fetch statistics.
-          </p>
-        )}
-      </div>
-    </form>
-  );
+ {/* Connection Status & Auto-Detection Badges */}
+ <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
+ {detectedText ? (
+ <p className="text-success font-semibold flex items-center gap-1">
+ <Sparkles className="size-3.5" /> {detectedText}
+ </p>
+ ) : existingLink && typeof existingLink === "string" ? (
+ <p className="text-foreground font-medium flex items-center gap-1">
+ <CheckCircle2 className="size-3.5 text-success" /> Currently Connected: <span className="font-mono underline">{existingLink}</span>
+ </p>
+ ) : (
+ <p className="text-foreground italic text-[11px]">
+ Paste full profile URL or handle to auto-detect and fetch statistics.
+ </p>
+ )}
+ </div>
+ </form>
+ );
 }

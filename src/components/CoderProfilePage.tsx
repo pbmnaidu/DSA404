@@ -1224,7 +1224,7 @@ export function CoderProfilePage() {
  <Lock className="size-24 text-warning" />
  </div>
  <div className="relative">
- <h3 className="text-xs font-bold uppercase tracking-wider text-warning dark:text-warning mb-2 flex items-center gap-2">
+ <h3 className="text-xs font-bold uppercase tracking-wider text-warning mb-2 flex items-center gap-2">
  <Lock className="size-4" /> Private Notes
  </h3>
  <p className="text-[11px] text-foreground mb-4">Visible only to you. Use for interview prep or reminders.</p>
@@ -1234,7 +1234,7 @@ export function CoderProfilePage() {
  onChange={(e) => setNotes(e.target.value)}
  placeholder="Draft your thoughts here..."
  rows={4}
- className="bg-background border-border resize-none font-mono text-xs mb-3 shadow-sm text-warning dark:text-warning"
+ className="bg-background border-border resize-none font-mono text-xs mb-3 shadow-sm text-warning "
  />
  <Button size="sm" onClick={handleSaveNotes} disabled={savingNotes} className="w-full bg-warning hover:bg-warning text-black font-bold">
  {savingNotes ? "Saving..." : "Secure Save"}

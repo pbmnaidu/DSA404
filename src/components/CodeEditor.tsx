@@ -606,7 +606,7 @@ export function CodeEditor({
  return (
  <div
  className={cn(
- "flex flex-col rounded-lg border transition-all duration-150 overflow-hidden shadow-sm",
+ "flex flex-col rounded-lg border transition-all duration-150 overflow-hidden shadow-sm dark",
  currentTheme.bg,
  currentTheme.border,
  isFullscreen && "!fixed !inset-0 !z-[999999] !rounded-lg !w-screen !h-screen",
@@ -614,7 +614,7 @@ export function CodeEditor({
  )}
  >
  {/* ── TOP EDITOR TOOLBAR ── */}
- <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-2 border-b border-border bg-black shrink-0 text-xs">
+ <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-2 border-b border-border bg-background shrink-0 text-xs">
  {/* Left Toolbar: Language tag, Format Button, Snippets */}
  <div className="flex items-center gap-1.5 flex-wrap">
  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted border border-border text-primary font-bold text-[11px]">
@@ -912,7 +912,7 @@ export function CodeEditor({
  <div
  ref={gutterRef}
  aria-hidden="true"
- className="select-none overflow-hidden text-right py-3.5 pl-3 pr-2.5 border-r border-border bg-black text-muted shrink-0 font-mono"
+ className="select-none overflow-hidden text-right py-3.5 pl-3 pr-2.5 border-r border-border bg-background text-muted-foreground shrink-0 font-mono"
  style={{
  minWidth: totalLines > 999 ? "58px" : totalLines > 99 ? "48px" : "40px",
  fontSize: fontSize === "sm" ? "12px" : fontSize === "base" ? "13.5px" : "15.5px",
@@ -952,7 +952,7 @@ export function CodeEditor({
  autoCorrect="off"
  placeholder={placeholder}
  className={cn(
- "flex-1 w-full p-3.5 bg-transparent text-muted outline-none leading-[22px] font-mono shadow-sm resize-none",
+ "flex-1 w-full p-3.5 bg-transparent text-foreground outline-none leading-[22px] font-mono shadow-sm resize-none",
  wordWrap ? "whitespace-pre-wrap break-words overflow-y-auto" : "whitespace-pre overflow-auto",
  fontSize === "sm" ? "text-xs" : fontSize === "base" ? "text-[13.5px]" : "text-[15.5px]"
  )}
@@ -963,7 +963,7 @@ export function CodeEditor({
  </div>
 
  {/* ── STATUS FOOTER BAR ── */}
- <div className="flex items-center justify-between px-3 py-1.5 border-t border-border bg-black text-[10px] text-foreground font-mono shrink-0 select-none">
+ <div className="flex items-center justify-between px-3 py-1.5 border-t border-border bg-background text-[10px] text-foreground font-mono shrink-0 select-none">
  <div className="flex items-center gap-3">
  <span>
  Ln <strong className="text-foreground">{cursorPos.line}</strong>, Col{" "}

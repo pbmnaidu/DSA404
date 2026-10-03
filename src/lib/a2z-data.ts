@@ -11,42 +11,42 @@ import type { Difficulty } from "./types";
 import { CORE_SECTIONS } from "./master-problems";
 
 export interface SeedProblem {
-  /** name */ n: string;
-  /** difficulty */ d: Difficulty;
-  /** platform */ p: string;
-  /** verified direct link to the canonical problem page */ l?: string;
-  /** true when `l` is a confirmed direct link (not a search fallback) */ linkVerified?: boolean;
-  /** level */ lvl?: string;
+ /** name */ n: string;
+ /** difficulty */ d: Difficulty;
+ /** platform */ p: string;
+ /** verified direct link to the canonical problem page */ l?: string;
+ /** true when `l` is a confirmed direct link (not a search fallback) */ linkVerified?: boolean;
+ /** level */ lvl?: string;
 }
 
 export interface Section {
-  section: string;
-  title: string;
-  subtopics: string[];
-  problems: SeedProblem[];
-  /** Dominant roadmap level for this section, e.g. "Level 1" */
-  level: string;
+ section: string;
+ title: string;
+ subtopics: string[];
+ problems: SeedProblem[];
+ /** Dominant roadmap level for this section, e.g. "Level 1" */
+ level: string;
 }
 
 /** Returns the most common level among the problems in a section. */
 function dominantLevel(problems: { level: string }[]): string {
-  const counts: Record<string, number> = {};
-  problems.forEach((p) => { counts[p.level] = (counts[p.level] ?? 0) + 1; });
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Level 1";
+ const counts: Record<string, number> = {};
+ problems.forEach((p) => { counts[p.level] = (counts[p.level] ?? 0) + 1; });
+ return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Level 1";
 }
 
 /** The 374-problem core roadmap, grouped by topic. */
 export const SECTIONS: Section[] = CORE_SECTIONS.map((sec) => ({
-  section: sec.topic,
-  title: sec.topic,
-  subtopics: sec.subtopics,
-  level: dominantLevel(sec.problems),
-  problems: sec.problems.map((p) => ({
-    n: p.name,
-    d: p.difficulty,
-    p: p.platform,
-    l: p.link,
-    linkVerified: true,
-    lvl: p.level,
-  })),
+ section: sec.topic,
+ title: sec.topic,
+ subtopics: sec.subtopics,
+ level: dominantLevel(sec.problems),
+ problems: sec.problems.map((p) => ({
+ n: p.name,
+ d: p.difficulty,
+ p: p.platform,
+ l: p.link,
+ linkVerified: true,
+ lvl: p.level,
+ })),
 }));

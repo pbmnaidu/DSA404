@@ -272,7 +272,7 @@ export function GitHubRepoLinkModal({
  <DialogContent className="max-w-lg rounded-lg border border-border bg-card -2xl shadow-sm p-6">
  <DialogHeader className="space-y-2">
  <div className="flex items-center gap-2.5">
- <div className="size-10 rounded-lg bg-muted dark:bg-white border border-border flex items-center justify-center text-white shrink-0 shadow-sm">
+ <div className="size-10 rounded-lg bg-muted border border-border flex items-center justify-center text-white shrink-0 shadow-sm">
  <GitHubIcon className="size-5" />
  </div>
  <div>

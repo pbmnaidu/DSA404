@@ -17,6 +17,7 @@ import {
  Clock, Flame, Menu, X, LayoutGrid, BarChart3, CheckCircle2,
  Calendar, FolderGit2, BookOpen, BrainCircuit, Activity, LineChart, Code, CheckSquare, Sliders, History
 } from "lucide-react";
+import { User, Bell, Settings, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { InstallApkSection } from "@/components/InstallApkSection";
@@ -83,7 +84,7 @@ function HeroSection({ onEnterDemo }: { onEnterDemo: () => void }) {
  onClick={onEnterDemo}
  variant="outline" 
  size="lg" 
- className="h-14 px-8 text-sm sm:text-base font-bold rounded-lg w-full sm:w-auto border-border hover:bg-muted text-warning dark:text-warning gap-2"
+ className="h-14 px-8 text-sm sm:text-base font-bold rounded-lg w-full sm:w-auto border-border hover:bg-muted text-primary gap-2"
  >
  <Play className="size-4 fill-current" />
  Try as Guest
@@ -157,7 +158,7 @@ function HeroSection({ onEnterDemo }: { onEnterDemo: () => void }) {
  <span className="size-2 rounded-full bg-primary animate-pulse" />
  Current topic
  </div>
- <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-bold text-success dark:text-success">2 / 4 complete</span>
+ <span className="rounded-full bg-accent px-2 py-1 text-[10px] font-bold text-success">2 / 4 complete</span>
  </div>
  <div>
  <p className="text-lg md:text-2xl font-black tracking-tight text-foreground">Arrays &amp; Hashing</p>
@@ -438,7 +439,7 @@ function CoreFeaturesBento() {
 
  {/* Practice System & Editor */}
  <div className="md:col-span-4 bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm">
- <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+ <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent text-accent-foreground font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
  <Code className="size-3.5" /> Coding Workspace
  </div>
  <h3 className="text-lg md:text-xl font-bold mb-3">Integrated Editor.</h3>
@@ -446,10 +447,78 @@ function CoreFeaturesBento() {
  Filter problems, write code, run test cases, and save notes directly within the platform.
  </p>
  </div>
+
+ {/* User Profiles */}
+ <div className="md:col-span-4 bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm">
+ <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-success font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+ <User className="size-3.5" /> User Profiles
  </div>
+ <h3 className="text-lg md:text-xl font-bold mb-3">Public Portfolio.</h3>
+ <p className="text-foreground text-sm leading-relaxed">
+ Showcase your consistency with GitHub-style heatmaps and share your DSA progress publicly.
+ </p>
  </div>
- </section>
- );
+
+ {/* Messages & Push */}
+ <div className="md:col-span-4 bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm">
+ <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-warning font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+ <Bell className="size-3.5" /> Notifications
+ </div>
+ <h3 className="text-lg md:text-xl font-bold mb-3">Stay Consistent.</h3>
+ <p className="text-foreground text-sm leading-relaxed">
+ Never miss a day with web push notifications, platform announcements, and daily email reminders.
+ </p>
+ </div>
+
+ {/* Settings & Customization */}
+ <div className="md:col-span-4 bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm">
+ <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-foreground font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+ <Settings className="size-3.5" /> Settings
+ </div>
+ <h3 className="text-lg md:text-xl font-bold mb-3">Your Environment.</h3>
+ <p className="text-foreground text-sm leading-relaxed">
+ Connect Codeforces, LeetCode, and personalize your sync preferences and notification schedules.
+ </p>
+ </div>
+
+  {/* Global Contests */}
+  <div className="md:col-span-4 bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm">
+  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-primary font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+  <Trophy className="size-3.5" /> Global Contests
+  </div>
+  <h3 className="text-lg md:text-xl font-bold mb-3">Sync Competitions.</h3>
+  <p className="text-foreground text-sm leading-relaxed">
+  Automatically track and sync upcoming coding competitions from LeetCode, Codeforces, CodeChef, and AtCoder in one unified calendar.
+  </p>
+  </div>
+
+  {/* Backlog Manager */}
+  <div className="md:col-span-4 bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm">
+  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-warning font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+  <History className="size-3.5" /> Backlog Manager
+  </div>
+  <h3 className="text-lg md:text-xl font-bold mb-3">Guilt-Free Catch-Up.</h3>
+  <p className="text-foreground text-sm leading-relaxed">
+  Missed a day? Our dedicated backlog system safely queues missed problems and allows you to seamlessly shift your entire schedule forward.
+  </p>
+  </div>
+
+  {/* PWA App */}
+  <div className="md:col-span-4 bg-card border border-border rounded-[2rem] p-6 md:p-8 shadow-sm">
+  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-success font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+  <Laptop className="size-3.5" /> Native Experience
+  </div>
+  <h3 className="text-lg md:text-xl font-bold mb-3">Install Anywhere.</h3>
+  <p className="text-foreground text-sm leading-relaxed">
+  Install DSA⁴⁰⁴ as a native progressive web app on your desktop or mobile device. Complete with Android APK support.
+  </p>
+  </div>
+
+
+ </div>
+  </div>
+  </section>
+  );
 }
 
 // --- 8. Product Preview Section ---
@@ -694,18 +763,84 @@ function FinalCTA({ onEnterDemo }: { onEnterDemo: () => void }) {
  );
 }
 
+
+// --- Stay Consistent. Compete Smarter. ---
+function StayConsistentSection() {
+  return (
+    <section className="py-20 md:py-28 bg-background border-y border-border">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="text-center mb-16">
+          <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">Stay Consistent. Compete Smarter.</h2>
+          <p className="text-foreground max-w-2xl mx-auto text-sm md:text-base">Powerful analytics, unified leaderboards, and scheduled reminders to keep you on track.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          <Link href="/settings" className="bg-card border border-border rounded-[2rem] p-6 shadow-sm hover:border-primary/50 transition-colors block">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-primary font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+              <Mail className="size-3.5" /> Emails
+            </div>
+            <h3 className="text-lg md:text-xl font-bold mb-3 text-foreground">Daily Problem Emails</h3>
+            <p className="text-foreground text-sm leading-relaxed mb-4">
+              Receive a clear daily reminder with the problems planned for your next focused practice session.
+            </p>
+            <p className="text-foreground/70 text-xs font-medium">Benefit: Know exactly what to solve without opening multiple tools or losing your routine.</p>
+          </Link>
+
+          <Link href="/settings" className="bg-card border border-border rounded-[2rem] p-6 shadow-sm hover:border-warning/50 transition-colors block">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-warning font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+              <Bell className="size-3.5" /> Reminders
+            </div>
+            <h3 className="text-lg md:text-xl font-bold mb-3 text-foreground">Contest Reminders</h3>
+            <p className="text-foreground text-sm leading-relaxed mb-4">
+              Track upcoming coding contests and configure reminders so you can prepare and participate on time.
+            </p>
+            <p className="text-foreground/70 text-xs font-medium">Benefit: Never miss an important contest because you forgot the schedule.</p>
+          </Link>
+
+          <Link href="/profile" className="bg-card border border-border rounded-[2rem] p-6 shadow-sm hover:border-success/50 transition-colors block">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-success font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+              <LineChart className="size-3.5" /> Ratings
+            </div>
+            <h3 className="text-lg md:text-xl font-bold mb-3 text-foreground">Unified Coding Ratings</h3>
+            <p className="text-foreground text-sm leading-relaxed mb-4">
+              Connect supported coding platforms and view your competitive-programming ratings in one profile.
+            </p>
+            <p className="text-foreground/70 text-xs font-medium">Benefit: Understand your progress without checking every platform separately.</p>
+          </Link>
+
+          <Link href="/profile" className="bg-card border border-border rounded-[2rem] p-6 shadow-sm hover:border-info/50 transition-colors block">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-info font-mono text-[10px] md:text-xs font-bold mb-4 uppercase tracking-wider">
+              <Trophy className="size-3.5" /> Ranking
+            </div>
+            <h3 className="text-lg md:text-xl font-bold mb-3 text-foreground">Cross-Platform Ranking</h3>
+            <p className="text-foreground text-sm leading-relaxed mb-4">
+              Compare your ranking and performance across supported coding platforms from one unified dashboard.
+            </p>
+            <p className="text-foreground/70 text-xs font-medium">Benefit: See your overall competitive position and identify where to improve.</p>
+          </Link>
+
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // --- Main Page Component ---
+
 export default function LandingPage() {
  const router = useRouter();
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
  const { promptInstall, isModalOpen, setIsModalOpen, isIOS, isStandalone } = usePWAInstall();
  
- const handleEnterDemo = useCallback(() => {
+ const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const handleEnterDemo = useCallback(() => {
+    if (isDemoLoading) return;
+    setIsDemoLoading(true);
  enableGuestMode();
  toast.success("Welcome to Demo Mode! 🎉", {
  description: "Directly logging into Alex Rivera's account...",
  });
- router.push("/today");
+ window.location.href = "/today";
  }, [router]);
 
  const { user } = useAuth();
@@ -771,6 +906,7 @@ export default function LandingPage() {
  <ProductPromise />
  <ProductWalkthrough />
  <CoreFeaturesBento />
+        <StayConsistentSection />
  <ProductPreview />
  <LearningJourney />
  <TrustSection />

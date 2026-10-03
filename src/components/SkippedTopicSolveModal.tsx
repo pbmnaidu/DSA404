@@ -30,18 +30,18 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const PLATFORM_COLORS: Record<string, string> = {
- LeetCode: "bg-muted text-warning dark:text-warning border-border",
- GeeksforGeeks: "bg-muted text-success dark:text-success border-border",
- GFG: "bg-muted text-success dark:text-success border-border",
- Codeforces: "bg-muted text-info dark:text-info border-border",
- CodeChef: "bg-warning text-warning dark:text-warning border-warning",
- HackerRank: "bg-muted text-success dark:text-success border-border",
+ LeetCode: "bg-muted text-warning border-border",
+ GeeksforGeeks: "bg-muted text-success border-border",
+ GFG: "bg-muted text-success border-border",
+ Codeforces: "bg-muted text-info border-border",
+ CodeChef: "bg-warning text-warning border-warning",
+ HackerRank: "bg-muted text-success border-border",
 };
 
 const DIFFICULTY_COLORS: Record<string, string> = {
- Easy: "bg-muted text-success dark:text-success border-border",
- Medium: "bg-muted text-warning dark:text-warning border-border",
- Hard: "bg-muted text-destructive dark:text-destructive border-border",
+ Easy: "bg-muted text-success border-border",
+ Medium: "bg-muted text-warning border-border",
+ Hard: "bg-muted text-destructive border-border",
 };
 
 interface SkippedTopicSolveModalProps {
@@ -134,10 +134,10 @@ export function SkippedTopicSolveModal({
  <span className="font-mono text-xs uppercase tracking-wider text-foreground font-semibold">
  {liveDay.section}
  </span>
- <Badge variant="outline" className="text-[10px] font-bold bg-muted text-warning dark:text-warning border-border">
+ <Badge variant="outline" className="text-[10px] font-bold bg-muted text-warning border-border">
  Skipped Topic
  </Badge>
- <Badge variant="outline" className="text-[10px] font-bold bg-muted text-success dark:text-success border-border">
+ <Badge variant="outline" className="text-[10px] font-bold bg-muted text-success border-border">
  Solve Anytime
  </Badge>
  {allDone && (
@@ -230,7 +230,7 @@ export function SkippedTopicSolveModal({
  key={`${prob.name}-${pIdx}`}
  className={cn(
  "flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 transition-colors hover:bg-muted",
- isDone && "bg-success/[0.04] dark:bg-success/[0.06]"
+ isDone && "bg-success/[0.04] .06]"
  )}
  >
  {/* Left: Checkbox + Title + Meta */}
@@ -300,7 +300,7 @@ export function SkippedTopicSolveModal({
  className={cn(
  "inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-colors cursor-pointer",
  hasCode
- ? "bg-muted text-success dark:text-success border-border hover:bg-muted"
+ ? "bg-muted text-success border-border hover:bg-muted"
  : "bg-muted text-foreground border-border hover:bg-muted hover:text-foreground"
  )}
  title={hasCode ? "View submitted code solution" : "Add code solution"}

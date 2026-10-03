@@ -148,7 +148,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
  {/* Main Content: Metrics & Difficulty */}
  {isLinkedin ? (
  <div className="p-3 sm:p-4 text-center text-xs text-foreground rounded-lg border border-border bg-background space-y-1">
- <p className="font-bold text-primary dark:text-primary text-xs sm:text-sm">LinkedIn Profile Connected</p>
+ <p className="font-bold text-primary text-xs sm:text-sm">LinkedIn Profile Connected</p>
  <a
  href={profile.profileUrl || `https://www.linkedin.com/in/${profile.username}/`}
  target="_blank"
@@ -173,7 +173,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
  {rankOrStar && (
  <div className="rounded-lg border border-border bg-background p-2 sm:p-2.5">
  <span className="text-[10px] sm:text-[11px] uppercase font-bold text-foreground block truncate">Rank / Stars</span>
- <span className="font-extrabold text-xs sm:text-sm text-warning dark:text-warning truncate block">
+ <span className="font-extrabold text-xs sm:text-sm text-warning truncate block">
  {rankOrStar}
  </span>
  </div>
@@ -182,7 +182,7 @@ export function PlatformProfileCard({ profile, color = "#6366f1", onRefresh, isR
  {profile.totalSolved !== null && (
  <div className="rounded-lg border border-border bg-background p-2 sm:p-2.5">
  <span className="text-[10px] sm:text-[11px] uppercase font-bold text-foreground block truncate">Total Solved</span>
- <span className="font-black text-xs sm:text-base text-success dark:text-success tabular-nums">
+ <span className="font-black text-xs sm:text-base text-success tabular-nums">
  {profile.totalSolved}
  </span>
  </div>

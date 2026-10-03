@@ -1,112 +1,20 @@
 // @ts-nocheck
-import { NextResponse } from "next/server";
-import { getMessaging } from "firebase-admin/messaging";
-import { getAdminDb } from "@/integrations/firebase/admin.server";
-import { syncContestsIfNeeded, getContestsFromFirestore } from "@/lib/contests-service";
-
 /**
- * Runs on an EXTERNAL schedule (cron-job.org, GitHub Actions cron, etc.)
- * instead of Firebase Cloud Scheduler, because Cloud Scheduler / Functions v2
- * scheduled triggers require the Blaze plan. This route does exactly what
- * functions/src/index.ts's `sendReminders` did, using firebase-admin
- * directly against Firestore + FCM.
+ * Background email/push reminder cron job — now fully migrated to Supabase.
  *
- * Call every 15 minutes:
+ * Call every 15 minutes via cron-job.org or GitHub Actions:
  *   GET https://yourapp.vercel.app/api/cron/send-reminders?secret=YOUR_CRON_SECRET
  *
- * Set CRON_SECRET in Vercel env vars. Never deploy this without the secret
- * check below — it sends real emails/pushes to every user.
+ * Set CRON_SECRET in Vercel / hosting env vars.
  */
-
-interface UserSettingsRow {
-  uid: string;
-  pushEnabled?: boolean;
-  emailEnabled?: boolean;
-  timezone?: string;
-  lastReminderSentOn?: string;
-  reminderTime?: string;
-  paused?: boolean;
-  morningReminderEnabled?: boolean;
-  morningReminderTime?: string;
-  lastMorningReminderSentOn?: string;
-  contestReminderEnabled?: boolean;
-  lastWeekdayQuoteSentOn?: string;
-  lastWeekendQuoteSentPeriod?: string;
-  lastLateReminderSentOn?: string;
-}
-
-const MOTIVATIONAL_QUOTES = [
-  "Consistency is what transforms average into excellence. Keep coding!",
-  "A bug is just a puzzle waiting to be solved. Don't give up!",
-  "The expert in anything was once a beginner. Keep pushing forward.",
-  "Your streak is a reflection of your discipline. Maintain it!",
-  "Every problem you solve today makes you a better coder tomorrow.",
-  "Success is the sum of small efforts, repeated day in and day out.",
-  "DSA is hard, but so are you. Keep grinding!",
-  "Don't practice until you get it right. Practice until you can't get it wrong.",
-];
-
+import { NextResponse } from "next/server";
+import { createClient as createSupabaseServer } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 
-/** Sends one push (if tokens exist) + one email (if enabled) to a user. Non-fatal on failure. */
-async function notifyUser(
-  db: FirebaseFirestore.Firestore,
-  uid: string,
-  opts: { pushEnabled?: boolean; emailEnabled?: boolean; title: string; body: string; link?: string },
-  errors: string[]
-) {
-  if (opts.pushEnabled) {
-    try {
-      const subsSnap = await db.collection(`users/${uid}/pushSubscriptions`).get();
-      const tokens = subsSnap.docs.map((d) => (d.data().token as string) ?? d.id).filter(Boolean);
-      const uniqueTokens = Array.from(new Set(tokens));
-      if (uniqueTokens.length > 0) {
-        const result = await getMessaging().sendEachForMulticast({
-          tokens: uniqueTokens,
-          data: {
-            title: opts.title,
-            body: opts.body,
-            link: opts.link ?? "/today",
-          },
-          webpush: {
-            headers: { Urgency: "high", TTL: "86400" },
-            fcmOptions: { link: opts.link ?? "/today" },
-          },
-        });
-        await Promise.all(
-          result.responses.map((r, i) => {
-            if (r.success) return Promise.resolve();
-            const code = r.error?.code ?? "";
-            if (
-              code === "messaging/registration-token-not-registered" ||
-              code === "messaging/invalid-registration-token"
-            ) {
-              return db.doc(`users/${uid}/pushSubscriptions/${uniqueTokens[i]}`).delete().catch(() => { });
-            }
-            return Promise.resolve();
-          })
-        );
-      }
-    } catch (e) {
-      errors.push(`${uid} push: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-
-  if (opts.emailEnabled) {
-    try {
-      const userSnap = await db.doc(`users/${uid}`).get();
-      const userData = userSnap.data();
-      const email = userData?.email;
-      if (email) {
-        await sendEmail(email, opts.title, opts.body);
-      } else {
-        errors.push(`${uid} email: No email address found in user document.`);
-      }
-    } catch (e) {
-      errors.push(`${uid} email: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-}
+const CRON_SECRET = process.env.CRON_SECRET;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+// Use service role key for server-side access (bypasses RLS for cron reads)
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 function nowMinutesInTz(timeZone: string): number {
   try {
@@ -133,412 +41,204 @@ function todayIsoInTz(timeZone: string): string {
   }
 }
 
-function dayOfWeekInTz(timeZone: string): number {
-  try {
-    const parts = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short" }).formatToParts(new Date());
-    const w = parts.find((p) => p.type === "weekday")?.value ?? "";
-    const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-    return map[w] ?? new Date().getUTCDay();
-  } catch {
-    return new Date().getUTCDay();
-  }
+function timeToMinutes(t: string): number {
+  const [h, m] = (t || "19:00").split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
 }
 
 export async function GET(req: Request) {
+  // ── Security check ──
+  const { searchParams } = new URL(req.url);
+  const secret = searchParams.get("secret");
+  if (CRON_SECRET && secret !== CRON_SECRET) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const supabase = createSupabaseServer(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+  const errors: string[] = [];
+  let eveningSent = 0;
+  let morningSent = 0;
+  let topicSent = 0;
+
   try {
-    const { searchParams } = new URL(req.url);
-    const secret = searchParams.get("secret");
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // ── Load all user settings that have email or push enabled ──
+    const { data: allSettings, error: settingsErr } = await supabase
+      .from("user_settings")
+      .select("user_id, email_enabled, push_enabled, reminder_time, morning_reminder_enabled, morning_reminder_time, timezone, paused, last_reminder_sent_on, last_morning_reminder_sent_on")
+      .or("email_enabled.eq.true,push_enabled.eq.true");
+
+    if (settingsErr) throw settingsErr;
+    if (!allSettings || allSettings.length === 0) {
+      return NextResponse.json({ ok: true, message: "No users with notifications enabled" });
     }
 
-    const db = getAdminDb();
-    const errors: string[] = [];
-    let eveningSent = 0;
-    let morningSent = 0;
-    let contestSent = 0;
-    let topicSent = 0;
-    let quoteSent = 0;
+    // Load all profile emails at once (to avoid N+1 queries)
+    const userIds = allSettings.map((s) => s.user_id);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .in("id", userIds);
 
-  const settingsSnap = await db
-    .collectionGroup("settings")
-    .get();
+    const emailByUid: Record<string, string> = {};
+    for (const p of profiles || []) {
+      if (p.email) emailByUid[p.id] = p.email;
+    }
 
-  const candidates: UserSettingsRow[] = settingsSnap.docs
-    .filter((d) => d.id === "prefs")
-    .map((d) => ({ uid: d.ref.parent.parent!.id, ...d.data() }) as UserSettingsRow)
-    .filter((row) => row.pushEnabled || row.emailEnabled);
-
-  // ── 1. Compulsory Evening 9:30 PM Unresolved Problem Reminder ───────────
-  const eveningDue = candidates.filter((row) => {
-    // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
-    if (row.paused) return false;
-    const tz = row.timezone || "Asia/Kolkata";
-    const today = todayIsoInTz(tz);
-    if (row.lastReminderSentOn === today) return false;
-    return nowMinutesInTz(tz) >= 21 * 60 + 30; // 9:30 PM
-  });
-
-  for (const row of eveningDue) {
-    const uid = row.uid;
-    try {
+    // ── Process each user ──
+    for (const row of allSettings) {
+      const uid = row.user_id;
       const tz = row.timezone || "Asia/Kolkata";
       const today = todayIsoInTz(tz);
-      const settingsRef = db.doc(`users/${uid}/settings/prefs`);
+      const nowMins = nowMinutesInTz(tz);
+      const userEmail = emailByUid[uid];
 
-      const daySnap = await db
-        .collection(`users/${uid}/days`)
-        .where("date", "==", today)
-        .limit(1)
-        .get();
-      if (daySnap.empty) continue;
-      const day = daySnap.docs[0].data();
+      if (!userEmail) continue; // Skip users with no email in profile
 
-      const problems = (day.problems ?? []) as { done: boolean }[];
-      const total = problems.length;
-      const done = problems.filter((p) => p.done).length;
+      // ── 1. Evening Plan Reminder ──────────────────────────────────────────
+      if (!row.paused && row.email_enabled) {
+        const reminderMins = timeToMinutes(row.reminder_time || "19:00");
+        const alreadySent = row.last_reminder_sent_on === today;
 
-      // Condition: ONLY send if total > 0 AND done === 0
-      if (total === 0 || done > 0) {
-        await settingsRef.set({ lastReminderSentOn: today }, { merge: true });
-        continue;
+        if (!alreadySent && nowMins >= reminderMins) {
+          // Check if user has pending problems today
+          const { data: todayDay } = await supabase
+            .from("study_days")
+            .select("problems")
+            .eq("user_id", uid)
+            .eq("date", today)
+            .eq("is_skipped", false)
+            .maybeSingle();
+
+          const problems = todayDay?.problems || [];
+          const pendingCount = problems.filter((p: any) => !p.done).length;
+
+          if (pendingCount > 0) {
+            try {
+              await sendEmail(
+                userEmail,
+                "📚 DSA⁴⁰⁴ Evening Reminder",
+                `Hello!\n\nYou have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} pending today in your DSA plan.\n\nLog in to DSA⁴⁰⁴ and complete them to maintain your streak!\n\nhttps://dsa404.vercel.app/today\n\n- DSA⁴⁰⁴ Team`,
+                `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;padding:28px;color:#f8fafc;border:1px solid #1e293b;">
+  <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;">DSA<span style="color:#f97316;">⁴⁰⁴</span></div>
+  <h2 style="margin-top:0;font-size:18px;">📚 ${pendingCount} Problem${pendingCount !== 1 ? "s" : ""} Waiting Today</h2>
+  <p style="color:#94a3b8;line-height:1.6;">You still have <strong style="color:#f8fafc;">${pendingCount} problem${pendingCount !== 1 ? "s" : ""}</strong> left for today's session. Complete them to save your streak!</p>
+  <a href="https://dsa404.vercel.app/today" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#0284c7;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">Continue Session →</a>
+  <p style="margin-top:24px;font-size:12px;color:#475569;">You're receiving this because you enabled evening reminders in DSA⁴⁰⁴ Settings.</p>
+</div>`
+              );
+              eveningSent++;
+              // Update last_reminder_sent_on
+              await supabase
+                .from("user_settings")
+                .update({ last_reminder_sent_on: today })
+                .eq("user_id", uid);
+            } catch (e) {
+              errors.push(`${uid} evening email: ${e instanceof Error ? e.message : String(e)}`);
+            }
+          } else {
+            // Mark as sent even if no pending problems, so we don't check again today
+            await supabase
+              .from("user_settings")
+              .update({ last_reminder_sent_on: today })
+              .eq("user_id", uid);
+          }
+        }
       }
 
-      await notifyUser(
-        db,
-        uid,
-        {
-          pushEnabled: row.pushEnabled,
-          emailEnabled: row.emailEnabled,
-          title: "DSA⁴⁰⁴ Unresolved Problem Reminder",
-          body: `You have 0 solved of ${total} scheduled problem${total !== 1 ? "s" : ""} today in ${day.topic || "today's plan"}. Log in and solve your problem before your streak breaks!`,
-          link: "/today",
-        },
-        errors
-      );
+      // ── 2. Morning Reminder ──────────────────────────────────────────────
+      if (!row.paused && row.morning_reminder_enabled && row.email_enabled) {
+        const morningMins = timeToMinutes(row.morning_reminder_time || "08:00");
+        const alreadySentMorning = row.last_morning_reminder_sent_on === today;
+        const withinWindow = nowMins >= morningMins && nowMins <= morningMins + 240;
 
-      await settingsRef.set({ lastReminderSentOn: today }, { merge: true });
-      eveningSent += 1;
-    } catch (e) {
-      errors.push(`${uid} evening: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
+        if (!alreadySentMorning && withinWindow) {
+          const { data: todayDay } = await supabase
+            .from("study_days")
+            .select("topic, problems")
+            .eq("user_id", uid)
+            .eq("date", today)
+            .eq("is_skipped", false)
+            .maybeSingle();
 
-  // ── 1b. Compulsory 10:00 PM Unresolved Problem Follow-up Reminder ────────
-  const lateEveningDue = candidates.filter((row) => {
-    // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
-    if (row.paused) return false;
-    const tz = row.timezone || "Asia/Kolkata";
-    const today = todayIsoInTz(tz);
-    if (row.lastLateReminderSentOn === today) return false;
-    return nowMinutesInTz(tz) >= 22 * 60; // 10:00 PM
-  });
+          const topic = todayDay?.topic || "Today's Topic";
+          const pendingCount = (todayDay?.problems || []).filter((p: any) => !p.done).length;
 
-  for (const row of lateEveningDue) {
-    const uid = row.uid;
-    try {
-      const tz = row.timezone || "Asia/Kolkata";
-      const today = todayIsoInTz(tz);
-      const settingsRef = db.doc(`users/${uid}/settings/prefs`);
-
-      const daySnap = await db
-        .collection(`users/${uid}/days`)
-        .where("date", "==", today)
-        .limit(1)
-        .get();
-      if (daySnap.empty) continue;
-      const day = daySnap.docs[0].data();
-
-      const problems = (day.problems ?? []) as { done: boolean }[];
-      const total = problems.length;
-      const done = problems.filter((p) => p.done).length;
-
-      // Condition: ONLY send if total > 0 AND done === 0
-      if (total === 0 || done > 0) {
-        await settingsRef.set({ lastLateReminderSentOn: today }, { merge: true });
-        continue;
+          try {
+            await sendEmail(
+              userEmail,
+              `☀️ Good morning! Today's DSA topic: ${topic}`,
+              `Good morning!\n\nToday's topic is: ${topic}\nProblems scheduled: ${pendingCount}\n\nStart your session now: https://dsa404.vercel.app/today\n\n- DSA⁴⁰⁴ Team`,
+              `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;padding:28px;color:#f8fafc;border:1px solid #1e293b;">
+  <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;">DSA<span style="color:#f97316;">⁴⁰⁴</span></div>
+  <h2 style="margin-top:0;font-size:18px;">☀️ Good Morning!</h2>
+  <p style="color:#94a3b8;line-height:1.6;">Today's topic: <strong style="color:#f8fafc;">${topic}</strong><br>Problems scheduled: <strong style="color:#38bdf8;">${pendingCount}</strong></p>
+  <a href="https://dsa404.vercel.app/today" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#0284c7;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">Start Session →</a>
+  <p style="margin-top:24px;font-size:12px;color:#475569;">You're receiving this because you enabled morning reminders in DSA⁴⁰⁴ Settings.</p>
+</div>`
+            );
+            morningSent++;
+            await supabase
+              .from("user_settings")
+              .update({ last_morning_reminder_sent_on: today })
+              .eq("user_id", uid);
+          } catch (e) {
+            errors.push(`${uid} morning email: ${e instanceof Error ? e.message : String(e)}`);
+          }
+        }
       }
 
-      await notifyUser(
-        db,
-        uid,
-        {
-          pushEnabled: row.pushEnabled,
-          emailEnabled: row.emailEnabled,
-          title: "🚨 Final DSA⁴⁰⁴ Reminder: Streak at Risk!",
-          body: `You still have 0 solved of ${total} scheduled problem${total !== 1 ? "s" : ""} today in ${day.topic || "today's plan"}. Log in and solve your problem before midnight to save your streak!`,
-          link: "/today",
-        },
-        errors
-      );
+      // ── 3. Topic Reminders (Revision tab) ─────────────────────────────────
+      if (row.email_enabled) {
+        try {
+          const nowIso = new Date().toISOString().slice(0, 10);
+          const { data: dueReminders } = await supabase
+            .from("user_reminders")
+            .select("*")
+            .eq("user_id", uid)
+            .eq("triggered", false)
+            .lte("date", today);
 
-      await settingsRef.set({ lastLateReminderSentOn: today }, { merge: true });
-      eveningSent += 1;
-    } catch (e) {
-      errors.push(`${uid} late evening: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-
-  // ── 2. Morning reminder (once/day, at morningReminderTime) ───────────────
-  const morningDue = candidates.filter((row) => {
-    // When preparation/plan is paused, DO NOT give any notifications regarding plan or daily problems!
-    if (row.paused) return false;
-    if (!row.morningReminderEnabled) return false;
-    const tz = row.timezone || "Asia/Kolkata";
-    const today = todayIsoInTz(tz);
-    if (row.lastMorningReminderSentOn === today) return false;
-    const [h, m] = String(row.morningReminderTime ?? "08:00").split(":").map(Number);
-    return nowMinutesInTz(tz) >= (h || 0) * 60 + (m || 0);
-  });
-
-  for (const row of morningDue) {
-    const uid = row.uid;
-    try {
-      const tz = row.timezone || "Asia/Kolkata";
-      const today = todayIsoInTz(tz);
-      const settingsRef = db.doc(`users/${uid}/settings/prefs`);
-
-      const daySnap = await db
-        .collection(`users/${uid}/days`)
-        .where("date", "==", today)
-        .limit(1)
-        .get();
-      const day = daySnap.empty ? null : daySnap.docs[0].data();
-      const topicName = day?.topic || "Today's Topic";
-      const pendingCount = day
-        ? ((day.problems ?? []) as { done: boolean }[]).filter((p) => !p.done).length
-        : 0;
-
-      await notifyUser(
-        db,
-        uid,
-        {
-          pushEnabled: row.pushEnabled,
-          emailEnabled: row.emailEnabled,
-          title: `☀️ Morning DSA Reminder: ${topicName}`,
-          body:
-            pendingCount > 0
-              ? `Good morning! You have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} scheduled today in ${topicName}.`
-              : `Good morning! Time to start practicing ${topicName}.`,
-          link: "/today",
-        },
-        errors
-      );
-
-      await settingsRef.set({ lastMorningReminderSentOn: today }, { merge: true });
-      morningSent += 1;
-    } catch (e) {
-      errors.push(`${uid} morning: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-
-  // ── 3. Contest reminders (Morning alert, 1hr, and 10min windows) ─────────
-  const contestCandidates = candidates.filter((row) => row.contestReminderEnabled);
-  if (contestCandidates.length > 0) {
-    try {
-      let contests = await syncContestsIfNeeded();
-      if (contests.length === 0) {
-        contests = await getContestsFromFirestore();
-      }
-      const nowMs = Date.now();
-
-      for (const row of contestCandidates) {
-        const uid = row.uid;
-        const tz = row.timezone || "Asia/Kolkata";
-        const today = todayIsoInTz(tz);
-        const currentMins = nowMinutesInTz(tz);
-
-        for (const contest of contests) {
-          const contestStartDateIso = new Date(contest.startMs).toISOString().slice(0, 10);
-          
-          // Morning contest alert if contest is today
-          if (contestStartDateIso === today && currentMins >= 8 * 60) {
-            const morningSentRef = db.doc(`users/${uid}/contestRemindersSent/${contest.id}_morning`);
-            const morningSentSnap = await morningSentRef.get();
-            if (!morningSentSnap.exists) {
+          for (const rem of dueReminders || []) {
+            const remMins = timeToMinutes(rem.time || "09:00");
+            // Only fire if today's time has passed (or if reminder date is in the past)
+            if (rem.date < today || (rem.date === today && nowMins >= remMins)) {
               try {
-                await notifyUser(
-                  db,
-                  uid,
-                  {
-                    pushEnabled: row.pushEnabled,
-                    emailEnabled: row.emailEnabled,
-                    title: "🏆 Contest Alert",
-                    body: `You have a contest today: ${contest.title}`,
-                    link: "/contests",
-                  },
-                  errors
+                await sendEmail(
+                  userEmail,
+                  `🔔 Revision Reminder: ${rem.topic}`,
+                  `Hello!\n\nThis is your scheduled revision reminder for the topic: "${rem.topic}".\n${rem.note ? `Note: ${rem.note}\n\n` : "\n"}Log in to DSA⁴⁰⁴ to revise: https://dsa404.vercel.app/review\n\n- DSA⁴⁰⁴ Team`
                 );
-                await morningSentRef.set({ sentAt: new Date().toISOString() });
-                contestSent += 1;
+                topicSent++;
+                // Mark as triggered
+                await supabase
+                  .from("user_reminders")
+                  .update({ triggered: true })
+                  .eq("id", rem.id)
+                  .eq("user_id", uid);
               } catch (e) {
-                errors.push(`${uid} contest morning: ${e instanceof Error ? e.message : String(e)}`);
+                errors.push(`${uid} topic email (${rem.topic}): ${e instanceof Error ? e.message : String(e)}`);
               }
             }
           }
-
-          // 1-hour and 10-minute start-soon alerts
-          const diffMs = contest.startMs - nowMs;
-          const windows: { key: string; lo: number; hi: number; bodyText: string }[] = [
-            { key: "1h", lo: 50, hi: 70, bodyText: `Your contest ${contest.title} starts in 1 hour.` },
-            { key: "10m", lo: 5, hi: 15, bodyText: `Your contest ${contest.title} starts in 10 minutes.` },
-          ];
-          for (const w of windows) {
-            if (diffMs <= w.hi * 60 * 1000 && diffMs > w.lo * 60 * 1000) {
-              const sentRef = db.doc(`users/${uid}/contestRemindersSent/${contest.id}_${w.key}`);
-              const sentSnap = await sentRef.get();
-              if (sentSnap.exists) continue;
-              try {
-                await notifyUser(
-                  db,
-                  uid,
-                  {
-                    pushEnabled: row.pushEnabled,
-                    emailEnabled: row.emailEnabled,
-                    title: "🏆 Contest Starting Soon!",
-                    body: w.bodyText,
-                    link: "/contests",
-                  },
-                  errors
-                );
-                await sentRef.set({ sentAt: new Date().toISOString() });
-                contestSent += 1;
-              } catch (e) {
-                errors.push(`${uid} contest: ${e instanceof Error ? e.message : String(e)}`);
-              }
-            }
-          }
+        } catch (e) {
+          errors.push(`${uid} topic reminders: ${e instanceof Error ? e.message : String(e)}`);
         }
       }
-    } catch (e) {
-      errors.push(`contests fetch: ${e instanceof Error ? e.message : String(e)}`);
     }
-  }
-
-  // ── 4. Motivational Quotes (Backend FCM Delivery - Closed-App Support) ────
-  for (const row of candidates) {
-    if (row.paused) continue;
-    const uid = row.uid;
-    try {
-      const tz = row.timezone || "Asia/Kolkata";
-      const today = todayIsoInTz(tz);
-      const currentMins = nowMinutesInTz(tz);
-      const dow = dayOfWeekInTz(tz);
-      const isWeekend = dow === 0 || dow === 6;
-      const settingsRef = db.doc(`users/${uid}/settings/prefs`);
-
-      if (!isWeekend) {
-        // Mon-Fri: 5:00 PM to 10:00 PM window
-        if (currentMins >= 17 * 60 && currentMins <= 22 * 60) {
-          if (row.lastWeekdayQuoteSentOn !== today) {
-            const randomQuote = MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
-            await notifyUser(
-              db,
-              uid,
-              {
-                pushEnabled: row.pushEnabled,
-                emailEnabled: row.emailEnabled,
-                title: "💡 Daily Motivation",
-                body: randomQuote,
-                link: "/today",
-              },
-              errors
-            );
-            await settingsRef.set({ lastWeekdayQuoteSentOn: today }, { merge: true });
-            quoteSent += 1;
-          }
-        }
-      } else {
-        // Sat-Sun: 4 periods (morning, afternoon, evening, night)
-        let periodKey: string | null = null;
-        if (currentMins >= 8 * 60 && currentMins < 12 * 60) periodKey = "morning";
-        else if (currentMins >= 12 * 60 && currentMins < 17 * 60) periodKey = "afternoon";
-        else if (currentMins >= 17 * 60 && currentMins < 21 * 60) periodKey = "evening";
-        else if (currentMins >= 21 * 60 && currentMins <= 23 * 60 + 59) periodKey = "night";
-
-        if (periodKey) {
-          const stampVal = `${today}_${periodKey}`;
-          if (row.lastWeekendQuoteSentPeriod !== stampVal) {
-            const randomQuote = MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
-            await notifyUser(
-              db,
-              uid,
-              {
-                pushEnabled: row.pushEnabled,
-                emailEnabled: row.emailEnabled,
-                title: `💡 Weekend Motivation`,
-                body: randomQuote,
-                link: "/today",
-              },
-              errors
-            );
-            await settingsRef.set({ lastWeekendQuoteSentPeriod: stampVal }, { merge: true });
-            quoteSent += 1;
-          }
-        }
-      }
-    } catch (e) {
-      errors.push(`${uid} quote: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-
-  // ── 5. Topic revision reminders (per-reminder, one-shot) ─────────────────
-  try {
-    const topicRemindersSnap = await db
-      .collectionGroup("reminders")
-      .where("triggered", "==", false)
-      .get();
-
-    for (const remDoc of topicRemindersSnap.docs) {
-      const uid = remDoc.ref.parent.parent?.id;
-      if (!uid) continue;
-      const rem = remDoc.data() as { topic: string; date: string; time: string; note?: string };
-      const userRow = candidates.find((c) => c.uid === uid);
-      if (!userRow) continue;
-
-      const tz = userRow.timezone || "Asia/Kolkata";
-      const today = todayIsoInTz(tz);
-      const [h, m] = String(rem.time ?? "09:00").split(":").map(Number);
-      const remMinutes = (h || 0) * 60 + (m || 0);
-      const isDue = rem.date < today || (rem.date === today && nowMinutesInTz(tz) >= remMinutes);
-      if (!isDue) continue;
-
-      try {
-        await notifyUser(
-          db,
-          uid,
-          {
-            pushEnabled: userRow.pushEnabled,
-            emailEnabled: userRow.emailEnabled,
-            title: `🔔 Revision Reminder: ${rem.topic}`,
-            body: rem.note ? rem.note : `Time to revise your scheduled topic: ${rem.topic}`,
-            link: "/review",
-          },
-          errors
-        );
-        await remDoc.ref.update({ triggered: true });
-        topicSent += 1;
-      } catch (e) {
-        errors.push(`${uid} topic: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    }
-  } catch (e) {
-    errors.push(`topic reminders query: ${e instanceof Error ? e.message : String(e)}`);
-  }
 
     return NextResponse.json({
-      checked: candidates.length,
+      ok: true,
+      usersProcessed: allSettings.length,
       eveningSent,
       morningSent,
-      contestSent,
       topicSent,
-      quoteSent,
-      errors,
+      errors: errors.length > 0 ? errors : undefined,
     });
   } catch (err: any) {
-    console.error("Cron failed:", err);
+    console.error("[cron/send-reminders] Fatal error:", err);
     return NextResponse.json(
-      { error: "Internal Server Error", details: err?.message || String(err) },
+      { error: err.message || "Internal server error", errors },
       { status: 500 }
     );
   }

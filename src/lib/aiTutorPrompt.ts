@@ -1,50 +1,50 @@
 export function getChatGPTAiPromptUrl(problemName: string): string {
-  const prompt = `# DSA AI Tutor & Coding Mentor: ${problemName}
+ const prompt = `# DSA AI Tutor & Coding Mentor: ${problemName}
 
 You are an expert DSA mentor, coding interviewer, and visual teacher.
 I am preparing for coding interviews and working on: **${problemName}**.
 
 ### STRICT TEACHING RULES:
 1. **DO NOT GIVE AWAY THE SOLUTION OR CODE DIRECTLY**:
-   - Do not write complete solution code or reveal the optimal approach upfront.
-   - Your primary goal is to guide me so I discover the solution myself.
+ - Do not write complete solution code or reveal the optimal approach upfront.
+ - Your primary goal is to guide me so I discover the solution myself.
 
 2. **Step 1 — Understand the Problem**:
-   - Explain the problem statement in simple, plain English.
-   - Provide 1–2 small visual text diagrams/examples illustrating the inputs and outputs.
-   - Clarify edge cases and constraints.
+ - Explain the problem statement in simple, plain English.
+ - Provide 1–2 small visual text diagrams/examples illustrating the inputs and outputs.
+ - Clarify edge cases and constraints.
 
 3. **Step 2 — Socratic Guidance & Pattern Discovery**:
-   - Ask me for my initial brute-force thoughts or intuition first.
-   - Based on my response, give progressive hints pointing toward the optimal algorithmic pattern (e.g., Two Pointers, Hash Map, Sliding Window, Monotonic Stack, DP, Graph/Tree traversal).
-   - Analyze Time & Space Complexity trade-offs with me.
+ - Ask me for my initial brute-force thoughts or intuition first.
+ - Based on my response, give progressive hints pointing toward the optimal algorithmic pattern (e.g., Two Pointers, Hash Map, Sliding Window, Monotonic Stack, DP, Graph/Tree traversal).
+ - Analyze Time & Space Complexity trade-offs with me.
 
 4. **Step 3 — Verification**:
-   - Once we agree on the logic, ask me to write the code or test edge cases.
+ - Once we agree on the logic, ask me to write the code or test edge cases.
 
 Let's begin! Please introduce the problem **${problemName}** with a quick visual example and ask me for my initial approach.`;
 
-  return `https://chatgpt.com/?q=${encodeURIComponent(prompt)}`;
+ return `https://chatgpt.com/?q=${encodeURIComponent(prompt)}`;
 }
 
 export function getChatGPTDayTopicPromptUrl(day: {
-  dayNumber: number;
-  topic: string;
-  section: string;
-  subtopics?: string[];
-  problems?: { name: string; difficulty?: string; platform?: string }[];
+ dayNumber: number;
+ topic: string;
+ section: string;
+ subtopics?: string[];
+ problems?: { name: string; difficulty?: string; platform?: string }[];
 }): string {
-  const problemsList =
-    day.problems && day.problems.length > 0
-      ? day.problems
-          .map(
-            (p, idx) =>
-              `${idx + 1}. **${p.name}** (${p.difficulty || "Medium"}${p.platform ? ` · ${p.platform}` : ""})`
-          )
-          .join("\n")
-      : "No specific problems assigned for today.";
+ const problemsList =
+ day.problems && day.problems.length > 0
+ ? day.problems
+ .map(
+ (p, idx) =>
+ `${idx + 1}. **${p.name}** (${p.difficulty || "Medium"}${p.platform ? ` · ${p.platform}` : ""})`
+ )
+ .join("\n")
+ : "No specific problems assigned for today.";
 
-  const prompt = `# DSA Masterclass: Today's Topic & Problems Review
+ const prompt = `# DSA Masterclass: Today's Topic & Problems Review
 
 Hello! I am preparing for software engineering and FAANG/tier-1 coding interviews with a structured DSA plan.
 Today I am studying:
@@ -79,8 +79,8 @@ Provide:
 1. **Problem Overview**: In simple plain English, what is the problem asking?
 2. **Pattern Mapping**: Which pattern from today applies here and why?
 3. **Approach Progression**:
-   - **Brute Force**: High-level idea and why it's inefficient (Time & Space complexity).
-   - **Optimal Approach**: The key observation/trick, step-by-step logic, and why it works.
+ - **Brute Force**: High-level idea and why it's inefficient (Time & Space complexity).
+ - **Optimal Approach**: The key observation/trick, step-by-step logic, and why it works.
 4. **Time & Space Complexity**: Big-O analysis with clear justification.
 5. **Edge Cases & Pitfalls**: Critical edge cases (e.g., negative numbers, empty arrays, duplicate values, large numbers, boundary sizes) to guard against in an interview.
 
@@ -91,5 +91,5 @@ Provide:
 
 Be thorough, structured, and pedagogical. Avoid spoon-feeding raw code snippets without reasoning — focus on deep algorithmic intuition and problem-solving patterns!`;
 
-  return `https://chatgpt.com/?q=${encodeURIComponent(prompt)}`;
+ return `https://chatgpt.com/?q=${encodeURIComponent(prompt)}`;
 }
