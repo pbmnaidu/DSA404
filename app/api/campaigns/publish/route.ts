@@ -1,95 +1,43 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { getMessaging } from "firebase-admin/messaging";
-import {
-  getAdminDb,
-  verifyIdToken,
-  getAdminProjectId,
-  getClientProjectId,
-  decodeJwtUnverified,
-} from "@/integrations/firebase/admin.server";
+import { getAdminDb } from "@/integrations/firebase/admin.server";
+import { createClient } from "@/integrations/supabase/server";
 
 const ADMIN_EMAILS = [
   "404dsatracker@gmail.com",
   ...(process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(",").map((e) => e.trim().toLowerCase()) : []),
 ];
 
-function isAdminUser(email?: string | null, role?: string): boolean {
-  if (role === "admin") return true;
+async function isAdminUser(supabase: any, userId: string, email?: string | null): Promise<boolean> {
   if (email && ADMIN_EMAILS.includes(email.toLowerCase())) return true;
-  return false;
+  // Check Supabase admin_users table
+  const { data } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", userId)
+    .single();
+  return !!data;
 }
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.warn("[api/campaigns/publish] Case A: Authorization header missing or invalid format.");
+    // Verify user via Supabase session (cookie-based)
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.warn("[api/campaigns/publish] Unauthorized: No valid Supabase session.");
       return NextResponse.json(
-        { success: false, reason: "AUTH_HEADER_MISSING", message: "Missing or invalid Bearer authorization header" },
+        { success: false, reason: "UNAUTHORIZED", message: "Not authenticated" },
         { status: 401 }
       );
     }
 
-    const idToken = authHeader.split("Bearer ")[1]?.trim();
-    if (!idToken) {
-      console.warn("[api/campaigns/publish] Case B: Bearer token string is empty.");
-      return NextResponse.json(
-        { success: false, reason: "AUTH_HEADER_EMPTY", message: "Empty bearer token string" },
-        { status: 401 }
-      );
-    }
+    const uid = user.id;
+    const email = user.email;
 
-    const adminProjectId = getAdminProjectId();
-    const clientProjectId = getClientProjectId();
-    const decodedUnverified = decodeJwtUnverified(idToken);
-
-    let decodedToken;
-    try {
-      decodedToken = await verifyIdToken(idToken);
-    } catch (err: any) {
-      const errCode = err?.code || "auth/invalid-id-token";
-      const tokenAud = decodedUnverified.aud;
-      const projectMismatch = Boolean(tokenAud && adminProjectId && tokenAud !== adminProjectId);
-      const finalErrorCode = projectMismatch ? "auth/id-token-project-id-mismatch" : errCode;
-
-      console.warn(`[api/campaigns/publish] Case C: Firebase ID token verification failed. Code: ${finalErrorCode}, Details: ${err?.message || err}`);
-
-      return NextResponse.json(
-        {
-          success: false,
-          reason: "INVALID_FIREBASE_ID_TOKEN",
-          errorCode: finalErrorCode,
-          adminProjectId,
-          clientProjectId,
-          tokenAudience: tokenAud || "unknown",
-          tokenIssuer: decodedUnverified.iss || "unknown",
-          projectIdsMatch: !projectMismatch,
-          details: err?.message || String(err),
-          message: projectMismatch
-            ? `Project ID mismatch! Token was issued for project '${tokenAud}', but Firebase Admin SDK is configured for '${adminProjectId}'.`
-            : `Firebase Auth ID token verification failed (${finalErrorCode}).`,
-        },
-        { status: 401 }
-      );
-    }
-
-    const uid = decodedToken.uid;
-    const email = decodedToken.email;
-    if (!uid) {
-      console.warn("[api/campaigns/publish] Case D: Decoded token contained no UID.");
-      return NextResponse.json(
-        { success: false, reason: "NO_UID_IN_TOKEN", message: "No UID found in verified token" },
-        { status: 401 }
-      );
-    }
-
-    const db = getAdminDb();
-    const userSnap = await db.doc(`users/${uid}`).get();
-    const userData = userSnap.data();
-    const userRole = userData?.role as string | undefined;
-
-    if (!isAdminUser(email, userRole)) {
+    if (!(await isAdminUser(supabase, uid, email))) {
       console.warn(`[api/campaigns/publish] Unauthorized publish attempt by uid=${uid}, email=${email}`);
       return NextResponse.json(
         {
@@ -118,6 +66,7 @@ export async function POST(req: Request) {
       );
     }
 
+    const db = getAdminDb();
     const messageRef = db.collection("messages").doc();
     const nowIso = new Date().toISOString();
     const targetUrl = (url && typeof url === "string" && url.trim()) ? url.trim() : "/messages";
@@ -130,7 +79,7 @@ export async function POST(req: Request) {
       url: targetUrl,
       createdAt: nowIso,
       createdBy: uid,
-      createdByName: userData?.displayName || email?.split("@")[0] || "Admin",
+      createdByName: user.user_metadata?.full_name || email?.split("@")[0] || "Admin",
       status: "sending",
       tag,
     });
