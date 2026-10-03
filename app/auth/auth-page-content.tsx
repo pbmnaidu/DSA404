@@ -220,17 +220,11 @@ export function AuthPageContent() {
       await saveUserProfile(data.user.id, { displayName: trimmedName });
 
       // Automatically send 2 welcome & platform feature guide emails upon registration
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        fetch("/api/send-email/onboarding", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
-        }).catch((err) => console.warn("Onboarding emails trigger error:", err));
-      }
+      fetch("/api/send-email/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
+      }).catch((err) => console.warn("Onboarding emails trigger error:", err));
 
       await proceedAfterAuth(data.user, {
         title: "Account created successfully! 🎉",

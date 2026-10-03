@@ -1,24 +1,18 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { sendEmail } from "../../../src/lib/email";
-import { getAdminAuth } from "../../../src/integrations/firebase/admin.server";
+import { createClient } from "@/integrations/supabase/server";
 
 // NOTE: We no longer force the recipient to the owner email.
 // The caller must provide the target email address (e.g., the logged‑in user).
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    // Verify user via Supabase session (cookie-based)
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const token = authHeader.split("Bearer ")[1];
-    
-    const auth = await getAdminAuth();
-    let decodedToken;
-    try {
-      decodedToken = await auth.verifyIdToken(token);
-    } catch (err) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const { email, subject, message } = await req.json();
@@ -27,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing recipient email" }, { status: 400 });
     }
 
-    if (decodedToken.email !== recipient) {
+    if (user.email !== recipient) {
       return NextResponse.json({ error: "Forbidden: Cannot send email to a different address" }, { status: 403 });
     }
 

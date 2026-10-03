@@ -1,22 +1,18 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
-import { getAdminAuth } from "@/integrations/firebase/admin.server";
+import { createClient } from "@/integrations/supabase/server";
+
+const OFFICIAL_EMAIL = "404dsatracker@gmail.com";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    // Verify user via Supabase session (cookie-based)
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const token = authHeader.split("Bearer ")[1];
-    
-    const auth = await getAdminAuth();
-    let decodedToken;
-    try {
-      decodedToken = await auth.verifyIdToken(token);
-    } catch (err) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const { email, name, username } = await req.json();
@@ -24,8 +20,8 @@ export async function POST(req: Request) {
     if (!recipient) {
       return NextResponse.json({ error: "Missing recipient email" }, { status: 400 });
     }
-    
-    if (decodedToken.email !== recipient) {
+
+    if (user.email !== recipient) {
       return NextResponse.json({ error: "Forbidden: Cannot send email to a different address" }, { status: 403 });
     }
 
@@ -270,10 +266,17 @@ Save/Print this guide as a PDF for offline reference anytime!
 </body>
 </html>`;
 
-    // Send both emails automatically
+    // Send both emails to the user
     console.log(`Sending 2 onboarding emails to ${recipient}...`);
     await sendEmail(recipient, subject1, text1, html1);
     await sendEmail(recipient, subject2, text2, html2);
+
+    // Send notification to official team email
+    await sendEmail(
+      OFFICIAL_EMAIL,
+      `🆕 New User Registered: ${displayName} (${handle})`,
+      `A new user just signed up on DSA⁴⁰⁴!\n\nName: ${displayName}\nUsername: ${handle}\nEmail: ${recipient}\nRegistered at: ${new Date().toISOString()}\n\n- DSA⁴⁰⁴ System`
+    );
 
     return NextResponse.json({ success: true, sentTo: recipient });
   } catch (err: any) {
