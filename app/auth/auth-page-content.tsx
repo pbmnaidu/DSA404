@@ -152,6 +152,12 @@ export function AuthPageContent() {
       if (error) throw error;
       if (!data.user) throw new Error("No user returned");
 
+      // Mark local storage immediately on sign in so onboarding never shows on returning logins
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`dsa404_onboarded_${data.user.id}`, "true");
+        sessionStorage.removeItem(`dsa404_just_registered_${data.user.id}`);
+      }
+
       await proceedAfterAuth(data.user, {
         title: "Welcome back! Thanks for logging in to our website.",
         description: "Ready to solve today's DSA problems?",
@@ -229,6 +235,11 @@ export function AuthPageContent() {
       if (!onboardingResponse.ok) {
         console.warn("Onboarding emails were not sent", await onboardingResponse.text());
         toast.warning("Account created. Your welcome emails will be sent after email verification.");
+      }
+
+      // Mark session storage that this is a fresh registration for the onboarding wizard
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(`dsa404_just_registered_${data.user.id}`, "true");
       }
 
       await proceedAfterAuth(data.user, {

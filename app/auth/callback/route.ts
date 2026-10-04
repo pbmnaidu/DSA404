@@ -20,9 +20,11 @@ export async function GET(request: Request) {
    if (user) {
     const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
     const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : 0;
-    if (Math.abs(createdAt - lastSignIn) < 10_000 && user.email) {
+    const isBrandNew = Math.abs(createdAt - lastSignIn) < 10_000 && !user.user_metadata?.onboarding_completed;
+    if (isBrandNew && user.email) {
      const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0] || 'Learner';
      void sendWelcomeEmails(user.email, displayName).catch((sendError) => console.error('OAuth welcome email failed:', sendError));
+     return NextResponse.redirect(`${origin}${next}?new_registration=true`);
     }
    }
    return NextResponse.redirect(`${origin}${next}`);

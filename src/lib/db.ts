@@ -48,25 +48,57 @@ export function normalizeUsername(raw: string): string { return raw.trim().toLow
 
 const supabase = createClient();
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function toValidUuid(val?: string): string {
+  if (val && UUID_REGEX.test(val)) return val;
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 async function deleteAllDays(uid: string) {
- await supabase.from("study_days").delete().eq("user_id", uid);
+  await supabase.from("study_days").delete().eq("user_id", uid);
 }
 
 async function writeAllDays(uid: string, days: Day[]) {
- const rows = days.map((d, seq_index) => ({
- id: d.id,
- user_id: uid,
- date: d.date,
- topic: d.topic,
- problems: d.problems,
- day_number: d.dayNumber,
- seq_index,
- is_skipped: d.skipped,
- // Add additional JSON fields if necessary or map them
- }));
- for (let i = 0; i < rows.length; i += 200) {
- await supabase.from("study_days").upsert(rows.slice(i, i + 200));
- }
+  const rows = days.map((d, seq_index) => {
+    d.id = toValidUuid(d.id);
+    return {
+      id: d.id,
+      user_id: uid,
+      date: d.date,
+      topic: d.topic,
+      section: d.section || "",
+      subtopics: d.subtopics || [],
+      problems: d.problems || [],
+      checklist: d.checklist || [],
+      status: d.status || "pending",
+      notes: d.notes || "",
+      revision_notes: d.revisionNotes || "",
+      level: d.level || null,
+      merge_snapshot: d.mergeSnapshot || null,
+      is_revision_day: d.isRevisionDay || false,
+      revision_day_numbers: d.revisionDayNumbers || null,
+      day_number: d.dayNumber,
+      seq_index,
+      is_skipped: d.skipped || false,
+    };
+  });
+  for (let i = 0; i < rows.length; i += 100) {
+    const { error } = await supabase.from("study_days").upsert(rows.slice(i, i + 100), {
+      onConflict: "user_id, date",
+    });
+    if (error) {
+      console.error("Error saving study_days batch:", error);
+      throw new Error(`Failed to save study days: ${error.message}`);
+    }
+  }
 }
 
 
@@ -211,50 +243,97 @@ export async function loadPublicDays(uid: string): Promise<Day[]> {
 }
 
 export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: PlanMeta; sheetId?: string }> {
- if (isGuestUser(userId)) return getGuestPlan();
- 
- const { data: daysData } = await supabase.from("study_days").select("*").eq("user_id", userId).order("seq_index", { ascending: true });
- const { data: settingsData } = await supabase.from("user_settings").select("*").eq("user_id", userId).single();
- 
- if (!daysData || daysData.length === 0) {
- const counts = settingsData?.counts as DailyCounts;
- return seedPlan(userId, undefined, counts, settingsData?.active_sheet || undefined);
- }
+  if (isGuestUser(userId)) return getGuestPlan();
+  
+  const { data: daysData } = await supabase.from("study_days").select("*").eq("user_id", userId).order("seq_index", { ascending: true });
+  const { data: settingsData } = await supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle();
+  
+  const savedStartDate = settingsData?.start_date;
 
- return {
- days: daysData.map(mapDayRow),
- meta: {
- startDate: settingsData?.start_date || START_DATE,
- lastActiveDate: settingsData?.last_active_date || todayIso(),
- lastSyncedAt: settingsData?.updated_at || new Date().toISOString(),
- },
- sheetId: settingsData?.active_sheet || "core404",
- };
+  if (!daysData || daysData.length === 0) {
+    const counts = settingsData?.counts as DailyCounts;
+    return seedPlan(userId, savedStartDate || undefined, counts, settingsData?.active_sheet || undefined);
+  }
+
+  // Determine the effective start date:
+  // 1. Explicitly saved start_date in user_settings
+  // 2. The date of the first study day (daysData[0].date)
+  // 3. Fallback to todayIso()
+  const firstDayDate = daysData[0]?.date;
+  const effectiveStartDate = savedStartDate || firstDayDate || todayIso();
+
+  // If user_settings doesn't have start_date stored, persist it now
+  if (!savedStartDate && effectiveStartDate && !isGuestUser(userId)) {
+    void supabase.from("user_settings").update({ start_date: effectiveStartDate }).eq("user_id", userId);
+  }
+
+  return {
+    days: daysData.map(mapDayRow),
+    meta: {
+      startDate: effectiveStartDate,
+      lastActiveDate: settingsData?.last_active_date || todayIso(),
+      lastSyncedAt: settingsData?.updated_at || new Date().toISOString(),
+    },
+    sheetId: settingsData?.active_sheet || "core404",
+  };
 }
 
 export async function seedPlan(userId: string, startDate?: string, counts?: DailyCounts, sheetId?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
- const now = new Date();
- const effectiveStartDate = startDate || now.toISOString().slice(0, 10);
- const effectiveCounts = counts || DEFAULT_DAILY_COUNTS;
- const effectiveSheet = sheetId || "core404";
+  const now = new Date();
+  let effectiveStartDate = startDate;
 
- let days = seedDays(effectiveStartDate, effectiveSheet);
- days = rebalanceRemaining(days, effectiveCounts, effectiveStartDate);
+  // If not explicitly provided, try to preserve the existing start_date from user_settings
+  if (!effectiveStartDate && !isGuestUser(userId)) {
+    const { data: curSettings } = await supabase
+      .from("user_settings")
+      .select("start_date")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (curSettings?.start_date) {
+      effectiveStartDate = curSettings.start_date;
+    }
+  }
 
- await deleteAllDays(userId);
- await writeAllDays(userId, days);
+  if (!effectiveStartDate) {
+    effectiveStartDate = now.toISOString().slice(0, 10);
+  }
 
- await supabase.from("user_settings").upsert({
- user_id: userId,
- start_date: effectiveStartDate,
- last_active_date: effectiveStartDate,
- active_sheet: effectiveSheet,
- }, { onConflict: "user_id" });
+  const effectiveCounts = counts || DEFAULT_DAILY_COUNTS;
+  const effectiveSheet = sheetId || "core404";
 
- return {
- days,
- meta: { startDate: effectiveStartDate, lastActiveDate: effectiveStartDate, lastSyncedAt: now.toISOString() }
- };
+  let days = seedDays(effectiveStartDate, effectiveSheet);
+  days = rebalanceRemaining(days, effectiveCounts, effectiveStartDate);
+  days.forEach((d) => {
+    d.id = toValidUuid(d.id);
+  });
+
+  if (isGuestUser(userId)) {
+    saveGuestPlan(days);
+    return {
+      days,
+      meta: { startDate: effectiveStartDate, lastActiveDate: effectiveStartDate, lastSyncedAt: now.toISOString() },
+    };
+  }
+
+  await deleteAllDays(userId);
+  await writeAllDays(userId, days);
+
+  const { error: upsertErr } = await supabase.from("user_settings").upsert({
+    user_id: userId,
+    start_date: effectiveStartDate,
+    last_active_date: effectiveStartDate,
+    active_sheet: effectiveSheet,
+    counts: { ...effectiveCounts, onboarding_completed: true },
+  }, { onConflict: "user_id" });
+
+  if (upsertErr) {
+    console.error("Failed to update user_settings start_date in seedPlan:", upsertErr);
+  }
+
+  return {
+    days,
+    meta: { startDate: effectiveStartDate, lastActiveDate: effectiveStartDate, lastSyncedAt: now.toISOString() }
+  };
 }
 
 export async function savePlan(userId: string, days: Day[], meta: PlanMeta, sheetId?: string) {
@@ -498,57 +577,123 @@ export async function hasExistingPlan(userId: string): Promise<boolean> {
 }
 
 /**
- * Check if a user has completed onboarding by reading the persistent
- * `onboarding_completed` flag from user_settings in Supabase.
- * Falls back to checking whether study_days exist (for users who
- * onboarded before this column was added).
+ * Check if a user has completed onboarding.
+ * Checks multiple persistent sources in order of speed:
+ * 1. Supabase Auth session user_metadata (cross-device, no DB table dependency)
+ * 2. `user_settings` table (start_date, counts.onboarding_completed, counts.target, active_sheet)
+ * 3. `study_days` rows (hasExistingPlan)
  */
 export async function isOnboardingCompleted(userId: string): Promise<boolean> {
- if (isGuestUser(userId)) return true;
+  if (isGuestUser(userId)) return true;
 
- // 1. Check the explicit flag in user_settings first for speed
- const { data, error } = await supabase
-   .from("user_settings")
-   .select("onboarding_completed")
-   .eq("user_id", userId)
-   .maybeSingle();
+  // 1. Check Auth user_metadata
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && user.user_metadata?.onboarding_completed === true) {
+      return true;
+    }
+  } catch {
+    // Non-blocking
+  }
 
- if (!error && data && data.onboarding_completed === true) {
-   return true;
- }
+  // 2. Check user_settings table
+  try {
+    const { data: settings, error } = await supabase
+      .from("user_settings")
+      .select("start_date, counts, active_sheet")
+      .eq("user_id", userId)
+      .maybeSingle();
 
- // 2. Fallback: check if study_days rows exist
- const hasPlan = await hasExistingPlan(userId);
- if (hasPlan) {
-   // Backfill the flag using update
-   await supabase
-     .from("user_settings")
-     .update({ onboarding_completed: true })
-     .eq("user_id", userId);
- }
- return hasPlan;
+    if (!error && settings) {
+      const countsObj = (settings.counts as any) || {};
+      if (
+        Boolean(settings.start_date) ||
+        Boolean(countsObj.onboarding_completed) ||
+        Boolean(countsObj.target) ||
+        Boolean(settings.active_sheet)
+      ) {
+        // Backfill user_metadata so future checks are instant
+        void supabase.auth.updateUser({ data: { onboarding_completed: true } }).catch(() => {});
+        return true;
+      }
+    }
+  } catch {
+    // Non-blocking
+  }
+
+  // 3. Fallback: check if study_days rows exist
+  try {
+    const hasPlan = await hasExistingPlan(userId);
+    if (hasPlan) {
+      void supabase.auth.updateUser({ data: { onboarding_completed: true } }).catch(() => {});
+      return true;
+    }
+  } catch {
+    // Non-blocking
+  }
+
+  return false;
 }
 
 /**
- * Mark onboarding as completed in Supabase. This is the source of truth
- * that works across all devices. localStorage is only a fast-path cache.
+ * Mark onboarding as completed across all layers:
+ * 1. localStorage (fast client-side cache)
+ * 2. Supabase Auth user_metadata (persists on user's cloud account across all devices)
+ * 3. user_settings table (stores counts.onboarding_completed and start_date)
+ * 4. Server-side API endpoint (service-role write fallback)
  */
 export async function markOnboardingCompleted(userId: string): Promise<void> {
- if (isGuestUser(userId)) return;
- 
- // Try update first
- const { data, error } = await supabase
-   .from("user_settings")
-   .update({ onboarding_completed: true })
-   .eq("user_id", userId)
-   .select();
-   
- // If no row was updated (doesn't exist), insert it
- if (error || !data || data.length === 0) {
-   await supabase
-     .from("user_settings")
-     .insert({ user_id: userId, onboarding_completed: true });
- }
+  if (isGuestUser(userId)) return;
+
+  // 1. Local browser storage
+  if (typeof window !== "undefined") {
+    localStorage.setItem(`dsa404_onboarded_${userId}`, "true");
+    sessionStorage.removeItem(`dsa404_just_registered_${userId}`);
+  }
+
+  // 2. Supabase Auth user_metadata (works cross-device and cross-browser)
+  try {
+    await supabase.auth.updateUser({
+      data: { onboarding_completed: true },
+    });
+  } catch (e) {
+    console.warn("Could not update auth user_metadata:", e);
+  }
+
+  // 3. Update user_settings table
+  try {
+    const { data: currentSettings } = await supabase
+      .from("user_settings")
+      .select("counts, start_date")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const existingCounts = (currentSettings?.counts as any) || {};
+    const updatedCounts = { ...existingCounts, onboarding_completed: true };
+
+    await supabase.from("user_settings").upsert(
+      {
+        user_id: userId,
+        counts: updatedCounts,
+        start_date: currentSettings?.start_date || todayIso(),
+        last_active_date: todayIso(),
+      },
+      { onConflict: "user_id" }
+    );
+  } catch (e) {
+    console.warn("Could not update user_settings:", e);
+  }
+
+  // 4. Server-side API call for guaranteed persistence
+  try {
+    await fetch("/api/auth/complete-onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+  } catch {
+    // Non-blocking
+  }
 }
 
 export async function changeStartDate(userId: string, newStartDate: string) {

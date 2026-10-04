@@ -336,8 +336,10 @@ export default function ProgressPage() {
                             }}
                             trigger={<Button variant="outline" size="sm" disabled={revertingId === e.id} className="h-8 gap-2 border-border text-primary hover:bg-muted hover:text-primary"><Undo2 className="size-3" /> Revert</Button>}
                           />
+                        ) : !e.isWithinWeek ? (
+                          <Button variant="outline" size="sm" disabled className="h-8 gap-2 opacity-60"><Undo2 className="size-3" /> Expired</Button>
                         ) : (
-                          <Button variant="outline" size="sm" disabled className="h-8 gap-2 "><Undo2 className="size-3" /> Expired</Button>
+                          <Button variant="outline" size="sm" disabled className="h-8 gap-2 opacity-60"><Undo2 className="size-3" /> No Snapshot</Button>
                         )}
                       </div>
                     </li>
@@ -388,7 +390,10 @@ export default function ProgressPage() {
               description="This regenerates the full 120-day plan from scratch. Every tick, note, and chat message is deleted."
               confirmWord="RESET"
               confirmLabel="Reset everything"
-              onConfirm={resetAll}
+              onConfirm={async () => {
+                await resetAll();
+                if (userId) setEvents(await listEvents(userId));
+              }}
               trigger={<Button variant="destructive" className="w-full font-bold">Reset Schedule</Button>}
             />
           </div>

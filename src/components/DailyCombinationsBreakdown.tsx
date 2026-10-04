@@ -82,7 +82,7 @@ export function DailyCombinationsBreakdown({
  </div>
 
  {/* Combinations Grid */}
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
  {combinations.map((c: DailyProblemCombination) => {
  // Check if this combination matches any days in the real plan
  const matchKey = `${c.easy}E_${c.medium}M_${c.hard}H`;

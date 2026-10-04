@@ -58,7 +58,7 @@ export default function AuthenticatedLayout({
 
   return (
     <SettingsProvider userId={activeUserId}>
-      <PlanBoundary email={user.email ?? ''} userId={activeUserId}>
+      <PlanBoundary email={user.email ?? ''} userId={activeUserId} user={user}>
         {children}
       </PlanBoundary>
     </SettingsProvider>
@@ -70,10 +70,12 @@ const ADMIN_EMAILS = ["404dsatracker@gmail.com"];
 function PlanBoundary({
   email,
   userId,
+  user,
   children,
 }: {
   email: string
   userId: string
+  user: any
   children: React.ReactNode
 }) {
   const router = useRouter()
@@ -94,39 +96,69 @@ function PlanBoundary({
       return;
     }
 
-    // Fast path: if we already know this user finished onboarding, skip the DB query.
-    // This is a performance optimisation only — the DB is always authoritative.
     const localKey = `dsa404_onboarded_${userId}`;
+
+    // 1. Fast path: if already marked in localStorage, skip onboarding
     if (typeof window !== 'undefined' && localStorage.getItem(localKey) === 'true') {
       setPlanReady(true);
       setCheckingPlan(false);
       return;
     }
 
-    // Always check the DB. Check explicit onboarding_completed flag.
-    import('@/lib/db').then(({ isOnboardingCompleted }) => {
+    // 2. Fast path: if already marked in Auth user_metadata, skip onboarding (works across devices)
+    if (user?.user_metadata?.onboarding_completed === true) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(localKey, 'true');
+      }
+      setPlanReady(true);
+      setCheckingPlan(false);
+      return;
+    }
+
+    // 3. Database check & returning user detection
+    import('@/lib/db').then(({ isOnboardingCompleted, markOnboardingCompleted }) => {
       isOnboardingCompleted(userId).then((isCompleted) => {
-        if (!isCompleted) {
-          // Brand new user — show the onboarding wizard
-          setShowOnboarding(true);
-          setCheckingPlan(false);
-        } else {
-          // Onboarding already completed in DB (could be a returning user on a new device).
-          // Persist the flag locally so future navigations skip this async check.
+        if (isCompleted) {
           if (typeof window !== 'undefined') {
             localStorage.setItem(localKey, 'true');
           }
           setPlanReady(true);
           setCheckingPlan(false);
+          return;
+        }
+
+        // Only show onboarding if user has just registered
+        const isFreshRegistration = typeof window !== 'undefined' && (
+          sessionStorage.getItem(`dsa404_just_registered_${userId}`) === 'true' ||
+          new URLSearchParams(window.location.search).get('new_registration') === 'true'
+        );
+
+        const hasExistingPlanOrSettings = Boolean(
+          (settings as any)?.start_date ||
+          settings?.counts?.target ||
+          (settings?.counts as any)?.onboarding_completed
+        );
+
+        // If returning user logging in on new browser/device -> do NOT show onboarding
+        if (!isFreshRegistration && hasExistingPlanOrSettings) {
+          void markOnboardingCompleted(userId);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(localKey, 'true');
+          }
+          setPlanReady(true);
+          setCheckingPlan(false);
+        } else {
+          // Brand new user registration -> show onboarding once
+          setShowOnboarding(true);
+          setCheckingPlan(false);
         }
       }).catch((err) => {
         console.warn("Error checking onboarding status:", err);
-        // On error (network offline), optimistically skip onboarding to prevent blocking the user.
         setPlanReady(true);
         setCheckingPlan(false);
       });
     });
-  }, [userId, isAdmin]);
+  }, [userId, isAdmin, user, settings]);
 
   const handleOnboardingComplete = async (startDate: string, counts: DailyCounts) => {
     // Save their chosen settings
@@ -135,13 +167,14 @@ function PlanBoundary({
     // Seed the plan with their chosen start date and pace counts
     await seedPlan(userId, startDate, counts);
     
-    // Mark onboarding as complete in the DB (source of truth)
+    // Mark onboarding as complete across all layers (DB, Auth metadata, localStorage)
     const { markOnboardingCompleted } = await import('@/lib/db');
     await markOnboardingCompleted(userId);
 
-    // Persist flag so refresh won't show onboarding again
+    // Persist flag so refresh and new browsers won't show onboarding again
     if (typeof window !== 'undefined') {
       localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
+      sessionStorage.removeItem(`dsa404_just_registered_${userId}`);
     }
     // Show the app — land on User Guide
     setShowOnboarding(false);
@@ -159,8 +192,9 @@ function PlanBoundary({
       <>
         <OnboardingModal
           open={true}
-          onClose={() => {
-            window.location.href = '/?onboarding=closed';
+          onClose={async () => {
+            const { DEFAULT_DAILY_COUNTS, todayIso } = await import('@/lib/plan');
+            await handleOnboardingComplete(todayIso(), DEFAULT_DAILY_COUNTS);
           }}
           onComplete={handleOnboardingComplete}
         />

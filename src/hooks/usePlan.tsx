@@ -17,6 +17,7 @@ import {
  setSkippedById,
  shiftFrom,
  todayIso,
+ formatDate,
  START_DATE,
  type DailyCounts,
 } from "@/lib/plan";
@@ -44,6 +45,7 @@ interface PlanCtx {
  /** Marks all days in a section as skipped and cascades their problems forward. */
  skipSection: (section: string, skip: boolean) => Promise<void>;
  resetAll: () => Promise<void>;
+ changeStartDate: (newStartDate: string) => Promise<void>;
  insertRevisionDay: (afterDayNumber: number) => Promise<void>;
  /** Upgrade 5: redistribute all unfinished problems at a new daily pace. */
  rebalance: (counts: DailyCounts) => Promise<{ before: number; after: number; finish: string }>;
@@ -91,7 +93,7 @@ export function PlanProvider({
  setError(null);
  try {
  const { days: d, meta, sheetId } = await db.loadPlan(userId);
- const sDate = meta.startDate || startDateRef.current || START_DATE;
+ const sDate = meta.startDate || (d[0]?.date) || startDateRef.current || START_DATE;
 
  // Auto-heal missing dates: ensure no date is left missing across the active schedule
  const activeDays = d.filter((day) => !day.skipped);
@@ -114,6 +116,7 @@ export function PlanProvider({
  }
 
  setStartDate(sDate);
+ startDateRef.current = sDate;
  setLastSynced(meta.lastSyncedAt);
  if (sheetId) setActiveSheet(sheetId);
  } catch (e) {
@@ -477,19 +480,60 @@ export function PlanProvider({
  );
 
  const resetAll = useCallback(async () => {
+ const previousSnapshot = days;
  setLoading(true);
  try {
- const { days: d, meta } = await db.seedPlan(userId);
+ const targetStartDate = startDateRef.current || startDate || undefined;
+ const { days: d, meta } = await db.seedPlan(userId, targetStartDate);
  setDays(d);
  setStartDate(meta.startDate);
+ startDateRef.current = meta.startDate;
  markSynced();
- await db.saveRevisionEvent(userId, "reset", "All progress reset");
+ await db.saveRevisionEvent(
+ userId,
+ "reset",
+ `All progress reset (Plan starts ${formatDate(meta.startDate)})`,
+ JSON.stringify(previousSnapshot),
+ );
+ toast.success("Schedule reset successfully!");
  } catch (e) {
  fail(e);
  } finally {
  setLoading(false);
  }
- }, [userId]);
+ }, [userId, days, startDate]);
+
+ const changeStartDate = useCallback(
+ async (newStartDate: string) => {
+ if (!/^\d{4}-\d{2}-\d{2}$/.test(newStartDate)) {
+ throw new Error("Invalid plan start date.");
+ }
+ const previousSnapshot = days;
+ setLoading(true);
+ try {
+ const res = await db.changeStartDate(userId, newStartDate);
+ setDays(res.days);
+ setStartDate(res.meta.startDate);
+ startDateRef.current = res.meta.startDate;
+ await db.saveRevisionEvent(
+ userId,
+ "reschedule",
+ `Plan start date changed to ${formatDate(newStartDate)}`,
+ JSON.stringify(previousSnapshot),
+ );
+ markSynced();
+ toast.success("Plan start date updated", {
+ description: `Your plan now starts on ${formatDate(newStartDate)}. Schedule recalibrated!`,
+ });
+ } catch (e: any) {
+ fail(e);
+ throw e;
+ } finally {
+ setLoading(false);
+ }
+ },
+ [userId, days],
+ );
 
  const insertRevisionDay = useCallback(
  async (afterDayNumber: number) => {
@@ -715,9 +759,17 @@ export function PlanProvider({
  const revertSchedule = useCallback(
  async (snapshotDays: Day[], eventDetail: string) => {
  const prev = days;
+ const newStartDate = snapshotDays.find((d) => !d.skipped)?.date || snapshotDays[0]?.date || startDate;
  setDays(snapshotDays);
+ setStartDate(newStartDate);
+ startDateRef.current = newStartDate;
  try {
  await db.saveSequence(userId, snapshotDays);
+ if (newStartDate && userId) {
+ const { createClient } = await import("@/integrations/supabase/client");
+ const supabase = createClient();
+ await supabase.from("user_settings").update({ start_date: newStartDate }).eq("user_id", userId);
+ }
  await db.saveRevisionEvent(
  userId,
  "revert",
@@ -731,7 +783,7 @@ export function PlanProvider({
  throw e;
  }
  },
- [days, userId],
+ [days, userId, startDate],
  );
 
  const value = useMemo<PlanCtx>(
@@ -753,6 +805,7 @@ export function PlanProvider({
  skipDay,
  skipSection,
  resetAll,
+ changeStartDate,
  insertRevisionDay,
  rebalance,
  shiftSchedule,
@@ -784,6 +837,7 @@ export function PlanProvider({
  skipDay,
  skipSection,
  resetAll,
+ changeStartDate,
  insertRevisionDay,
  rebalance,
  shiftSchedule,

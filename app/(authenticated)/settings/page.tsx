@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePlan } from "@/hooks/usePlan";
 import { useSettings } from "@/hooks/useSettings";
-import { changeStartDate, deleteAccountData, updateUserProfile } from "@/lib/db";
+import { deleteAccountData, updateUserProfile } from "@/lib/db";
 import {
  addDays,
  daysNeeded,
@@ -107,7 +107,7 @@ function Section({
 export default function SettingsPage() {
  const router = useRouter();
  const { settings, loading, update, userId } = useSettings();
- const { days, loading: planLoading, rebalance, shiftSchedule, startDate, reload, activeSheet, switchSheet } = usePlan();
+ const { days, loading: planLoading, rebalance, shiftSchedule, startDate, reload, activeSheet, switchSheet, changeStartDate } = usePlan();
  const qc = useQueryClient();
  const { openPanel } = useThemeCustomizer();
 
@@ -251,14 +251,12 @@ export default function SettingsPage() {
  if (!startDirty || !planStartDate) return;
  setStartBusy(true);
  try {
- await changeStartDate(userId, planStartDate);
- reload();
+ await changeStartDate(planStartDate);
  setStartDirty(false);
- toast.success("Plan start date updated", {
- description: `Your plan now starts on ${formatDate(planStartDate)}. All days have been reset.`,
+ } catch (e: any) {
+ toast.error("Could not update start date", {
+ description: e?.message || "Please try again.",
  });
- } catch (e) {
- toast.error("Could not update start date. Please try again.");
  } finally {
  setStartBusy(false);
  }
@@ -638,7 +636,7 @@ export default function SettingsPage() {
  title="Daily problem pace"
  description="Choose how many problems you want to solve each day. Your tutor dynamically balances difficulty ratios across curriculum levels so your workload remains realistic."
  >
- <div className="space-y-5 max-w-xl">
+ <div className="space-y-5">
  {/* Preset Cards */}
  <div>
  <Label className="text-xs font-semibold text-foreground uppercase tracking-wider mb-2 block">

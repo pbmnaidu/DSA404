@@ -195,10 +195,11 @@ function MissionWelcomeMascot({ name }: { name: string }) {
 
 export function MergedTodayProfile() {
  const { user } = useAuth();
- const { days, loading, shiftSchedule } = usePlan();
+ const { days, loading, shiftSchedule, startDate, changeStartDate } = usePlan();
  const { settings, update: updateSettings } = useSettings();
  const { completed: pbCompleted, submissions } = useProblemCompletions();
  const [resumingPlan, setResumingPlan] = useState(false);
+ const [startingToday, setStartingToday] = useState(false);
 
  const handleResumePlan = useCallback(async () => {
  setResumingPlan(true);
@@ -263,38 +264,44 @@ export function MergedTodayProfile() {
  // Strictly determine Today's Day:
  // When paused, freeze reference date to pausedFrom
  const iso = settings.paused && settings.pausedFrom ? settings.pausedFrom : todayIso();
+ const effectiveStartDate = startDate || days.find((d) => !d.skipped)?.date || days[0]?.date || iso;
+ const isPlanFuture = effectiveStartDate > iso;
+ const daysUntilStart = isPlanFuture ? Math.max(1, diffDays(iso, effectiveStartDate)) : 0;
+
  // 1. Look for active (non-skipped) day scheduled for today
  const todayDay = days.find((d) => d.date === iso && !d.skipped);
  // 2. If today has no exact date match (e.g. today was skipped or gap), find next active day on or after today
  const upcomingActive = days.find((d) => d.date >= iso && !d.skipped);
- // 3. If before plan start date, show first active day
+ // 3. First active day of curriculum
  const firstActive = days.find((d) => !d.skipped);
  // 4. If after plan finish date, fallback to last active day
  const lastActive = days.filter((d) => !d.skipped).at(-1);
- // Strictly avoid falling back to old unfinished past days
- const currentDay = todayDay ?? upcomingActive ?? firstActive ?? lastActive ?? days[0];
+
+ // When plan is scheduled for future, currentDay shows the upcoming Day 1 preview
+ const currentDay = isPlanFuture
+ ? (firstActive ?? days[0])
+ : (todayDay ?? upcomingActive ?? firstActive ?? lastActive ?? days[0]);
 
  // In Today's workspace tab, strictly display Today's day only (never switch to past days)
  const displayedDay = currentDay;
- const isExactlyToday = displayedDay?.date === iso;
+ const isExactlyToday = !isPlanFuture && displayedDay?.date === iso;
  const isPast = false;
 
- // Strictly filter problems to ensure ONLY problems belonging to today are displayed
- // (strictly exclude any problems carried over from earlier days)
+ // Strictly filter problems: when plan starts in future, DO NOT show problems for today!
  const sanitizedDay = useMemo(() => {
- if (!displayedDay) return null;
+ if (!displayedDay || isPlanFuture) return null;
  return {
  ...displayedDay,
  problems: displayedDay.problems.filter(
  (p) => !p.carriedFromDay || p.carriedFromDay === displayedDay.dayNumber
  ),
  };
- }, [displayedDay]);
+ }, [displayedDay, isPlanFuture]);
 
  const todayQueue = sanitizedDay?.problems ?? [];
  const completedTodayCount = todayQueue.filter((problem) => problem.done).length;
  const nextIncompleteProblem = todayQueue.find((problem) => !problem.done);
- const tutorTarget = nextIncompleteProblem?.name || sanitizedDay?.topic || "DSA";
+ const tutorTarget = nextIncompleteProblem?.name || sanitizedDay?.topic || displayedDay?.topic || "DSA";
  const tutorHref = sanitizedDay
  ? getChatGPTDayTopicPromptUrl({
  dayNumber: sanitizedDay.dayNumber,
@@ -312,6 +319,20 @@ export function MergedTodayProfile() {
  () => days.find((day) => !day.skipped && day.dayNumber > (displayedDay?.dayNumber ?? 0)),
  [days, displayedDay?.dayNumber]
  );
+
+ const handleStartToday = useCallback(async () => {
+ setStartingToday(true);
+ try {
+ await changeStartDate(todayIso());
+ toast.success("Plan start date updated to today!", {
+ description: "Day 1 curriculum is now active in your Today workspace.",
+ });
+ } catch (e: any) {
+ toast.error("Could not set start date to today", { description: e?.message });
+ } finally {
+ setStartingToday(false);
+ }
+ }, [changeStartDate]);
 
  // Calculate user inactivity gap
  const inactivityInfo = useMemo(() => getInactivityDays(days, user?.uid), [days, user]);
@@ -545,6 +566,19 @@ export function MergedTodayProfile() {
  {/* Left Content (Title, Subtitle, Progress Cards) */}
  <div className="flex-1 flex flex-col min-w-0 h-full">
  <div className="flex flex-wrap items-center gap-2 mb-6">
+ {isPlanFuture ? (
+ <>
+ <div className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1.5 text-xs font-bold text-primary-foreground">
+ <CalendarIcon className="size-3.5" aria-hidden="true" />
+ <span>Plan Starting Soon</span>
+ </div>
+ <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1.5 text-xs font-medium text-primary-foreground">
+ <Rocket className="size-3.5" aria-hidden="true" />
+ Starts {formatDate(effectiveStartDate)} ({daysUntilStart} day{daysUntilStart === 1 ? '' : 's'} left)
+ </span>
+ </>
+ ) : (
+ <>
  <div className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1.5 text-xs font-bold text-primary-foreground">
  <Target className="size-3.5" aria-hidden="true" />
  <span>Today's Mission</span>
@@ -553,20 +587,54 @@ export function MergedTodayProfile() {
  <CalendarIcon className="size-3.5" aria-hidden="true" />
  Day {displayedDay?.dayNumber ?? 1} of {days.length || 1}
  </span>
+ </>
+ )}
  </div>
 
  <div>
  <h1 className="font-display text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl">
- {timeBasedGreeting.greeting.split(',')[0]}
- <span className="block text-2xl font-medium text-primary-foreground/80 mt-1.5">{userNameDisplay}.</span>
+ {isPlanFuture ? "From this day we start the plan" : timeBasedGreeting.greeting.split(',')[0]}
+ <span className="block text-2xl font-medium text-primary-foreground/80 mt-1.5">
+ {isPlanFuture ? `Starting ${formatDate(effectiveStartDate)}.` : `${userNameDisplay}.`}
+ </span>
  </h1>
  <p className="mt-3 text-base sm:text-lg leading-relaxed text-primary-foreground/80 max-w-xl">
- {timeBasedGreeting.subtext}
+ {isPlanFuture
+ ? `Your study plan is set to start on ${formatDate(effectiveStartDate)}. No problems are scheduled for today so you can prepare or begin right now.`
+ : timeBasedGreeting.subtext}
  </p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-auto pt-8">
- {/* Progress Cards redesigned (clean, subtle borders, 12-16px radius, aligned metrics) */}
+ {isPlanFuture ? (
+ <>
+ <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col text-card-foreground">
+ <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Countdown</span>
+ <div className="flex items-end gap-1 mb-1">
+ <span className="text-2xl font-bold leading-none">{daysUntilStart}</span>
+ <span className="text-sm text-muted-foreground pb-0.5">day{daysUntilStart === 1 ? '' : 's'}</span>
+ </div>
+ <span className="text-xs text-muted-foreground mt-auto">Until Day 1 unlocks</span>
+ </div>
+
+ <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col text-card-foreground">
+ <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+ <Target className="size-3.5" /> First Topic
+ </span>
+ <div className="text-xl font-bold leading-tight mb-1 truncate">
+ {displayedDay?.topic?.split('—')[0]?.trim() || "Arrays"}
+ </div>
+ <span className="text-xs text-muted-foreground mt-auto">{displayedDay?.problems?.length || 3} problems queued</span>
+ </div>
+
+ <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col text-card-foreground">
+ <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Daily Pace</span>
+ <div className="text-2xl font-bold leading-none mb-1">{settings?.counts?.target || 3} / day</div>
+ <span className="text-xs text-muted-foreground mt-auto">Configured in settings</span>
+ </div>
+ </>
+ ) : (
+ <>
  <div className="rounded-xl border border-border bg-card p-4 shadow-sm flex flex-col text-card-foreground">
  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Today's Progress</span>
  <div className="flex items-end gap-1 mb-3">
@@ -594,6 +662,8 @@ export function MergedTodayProfile() {
  <div className="text-2xl font-bold leading-none mb-1">{journeyProgress}%</div>
  <span className="text-xs text-muted-foreground mt-auto">Keep showing up.</span>
  </div>
+ </>
+ )}
  </div>
  </div>
 
@@ -650,7 +720,75 @@ export function MergedTodayProfile() {
  
  {/* PRIMARY LEARNING COLUMN (Left side, 8 cols) */}
  <main className="min-w-0 space-y-10">
- 
+
+ {isPlanFuture ? (
+ <section className="space-y-6">
+ <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-sm text-center flex flex-col items-center justify-center space-y-6">
+ <div className="size-16 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-sm">
+ <Rocket className="size-8" />
+ </div>
+ <div className="max-w-md space-y-2">
+ <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-bold text-primary mb-1">
+ <CalendarIcon className="size-3.5" />
+ <span>Scheduled Start: {formatDate(effectiveStartDate)}</span>
+ </div>
+ <h2 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-foreground">
+ From this day we start the plan
+ </h2>
+ <p className="text-sm text-foreground/80 leading-relaxed">
+ Your study journey is scheduled to start on <strong className="text-foreground font-bold">{formatDate(effectiveStartDate)}</strong> ({daysUntilStart} day{daysUntilStart === 1 ? '' : 's'} remaining). No problems are active for today so your progress tracking and streak start cleanly on your chosen day.
+ </p>
+ </div>
+
+ {/* Day 1 Curriculum Preview Card */}
+ {displayedDay && (
+ <div className="w-full max-w-lg rounded-xl border border-border bg-secondary p-5 text-left space-y-3">
+ <div className="flex items-center justify-between text-xs">
+ <span className="font-bold uppercase tracking-wider text-muted-foreground">Day 1 Curriculum Preview</span>
+ <span className="font-mono text-primary font-bold">{displayedDay.problems?.length || 3} Problems</span>
+ </div>
+ <p className="font-bold text-base text-foreground flex items-center gap-2">
+ <Target className="size-4 text-primary" /> {displayedDay.topic}
+ </p>
+ {displayedDay.subtopics && displayedDay.subtopics.length > 0 && (
+ <div className="flex flex-wrap gap-1.5 pt-1">
+ {displayedDay.subtopics.map((sub, i) => (
+ <span key={i} className="text-[11px] rounded-md bg-muted px-2.5 py-0.5 border border-border font-medium text-foreground">
+ {sub}
+ </span>
+ ))}
+ </div>
+ )}
+ </div>
+ )}
+
+ {/* Quick Action Buttons */}
+ <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+ <Button
+ onClick={handleStartToday}
+ disabled={startingToday}
+ className="font-bold gap-2 shadow-sm"
+ >
+ <PlayCircle className="size-4" />
+ {startingToday ? "Starting..." : "Start Plan Today Instead"}
+ </Button>
+ <Button variant="outline" asChild className="gap-2">
+ <Link href="/settings">
+ <CalendarIcon className="size-4" />
+ Adjust Start Date
+ </Link>
+ </Button>
+ <Button variant="ghost" asChild className="gap-2 text-foreground/80">
+ <Link href="/guide">
+ <Code2 className="size-4" />
+ Preparation Guide
+ </Link>
+ </Button>
+ </div>
+ </div>
+ </section>
+ ) : (
+ <>
  {/* Topic Context (Editorial Style) */}
  {sanitizedDay && (
  <section className="space-y-5">
@@ -692,6 +830,8 @@ export function MergedTodayProfile() {
  />
  </div>
  </section>
+ )}
+ </>
  )}
  
  {/* Review Queue (Placeholder) */}
@@ -773,7 +913,23 @@ export function MergedTodayProfile() {
  Recommended Next
  </h2>
  <div className="rounded-lg border border-border bg-muted p-5 shadow-sm">
- {nextIncompleteProblem ? (
+ {isPlanFuture ? (
+ <div className="space-y-4">
+ <div>
+ <p className="text-[11px] font-bold uppercase tracking-wider text-primary">First day</p>
+ <h3 className="mt-2 break-words text-base font-bold leading-6 text-foreground">{displayedDay?.topic || "Day 1 Kickoff"}</h3>
+ <p className="mt-1 text-xs leading-5 text-muted-foreground">Activates on {formatDate(effectiveStartDate)}. Preview the curriculum or explore practice problems in the meantime.</p>
+ </div>
+ <div className="flex flex-col gap-2">
+ <Button onClick={handleStartToday} disabled={startingToday} size="sm" className="w-full font-bold">
+ {startingToday ? "Starting..." : "Start Day 1 Now"}
+ </Button>
+ <Button asChild size="sm" variant="outline" className="w-full font-bold">
+ <Link href={`/day/${displayedDay?.dayNumber ?? 1}`}>Preview Day 1</Link>
+ </Button>
+ </div>
+ </div>
+ ) : nextIncompleteProblem ? (
  <div className="space-y-4">
  <div>
  <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Continue today</p>
