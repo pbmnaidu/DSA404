@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ChevronRight, ChevronLeft, ExternalLink, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useThemeCustomizer } from "../../../app/theme-customizer-context";
 
 export default function GuidePage() {
+  const { openPanel } = useThemeCustomizer();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSectionId, setActiveSectionId] = useState<string>(USER_GUIDE_CONTENT[0].id);
 
@@ -150,11 +152,21 @@ export default function GuidePage() {
               {/* Try it now Link */}
               {activeSection.route && (
                 <div className="pt-4">
-                  <Button asChild>
-                    <Link href={activeSection.route} className="gap-2">
+                  {activeSection.route === "#theme-panel" ? (
+                    <Button onClick={openPanel} className="gap-2">
                       Try it now <ExternalLink className="size-4" />
-                    </Link>
-                  </Button>
+                    </Button>
+                  ) : (
+                    <Button asChild>
+                      <Link 
+                        href={activeSection.route} 
+                        className="gap-2" 
+                        target={activeSection.route.startsWith('http') ? "_blank" : undefined}
+                      >
+                        Try it now <ExternalLink className="size-4" />
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>

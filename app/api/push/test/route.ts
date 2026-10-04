@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { getMessaging } from "firebase-admin/messaging";
+import { getAdminApp } from "@/integrations/firebase/admin.server";
 import { createClient } from "@/integrations/supabase/server";
 
 export async function POST(req: Request) {
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
     };
 
     console.info(`[api/push/test] Sending FCM multicast test to ${tokens.length} token(s) for uid=${uid.slice(0, 8)}...`);
-    const multicastResult = await getMessaging().sendEachForMulticast(messagePayload);
+    const multicastResult = await getMessaging(getAdminApp()).sendEachForMulticast(messagePayload);
 
     let successCount = multicastResult.successCount;
     let failureCount = multicastResult.failureCount;

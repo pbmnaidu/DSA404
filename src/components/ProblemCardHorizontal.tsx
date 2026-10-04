@@ -210,7 +210,7 @@ export function ProblemCardHorizontal({
  <h4
  className={cn(
  "text-sm font-semibold leading-snug tracking-tight transition-colors line-clamp-2",
- problem.done ? "line-through text-success font-bold" : "text-foreground font-semibold"
+ problem.done ? "text-success font-bold" : "text-foreground font-semibold"
  )}
  >
  {problem.name}

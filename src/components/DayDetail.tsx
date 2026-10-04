@@ -426,7 +426,7 @@ export function DayDetail({
  <Label
  htmlFor={`c-${day.dayNumber}-${i}`}
  className={`cursor-pointer text-xs leading-snug flex-1 select-none ${
- c.done && "line-through "
+ c.done ? "text-success font-semibold" : ""
  }`}
  >
  {c.label}

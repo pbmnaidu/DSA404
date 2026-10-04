@@ -83,7 +83,6 @@ interface NavItem {
 
 const NAV: NavItem[] = [
  { to: "/today", label: "Today", icon: Sparkles, group: "learn", hint: "Your daily workspace — today's topic, problems, and streak." },
- { to: "/guide", label: "Guide", icon: BookOpen, group: "learn", hint: "A complete guide to every DSA⁴⁰⁴ feature and workflow." },
  { to: "/weeks", label: "Roadmap", icon: CalendarRange, group: "learn", hint: "Your 17-week learning roadmap with day-by-day progress." },
  { to: "/topics", label: "Topics", icon: LayoutGrid, group: "learn", hint: "All 42 Core 404 topics. Expand, track, and skip topics." },
  { to: "/problems", label: "Problems", icon: Code2, group: "practice", hint: "838+ problems — filter by platform, difficulty, or sheet." },
@@ -91,10 +90,11 @@ const NAV: NavItem[] = [
  { to: "/backlog", label: "Backlog", icon: CalendarDays, group: "practice", hint: "Past incomplete days. Catch up at your own pace." },
  { to: "/progress", label: "Progress", icon: BarChart3, group: "track", hint: "Streaks, badges, weekly charts, and solving progress." },
  { to: "/contests", label: "Contests", icon: Trophy, group: "compete", hint: "Live, upcoming & past contests from 5 platforms." },
- { to: "/editor", label: "Editor", icon: Code2, group: "build", hint: "Code editor workspace for problem solutions." },
+ { to: "/editor", label: "Editor", icon: Code2, group: "learn", hint: "Live code editor with compile, input, output, and submission." },
  { to: "/messages", label: "Messages", icon: MessageSquare, group: "coach", hint: "Platform announcements and broadcast alerts." },
  { to: "/profile", label: "Profile", icon: UserCircle2, group: "account", hint: "Your avatar, bio, and coding platform handles." },
  { to: "/settings", label: "Settings", icon: Settings, group: "account", hint: "Adjust pace, schedule, notifications, and theme." },
+ { to: "/guide", label: "Guide", icon: BookOpen, group: "account", hint: "A complete guide to every DSA⁴⁰⁴ feature and workflow." },
 ] as const;
 
 const NAV_GROUPS: { key: string; label: string; items: NavItem[] }[] = [

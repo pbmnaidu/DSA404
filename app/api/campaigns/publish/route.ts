@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getMessaging } from "firebase-admin/messaging";
 import { verifyAdmin } from "@/lib/admin-auth.server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
+import { getAdminApp } from "@/integrations/firebase/admin.server";
 
 /**
  * Service-role Supabase client — bypasses RLS.
@@ -118,7 +119,7 @@ export async function POST(req: Request) {
     for (let i = 0; i < tokens.length; i += BATCH_SIZE) {
       const batchTokens = tokens.slice(i, i + BATCH_SIZE);
 
-      const multicastResult = await getMessaging().sendEachForMulticast({
+      const multicastResult = await getMessaging(getAdminApp()).sendEachForMulticast({
         tokens: batchTokens,
         notification: {
           title: title.trim(),

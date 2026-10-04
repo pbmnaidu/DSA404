@@ -67,7 +67,7 @@ export function decodeJwtUnverified(token: string) {
  }
 }
 
-function createAdminApp(): App {
+export function getAdminApp(): App {
  const existing = getApps()[0];
  if (existing) return existing;
 
@@ -97,13 +97,13 @@ let _adminDb: Firestore | undefined;
 export async function getAdminAuth(): Promise<Auth> {
  if (!_adminAuth) {
  const { getAuth } = await import("firebase-admin/auth");
- _adminAuth = getAuth(createAdminApp());
+ _adminAuth = getAuth(getAdminApp());
  }
  return _adminAuth;
 }
 
 export function getAdminDb(): Firestore {
- if (!_adminDb) _adminDb = getFirestore(createAdminApp());
+ if (!_adminDb) _adminDb = getFirestore(getAdminApp());
  return _adminDb;
 }
 

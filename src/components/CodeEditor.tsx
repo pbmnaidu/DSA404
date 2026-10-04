@@ -120,11 +120,11 @@ const CODE_SNIPPETS: Record<string, { label: string; snippet: string }[]> = {
  ],
 };
 
-const THEMES = [
- { id: "dark", label: "VS Code Dark+", bg: "bg-[#0c1017]", border: "border-[#1e293b]" },
- { id: "obsidian", label: "Obsidian Jet", bg: "bg-[#050507]", border: "border-[#222222]" },
- { id: "cyberpunk", label: "Cyberpunk", bg: "bg-[#0b0f19]", border: "border-border" },
- { id: "matrix", label: "Matrix Terminal", bg: "bg-[#020d06]", border: "border-border" },
+ const THEMES = [
+ { id: "dark", label: "App Theme", bg: "bg-card", border: "border-border" },
+ { id: "obsidian", label: "App Theme", bg: "bg-card", border: "border-border" },
+ { id: "cyberpunk", label: "App Theme", bg: "bg-card", border: "border-border" },
+ { id: "matrix", label: "App Theme", bg: "bg-card", border: "border-border" },
 ];
 
 export function CodeEditor({
@@ -606,10 +606,10 @@ export function CodeEditor({
  return (
  <div
  className={cn(
- "flex flex-col rounded-lg border transition-all duration-150 overflow-hidden shadow-sm dark",
+ "flex flex-col rounded-lg border transition-all duration-150 overflow-hidden shadow-sm",
  currentTheme.bg,
  currentTheme.border,
- isFullscreen && "!fixed !inset-0 !z-[999999] !rounded-lg !w-screen !h-screen",
+ isFullscreen && "!fixed !inset-0 !translate-x-0 !translate-y-0 !w-full !h-[100dvh] !max-w-none !max-h-none !rounded-none !border-0 !z-[999999]",
  className
  )}
  >
@@ -652,8 +652,8 @@ export function CodeEditor({
  </Button>
 
  {showSnippets && (
- <div className="absolute left-0 top-full mt-1.5 w-64 rounded-lg border border-border bg-muted p-1.5 shadow-sm z-50 animate-in fade-in zoom-in-95 duration-100">
- <div className="px-2 py-1 text-[10px] font-bold text-foreground uppercase tracking-wider border-b border-border mb-1">
+ <div className="absolute left-0 top-full mt-1.5 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-popover text-popover-foreground p-1.5 shadow-lg z-50 animate-in fade-in zoom-in-95 duration-100">
+ <div className="px-2 py-1 text-[10px] font-bold text-popover-foreground uppercase tracking-wider border-b border-border mb-1">
  {language.toUpperCase()} Snippets
  </div>
  {langSnippets.map((item, idx) => (
@@ -661,7 +661,7 @@ export function CodeEditor({
  key={idx}
  type="button"
  onClick={() => handleInsertSnippet(item.snippet)}
- className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-muted hover:bg-muted hover:text-primary transition-colors cursor-pointer"
+ className="w-full text-left px-2.5 py-2 rounded-lg text-xs font-semibold text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
  >
  {item.label}
  </button>
@@ -697,7 +697,7 @@ export function CodeEditor({
  <button
  type="button"
  onClick={handleUndo}
- className="p-1 px-1.5 hover:bg-white text-foreground hover:text-foreground cursor-pointer transition-colors"
+ className="p-1 px-1.5 hover:bg-accent text-foreground hover:text-accent-foreground cursor-pointer transition-colors"
  title="Undo"
  >
  <Undo2 className="size-3" />
@@ -705,7 +705,7 @@ export function CodeEditor({
  <button
  type="button"
  onClick={handleRedo}
- className="p-1 px-1.5 hover:bg-white text-foreground hover:text-foreground cursor-pointer transition-colors border-l border-border"
+ className="p-1 px-1.5 hover:bg-accent text-foreground hover:text-accent-foreground cursor-pointer transition-colors border-l border-border"
  title="Redo"
  >
  <Redo2 className="size-3" />

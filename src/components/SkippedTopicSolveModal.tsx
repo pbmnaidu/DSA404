@@ -259,7 +259,7 @@ export function SkippedTopicSolveModal({
  className={cn(
  "text-sm font-semibold hover:text-primary transition-colors inline-flex items-center gap-1",
  isDone
- ? "text-foreground line-through decoration-success"
+ ? "text-success font-bold"
  : "text-foreground"
  )}
  title={`Open ${prob.name}`}
@@ -271,7 +271,7 @@ export function SkippedTopicSolveModal({
  <span
  className={cn(
  "text-sm font-semibold",
- isDone ? "text-foreground line-through" : "text-foreground"
+ isDone ? "text-success" : "text-foreground"
  )}
  >
  {prob.name}

@@ -263,7 +263,7 @@ function TodayPanel() {
  <span title="Pending"><Circle className="size-4 text-foreground shrink-0" /></span>
  )}
  <span className="font-mono text-xs text-foreground">#{idx + 1}</span>
- <span className={cn("text-sm font-semibold truncate", p.done && "line-through text-foreground")}>
+ <span className={cn("text-sm font-semibold truncate", p.done && "text-success font-bold")}>
  {p.title}
  </span>
  <span className="text-[10px] font-mono text-foreground bg-muted px-1.5 py-0.5 rounded">
@@ -454,7 +454,7 @@ function TopicsPanel() {
  >
  <div className="flex items-center justify-between mb-1.5 gap-2">
  <div className="min-w-0">
- <span className={cn("font-display font-semibold text-sm block truncate", t.isSkipped && "line-through text-foreground")}>
+ <span className={cn("font-display font-semibold text-sm block truncate", t.isSkipped && "text-muted-foreground")}>
  {t.name}
  </span>
  <span className="text-[11px] text-foreground block truncate">{t.sub}</span>

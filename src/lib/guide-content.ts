@@ -154,7 +154,7 @@ export const USER_GUIDE_CONTENT: GuideSection[] = [
       "Click 'Run' to test your code against sample test cases."
     ],
     tips: ["Use standard input/output formats. The editor supports Vim/Emacs bindings via settings."],
-    route: "/editor",
+    route: "/editor?name=Two%20Sum&topic=Arrays",
     relatedSections: ["ai-tutor"]
   },
   {
@@ -182,7 +182,7 @@ export const USER_GUIDE_CONTENT: GuideSection[] = [
       "The AI Tutor will guide you step-by-step instead of giving the direct answer."
     ],
     tips: ["Paste your current code if you want the AI to point out logical errors."],
-    route: "/editor",
+    route: "https://chatgpt.com/?q=I+am+practicing+data+structures+and+algorithms.+Can+you+act+as+my+AI+tutor+and+help+me+with+a+problem%3F+Please+give+hints+instead+of+direct+answers.",
     relatedSections: ["coding-editor"]
   },
   {
@@ -209,7 +209,7 @@ export const USER_GUIDE_CONTENT: GuideSection[] = [
       "View daily reminders, updates, and system alerts."
     ],
     tips: ["You can customize which notifications you receive in Settings."],
-    route: "/settings",
+    route: "/settings#notifications",
     relatedSections: ["account-settings"]
   },
   {
@@ -236,7 +236,7 @@ export const USER_GUIDE_CONTENT: GuideSection[] = [
       "Provide a detailed description and submit."
     ],
     tips: ["Include steps to reproduce if you are reporting a bug."],
-    route: "/",
+    route: "/messages",
     relatedSections: []
   },
   {
@@ -250,7 +250,7 @@ export const USER_GUIDE_CONTENT: GuideSection[] = [
       "Customize the primary color accent and UI radius."
     ],
     tips: ["Your theme preferences sync across all your devices."],
-    route: "/settings",
+    route: "#theme-panel",
     relatedSections: ["account-settings"]
   },
   {

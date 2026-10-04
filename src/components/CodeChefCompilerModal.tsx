@@ -48,6 +48,9 @@ import {
  type CompileResult,
 } from "@/lib/codeCompiler";
 import { useInAppBrowser } from "./in-app-browser/InAppBrowserContext";
+import { useRouter } from "next/navigation";
+import { getChatGPTAiPromptUrl } from "@/lib/aiTutorPrompt";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { CodeEditor } from "./CodeEditor";
 
 interface CodeChefCompilerModalProps {
@@ -73,6 +76,7 @@ export function CodeChefCompilerModal({
 }: CodeChefCompilerModalProps) {
  const { user } = useAuth();
  const { openInApp } = useInAppBrowser();
+  const router = useRouter();
 
  const [activeTab, setActiveTab] = useState<"solution" | "compiler" | "codechef_ide">(initialTab);
 
@@ -91,6 +95,7 @@ export function CodeChefCompilerModal({
  const [copiedCode, setCopiedCode] = useState<boolean>(false);
  const [isIdeMaximized, setIsIdeMaximized] = useState<boolean>(false);
  const [ideReloadKey, setIdeReloadKey] = useState<number>(0);
+ const canSubmit = compileResult?.code === 0 && !compileResult.stderr;
 
  // Sync state whenever modal opens
  useEffect(() => {
@@ -105,16 +110,42 @@ export function CodeChefCompilerModal({
  typeof window !== "undefined"
  ? localStorage.getItem(`draft_keypoints_${problemName}`)
  : null;
+ const draftLang =
+ typeof window !== "undefined"
+ ? localStorage.getItem(`draft_lang_${problemName}`)
+ : null;
+ const lastGlobalLang =
+ typeof window !== "undefined"
+ ? localStorage.getItem(`last_used_lang`)
+ : null;
  const canonicalLink = getCanonicalProblemLink(problemName) || "";
 
  const initialCode = existingSubmission?.code || draftCode || "";
+ 
+ let initLang = draftLang || lastGlobalLang || "cpp";
+ if (existingSubmission && (existingSubmission as any).language) {
+ initLang = (existingSubmission as any).language;
+ } else if (initialCode && (!draftCode || draftCode !== initialCode)) {
+ if (initialCode.includes("public class ") || initialCode.includes("System.out.")) {
+ initLang = "java";
+ } else if (initialCode.includes("def ") || initialCode.includes("print(")) {
+ initLang = "python";
+ } else if (initialCode.includes("function") || initialCode.includes("console.log(")) {
+ initLang = "javascript";
+ } else if (initialCode.includes("#include")) {
+ initLang = "cpp";
+ }
+ }
+
+ setSelectedLang(initLang);
  setCode(initialCode);
+ setCompileResult(null);
  setLink(existingSubmission?.link || canonicalLink);
  setKeyPoints(existingSubmission?.keyPoints || draftKeyPoints || "");
 
  // If code is empty, populate with default language starter template
  if (!initialCode.trim()) {
- const langObj = SUPPORTED_LANGUAGES.find((l) => l.id === selectedLang);
+ const langObj = SUPPORTED_LANGUAGES.find((l) => l.id === initLang);
  if (langObj) {
  setCode(langObj.starterCode);
  }
@@ -124,6 +155,11 @@ export function CodeChefCompilerModal({
 
  const handleLanguageChange = (newLangId: string) => {
  setSelectedLang(newLangId);
+ setCompileResult(null);
+ if (typeof window !== "undefined" && problemName && !readOnly) {
+ localStorage.setItem(`draft_lang_${problemName}`, newLangId);
+ localStorage.setItem(`last_used_lang`, newLangId);
+ }
  const langObj = SUPPORTED_LANGUAGES.find((l) => l.id === newLangId);
 
  // If current code matches starter code of another language or is empty, auto-insert template
@@ -140,6 +176,7 @@ export function CodeChefCompilerModal({
  const langObj = SUPPORTED_LANGUAGES.find((l) => l.id === selectedLang);
  if (langObj) {
  setCode(langObj.starterCode);
+ setCompileResult(null);
  toast.info(`Reset to default ${langObj.name} template`);
  }
  };
@@ -170,6 +207,13 @@ export function CodeChefCompilerModal({
  if (!code.trim()) {
  toast.error("Please enter your solution code before submitting!");
  return;
+ }
+ if (!canSubmit) {
+  toast.error("Compile successfully before submitting your solution.", {
+   description: "Run the code and fix every compilation or runtime error first.",
+  });
+  setActiveTab("compiler");
+  return;
  }
  setBusy(true);
  try {
@@ -239,10 +283,10 @@ export function CodeChefCompilerModal({
  return (
  <Dialog open={open} onOpenChange={onOpenChange}>
  <DialogContent
- className={`flex flex-col transition-all duration-200 border border-border bg-card -2xl shadow-sm ${
+ className={`flex flex-col transition-all duration-200 bg-card -2xl shadow-sm ${
  isIdeMaximized
- ? "!fixed !top-0 !left-0 !right-0 !bottom-0 !translate-x-0 !translate-y-0 !w-screen !h-screen !max-w-none !max-h-none !rounded-lg z-[999999]"
- : "w-[96vw] max-w-6xl h-[94vh] max-h-[94vh] rounded-lg"
+ ? "!fixed !inset-0 !translate-x-0 !translate-y-0 !w-full !h-[100dvh] !max-w-none !max-h-none !rounded-none !border-0 z-[999999]"
+ : "border border-border w-[96vw] max-w-6xl h-[94vh] max-h-[94vh] rounded-lg"
  }`}
  >
  <DialogHeader className="pb-2 border-b border-border shrink-0">
@@ -263,7 +307,7 @@ export function CodeChefCompilerModal({
  className="h-7 px-2.5 rounded-lg text-xs font-semibold border-warning text-warning hover:bg-warning gap-1.5 cursor-pointer shadow-xs"
  title="Automatically launches CodeChef IDE in your browser"
  >
- <span>CodeChef IDE</span>
+ <span className="hidden sm:inline">CodeChef IDE</span>
  <ExternalLink className="size-3" />
  </Button>
 
@@ -276,7 +320,7 @@ export function CodeChefCompilerModal({
  title={isIdeMaximized ? "Restore size" : "Expand IDE to full screen"}
  >
  {isIdeMaximized ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
- <span>{isIdeMaximized ? "Exit Fullscreen" : "Fullscreen"}</span>
+ <span className="hidden sm:inline">{isIdeMaximized ? "Exit Fullscreen" : "Fullscreen"}</span>
  </Button>
  </div>
  </div>
@@ -509,6 +553,7 @@ export function CodeChefCompilerModal({
  readOnly={readOnly}
  onChange={(val) => {
  setCode(val);
+ setCompileResult(null);
  if (typeof window !== "undefined" && problemName && !readOnly) {
  localStorage.setItem(`draft_code_${problemName}`, val);
  }
@@ -558,6 +603,18 @@ export function CodeChefCompilerModal({
  <div className="flex items-center gap-2">
  <Button
  type="button"
+ variant="secondary"
+ size="sm"
+ onClick={() => {
+ onOpenChange(false);
+ router.push(`/editor?name=${encodeURIComponent(problemName)}&link=${encodeURIComponent(link || "")}`);
+ }}
+ className="h-8 px-2 sm:px-3 rounded-lg font-bold text-xs"
+ >
+ <Maximize2 className="size-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Open in Full Editor</span>
+ </Button>
+ <Button
+ type="button"
  size="sm"
  onClick={handleRunCode}
  disabled={compiling || !code.trim()}
@@ -576,11 +633,12 @@ export function CodeChefCompilerModal({
  </div>
  </div>
 
- {/* Code Editor & Custom Stdin Input Grid */}
- <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-[350px]">
- {/* Left 2 Cols: Main Editor with full IDE features */}
- <div className="lg:col-span-2 flex flex-col space-y-1.5 h-full">
- <div className="flex items-center justify-between text-xs font-bold text-foreground">
+ {/* Code Editor & Custom Stdin Input Stack */}
+ <ResizablePanelGroup direction="vertical" className="flex-1 min-h-[400px]">
+ <ResizablePanel defaultSize={60} minSize={30} className="flex flex-col min-h-0">
+ {/* Main Editor with full IDE features */}
+ <div className="flex flex-col h-full bg-background overflow-hidden border-b border-border">
+ <div className="flex items-center justify-between text-xs font-bold text-foreground shrink-0 p-2.5 bg-muted/30 border-b border-border">
  <span className="flex items-center gap-1.5">
  <Code2 className="size-4 text-primary" /> Live Code Editor (Formatted &amp; Enhanced)
  </span>
@@ -592,19 +650,25 @@ export function CodeChefCompilerModal({
  value={code}
  onChange={(newVal) => {
  setCode(newVal);
+ setCompileResult(null);
  if (typeof window !== "undefined" && problemName && !readOnly) {
  localStorage.setItem(`draft_code_${problemName}`, newVal);
  }
  }}
  language={selectedLang}
  readOnly={readOnly}
- minHeight="320px"
+ minHeight="100%"
  placeholder="// Write your solution code here..."
  />
  </div>
+ </ResizablePanel>
 
- {/* Right 1 Col: Custom Input (stdin) */}
- <div className="flex flex-col space-y-1.5 h-full">
+ <ResizableHandle withHandle className="hover:bg-primary/20 transition-colors bg-border/50" />
+
+ <ResizablePanel defaultSize={40} minSize={20} className="flex flex-col min-h-0 bg-background">
+ <div className="flex flex-col gap-4 p-3 h-full overflow-y-auto">
+ {/* Custom Input (stdin) */}
+ <div className="flex flex-col space-y-2 flex-1 min-w-0">
  <Label htmlFor="custom-stdin" className="text-xs font-bold text-foreground flex items-center gap-1.5">
  <Terminal className="size-4 text-warning" /> Custom Input (stdin)
  </Label>
@@ -613,16 +677,15 @@ export function CodeChefCompilerModal({
  value={stdin}
  onChange={(e) => setStdin(e.target.value)}
  placeholder="Enter custom input / test cases here..."
- className="font-mono text-xs flex-1 min-h-[140px] bg-background border border-border rounded-lg p-3 focus-visible:ring-primary resize-y"
+ className="font-mono text-xs min-h-[140px] bg-background border border-border rounded-lg p-3 focus-visible:ring-primary resize-y"
  />
  <p className="text-[10px] text-foreground italic">
  Input is passed as standard input stream (stdin) when clicking Run Code.
  </p>
  </div>
- </div>
 
  {/* Console Execution Output Window */}
- <div className="space-y-1.5 shrink-0">
+ <div className="flex flex-col space-y-2 flex-1 min-w-0">
  <div className="flex items-center justify-between text-xs font-bold text-foreground">
  <span className="flex items-center gap-1.5">
  <Terminal className="size-4 text-success" /> Execution Console
@@ -639,7 +702,7 @@ export function CodeChefCompilerModal({
  )}
  </div>
 
- <div className="font-mono text-xs p-3.5 rounded-lg bg-muted border border-border min-h-[110px] max-h-[220px] overflow-y-auto whitespace-pre-wrap leading-relaxed shadow-sm text-muted">
+ <div className="flex-1 font-mono text-xs p-3.5 rounded-lg bg-muted/50 border border-border min-h-[110px] overflow-y-auto whitespace-pre-wrap leading-relaxed text-muted-foreground">
  {compiling ? (
  <div className="flex items-center gap-2 text-warning py-2">
  <Loader2 className="size-4 animate-spin" />
@@ -658,6 +721,19 @@ export function CodeChefCompilerModal({
  {!compileResult.stdout && !compileResult.stderr && (
  <span className="text-foreground italic">Code executed with no output.</span>
  )}
+ {compileResult.stderr && (
+ <div className="mt-3 flex justify-end">
+ <a
+ href={`${getChatGPTAiPromptUrl(problemName)}&prompt=${encodeURIComponent(`I am getting this error:\n\n${compileResult.stderr}\n\nFor this code:\n\n${code}\n\nPlease give me hints only, do not give me the code.`)}`}
+ target="_blank"
+ rel="noopener noreferrer"
+ className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 text-xs font-semibold text-indigo-400 border border-indigo-500/30 transition-colors"
+ >
+ <Sparkles className="size-3.5" />
+ Ask ChatGPT for Hints
+ </a>
+ </div>
+ )}
  </>
  ) : (
  <span className="text-foreground italic">
@@ -666,6 +742,9 @@ export function CodeChefCompilerModal({
  )}
  </div>
  </div>
+ </div>
+ </ResizablePanel>
+ </ResizablePanelGroup>
  </div>
  )}
 
@@ -770,8 +849,9 @@ export function CodeChefCompilerModal({
  type="button"
  size="sm"
  onClick={handleSave}
- disabled={busy || !code.trim()}
- className="rounded-lg text-xs h-8 font-bold bg-success hover:bg-success text-white shadow-sm shadow-success cursor-pointer"
+ disabled={busy || !code.trim() || !canSubmit}
+ title={canSubmit ? "Submit compiled solution" : "Run code successfully before submitting"}
+ className="rounded-lg text-xs h-8 font-bold bg-success hover:bg-success text-white shadow-sm shadow-success cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
  >
  <Save className="size-3.5 mr-1" />
  {busy ? "Saving..." : existingSubmission ? "Update Code" : "Submit Code & Complete"}

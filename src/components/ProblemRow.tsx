@@ -144,7 +144,7 @@ export function ProblemRow({
  htmlFor={id}
  className={cn(
  "min-w-[8rem] flex-1 basis-40 cursor-pointer break-words text-sm",
- problem.done && "text-foreground line-through",
+ problem.done && "text-success font-semibold",
  )}
  onClick={() => {
  if (!readOnly) setModalOpen(true);

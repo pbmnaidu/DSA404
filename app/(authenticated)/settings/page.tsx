@@ -78,18 +78,20 @@ function ChromeIcon({ className }: { className?: string }) {
 
 
 function Section({
+ id,
  icon: Icon,
  title,
  description,
  children,
 }: {
+ id?: string;
  icon: typeof Bell;
  title: string;
  description: string;
  children: React.ReactNode;
 }) {
  return (
- <section className="card-hover mb-6 rounded-lg border border-border bg-card p-5 animate-fade-in-up">
+ <section id={id} className="card-hover mb-6 rounded-lg border border-border bg-card p-5 animate-fade-in-up">
  <div className="mb-4 flex items-start gap-3">
  <Icon className="mt-0.5 size-5 text-primary" aria-hidden="true" />
  <div>
@@ -856,6 +858,7 @@ export default function SettingsPage() {
  </Section>
 
  <Section
+ id="notifications"
  icon={Bell}
  title="Reminders & Notifications"
  description="Comprehensive configuration for background push and email alerts."

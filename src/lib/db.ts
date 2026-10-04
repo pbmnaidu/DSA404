@@ -506,24 +506,25 @@ export async function hasExistingPlan(userId: string): Promise<boolean> {
 export async function isOnboardingCompleted(userId: string): Promise<boolean> {
  if (isGuestUser(userId)) return true;
 
- // 1. Check the explicit flag in user_settings
+ // 1. Check the explicit flag in user_settings first for speed
  const { data, error } = await supabase
    .from("user_settings")
    .select("onboarding_completed")
    .eq("user_id", userId)
    .maybeSingle();
 
- if (!error && data) {
-   if (data.onboarding_completed === true) return true;
+ if (!error && data && data.onboarding_completed === true) {
+   return true;
  }
 
- // 2. Fallback: check if study_days rows exist (backwards compat)
+ // 2. Fallback: check if study_days rows exist
  const hasPlan = await hasExistingPlan(userId);
  if (hasPlan) {
-   // Backfill the flag so future checks are fast
+   // Backfill the flag using update
    await supabase
      .from("user_settings")
-     .upsert({ user_id: userId, onboarding_completed: true }, { onConflict: "user_id" });
+     .update({ onboarding_completed: true })
+     .eq("user_id", userId);
  }
  return hasPlan;
 }
@@ -534,9 +535,20 @@ export async function isOnboardingCompleted(userId: string): Promise<boolean> {
  */
 export async function markOnboardingCompleted(userId: string): Promise<void> {
  if (isGuestUser(userId)) return;
- await supabase
+ 
+ // Try update first
+ const { data, error } = await supabase
    .from("user_settings")
-   .upsert({ user_id: userId, onboarding_completed: true }, { onConflict: "user_id" });
+   .update({ onboarding_completed: true })
+   .eq("user_id", userId)
+   .select();
+   
+ // If no row was updated (doesn't exist), insert it
+ if (error || !data || data.length === 0) {
+   await supabase
+     .from("user_settings")
+     .insert({ user_id: userId, onboarding_completed: true });
+ }
 }
 
 export async function changeStartDate(userId: string, newStartDate: string) {
