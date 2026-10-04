@@ -445,8 +445,11 @@ export async function saveSequence(userId: string, days: Day[]) {
 }
 
 export async function switchUserSheet(userId: string, sheetId: string, startDate?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
+ if (isGuestUser(userId)) return seedPlan(userId, startDate, undefined, sheetId);
+ const settings = await loadSettings(userId);
  await supabase.from("user_settings").upsert({ user_id: userId, active_sheet: sheetId }, { onConflict: "user_id" });
- return seedPlan(userId, startDate, undefined, sheetId);
+ const { data: current } = await supabase.from("user_settings").select("start_date").eq("user_id", userId).single();
+ return seedPlan(userId, startDate || current?.start_date, settings.counts, sheetId);
 }
 
 // Aliases to avoid breaking existing imports
@@ -537,5 +540,13 @@ export async function markOnboardingCompleted(userId: string): Promise<void> {
 }
 
 export async function changeStartDate(userId: string, newStartDate: string) {
- await supabase.from("user_settings").update({ start_date: newStartDate }).eq("user_id", userId);
+ if (!/^\d{4}-\d{2}-\d{2}$/.test(newStartDate)) {
+  throw new Error("Invalid plan start date.");
+ }
+ if (isGuestUser(userId)) return seedPlan(userId, newStartDate);
+
+ // Rebuild study_days as well as metadata; changing only start_date leaves the
+ // existing schedule on its old dates.
+ const settings = await loadSettings(userId);
+ return seedPlan(userId, newStartDate, settings.counts, settings.activeSheet);
 }

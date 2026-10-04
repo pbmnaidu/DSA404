@@ -166,6 +166,12 @@ export default function SettingsPage() {
  const [startDirty, setStartDirty] = useState(false);
  const [startBusy, setStartBusy] = useState(false);
 
+ // The plan loads asynchronously. Keep the editable field aligned with the
+ // persisted plan date until the user starts making a new selection.
+ useEffect(() => {
+  if (!startDirty && startDate) setPlanStartDate(startDate);
+ }, [startDate, startDirty]);
+
  // Sync counts when settings load from Firestore
  useEffect(() => {
  if (settings?.counts) {

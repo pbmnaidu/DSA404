@@ -54,6 +54,7 @@ import {
  Bell,
  BarChart3,
  MessageSquare,
+ BookOpen,
  MoreHorizontal,
 } from "lucide-react";
 import { loadUserProfile } from "@/lib/db";
@@ -82,6 +83,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
  { to: "/today", label: "Today", icon: Sparkles, group: "learn", hint: "Your daily workspace — today's topic, problems, and streak." },
+ { to: "/guide", label: "Guide", icon: BookOpen, group: "learn", hint: "A complete guide to every DSA⁴⁰⁴ feature and workflow." },
  { to: "/weeks", label: "Roadmap", icon: CalendarRange, group: "learn", hint: "Your 17-week learning roadmap with day-by-day progress." },
  { to: "/topics", label: "Topics", icon: LayoutGrid, group: "learn", hint: "All 42 Core 404 topics. Expand, track, and skip topics." },
  { to: "/problems", label: "Problems", icon: Code2, group: "practice", hint: "838+ problems — filter by platform, difficulty, or sheet." },
