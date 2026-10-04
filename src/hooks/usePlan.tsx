@@ -483,7 +483,8 @@ export function PlanProvider({
  const previousSnapshot = days;
  setLoading(true);
  try {
- const targetStartDate = startDateRef.current || startDate || undefined;
+ const persistedStartDate = await db.getPersistedStartDate(userId);
+ const targetStartDate = persistedStartDate || startDateRef.current || startDate || undefined;
  const { days: d, meta } = await db.seedPlan(userId, targetStartDate);
  setDays(d);
  setStartDate(meta.startDate);

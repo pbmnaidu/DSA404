@@ -38,7 +38,7 @@ export default function AuthenticatedLayout({
             email: user.email ?? undefined,
             displayName: user.user_metadata?.full_name || user.user_metadata?.name || undefined,
             photoURL: user.user_metadata?.avatar_url || user.user_metadata?.picture || undefined,
-          });
+          }).catch((err) => console.warn("Could not ensure profile exists:", err));
         }
       } else {
         router.push('/auth?next=/today')

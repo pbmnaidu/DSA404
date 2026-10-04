@@ -48,6 +48,15 @@ export function normalizeUsername(raw: string): string { return raw.trim().toLow
 
 const supabase = createClient();
 
+function describeSupabaseError(error: any) {
+  return JSON.stringify({
+    message: error?.message || String(error),
+    code: error?.code,
+    details: error?.details,
+    hint: error?.hint,
+  });
+}
+
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function toValidUuid(val?: string): string {
@@ -63,7 +72,16 @@ export function toValidUuid(val?: string): string {
 }
 
 async function deleteAllDays(uid: string) {
-  await supabase.from("study_days").delete().eq("user_id", uid);
+  const { error } = await supabase.from("study_days").delete().eq("user_id", uid);
+  if (error) {
+    console.error("Error deleting study_days:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw new Error(`Failed to clear study days: ${error.message}`);
+  }
 }
 
 async function writeAllDays(uid: string, days: Day[]) {
@@ -95,7 +113,14 @@ async function writeAllDays(uid: string, days: Day[]) {
       onConflict: "user_id, date",
     });
     if (error) {
-      console.error("Error saving study_days batch:", error);
+      console.error("Error saving study_days batch:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        batchStart: i,
+        batchSize: Math.min(100, rows.length - i),
+      });
       throw new Error(`Failed to save study days: ${error.message}`);
     }
   }
@@ -108,7 +133,7 @@ async function writeAllDays(uid: string, days: Day[]) {
 // so that username-based login (which queries profiles.email) works correctly.
 export async function ensureProfileExists(uid: string, meta?: { email?: string; displayName?: string; photoURL?: string }) {
  if (isGuestUser(uid)) return;
- await supabase.from("profiles").upsert(
+ const { error } = await supabase.from("profiles").upsert(
  {
  id: uid,
  ...(meta?.email ? { email: meta.email } : {}),
@@ -117,6 +142,7 @@ export async function ensureProfileExists(uid: string, meta?: { email?: string; 
  },
  { onConflict: "id", ignoreDuplicates: false }
  );
+ if (error) throw new Error(`Failed to ensure profile: ${error.message}`);
 }
 
 export async function updateUserProfile(uid: string, patch: { displayName?: string }) {
@@ -245,8 +271,10 @@ export async function loadPublicDays(uid: string): Promise<Day[]> {
 export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: PlanMeta; sheetId?: string }> {
   if (isGuestUser(userId)) return getGuestPlan();
   
-  const { data: daysData } = await supabase.from("study_days").select("*").eq("user_id", userId).order("seq_index", { ascending: true });
-  const { data: settingsData } = await supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle();
+  const { data: daysData, error: daysError } = await supabase.from("study_days").select("*").eq("user_id", userId).order("seq_index", { ascending: true });
+  const { data: settingsData, error: settingsError } = await supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle();
+  if (daysError) throw new Error(`Could not load study days: ${daysError.message}`);
+  if (settingsError) throw new Error(`Could not load plan settings: ${settingsError.message}`);
   
   const savedStartDate = settingsData?.start_date;
 
@@ -280,6 +308,43 @@ export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: Pla
 
 export async function seedPlan(userId: string, startDate?: string, counts?: DailyCounts, sheetId?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
   const now = new Date();
+
+  // Always use the UUID from the active Supabase session for foreign-keyed
+  // writes. This prevents a stale/legacy caller ID from being used as a
+  // profiles/user_settings/study_days owner.
+  if (!isGuestUser(userId)) {
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user?.id) {
+      const authMessage = authError?.message || "Please sign in again.";
+      // Supabase can retain a JWT locally after its auth.users row was deleted
+      // or after the app was pointed at a different project. Clear that
+      // unusable session so the authenticated shell cannot retry forever.
+      if (/does not exist|invalid.*jwt|jwt/i.test(authMessage)) {
+        await supabase.auth.signOut();
+      }
+      throw new Error(`Your Supabase session is no longer valid. Please sign in again. (${authMessage})`);
+    }
+    userId = authData.user.id;
+
+    // user_settings references profiles, so make that dependency explicit and
+    // fail with the profile error instead of an opaque settings FK error.
+    const { data: profile, error: profileReadError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileReadError) {
+      throw new Error(`Could not verify your profile: ${profileReadError.message}`);
+    }
+    if (!profile) {
+      try {
+        await ensureProfileExists(userId);
+      } catch (error) {
+        throw new Error(`Could not create your profile for plan sync: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+
   let effectiveStartDate = startDate;
 
   // If not explicitly provided, try to preserve the existing start_date from user_settings
@@ -295,7 +360,7 @@ export async function seedPlan(userId: string, startDate?: string, counts?: Dail
   }
 
   if (!effectiveStartDate) {
-    effectiveStartDate = now.toISOString().slice(0, 10);
+    effectiveStartDate = todayIso();
   }
 
   const effectiveCounts = counts || DEFAULT_DAILY_COUNTS;
@@ -315,19 +380,29 @@ export async function seedPlan(userId: string, startDate?: string, counts?: Dail
     };
   }
 
-  await deleteAllDays(userId);
-  await writeAllDays(userId, days);
-
-  const { error: upsertErr } = await supabase.from("user_settings").upsert({
+  // Save the chosen start date before rebuilding the rows. The date is the
+  // source of truth for Today and Progress, even if row creation is retried.
+  const { error: settingsErr } = await supabase.from("user_settings").upsert({
     user_id: userId,
     start_date: effectiveStartDate,
-    last_active_date: effectiveStartDate,
     active_sheet: effectiveSheet,
     counts: { ...effectiveCounts, onboarding_completed: true },
   }, { onConflict: "user_id" });
+  if (settingsErr) {
+    console.error("Failed to persist plan settings before seed:", describeSupabaseError(settingsErr));
+    throw new Error(`Failed to save plan start date: ${settingsErr.message}`);
+  }
 
-  if (upsertErr) {
-    console.error("Failed to update user_settings start_date in seedPlan:", upsertErr);
+  await deleteAllDays(userId);
+  await writeAllDays(userId, days);
+
+  const { error: activeErr } = await supabase.from("user_settings").update({
+    user_id: userId,
+    last_active_date: effectiveStartDate,
+  }).eq("user_id", userId);
+
+  if (activeErr) {
+    console.error("Failed to update user_settings activity date in seedPlan:", activeErr);
   }
 
   return {
@@ -339,10 +414,24 @@ export async function seedPlan(userId: string, startDate?: string, counts?: Dail
 export async function savePlan(userId: string, days: Day[], meta: PlanMeta, sheetId?: string) {
  if (isGuestUser(userId)) { saveGuestPlan(days); return; }
  await writeAllDays(userId, days);
- await supabase.from("user_settings").update({
+ const { error } = await supabase.from("user_settings").upsert({
+ user_id: userId,
  start_date: meta.startDate,
  last_active_date: meta.lastActiveDate,
- }).eq("user_id", userId);
+ }, { onConflict: "user_id" });
+ if (error) throw new Error(`Failed to save plan settings: ${error.message}`);
+}
+
+/** Read the persisted plan date for destructive/reset actions. */
+export async function getPersistedStartDate(userId: string): Promise<string | null> {
+ if (isGuestUser(userId)) return getGuestPlan().meta.startDate || null;
+ const { data, error } = await supabase
+   .from("user_settings")
+   .select("start_date")
+   .eq("user_id", userId)
+   .maybeSingle();
+ if (error) throw new Error(`Could not read plan start date: ${error.message}`);
+ return data?.start_date || null;
 }
 
 export async function saveDayProgress(uid: string, dayId: string, patch: Partial<Day>) {

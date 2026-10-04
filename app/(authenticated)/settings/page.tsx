@@ -195,11 +195,20 @@ export default function SettingsPage() {
  const firstOpen = days.findIndex((d) => !d.problems.every((p) => p.done) && d.status !== "merged" && !d.skipped);
  const keep = firstOpen === -1 ? days : days.slice(0, firstOpen);
  const startPosition = keep.filter((d) => !d.skipped).length;
- const needResult = daysNeeded(remaining, validCounts, startDate, startPosition);
+ // Forecast from the date currently selected in the form, not from today's
+ // date or the previously saved date. The selected date is Day 1, so one
+ // estimated study day completes on that date (not the following day).
+ const forecastStartDate = planStartDate || startDate;
+ const needResult = daysNeeded(remaining, validCounts, forecastStartDate, startPosition);
  const doneDays = days.filter((d) => d.problems.length > 0 && d.problems.every((p) => p.done))
  .length;
- return { remaining: remaining.length, need: needResult.studyDays, finish: addDays(todayIso(), needResult.calendarDays), doneDays };
- }, [days, counts, startDate]);
+ return {
+  remaining: remaining.length,
+  need: needResult.studyDays,
+  finish: addDays(forecastStartDate, Math.max(0, needResult.calendarDays - 1)),
+  doneDays,
+ };
+ }, [days, counts, startDate, planStartDate]);
 
  async function saveAccount() {
  setBusy(true);
