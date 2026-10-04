@@ -49,7 +49,7 @@ const PAGE_GUIDES: Record<string, PageGuideInfo> = {
  ],
  },
  "/problems": {
- title: "Curated Problem Library (830+ Questions)",
+ title: "Curated Problem Library (all available questions)",
  badge: "Multi-Sheet Hub",
  description:
  "A searchable library combining Striver's A2Z, NeetCode 150, Love Babbar, and Core 404 sheets. Notice green badges indicating problems Alex has already solved.",
@@ -60,7 +60,7 @@ const PAGE_GUIDES: Record<string, PageGuideInfo> = {
  ],
  },
  "/topics": {
- title: "Pattern-First Curriculum (42 Core Topics)",
+ title: "Pattern-First Curriculum (28 Core Topics)",
  badge: "Structured Learning",
  description:
  "Instead of memorizing hundreds of solutions, DSA⁴⁰⁴ organizes curriculum by reusable patterns (Sliding Window, Two Pointers, BFS/DFS, etc.).",

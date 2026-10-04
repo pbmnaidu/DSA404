@@ -8,9 +8,9 @@
  * FCM foreground messages require an onMessage() listener in the main thread.
  */
 
-// import { getMessagingIfSupported } from "@/integrations/firebase/client";
-// import { getToken, onMessage } from "firebase/messaging";
 import { savePushSubscription } from "@/lib/db";
+import { getMessagingIfSupported } from "@/integrations/firebase/client";
+import { getToken, onMessage } from "firebase/messaging";
 
 export const pushSupported = () =>
  typeof window !== "undefined" &&
@@ -94,17 +94,17 @@ export async function subscribeDevice(userId: string, force = false): Promise<bo
  return false;
  }
 
- const messaging = null; // await getMessagingIfSupported();
+ const messaging = await getMessagingIfSupported();
  if (!messaging) {
- // console.warn("[push] Stage A: FCM Messaging is not supported in this browser environment.");
+ console.warn("[push] Stage A: FCM Messaging is not supported in this browser environment.");
  return false;
  }
 
  console.info("[push] Stage A: Requesting FCM Token from Firebase Messaging...");
- const token = ""; /* await getToken(messaging, {
+ const token = await getToken(messaging, {
  vapidKey,
  serviceWorkerRegistration: reg,
- }); */
+ });
 
  if (!token) {
  console.error("[push] Stage A ERROR: getToken() returned empty token string.");
@@ -163,12 +163,12 @@ export async function setupForegroundNotificationListener(
  }
 
  try {
- const messaging = null; // await getMessagingIfSupported();
+ const messaging = await getMessagingIfSupported();
  if (!messaging) return () => {};
 
  console.info("[push] Stage D: Registering FCM foreground onMessage() listener...");
 
- const unsubscribeFn = () => {}; /* onMessage(messaging, (payload: any) => {
+ const unsubscribeFn = onMessage(messaging, (payload: any) => {
  console.info("[push] Stage D SUCCESS: FCM foreground message received:", payload);
 
  const title =
@@ -184,7 +184,7 @@ export async function setupForegroundNotificationListener(
 
  console.info("[push] Stage E: Displaying foreground notification popup via showLocalReminder...");
  void showLocalReminder(title, body, tag);
- }); */
+ });
 
  isForegroundListenerRegistered = true;
  activeUnsubscribe = () => {

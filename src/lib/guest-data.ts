@@ -354,46 +354,19 @@ function buildDefaultGuestDays(): Day[] {
 
  // 2. Today's Day (Day 46) -> 2 solved, 1 pending
  if (d.date === today) {
+ const demoProblems = [
+  { name: "Lowest Common Ancestor of a BST", difficulty: "Medium", platform: "LeetCode", link: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/", linkVerified: true, takeUForwardLink: null, estTime: 35, done: true, isHard: false, forReview: true, completedAt: `${today}T10:15:00Z` },
+  { name: "Validate Binary Search Tree", difficulty: "Medium", platform: "LeetCode", link: "https://leetcode.com/problems/validate-binary-search-tree/", linkVerified: true, takeUForwardLink: null, estTime: 35, done: true, isHard: false, forReview: true, completedAt: `${today}T14:40:00Z` },
+  { name: "Binary Tree Maximum Path Sum", difficulty: "Hard", platform: "LeetCode", link: "https://leetcode.com/problems/binary-tree-maximum-path-sum/", linkVerified: true, takeUForwardLink: null, estTime: 45, done: false, isHard: true },
+ ];
  return {
  ...d,
+ isRevisionDay: false,
  status: "in_progress",
  topic: "Binary Trees & BST Essentials",
  subtopics: ["LCA in BST", "BST Validation", "Path Sum Algorithms"],
  checklist: d.checklist.map((c, idx) => ({ ...c, done: idx < 8 })),
- problems: d.problems.map((p, idx) => {
- if (idx === 0) {
- return {
- ...p,
- name: "Lowest Common Ancestor of a BST",
- difficulty: "Medium",
- platform: "LeetCode",
- link: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
- done: true,
- completedAt: `${today}T10:15:00Z`,
- forReview: true,
- };
- }
- if (idx === 1) {
- return {
- ...p,
- name: "Validate Binary Search Tree",
- difficulty: "Medium",
- platform: "LeetCode",
- link: "https://leetcode.com/problems/validate-binary-search-tree/",
- done: true,
- completedAt: `${today}T14:40:00Z`,
- forReview: true,
- };
- }
- return {
- ...p,
- name: "Binary Tree Maximum Path Sum",
- difficulty: "Hard",
- platform: "LeetCode",
- link: "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
- done: false,
- };
- }),
+ problems: demoProblems,
  notes: "Key takeaway: In a BST, in-order traversal yields strictly ascending order. For Lowest Common Ancestor, when values diverge on left and right, the current node is the LCA split point!",
  };
  }
