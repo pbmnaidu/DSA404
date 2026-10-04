@@ -9,7 +9,7 @@ export function ThemedLogo({ className = "" }: { className?: string }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const image = new Image();
-    image.src = "/logo.jpg";
+    image.src = "/logo/dsa404-logo.png";
 
     const render = () => {
       const ctx = canvas.getContext("2d");
