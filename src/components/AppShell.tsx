@@ -121,7 +121,7 @@ const SIDEBAR_STORAGE_KEY = "dsa-sidebar-width";
  ═══════════════════════════════════════════════════════════════════════ */
 function DesktopSidebar({
  pathname, email, streak, lastSynced, displayName, initials, photoURL, username,
- onSignOut, collapsed, onToggleCollapse, paused,
+ onSignOut, collapsed: pinnedCollapsed, onToggleCollapse, paused,
 }: {
  pathname: string; email: string; streak: number; lastSynced: string | null;
  displayName: string; initials: string; photoURL?: string | null; username?: string;
@@ -129,14 +129,18 @@ function DesktopSidebar({
  paused?: boolean;
 }) {
  const { openPanel } = useThemeCustomizer();
- const width = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
+  const [isHovered, setIsHovered] = useState(false);
+  const collapsed = pinnedCollapsed && !isHovered;
+  const width = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
  return (
  <aside
  className="hidden md:flex fixed top-0 left-0 h-full flex-col z-30 select-none transition-[width] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
  style={{ width }}
  aria-label="Main navigation"
- >
+    onMouseEnter={() => setIsHovered(true)}
+    onMouseLeave={() => setIsHovered(false)}
+  >
  <div className="flex flex-col flex-1 bg-sidebar border-r border-sidebar-border overflow-hidden h-full">
 
  {/* Brand header */}

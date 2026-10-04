@@ -407,9 +407,9 @@ function ContestCard({
  href={c.url}
  target="_blank"
  rel="noopener noreferrer"
- className="flex items-start justify-between gap-1 text-sm font-semibold leading-snug text-foreground hover:text-primary"
+ className="flex items-start justify-between gap-1 text-sm font-semibold leading-snug text-foreground hover:text-primary w-full min-w-0"
  >
- <span>{c.title}</span>
+ <span className="break-words whitespace-normal text-wrap min-w-0">{c.title}</span>
  <ExternalLink className="mt-0.5 size-3 shrink-0 group-hover:opacity-100" />
  </a>
 
@@ -882,12 +882,7 @@ export function TodayContestsSection() {
 
  {/* Grid of Contest Cards */}
  <div
- className={cn(
- "grid min-w-0 gap-4 pt-1",
- todaysContests.length === 1
- ? "grid-cols-1"
- : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
- )}
+ className="flex flex-col min-w-0 gap-4 pt-1"
  >
  {todaysContests.map((c) => (
  <ContestCard

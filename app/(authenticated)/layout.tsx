@@ -65,6 +65,8 @@ export default function AuthenticatedLayout({
   )
 }
 
+const ADMIN_EMAILS = ["404dsatracker@gmail.com"];
+
 function PlanBoundary({
   email,
   userId,
@@ -80,8 +82,17 @@ function PlanBoundary({
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [planReady, setPlanReady] = useState(false)
 
+  const isAdmin = Boolean(email && ADMIN_EMAILS.includes(email.toLowerCase()));
+
   useEffect(() => {
     if (!userId) return;
+
+    // Admin users skip onboarding entirely
+    if (isAdmin) {
+      setPlanReady(true);
+      setCheckingPlan(false);
+      return;
+    }
 
     // Fast path: if we already know this user finished onboarding, skip the DB query.
     // This is a performance optimisation only — the DB is always authoritative.
@@ -115,7 +126,7 @@ function PlanBoundary({
         setCheckingPlan(false);
       });
     });
-  }, [userId]);
+  }, [userId, isAdmin]);
 
   const handleOnboardingComplete = async (startDate: string, counts: DailyCounts) => {
     // Save their chosen settings

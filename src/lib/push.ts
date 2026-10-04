@@ -96,7 +96,7 @@ export async function subscribeDevice(userId: string, force = false): Promise<bo
 
  const messaging = null; // await getMessagingIfSupported();
  if (!messaging) {
- console.warn("[push] Stage A: FCM Messaging is not supported in this browser environment.");
+ // console.warn("[push] Stage A: FCM Messaging is not supported in this browser environment.");
  return false;
  }
 

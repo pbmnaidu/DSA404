@@ -24,7 +24,11 @@ import {
   Mail,
   UserCircle,
   Bell,
-  X
+  X,
+  Megaphone,
+  Send,
+  CheckCircle2,
+  LinkIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -33,12 +37,11 @@ import Link from "next/link";
 interface StatsData {
   notifications: Array<{
     id: string;
-    uid: string;
-    email: string;
-    displayName: string;
-    provider: string;
+    type?: string;
+    title?: string;
+    message?: string;
+    read?: boolean;
     createdAt: string;
-    status: string;
   }>;
   users: {
     total: number;
@@ -242,6 +245,72 @@ export default function AdminDashboardPage() {
   const [userId, setUserId] = useState<string>("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
+  // ── Broadcast message state ────────────────────────────────
+  const [msgTitle, setMsgTitle] = useState("");
+  const [msgBody, setMsgBody] = useState("");
+  const [msgUrl, setMsgUrl] = useState("/today");
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [broadcastMessages, setBroadcastMessages] = useState<Array<{
+    id: string; title: string; body: string; url?: string;
+    createdAt: string; status: string;
+    successCount?: number; failureCount?: number; tokensFound?: number;
+  }>>([]);
+
+  // ── Fetch broadcast messages ───────────────────────────────
+  const fetchMessages = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (data) {
+        setBroadcastMessages(data.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          body: d.body,
+          url: d.url,
+          createdAt: d.created_at,
+          status: d.status || "published",
+          successCount: d.success_count,
+          failureCount: d.failure_count,
+          tokensFound: d.tokens_found,
+        })));
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // ── Publish broadcast ──────────────────────────────────────
+  const handlePublish = useCallback(async () => {
+    if (!msgTitle.trim() || !msgBody.trim()) return;
+    setIsPublishing(true);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No auth");
+      const res = await fetch("/api/campaigns/publish", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: msgTitle.trim(),
+          body: msgBody.trim(),
+          url: msgUrl.trim() || "/messages",
+        }),
+      });
+      if (res.ok) {
+        setMsgTitle("");
+        setMsgBody("");
+        setMsgUrl("/today");
+        await fetchMessages();
+      }
+    } catch { /* ignore */ }
+    setIsPublishing(false);
+  }, [msgTitle, msgBody, msgUrl, fetchMessages]);
+
   // ── Verify admin claim ─────────────────────────────────────
   useEffect(() => {
     async function checkAuth() {
@@ -296,8 +365,11 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) fetchStats();
-  }, [isAdmin, fetchStats]);
+    if (isAdmin) {
+      fetchStats();
+      fetchMessages();
+    }
+  }, [isAdmin, fetchStats, fetchMessages]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -362,6 +434,12 @@ export default function AdminDashboardPage() {
                   <a href="#user-directory" className="group flex items-center rounded-lg transition-all duration-150 gap-2.5 px-2.5 py-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground cursor-pointer">
                     <Users className="size-[18px] shrink-0 text-foreground group-hover:text-foreground" />
                     <span className="text-[13px] truncate flex-1">User Management</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#broadcast" className="group flex items-center rounded-lg transition-all duration-150 gap-2.5 px-2.5 py-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground cursor-pointer">
+                    <Megaphone className="size-[18px] shrink-0 text-foreground group-hover:text-foreground" />
+                    <span className="text-[13px] truncate flex-1">Broadcast Messages</span>
                   </a>
                 </li>
               </ul>
@@ -461,7 +539,7 @@ export default function AdminDashboardPage() {
                   <Users className="size-3.5" />
                   Audience & Registration
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <StatCard
                     icon={Users}
                     title="Total Registered Users"
@@ -496,15 +574,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </StatCard>
 
-                  <StatCard
-                    icon={Activity}
-                    title="Auth Provider Limit"
-                    value={stats?.quotas.authUsers.current ?? null}
-                    subtitle={stats ? `Max limit: ${stats.quotas.authUsers.limit}` : undefined}
-                    source={stats?.quotas.authUsers.source}
-                    loading={loading && !stats}
-                    error={error}
-                  />
+                  
                 </div>
               </section>
 
@@ -575,97 +645,120 @@ export default function AdminDashboardPage() {
                 </div>
               </section>
 
-              {/* ── Firestore Section ───────────────────────────────── */}
-              <section>
+              {/* ── Broadcast Messages Section ──────────────────────── */}
+              <section id="broadcast" className="mt-8">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
-                  <Database className="size-3.5" />
-                  Firestore Database
+                  <Megaphone className="size-3.5" />
+                  Broadcast Messages
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <StatCard
-                    icon={FolderOpen}
-                    title="User Projects"
-                    value={stats?.projects.total ?? null}
-                    subtitle={
-                      stats
-                        ? `Estimated data: ${formatBytes(stats.projects.storageEstimateBytes)}`
-                        : undefined
-                    }
-                    source={stats?.projects.source}
-                    loading={loading && !stats}
-                    error={error}
-                  />
 
-                  <StatCard
-                    icon={FileText}
-                    title="Total Documents (est.)"
-                    value={stats?.firestore.documentsEstimate ?? null}
-                    source={stats?.firestore.source}
-                    note={stats?.firestore.note}
-                    loading={loading && !stats}
-                    error={error}
-                  >
-                    {stats && (
-                      <div className="flex flex-col gap-1 mt-2">
-                        <div className="flex justify-between items-center bg-muted/50 px-2.5 py-1.5 rounded-md border border-border">
-                          <span className="text-[10px] text-muted-foreground font-medium">Usernames</span>
-                          <span className="text-[10px] text-foreground font-mono">{formatNumber(stats.firestore.usernameDocuments)}</span>
-                        </div>
-                        <div className="flex justify-between items-center bg-muted/50 px-2.5 py-1.5 rounded-md border border-border">
-                          <span className="text-[10px] text-muted-foreground font-medium">Messages</span>
-                          <span className="text-[10px] text-foreground font-mono">{formatNumber(stats.firestore.messageDocuments)}</span>
-                        </div>
+                {/* Compose form */}
+                <div className="rounded-xl border border-border bg-card p-5 shadow-sm mb-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <Send className="size-4 text-primary" />
+                    Compose Broadcast
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1 block">Title</label>
+                      <input
+                        type="text"
+                        value={msgTitle}
+                        onChange={(e) => setMsgTitle(e.target.value)}
+                        placeholder="e.g. New Feature: Code Editor"
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1 block">Message Body</label>
+                      <textarea
+                        value={msgBody}
+                        onChange={(e) => setMsgBody(e.target.value)}
+                        placeholder="Write your announcement here..."
+                        rows={3}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1 block">Action URL (optional)</label>
+                      <div className="flex items-center gap-2">
+                        <LinkIcon className="size-4 text-muted-foreground shrink-0" />
+                        <input
+                          type="text"
+                          value={msgUrl}
+                          onChange={(e) => setMsgUrl(e.target.value)}
+                          placeholder="/today"
+                          className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                        />
                       </div>
-                    )}
-                  </StatCard>
+                    </div>
+                    <button
+                      onClick={handlePublish}
+                      disabled={isPublishing || !msgTitle.trim() || !msgBody.trim()}
+                      className="flex items-center gap-2 h-9 px-4 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send className={`size-3.5 ${isPublishing ? "animate-pulse" : ""}`} />
+                      {isPublishing ? "Publishing..." : "Publish Broadcast"}
+                    </button>
+                  </div>
+                </div>
 
-                  <StatCard
-                    icon={Database}
-                    title="Firestore Limit (Spark)"
-                    value={
-                      stats
-                        ? formatBytes(stats.quotas.firestoreStorage.limitBytes)
-                        : null
-                    }
-                    subtitle="Free tier documented limit"
-                    source={stats?.quotas.firestoreStorage.source}
-                    loading={loading && !stats}
-                    error={error}
-                  />
+                {/* Sent messages list */}
+                <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="text-[10px] uppercase text-muted-foreground bg-muted border-b border-border tracking-wider">
+                        <tr>
+                          <th className="px-6 py-4 font-semibold">Title</th>
+                          <th className="px-6 py-4 font-semibold">Message</th>
+                          <th className="px-6 py-4 font-semibold">Sent</th>
+                          <th className="px-6 py-4 font-semibold">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {broadcastMessages.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                              No broadcasts sent yet
+                            </td>
+                          </tr>
+                        ) : (
+                          broadcastMessages.map((msg) => (
+                            <tr key={msg.id} className="hover:bg-muted/50 transition-colors">
+                              <td className="px-6 py-3 font-medium text-foreground max-w-[200px] truncate">
+                                {msg.title}
+                              </td>
+                              <td className="px-6 py-3 text-foreground/80 max-w-[300px] truncate">
+                                {msg.body}
+                              </td>
+                              <td className="px-6 py-3 text-muted-foreground whitespace-nowrap">
+                                {new Date(msg.createdAt).toLocaleDateString(undefined, {
+                                  year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                })}
+                              </td>
+                              <td className="px-6 py-3">
+                                <span className={cn(
+                                  "text-[10px] px-2 py-1 rounded font-mono tracking-wide border",
+                                  msg.status === "published"
+                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                                    : msg.status === "failed"
+                                      ? "bg-destructive/10 text-destructive border-destructive/20"
+                                      : "bg-muted text-foreground/80 border-border"
+                                )}>
+                                  {msg.status}
+                                  {msg.successCount !== undefined && ` · ${msg.successCount}/${msg.tokensFound || 0}`}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </section>
 
-              {/* ── Storage Section ─────────────────────────────────── */}
-              <section>
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
-                  <HardDrive className="size-3.5" />
-                  Cloud Storage
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <StatCard
-                    icon={HardDrive}
-                    title="Current Usage"
-                    value={stats?.storage.usage ?? null}
-                    source={stats?.storage.source}
-                    note={stats?.storage.note}
-                    loading={loading && !stats}
-                    error={error}
-                  />
-                  <StatCard
-                    icon={HardDrive}
-                    title="Capacity Limit (Spark)"
-                    value={
-                      stats
-                        ? formatBytes(stats.quotas.cloudStorage.limitBytes)
-                        : null
-                    }
-                    subtitle="Firebase Storage free tier limit"
-                    source={stats?.quotas.cloudStorage.source}
-                    loading={loading && !stats}
-                    error={error}
-                  />
-                </div>
-              </section>
+              
             </div>
           </main>
         </div>
@@ -712,26 +805,14 @@ export default function AdminDashboardPage() {
                 stats.notifications.map((n) => (
                   <div key={n.id} className="p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors text-sm">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="font-semibold text-foreground">New User Registered</span>
+                      <span className="font-semibold text-foreground">{n.title || n.type || "Notification"}</span>
                       <span className="text-[10px] text-muted-foreground">{formatTimeAgo(n.createdAt)}</span>
                     </div>
-                    <p className="text-muted-foreground text-xs mb-2">
-                      A new user has joined the platform.
-                    </p>
-                    <div className="bg-background rounded p-2 border border-border space-y-1">
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-muted-foreground">Name:</span>
-                        <span className="text-foreground font-medium">{n.displayName || "—"}</span>
-                      </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-muted-foreground">Email:</span>
-                        <span className="text-foreground font-medium">{n.email || "—"}</span>
-                      </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-muted-foreground">Provider:</span>
-                        <span className="text-foreground font-mono">{n.provider}</span>
-                      </div>
-                    </div>
+                    {n.message && (
+                      <p className="text-muted-foreground text-xs">
+                        {n.message}
+                      </p>
+                    )}
                   </div>
                 ))
               )}
