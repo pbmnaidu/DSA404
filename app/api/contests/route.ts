@@ -3,7 +3,7 @@ import { syncContestsIfNeeded } from "@/lib/contests-service";
 
 export const dynamic = "force-dynamic";
 
-// ─── GET /api/contests (Database-backed read endpoint, synced only on starting day) ────
+// ─── GET /api/contests (database-only reads; scheduled sync runs at 04:00 IST) ────
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const force = searchParams.get("force") === "true";

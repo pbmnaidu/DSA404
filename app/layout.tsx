@@ -3,24 +3,23 @@ import { Providers } from './providers'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'DSA Preparation Tracker',
-  description: 'Master DSA with a personalised comprehensive plan',
-  manifest: '/manifest.json',
+  title: "DSA404",
+  description: "DSA404 learning platform",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'DSA⁴⁰⁴',
+    statusBarStyle: "black-translucent",
+    title: "DSA404",
   },
   icons: {
-    icon: '/app-icon-circular.png',
-    apple: '/app-icon-circular.png',
-    shortcut: '/favicon.ico',
+    icon: "/logo/favicon.png?v=2",
+    shortcut: "/logo/favicon.png?v=2",
+    apple: "/apple-touch-icon.png?v=2",
   },
-}
+};
 
 export const viewport: Viewport = {
-  colorScheme: 'light',
-  themeColor: '#4169E1',
+  colorScheme: 'light dark',
   width: 'device-width',
   initialScale: 1,
   minimumScale: 1,
@@ -51,6 +50,13 @@ const antiFoucScript = `
     // Support dark mode if explicitly set, else Pearl & Royal (light)
     var savedMode = localStorage.getItem('dsa-theme-mode');
     var isDark = savedMode === 'dark';
+    var themeColor = isDark ? '#101623' : '#FAF9F6';
+    
+    var metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', themeColor);
+    var metaMs = document.querySelector('meta[name="msapplication-navbutton-color"]');
+    if (metaMs) metaMs.setAttribute('content', themeColor);
+
     if (isDark) {
       doc.classList.add('dark');
       doc.classList.remove('light');
@@ -108,8 +114,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* PWA Title Bar & Auxiliary Wizard Window Colors */}
-        <meta name="theme-color" content="#4169E1" />
-        <meta name="msapplication-navbutton-color" content="#4169E1" />
+        <meta name="theme-color" content="#FAF9F6" />
+        <meta name="msapplication-navbutton-color" content="#FAF9F6" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         {/* Synchronous anti-FOUC script — applies saved theme, custom colors, and typography before paint */}
         <script id="anti-fouc" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: antiFoucScript }} />

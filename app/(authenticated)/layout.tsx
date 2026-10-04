@@ -143,10 +143,10 @@ function PlanBoundary({
     if (typeof window !== 'undefined') {
       localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
     }
-    // Show the app — land on Today's Workspace
+    // Show the app — land on User Guide
     setShowOnboarding(false);
     setPlanReady(true);
-    router.push('/today');
+    router.push('/guide');
   }
 
   if (checkingPlan || settingsLoading) {

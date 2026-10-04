@@ -1,5 +1,9 @@
-// import { getAdminDb } from "@/integrations/firebase/admin.server";
-const getAdminDb = () => null as any;
+import { createClient as createSupabaseServer } from "@supabase/supabase-js";
+
+const supabaseAdmin = () => createSupabaseServer(
+ process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+ process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+);
 
 export interface Contest {
  id: string;
@@ -347,68 +351,12 @@ export async function syncContestsToFirestore(): Promise<Contest[]> {
  const sorted = dedupContests(validated).sort((a, b) => a.startMs - b.startMs);
 
  if (sorted.length > 0) {
- try {
- const db = getAdminDb();
- const batchSize = 400;
- const nowIso = new Date().toISOString();
- const todayIso = nowIso.slice(0, 10);
-
- // 1. Save fresh contests to DB
- for (let i = 0; i < sorted.length; i += batchSize) {
- const batch = db.batch();
- const chunk = sorted.slice(i, i + batchSize);
- for (const contest of chunk) {
- const docRef = db.collection("contests").doc(contest.id);
- batch.set(docRef, { ...contest, updatedAt: nowIso }, { merge: true });
- }
- await batch.commit();
- }
-
- // 2. Prune & remove contests older than 1 week from DB
- try {
- const allDocsSnap = await db.collection("contests").get();
- const nowMs = Date.now();
- const expiredDocRefs: any[] = [];
-
- for (const doc of allDocsSnap.docs) {
- if (doc.id === "meta") continue;
- const data = doc.data();
- const startMs = Number(data.startMs) || 0;
- const durationMs = Number(data.durationMs) || 0;
- const endMs = startMs + durationMs;
- // If ended more than 1 week ago, remove from DB
- if (endMs > 0 && endMs < nowMs - CONTEST_RETENTION_MS) {
- expiredDocRefs.push(doc.ref);
- }
- }
-
- if (expiredDocRefs.length > 0) {
- console.info(`[contests-service] Removing ${expiredDocRefs.length} contests older than 1 week from DB...`);
- for (let i = 0; i < expiredDocRefs.length; i += batchSize) {
- const delBatch = db.batch();
- const chunk = expiredDocRefs.slice(i, i + batchSize);
- for (const ref of chunk) {
- delBatch.delete(ref);
- }
- await delBatch.commit().catch(() => {});
- }
- }
- } catch (pruneErr) {
- console.warn("[contests-service] Contests 1-week pruning warning:", pruneErr);
- }
-
- // 3. Record lastFetchedDate for starting day tracking
- await db.doc("contests/meta").set(
- {
- lastFetchedDate: todayIso,
- lastFetchedAt: nowIso,
- count: sorted.length,
- },
- { merge: true }
- ).catch(() => {});
- } catch (adminErr) {
- console.warn("[contests-service] Warning: Admin Firestore sync bypassed, returning fetched contests directly:", adminErr);
- }
+   const supabase = supabaseAdmin();
+   const nowIso = new Date().toISOString();
+   const rows = sorted.map((contest) => ({ id: contest.id, name: contest.title, url: contest.url, platform: contest.platform, start_ms: contest.startMs, duration_ms: contest.durationMs, end_ms: contest.startMs + contest.durationMs, updated_at: nowIso }));
+   const { error } = await supabase.from("contests").upsert(rows, { onConflict: "id" });
+   if (error) throw error;
+   await supabase.from("contests").delete().lt("end_ms", Date.now() - CONTEST_RETENTION_MS);
  }
 
  return sorted;
@@ -431,27 +379,12 @@ export async function syncContestsIfNeeded(force: boolean = false): Promise<Cont
  return serverMemoryCache.contests;
  }
 
- try {
- const db = getAdminDb();
- const metaSnap = await db.doc("contests/meta").get();
-
- // 2. If DB was already synced on this starting day, return from Firestore
- if (!force && metaSnap.exists) {
- const meta = metaSnap.data();
- if (meta?.lastFetchedDate === todayIso && (meta?.count ?? 0) > 0) {
- const stored = await getContestsFromFirestore();
- if (stored.length > 0) {
- serverMemoryCache = {
- date: todayIso,
- fetchedAtMs: nowMs,
- contests: stored,
- };
- return stored;
- }
- }
- }
- } catch (err) {
- console.warn("[contests-service] Failed reading contests meta:", err);
+ if (!force) {
+   const stored = await getContestsFromFirestore();
+   serverMemoryCache = { date: todayIso, fetchedAtMs: nowMs, contests: stored };
+   // Normal reads are database-only. The cron endpoint or manual force owns
+   // all external fetching, including the empty-before-first-sync case.
+   return stored;
  }
 
  // 3. First fetch of starting day or DB empty: fetch external platforms & save to DB
@@ -467,44 +400,10 @@ export async function syncContestsIfNeeded(force: boolean = false): Promise<Cont
 
 export async function getContestsFromFirestore(): Promise<Contest[]> {
  try {
- const db = getAdminDb();
- const snap = await db.collection("contests").get();
- if (snap.empty) return [];
-
- const now = Date.now();
- const list: Contest[] = [];
- const expiredDocRefs: any[] = [];
-
- for (const docSnap of snap.docs) {
- if (docSnap.id === "meta") continue;
- const data = docSnap.data();
- const valid = validateContest(data);
- if (valid) {
- const endMs = valid.startMs + valid.durationMs;
- if (endMs >= now - CONTEST_RETENTION_MS) {
- list.push(valid);
- } else {
- expiredDocRefs.push(docSnap.ref);
- }
- } else {
- expiredDocRefs.push(docSnap.ref);
- }
- }
-
- // Auto-remove any expired contests (> 1 week) in background
- if (expiredDocRefs.length > 0) {
- (async () => {
- try {
- const batch = db.batch();
- for (const ref of expiredDocRefs.slice(0, 400)) {
- batch.delete(ref);
- }
- await batch.commit();
- } catch { }
- })();
- }
-
- return dedupContests(list).sort((a, b) => a.startMs - b.startMs);
+ const { data, error } = await supabaseAdmin().from("contests").select("id,name,url,platform,start_ms,duration_ms,end_ms").order("start_ms", { ascending: true });
+ if (error) throw error;
+ const list = (data || []).map((row: any) => validateContest({ id: row.id, title: row.name, url: row.url, platform: row.platform, startMs: row.start_ms, durationMs: row.duration_ms }));
+ return dedupContests(list.filter((c): c is Contest => c !== null));
  } catch (err) {
  console.error("[contests-service] Firestore read error:", err);
  return [];

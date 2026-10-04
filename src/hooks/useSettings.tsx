@@ -113,6 +113,12 @@ export function SettingsProvider({ userId, children }: { userId: string; childre
  root.classList.toggle("light", light);
  root.classList.toggle("dark", !light);
  root.style.colorScheme = light ? "light" : "dark";
+ 
+ const themeColor = light ? "#FAF9F6" : "#101623";
+ const metaTheme = document.querySelector('meta[name="theme-color"]');
+ if (metaTheme) metaTheme.setAttribute("content", themeColor);
+ const metaMs = document.querySelector('meta[name="msapplication-navbutton-color"]');
+ if (metaMs) metaMs.setAttribute("content", themeColor);
  };
 
  apply();

@@ -20,7 +20,7 @@
 
 import { NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth.server";
-import { createClient } from "@/integrations/supabase/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 
 // Simple in-memory cache to avoid expensive reads on rapid refreshes
 let cachedStats: any = null;
@@ -39,7 +39,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = await createClient();
+    // Admin stats must bypass end-user RLS. The previous cookie client caused
+    // recursive admin_users policies and hid feedback query failures.
+    const supabase = createSupabaseAdmin(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+    );
 
     // ── 1. User statistics ───────────────────────────────────────
     const todayStart = new Date();
@@ -94,25 +99,21 @@ export async function GET(request: Request) {
       storageBytes: { limitBytes: 5_368_709_120, source: "supabase_storage_unlimited" as const },
     };
 
-    // ── 5. Fetch Notifications ───────────────────────────────────
-    const { data: notificationsData } = await supabase
+    // ── 5. Fetch Notification Counters ───────────────────────────────────
+    const { count: unreadNotifications } = await supabase
       .from("admin_notifications")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50);
+      .select("*", { count: "exact", head: true })
+      .eq("read", false);
 
-    const notificationsList = notificationsData?.map(doc => ({
-      id: doc.id,
-      type: doc.type,
-      title: doc.title,
-      message: doc.message,
-      read: doc.read,
-      createdAt: doc.created_at,
-    })) || [];
+    const { count: newFeedback } = await supabase
+      .from("user_feedback")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "new");
 
     // ── 6. Build response ────────────────────────────────────────
     const stats = {
-      notifications: notificationsList,
+      unreadNotifications: unreadNotifications || 0,
+      newFeedback: newFeedback || 0,
       users: {
         total: totalUsers || 0,
         today: todayUsers || 0,

@@ -10,6 +10,7 @@ import { useTopicReminders } from "@/hooks/useTopicReminders";
 import { useContests } from "@/hooks/useContests";
 import { todayIso, formatDate } from "@/lib/plan";
 import { currentStreak } from "@/lib/gamification";
+import { getLocalGitHubSyncConfig } from "@/lib/github-sync";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -67,6 +68,12 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
  const { reminders } = useTopicReminders();
  const { contests } = useContests();
  const streak = useMemo(() => currentStreak(days), [days]);
+
+  // Load GitHub sync config from localStorage
+  const ghConfig = useMemo(() => {
+    if (!user?.id) return null;
+    return getLocalGitHubSyncConfig(user.id);
+  }, [user?.id]);
 
  const [filter, setFilter] = useState<"all" | "plan" | "contest" | "reminder" | "streak" | "system">("all");
 
@@ -263,15 +270,27 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
  // ──────────────────────────────────────────────────────────────────────────
  // 4. SYSTEM UTILITIES
  // ──────────────────────────────────────────────────────────────────────────
- list.push({
- id: `github-sync-info`,
- category: "system",
- title: "📁 GitHub Auto-Sync Active",
- message: "Every problem you solve automatically commits solution code & key notes to your GitHub repo.",
- time: "Automated",
- link: "/settings",
- priority: "normal",
- });
+  if (ghConfig?.enabled && ghConfig?.repo) {
+    list.push({
+      id: `github-sync-active-${ghConfig.repo}`,
+      category: "system",
+      title: "📁 GitHub Auto-Sync Active",
+      message: `Your solutions auto-commit to ${ghConfig.owner}/${ghConfig.repo} (branch: ${ghConfig.branch || "main"}).`,
+      time: "Automated",
+      link: "/settings",
+      priority: "normal",
+    });
+  } else {
+    list.push({
+      id: "github-sync-tip",
+      category: "system",
+      title: "🐙 Link GitHub Repo",
+      message: "Connect a GitHub repo in Settings to auto-commit your solutions on every save.",
+      time: "Tip",
+      link: "/settings",
+      priority: "normal",
+    });
+  }
 
  if (!settings.pushEnabled) {
  list.push({
@@ -286,7 +305,7 @@ export function NotificationPanel({ open, onClose, onUnreadCountChange }: Notifi
  }
 
  return list;
- }, [days, streak, settings.pushEnabled, settings.paused, settings.pausedFrom, contests, reminders]);
+ }, [days, streak, settings.pushEnabled, settings.paused, settings.pausedFrom, contests, reminders, ghConfig]);
 
  // Active notifications (not dismissed)
  const activeNotifications = useMemo(() => {

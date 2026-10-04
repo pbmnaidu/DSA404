@@ -2,6 +2,7 @@
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { ChromeInstallModal } from "@/components/ChromeInstallModal";
+import { DSA404Logo } from "@/components/DSA404Logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -139,8 +140,8 @@ export function InstallApkSection() {
  <div className="w-full max-w-sm rounded-lg border border-border bg-card p-5 shadow-sm space-y-4">
  <div className="flex items-center justify-between border-b border-border pb-3">
  <div className="flex items-center gap-3">
- <div className="size-10 rounded-lg overflow-hidden border border-border shadow-sm ring-1 ring-primary/20">
- <img src="/logo.jpg" alt="DSA404 App" className="size-full object-cover" />
+ <div className="size-10 rounded-full overflow-hidden shrink-0">
+ <DSA404Logo size={40} />
  </div>
  <div>
  <h3 className="font-display text-sm font-bold leading-none">DSA⁴⁰⁴ App</h3>

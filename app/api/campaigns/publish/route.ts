@@ -1,43 +1,26 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { getMessaging } from "firebase-admin/messaging";
-import { createClient } from "@/integrations/supabase/server";
+import { verifyAdmin } from "@/lib/admin-auth.server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 
-const ADMIN_EMAILS = [
-  "404dsatracker@gmail.com",
-  ...(process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(",").map((e) => e.trim().toLowerCase()) : []),
-];
-
-async function isAdminUser(supabase: any, userId: string, email?: string | null): Promise<boolean> {
-  if (email && ADMIN_EMAILS.includes(email.toLowerCase())) return true;
-  // Check Supabase admin_users table
-  const { data } = await supabase
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", userId)
-    .single();
-  return !!data;
+/**
+ * Service-role Supabase client — bypasses RLS.
+ * Safe to use here because verifyAdmin() has already confirmed the caller is an admin.
+ */
+function getServiceClient() {
+  return createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+  );
 }
 
 export async function POST(req: Request) {
   try {
-    // Verify user via Supabase session (cookie-based)
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      console.warn("[api/campaigns/publish] Unauthorized: No valid Supabase session.");
-      return NextResponse.json(
-        { success: false, reason: "UNAUTHORIZED", message: "Not authenticated" },
-        { status: 401 }
-      );
-    }
-
-    const uid = user.id;
-    const email = user.email;
-
-    if (!(await isAdminUser(supabase, uid, email))) {
-      console.warn(`[api/campaigns/publish] Unauthorized publish attempt by uid=${uid}, email=${email}`);
+    // 1. Authenticate & Verify Admin
+    const authResult = await verifyAdmin(req);
+    if (!authResult.authorized) {
+      console.warn("[api/campaigns/publish] Unauthorized publish attempt");
       return NextResponse.json(
         {
           success: false,
@@ -47,7 +30,11 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
+    
+    const user = authResult.user;
+    const uid = user.id;
 
+    // 2. Validate input
     const bodyJson = await req.json().catch(() => ({}));
     const { title, body, url } = bodyJson;
 
@@ -65,13 +52,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Insert message into Supabase
+    // 3. Insert message using service-role client (bypasses RLS)
+    const supabaseAdmin = getServiceClient();
     const nowIso = new Date().toISOString();
     const targetUrl = (url && typeof url === "string" && url.trim()) ? url.trim() : "/messages";
     
-    // Instead of auto-generating a Firebase ID, we'll let Postgres handle the UUID
-    // or just fetch it immediately after insert.
-    const { data: insertedMessage, error: insertError } = await supabase
+    const { data: insertedMessage, error: insertError } = await supabaseAdmin
       .from("messages")
       .insert({
         title: title.trim(),
@@ -83,15 +69,29 @@ export async function POST(req: Request) {
       .single();
 
     if (insertError) {
-       console.error("Failed to insert message into Supabase:", insertError);
-       throw insertError;
+       console.error("[api/campaigns/publish] Database insert failed:", {
+         code: insertError.code,
+         message: insertError.message,
+         details: insertError.details,
+         hint: insertError.hint
+       });
+       return NextResponse.json(
+         { 
+           success: false, 
+           reason: "DATABASE_ERROR", 
+           message: "Failed to save message to database: " + insertError.message 
+         },
+         { status: 500 }
+       );
     }
+    
     const messageId = insertedMessage.id;
     const tag = `campaign-${messageId}`;
 
-    const { data: subsSnap, error: subsError } = await supabase
+    // 4. Send Push Notifications (Message is preserved even if this fails partially)
+    const { data: subsSnap, error: subsError } = await supabaseAdmin
       .from("push_subscriptions")
-      .select("token, id:token"); // aliased for legacy map
+      .select("token, id:token");
 
     const tokenDocs = subsSnap || [];
     const tokens = tokenDocs
@@ -117,7 +117,6 @@ export async function POST(req: Request) {
 
     for (let i = 0; i < tokens.length; i += BATCH_SIZE) {
       const batchTokens = tokens.slice(i, i + BATCH_SIZE);
-      const batchDocs = tokenDocs.slice(i, i + BATCH_SIZE);
 
       const multicastResult = await getMessaging().sendEachForMulticast({
         tokens: batchTokens,
@@ -160,7 +159,7 @@ export async function POST(req: Request) {
               errCode === "messaging/invalid-registration-token"
             ) {
               const invalidToken = batchTokens[idx];
-              await supabase
+              await supabaseAdmin
                 .from("push_subscriptions")
                 .delete()
                 .eq("token", invalidToken);

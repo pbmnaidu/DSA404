@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { QuoteLoader } from "@/components/QuoteLoader";
 
 export const metadata = {
-  title: "Admin Dashboard | DSA⁴⁰⁴",
+  title: "Admin Dashboard | DSA404",
   description: "Secure admin control panel.",
   robots: { index: false, follow: false },
 };

@@ -26,6 +26,7 @@ import {
  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { DSA404Logo } from "@/components/DSA404Logo";
 import {
  CalendarDays,
  CircleUser,
@@ -99,7 +100,7 @@ const NAV_GROUPS: { key: string; label: string; items: NavItem[] }[] = [
  { key: "practice", label: "Practice", items: NAV.filter((n) => n.group === "practice") },
  { key: "track", label: "Track", items: NAV.filter((n) => n.group === "track") },
  { key: "compete", label: "Compete", items: NAV.filter((n) => n.group === "compete") },
- { key: "coach", label: "Coach", items: NAV.filter((n) => n.group === "coach") },
+ { key: "coach", label: "Community", items: NAV.filter((n) => n.group === "coach") },
  { key: "account", label: "Account", items: NAV.filter((n) => n.group === "account") },
 ];
 
@@ -146,8 +147,8 @@ function DesktopSidebar({
  {/* Brand header */}
  <div className="flex items-center h-14 px-3 border-b border-sidebar-border shrink-0">
  <Link href="/today" className="flex items-center gap-2.5 min-w-0" title="DSA⁴⁰⁴ — Go to Today">
- <div className="size-8 rounded-lg overflow-hidden border border-border bg-background shrink-0 flex items-center justify-center">
- <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
+ <div className="size-8 rounded-full overflow-hidden border border-border bg-background shrink-0 flex items-center justify-center">
+ <DSA404Logo size={32} />
  </div>
  {!collapsed && (
  <span className="font-display font-black tracking-tight text-lg leading-none text-foreground">
@@ -667,8 +668,8 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
  {/* Brand */}
  <Link href="/today" className="flex items-center gap-1.5">
- <div className="size-6 rounded-md overflow-hidden border border-border bg-background shrink-0">
- <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
+ <div className="size-6 rounded-full overflow-hidden border border-border bg-background shrink-0">
+ <DSA404Logo size={24} />
  </div>
  <span className="font-display font-black tracking-tight text-base leading-none">
  DSA<span className="text-primary">⁴⁰⁴</span>

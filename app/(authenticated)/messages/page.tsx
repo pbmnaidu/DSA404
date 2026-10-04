@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { createClient } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -38,6 +39,16 @@ interface BroadcastMessage {
   invalidTokensRemoved?: number;
 }
 
+interface UserFeedback {
+  id: string;
+  category: string;
+  subject: string;
+  message: string;
+  status: string;
+  adminReply?: string | null;
+  createdAt: string;
+}
+
 const ADMIN_EMAILS = ["404dsatracker@gmail.com"];
 
 export default function MessagesPage() {
@@ -56,6 +67,11 @@ export default function MessagesPage() {
     failureCount: number;
     invalidTokensRemoved: number;
   } | null>(null);
+  const [feedbackCategory, setFeedbackCategory] = useState("feedback");
+  const [feedbackSubject, setFeedbackSubject] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [myFeedback, setMyFeedback] = useState<UserFeedback[]>([]);
 
   const isAdmin = Boolean(
     user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())
@@ -95,9 +111,37 @@ export default function MessagesPage() {
     }
   }
 
+  async function loadMyFeedback() {
+    try {
+      if (!user) return;
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("user_feedback")
+        .select("id, category, subject, message, status, admin_reply, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) {
+        if (error.code !== "PGRST205") console.warn("[messages] Failed to load feedback:", error);
+        return;
+      }
+      setMyFeedback((data || []).map((item: any) => ({
+        id: item.id,
+        category: item.category,
+        subject: item.subject,
+        message: item.message,
+        status: item.status || "new",
+        adminReply: item.admin_reply,
+        createdAt: item.created_at,
+      })));
+    } catch (error) {
+      console.warn("[messages] Failed to load feedback history:", error);
+    }
+  }
+
   useEffect(() => {
     void loadMessages();
-  }, []);
+    void loadMyFeedback();
+  }, [user?.id]);
 
   async function handlePublish() {
     if (!title.trim() || !body.trim()) {
@@ -114,12 +158,9 @@ export default function MessagesPage() {
         return;
       }
 
-      // Next.js app auth cookie will pass automatically
-      const idToken = "mock_token"; 
       const res = await fetch("/api/campaigns/publish", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -162,6 +203,32 @@ export default function MessagesPage() {
       });
     } finally {
       setIsPublishing(false);
+    }
+  }
+
+  async function handleFeedbackSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!feedbackSubject.trim() || !feedbackMessage.trim()) {
+      toast.error("Please add a subject and message.");
+      return;
+    }
+    setFeedbackSending(true);
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: feedbackCategory, subject: feedbackSubject, message: feedbackMessage }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to send feedback");
+      toast.success(result.emailSent ? "Feedback sent to the DSA404 team." : "Feedback saved; email delivery is pending.");
+      setFeedbackSubject("");
+      setFeedbackMessage("");
+      await loadMyFeedback();
+    } catch (error: any) {
+      toast.error(error?.message || "Unable to send feedback");
+    } finally {
+      setFeedbackSending(false);
     }
   }
 
@@ -305,6 +372,43 @@ export default function MessagesPage() {
           )}
         </section>
       )}
+
+      <section className="rounded-lg border border-border bg-card p-5 sm:p-6 shadow-sm">
+        <div className="flex items-start gap-3 border-b border-border pb-4">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Send className="size-4" /></span>
+          <div><h2 className="text-lg font-bold tracking-tight">Feedback & Improvements</h2><p className="text-sm text-muted-foreground">Report an issue or share an idea with the official DSA404 team.</p></div>
+        </div>
+        <form onSubmit={handleFeedbackSubmit} className="mt-5 grid gap-4">
+          <div className="grid gap-2 sm:grid-cols-[180px_1fr]"><Label htmlFor="feedback-category" className="self-center">Type</Label><select id="feedback-category" value={feedbackCategory} onChange={(event) => setFeedbackCategory(event.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="feedback">Usage issue / feedback</option><option value="improvement">Improvement idea</option></select></div>
+          <div className="grid gap-2 sm:grid-cols-[180px_1fr] sm:items-center"><Label htmlFor="feedback-subject">Subject</Label><Input id="feedback-subject" value={feedbackSubject} onChange={(event) => setFeedbackSubject(event.target.value)} maxLength={120} placeholder="What should the team know?" /></div>
+          <div className="grid gap-2 sm:grid-cols-[180px_1fr]"><Label htmlFor="feedback-message" className="sm:pt-2">Message</Label><textarea id="feedback-message" value={feedbackMessage} onChange={(event) => setFeedbackMessage(event.target.value)} maxLength={4000} rows={5} placeholder="Describe the issue or improvement clearly..." className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" /></div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end"><p className="text-xs text-muted-foreground sm:mr-auto">Saved for admins and emailed to the official team.</p><Button type="submit" disabled={feedbackSending} className="gap-2">{feedbackSending ? "Sending..." : "Send Feedback"}<Send className="size-4" /></Button></div>
+        </form>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-bold tracking-tight">Your Feedback</h2>
+          <span className="text-xs text-muted-foreground">{myFeedback.length} submission{myFeedback.length === 1 ? "" : "s"}</span>
+        </div>
+        {myFeedback.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Your submitted feedback will appear here.</div>
+        ) : (
+          <div className="space-y-3">
+            {myFeedback.map((item) => (
+              <article key={item.id} className="rounded-lg border border-border bg-card p-4 sm:p-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div><span className="text-[10px] font-bold uppercase tracking-wider text-primary">{item.category === "improvement" ? "Improvement idea" : "Usage feedback"}</span><h3 className="mt-1 font-semibold">{item.subject}</h3></div>
+                  <time className="text-xs text-muted-foreground" dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString()}</time>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider"><span className="rounded-full bg-muted px-2 py-1 text-primary">{item.status === "in_review" ? "In Review" : item.status === "resolved" ? "Resolved" : "New"}</span></div>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{item.message}</p>
+                {item.adminReply && <div className="mt-3 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm"><strong>Team reply:</strong> {item.adminReply}</div>}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Announcements & Messages Feed */}
       <section className="space-y-4">

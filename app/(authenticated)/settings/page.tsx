@@ -110,7 +110,7 @@ export default function SettingsPage() {
  const { openPanel } = useThemeCustomizer();
 
  const [switchingSheetId, setSwitchingSheetId] = useState<string | null>(null);
- const currentSheetId = activeSheet || settings?.activeSheet || "core404";
+ const currentSheetId = settings?.activeSheet || (activeSheet !== "core404" ? activeSheet : "core404");
  const activeMeta = getSheetMeta(currentSheetId);
 
  const [ghConfig, setGhConfig] = useState<GitHubSyncConfig | null>(null);
@@ -184,11 +184,14 @@ export default function SettingsPage() {
  const preview = useMemo(() => {
  const validCounts = normalizeDailyCounts(counts);
  const remaining = days.flatMap((d) => d.problems.filter((p) => !p.done));
- const need = daysNeeded(remaining, validCounts);
+ const firstOpen = days.findIndex((d) => !d.problems.every((p) => p.done) && d.status !== "merged" && !d.skipped);
+ const keep = firstOpen === -1 ? days : days.slice(0, firstOpen);
+ const startPosition = keep.filter((d) => !d.skipped).length;
+ const needResult = daysNeeded(remaining, validCounts, startDate, startPosition);
  const doneDays = days.filter((d) => d.problems.length > 0 && d.problems.every((p) => p.done))
  .length;
- return { remaining: remaining.length, need, finish: addDays(todayIso(), need), doneDays };
- }, [days, counts]);
+ return { remaining: remaining.length, need: needResult.studyDays, finish: addDays(todayIso(), needResult.calendarDays), doneDays };
+ }, [days, counts, startDate]);
 
  async function saveAccount() {
  setBusy(true);

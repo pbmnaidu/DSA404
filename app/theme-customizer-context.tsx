@@ -68,7 +68,7 @@ export const PRESETS: Record<string, ThemePreset> = {
   
   // Premium Light
   "pearl-royal": {
-    label: "Pearl & Royal",
+    label: "Pearl & Royal (Default)",
     group: "Premium Light",
     colors: {
       light: { background: "#fdfdfc", foreground: "#172033", primary: "#1d4ed8", card: "#ffffff", muted: "#f3f4f6", border: "#e5e7eb" },
@@ -154,15 +154,7 @@ export const PRESETS: Record<string, ThemePreset> = {
     }
   },
   
-  // Monochrome / Default
-  "default": {
-    label: "Pearl & Royal (Default)",
-    group: "Premium Light",
-    colors: {
-      light: { background: "#fdfdfc", foreground: "#172033", primary: "#1d4ed8", card: "#ffffff", muted: "#f3f4f6", border: "#e5e7eb" },
-      dark: { background: "#101623", foreground: "#fdfdfc", primary: "#3b82f6", card: "#161e2e", muted: "#1f2937", border: "#374151" }
-    }
-  },
+
   "slate-sapphire": {
     label: "Slate & Sapphire",
     group: "Monochrome",
@@ -224,9 +216,9 @@ function buildCssVars(colors: ThemeColors, mode: ColorMode): Record<string, stri
   const mt = hexToOklch(colors.muted);
   const bd = hexToOklch(colors.border);
 
-  const prFg = mode === "dark"
-    ? hexToOklch(colors.foreground)    // on dark, primary text is dark bg
-    : "oklch(0.98 0.008 85)";
+  // Keep CTA labels readable even when the user chooses a very light accent.
+  const primaryLuminance = parseFloat(pr.match(/oklch\(([^ ]+)/)?.[1] ?? "0.5");
+  const prFg = primaryLuminance > 0.72 ? "oklch(0.16 0.02 250)" : "oklch(0.99 0.01 90)";
 
   const bgGlow = mode === "dark" 
     ? `color-mix(in oklab, ${pr} 12%, ${bg})`
@@ -274,6 +266,36 @@ function buildCssVars(colors: ThemeColors, mode: ColorMode): Record<string, stri
     "--warning-foreground": mode === "dark" ? "oklch(0.2 0.05 80)" : "oklch(0.98 0 0)",
     "--info": mode === "dark" ? "oklch(0.7 0.15 250)" : "oklch(0.6 0.15 250)",
     "--info-foreground": mode === "dark" ? "oklch(0.2 0.05 250)" : "oklch(0.98 0 0)",
+
+    // Dynamic Theme Tokens for Animated Hero
+    "--primary-hover": mode === "dark" ? `color-mix(in oklab, ${pr} 82%, white)` : `color-mix(in oklab, ${pr} 82%, black)`,
+    "--primary-active": mode === "dark" ? `color-mix(in oklab, ${pr} 68%, white)` : `color-mix(in oklab, ${pr} 68%, black)`,
+    "--primary-light": `color-mix(in oklab, ${pr} 15%, ${bg})`,
+    "--primary-lighter": `color-mix(in oklab, ${pr} 8%, ${bg})`,
+    "--primary-dark": `color-mix(in oklab, ${pr} 85%, black)`,
+    
+    "--accent-dynamic": `oklch(from ${pr} l c calc(h + 32))`,
+    "--accent-dynamic-light": `color-mix(in oklab, oklch(from ${pr} l c calc(h + 32)) 15%, ${bg})`,
+    
+    "--gradient-start": pr,
+    "--gradient-mid": `color-mix(in oklab, ${pr} 50%, oklch(from ${pr} l c calc(h + 32)))`,
+    "--gradient-end": `oklch(from ${pr} l c calc(h + 32))`,
+    
+    "--glow": `color-mix(in oklab, ${pr} 30%, transparent)`,
+    "--glow-soft": `color-mix(in oklab, ${pr} 15%, transparent)`,
+    "--glow-strong": `color-mix(in oklab, ${pr} 50%, transparent)`,
+    
+    "--wave-primary": mode === "dark" ? `color-mix(in oklab, ${pr} 12%, ${bg})` : `color-mix(in oklab, ${pr} 10%, ${bg})`,
+    "--wave-secondary": mode === "dark" ? `color-mix(in oklab, ${pr} 8%, ${bg})` : `color-mix(in oklab, ${pr} 5%, ${bg})`,
+    "--wave-highlight": mode === "dark" ? `color-mix(in oklab, oklch(from ${pr} l c calc(h + 32)) 9%, ${bg})` : `color-mix(in oklab, oklch(from ${pr} l c calc(h + 32)) 7%, ${bg})`,
+    
+    "--glass-border": `color-mix(in oklab, ${pr} 15%, transparent)`,
+    "--glass-background": `color-mix(in oklab, ${pr} 4%, transparent)`,
+
+    // Logo treatment: mode controls the neutral mark/background, while the
+    // center glyph and underline accents inherit the selected brand color.
+    "--logo-bg": mode === "dark" ? "#ffffff" : "#000000",
+    "--logo-ink": mode === "dark" ? "#000000" : "#ffffff",
   };
 }
 
@@ -489,9 +511,9 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
         try {
           const rawCustom = data.themeCustom;
           if (rawCustom?.preset === "default") {
-            setColors(PRESETS.default.colors);
-            setActivePreset("default");
-            localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: PRESETS.default.colors, preset: "default" }));
+            setColors(PRESETS["pearl-royal"].colors);
+            setActivePreset("pearl-royal");
+            localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: PRESETS["pearl-royal"].colors, preset: "pearl-royal" }));
           } else if (rawCustom?.colors) {
             setColors(rawCustom.colors);
             setActivePreset(rawCustom.preset ?? null);
@@ -693,7 +715,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
 
   const resetToDefault = useCallback(() => {
     applyThemeMode("light");
-    applyPreset("default");
+    applyPreset("pearl-royal");
     applyFont("'Inter', sans-serif");
     applySize("auto");
     applyView("auto");

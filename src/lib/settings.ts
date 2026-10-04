@@ -241,6 +241,7 @@ export async function saveSettings(userId: string, patch: Partial<UserSettings>)
  if (patch.counts !== undefined) updatePayload.counts = patch.counts;
 
  if (Object.keys(updatePayload).length > 0) {
- await supabase.from("user_settings").update(updatePayload).eq("user_id", userId);
+ updatePayload.user_id = userId;
+ await supabase.from("user_settings").upsert(updatePayload, { onConflict: "user_id" });
  }
 }

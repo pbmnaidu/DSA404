@@ -81,7 +81,7 @@ function daysRequired(days: Day[], counts: DailyCounts) {
  const norm = normalizeDailyCounts(counts);
  const problems = days.flatMap((d) => d.problems);
  if (problems.length === 0) return 0;
- return daysNeeded(problems, norm);
+ return daysNeeded(problems, norm).studyDays;
 }
 
 const PLATFORM_COLORS: Record<string, string> = {

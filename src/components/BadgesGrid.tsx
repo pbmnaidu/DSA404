@@ -6,6 +6,7 @@ import { Award, Lock, ShieldCheck, Trophy, Zap, Star, Target, CheckCircle2 } fro
 
 export interface BadgesGridProps {
  badges: Badge[];
+ earnedOnly?: boolean;
 }
 
 function getBadgeIcon(code: string, earned: boolean) {
@@ -18,10 +19,11 @@ function getBadgeIcon(code: string, earned: boolean) {
  return <Award className={iconClass} />;
 }
 
-export function BadgesGrid({ badges }: BadgesGridProps) {
- const earnedList = badges.filter((b) => b.earned);
- const [selectedCode, setSelectedCode] = useState<string | null>(earnedList[0]?.code ?? badges[0]?.code ?? null);
- const selectedBadge = badges.find((badge) => badge.code === selectedCode) ?? null;
+export function BadgesGrid({ badges, earnedOnly }: BadgesGridProps) {
+ const displayBadges = earnedOnly ? badges.filter((b) => b.earned) : badges;
+ const earnedList = displayBadges.filter((b) => b.earned);
+ const [selectedCode, setSelectedCode] = useState<string | null>(earnedList[0]?.code ?? displayBadges[0]?.code ?? null);
+ const selectedBadge = displayBadges.find((badge) => badge.code === selectedCode) ?? null;
 
  return (
  <div className="space-y-4">
@@ -36,7 +38,7 @@ export function BadgesGrid({ badges }: BadgesGridProps) {
  </div>
 
  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
- {badges.map((b) => (
+ {displayBadges.map((b) => (
  <button
  key={b.code}
  type="button"

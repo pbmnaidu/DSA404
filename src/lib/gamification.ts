@@ -11,30 +11,45 @@ export const dayTouched = (d: Day) =>
  d.problems.some((p) => p.done) || d.checklist.some((c) => c.done);
 
 export function currentStreak(days: Day[], today = todayIso()): number {
- const past = days.filter((d) => d.date <= today).sort((a, b) => a.date.localeCompare(b.date));
- let streak = 0;
- for (let i = past.length - 1; i >= 0; i--) {
- if (dayTouched(past[i])) streak += 1;
- else if (i === past.length - 1 && past[i].date === today) continue; // today still open
- else break;
- }
- return streak;
+  const touchedDates = Array.from(new Set(days.filter(dayTouched).map(d => d.date.slice(0, 10)))).sort();
+  if (touchedDates.length === 0) return 0;
+  
+  const pastTouched = touchedDates.filter(d => d <= today);
+  if (pastTouched.length === 0) return 0;
+  
+  const lastDate = pastTouched[pastTouched.length - 1];
+  const gapToToday = diffDays(lastDate, today);
+  
+  if (gapToToday > 1) {
+    return 0; // Streak broken
+  }
+  
+  let streak = 1;
+  for (let i = pastTouched.length - 2; i >= 0; i--) {
+    if (diffDays(pastTouched[i], pastTouched[i + 1]) === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
 }
 
 export function longestStreak(days: Day[]): number {
- let best = 0;
- let run = 0;
- [...days]
- .sort((a, b) => a.date.localeCompare(b.date))
- .forEach((d) => {
- if (dayTouched(d)) {
- run += 1;
- best = Math.max(best, run);
- } else {
- run = 0;
- }
- });
- return best;
+  const touchedDates = Array.from(new Set(days.filter(dayTouched).map(d => d.date.slice(0, 10)))).sort();
+  if (touchedDates.length === 0) return 0;
+  
+  let best = 1;
+  let current = 1;
+  for (let i = 1; i < touchedDates.length; i++) {
+    if (diffDays(touchedDates[i - 1], touchedDates[i]) === 1) {
+      current++;
+      best = Math.max(best, current);
+    } else {
+      current = 1;
+    }
+  }
+  return best;
 }
 
 export interface Badge {
@@ -48,7 +63,8 @@ export function computeBadges(days: Day[]): Badge[] {
  const counted = days.filter((d) => !d.skipped);
  const solved = counted.reduce((a, d) => a + dayProgress(d).done, 0);
  const streak = Math.max(currentStreak(days), longestStreak(days));
- const total = counted.reduce((a, d) => a + dayProgress(d).total, 0) || TOTAL_PROBLEMS;
+ const sumTotals = counted.reduce((a, d) => a + dayProgress(d).total, 0);
+ const total = Math.max(TOTAL_PROBLEMS, sumTotals);
 
  const sectionDone = new Map<string, { done: number; total: number }>();
  counted.forEach((d) => {
@@ -85,7 +101,7 @@ export function computeBadges(days: Day[]): Badge[] {
  ];
 
  [...sectionDone.entries()]
- .filter(([, v]) => v.total > 0 && v.done === v.total)
+ .filter(([section, v]) => v.total >= 5 && v.done === v.total && section !== "DSA Milestone")
  .forEach(([section]) =>
  badges.push({
  code: `section_${section}`,

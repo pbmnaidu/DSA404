@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { CORE_SECTIONS } from "@/lib/master-problems";
 import { TOTAL_PROBLEMS } from "@/lib/plan";
 import { ALL_PROBLEMS } from "@/lib/problems";
 import {
- Code2, Sparkles, Trophy, Users, Search, ExternalLink, Zap, 
+ Code2, Sparkles, Trophy, Users, Search, ExternalLink, Zap, Send,
  Bot, Laptop, Globe, ArrowRight, ChevronDown, Play, 
  Clock, Flame, Menu, X, LayoutGrid, BarChart3, CheckCircle2,
  Calendar, FolderGit2, BookOpen, BrainCircuit, Activity, LineChart, Code, CheckSquare, Sliders, History
@@ -23,6 +23,8 @@ import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { InstallApkSection } from "@/components/InstallApkSection";
 import { ChromeInstallModal } from "@/components/ChromeInstallModal";
 import { DemoShell } from "@/components/demo/DemoShell";
+import { AnimatedHeroBackground } from "@/components/AnimatedHeroBackground";
+import { DSA404Logo } from "@/components/DSA404Logo";
 
 // Icons
 function ChromeIcon({ className }: { className?: string }) {
@@ -54,9 +56,68 @@ function AnnouncementBar() {
 
 // --- 3. Hero Section ---
 function HeroSection({ onEnterDemo }: { onEnterDemo: () => void }) {
+ const containerRef = useRef<HTMLElement>(null);
+ 
+ useEffect(() => {
+   const handleMouseMove = (e: MouseEvent) => {
+     if (!containerRef.current) return;
+     const x = (e.clientX / window.innerWidth) * 2 - 1;
+     const y = (e.clientY / window.innerHeight) * 2 - 1;
+     containerRef.current.style.setProperty('--mouse-x', x.toString());
+     containerRef.current.style.setProperty('--mouse-y', y.toString());
+   };
+   window.addEventListener('mousemove', handleMouseMove);
+   return () => window.removeEventListener('mousemove', handleMouseMove);
+ }, []);
+
+ const ParallaxWrapper = ({ depth, children, className = '' }: { depth: number, children: React.ReactNode, className?: string }) => (
+   <div 
+     className={`absolute inset-0 pointer-events-none transition-transform duration-75 ease-out ${className}`} 
+     style={{ transform: `translate(calc(var(--mouse-x, 0) * ${depth}px), calc(var(--mouse-y, 0) * ${depth}px))` }}
+   >
+     {children}
+   </div>
+ );
+
  return (
- <section className="relative pt-16 pb-24 md:pt-24 md:pb-32 overflow-hidden">
- <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl aspect-square bg-muted blur-[120px] rounded-full pointer-events-none" />
+ <section ref={containerRef} className="relative pt-16 pb-24 md:pt-24 md:pb-32 overflow-hidden">
+ <AnimatedHeroBackground />
+
+ {/* Reference-inspired floating learning objects. They are decorative on desktop
+     and collapse away on mobile so the hero copy remains the priority. */}
+ <ParallaxWrapper depth={10}>
+   <div className="hero-float-card hero-float-card--progress pointer-events-auto" aria-hidden="true">
+   <p className="hero-float-card__eyebrow">Your Progress</p>
+   <div className="hero-progress-ring"><span>73%</span></div>
+   <div className="hero-mini-bars"><i /><i /><i /></div>
+ </div>
+ </ParallaxWrapper>
+ <ParallaxWrapper depth={25}>
+   <div className="hero-float-card hero-float-card--topics pointer-events-auto" aria-hidden="true">
+   {[["Arrays", "24/24", "success"], ["Hashing", "18/18", "accent"], ["Two Pointers", "12/24", "info"], ["Dynamic Programming", "4/32", "warning"]].map(([label, count, tone]) => (
+     <div className="hero-topic-row" key={label}>
+       <span className={`hero-topic-dot hero-topic-dot--${tone}`}><CheckCircle2 /></span>
+       <span>{label}</span><b>{count}</b>
+     </div>
+   ))}
+ </div>
+ </ParallaxWrapper>
+ <ParallaxWrapper depth={15}>
+   <div className="hero-float-card hero-float-card--editor pointer-events-auto" aria-hidden="true">
+   <div className="hero-editor-bar"><span /><span /><span /><em>&lt;/&gt;</em></div>
+   <pre><code><strong>class Solution</strong> {'{'}{`\n  public int solve() {\n    // Your code here\n    return 0;\n  }\n`}{'}'}</code></pre>
+   </div>
+ </ParallaxWrapper>
+ <ParallaxWrapper depth={35}>
+   <div className="hero-plane pointer-events-auto" aria-hidden="true"><Send /></div>
+ </ParallaxWrapper>
+ <ParallaxWrapper depth={20}>
+   <div className="hero-float-card hero-float-card--streak pointer-events-auto" aria-hidden="true">
+   <div className="hero-streak-icon"><Flame /></div>
+   <div><p>Daily Streak</p><strong>12</strong><small>days</small></div>
+   <div className="hero-mini-bars hero-mini-bars--streak"><i /><i /><i /><i /></div>
+   </div>
+ </ParallaxWrapper>
  
  <div className="mx-auto max-w-7xl px-4 relative z-10 text-center flex flex-col items-center">
  <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-xs text-primary font-mono font-bold mb-8">
@@ -64,17 +125,17 @@ function HeroSection({ onEnterDemo }: { onEnterDemo: () => void }) {
  <span>A complete, structured learning system</span>
  </div>
 
- <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] text-foreground max-w-4xl mb-6">
+ <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] text-foreground max-w-4xl mb-6 relative z-10">
  Build the DSA skills you need.<br/>
- <span className="text-primary">One focused session at a time.</span>
+ <span className="bg-gradient-to-r from-[var(--gradient-start)] via-[var(--gradient-mid)] to-[var(--gradient-end)] bg-clip-text text-transparent transition-colors duration-500 relative z-10 inline-block drop-shadow-[0_4px_10px_var(--glow-soft)]">One focused session at a time.</span>
  </h1>
  
  <p className="text-base sm:text-lg md:text-xl text-foreground leading-relaxed max-w-2xl mb-10">
  Stop jumping between random coding problems. DSA⁴⁰⁴ gives you a personalized daily roadmap, pattern-based learning, and true progress tracking.
  </p>
 
- <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
- <Button asChild size="lg" className="h-14 px-8 text-sm sm:text-base font-bold rounded-lg w-full sm:w-auto shadow-sm shadow-primary/20">
+ <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto relative z-10">
+ <Button asChild size="lg" className="h-14 px-8 text-sm sm:text-base font-bold rounded-lg w-full sm:w-auto bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] shadow-[0_10px_30px_var(--glow-soft)] hover:shadow-[0_10px_40px_var(--glow-strong)] transition-all duration-400 ease-in-out hover:-translate-y-0.5 border-none">
  <Link href="/auth?mode=signup">
  Start Learning Free
  <ArrowRight className="size-4 ml-2" />
@@ -857,31 +918,29 @@ export default function LandingPage() {
  <AnnouncementBar />
  
  {/* 2. Header */}
- <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md ">
+ <header className="sticky top-0 z-50 w-full bg-primary text-primary-foreground shadow-sm">
  <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
  <Link href="/" className="flex items-center gap-2">
- <div className="size-8 rounded-lg border border-border overflow-hidden shrink-0">
- <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
- </div>
+ <DSA404Logo size={32} className="shrink-0" />
  <span className="font-display font-bold text-lg tracking-tight">DSA⁴⁰⁴</span>
  </Link>
  
- <nav className="hidden md:flex items-center gap-8 text-xs font-mono font-semibold text-foreground">
- <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
- <button onClick={handleEnterDemo} className="hover:text-foreground transition-colors cursor-pointer">Demo</button>
- <Link href="/auth?mode=signin" className="hover:text-foreground transition-colors">Log In</Link>
+ <nav className="hidden md:flex items-center gap-8 text-xs font-mono font-semibold">
+ <a href="#faq" className="opacity-80 hover:opacity-100 transition-opacity">FAQ</a>
+ <button onClick={handleEnterDemo} className="opacity-80 hover:opacity-100 transition-opacity cursor-pointer">Demo</button>
+ <Link href="/auth?mode=signin" className="opacity-80 hover:opacity-100 transition-opacity">Log In</Link>
  </nav>
  
  <div className="flex items-center gap-3">
  {!isStandalone && (
- <Button onClick={promptInstall} variant="outline" size="sm" className="hidden lg:flex rounded-full text-xs font-mono border-border bg-muted text-primary">
+ <Button onClick={promptInstall} variant="secondary" size="sm" className="hidden lg:flex rounded-full text-xs font-mono text-primary">
  <ChromeIcon className="size-3.5 mr-1.5" /> Install
  </Button>
  )}
- <Button asChild size="sm" className="hidden md:flex rounded-full px-5 font-bold font-mono text-xs">
+ <Button asChild variant="secondary" size="sm" className="hidden md:flex rounded-full px-5 font-bold font-mono text-xs text-primary hover:text-primary">
  <Link href="/auth?mode=signup">Start Learning</Link>
  </Button>
- <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+ <Button variant="ghost" size="icon" className="md:hidden text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
  {isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
  </Button>
  </div>
@@ -916,24 +975,22 @@ export default function LandingPage() {
  <FinalCTA onEnterDemo={handleEnterDemo} />
  </main>
 
- <footer className="border-t border-border bg-card py-12 md:py-16 text-center text-sm text-foreground">
+ <footer className="bg-primary py-12 md:py-16 text-center text-sm text-primary-foreground">
  <div className="mx-auto max-w-6xl px-4">
  <div className="flex justify-center mb-6">
- <div className="size-8 rounded-lg border border-border overflow-hidden shrink-0 grayscale ">
- <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
+ <DSA404Logo size={32} className="shrink-0" />
  </div>
+ <p className="font-medium mb-4">DSA⁴⁰⁴ — Structured DSA Learning</p>
+ <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-mono mb-8 opacity-90">
+ <a href="#faq" className="hover:opacity-100">FAQ</a>
+ <span className="opacity-50">|</span>
+ <Link href="/auth?mode=signin" className="hover:opacity-100">Log In</Link>
+ <span className="opacity-50">|</span>
+ <Link href="/auth?mode=signup" className="hover:opacity-100">Register</Link>
+ <span className="opacity-50">|</span>
+ <a href="https://pbmnaidu.vercel.app" target="_blank" rel="noreferrer" className="font-bold hover:underline">Creator</a>
  </div>
- <p className="font-medium text-foreground mb-4">DSA⁴⁰⁴ — Structured DSA Learning</p>
- <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-mono mb-8">
- <a href="#faq" className="hover:text-foreground">FAQ</a>
- <span className="text-border">|</span>
- <Link href="/auth?mode=signin" className="hover:text-foreground">Log In</Link>
- <span className="text-border">|</span>
- <Link href="/auth?mode=signup" className="hover:text-foreground">Register</Link>
- <span className="text-border">|</span>
- <a href="https://pbmnaidu.vercel.app" target="_blank" rel="noreferrer" className="text-primary hover:underline">Creator</a>
- </div>
- <p className="text-[11px] ">© {new Date().getFullYear()} DSA⁴⁰⁴. Built for students and developers.</p>
+ <p className="text-[11px] opacity-70">© {new Date().getFullYear()} DSA⁴⁰⁴. Built for students and developers.</p>
  </div>
  </footer>
  

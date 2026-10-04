@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { createClient } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { DSA404Logo } from "@/components/DSA404Logo";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Label } from "@/components/ui/label";
@@ -220,11 +221,15 @@ export function AuthPageContent() {
       await saveUserProfile(data.user.id, { displayName: trimmedName });
 
       // Automatically send 2 welcome & platform feature guide emails upon registration
-      fetch("/api/send-email/onboarding", {
+      const onboardingResponse = await fetch("/api/send-email/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
-      }).catch((err) => console.warn("Onboarding emails trigger error:", err));
+      });
+      if (!onboardingResponse.ok) {
+        console.warn("Onboarding emails were not sent", await onboardingResponse.text());
+        toast.warning("Account created. Your welcome emails will be sent after email verification.");
+      }
 
       await proceedAfterAuth(data.user, {
         title: "Account created successfully! 🎉",
@@ -321,8 +326,8 @@ export function AuthPageContent() {
         <Card className="w-full max-w-md border-border bg-card shadow-sm">
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <div className="size-8 rounded-lg overflow-hidden border border-border bg-background shrink-0">
-                <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
+              <div className="size-8 rounded-full overflow-hidden shrink-0">
+                <DSA404Logo size={32} />
               </div>
               <span className="font-display font-black tracking-tight text-xl leading-none select-none text-foreground">
                 DSA<span className="text-primary">⁴⁰⁴</span>

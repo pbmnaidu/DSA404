@@ -249,7 +249,7 @@ export async function seedPlan(userId: string, startDate?: string, counts?: Dail
  start_date: effectiveStartDate,
  last_active_date: effectiveStartDate,
  active_sheet: effectiveSheet,
- });
+ }, { onConflict: "user_id" });
 
  return {
  days,
@@ -384,13 +384,55 @@ export async function syncPublicSolvedProblems(uid: string, snapshot: CompletedP
 
 // Ensure base64 avatars/banners are stored natively since Firebase Storage is replaced
 export async function saveAvatarBase64(uid: string, b64: string): Promise<string> {
- await saveUserProfile(uid, { photoURL: b64 });
- return b64;
+  let publicUrl = b64;
+  if (!isGuestUser(uid) && b64.startsWith('data:image')) {
+    try {
+      const res = await fetch(b64);
+      const blob = await res.blob();
+      const ext = blob.type.split('/')[1] || 'png';
+      const filePath = `${uid}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('avatars').upload(filePath, blob, { upsert: true, contentType: blob.type });
+      if (!error) {
+        publicUrl = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
+      } else {
+        console.error('Avatar storage upload failed:', error);
+      }
+    } catch (e) {
+      console.error('Avatar upload error:', e);
+    }
+  }
+
+  await saveUserProfile(uid, { photoURL: publicUrl });
+  if (!isGuestUser(uid)) {
+    // Update auth metadata so UserMenu instantly reflects the change (only if it's a real URL)
+    if (!publicUrl.startsWith('data:image')) {
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl, photoURL: publicUrl } });
+    }
+  }
+  return publicUrl;
 }
 
 export async function saveBannerBase64(uid: string, b64: string): Promise<string> {
- await saveUserProfile(uid, { bannerURL: b64 });
- return b64;
+  let publicUrl = b64;
+  if (!isGuestUser(uid) && b64.startsWith('data:image')) {
+    try {
+      const res = await fetch(b64);
+      const blob = await res.blob();
+      const ext = blob.type.split('/')[1] || 'png';
+      const filePath = `${uid}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('banners').upload(filePath, blob, { upsert: true, contentType: blob.type });
+      if (!error) {
+        publicUrl = supabase.storage.from('banners').getPublicUrl(filePath).data.publicUrl;
+      } else {
+        console.error('Banner storage upload failed:', error);
+      }
+    } catch (e) {
+      console.error('Banner upload error:', e);
+    }
+  }
+
+  await saveUserProfile(uid, { bannerURL: publicUrl });
+  return publicUrl;
 }
 
 export async function saveSequence(userId: string, days: Day[]) {
@@ -403,7 +445,7 @@ export async function saveSequence(userId: string, days: Day[]) {
 }
 
 export async function switchUserSheet(userId: string, sheetId: string, startDate?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
- await supabase.from("user_settings").update({ active_sheet: sheetId }).eq("user_id", userId);
+ await supabase.from("user_settings").upsert({ user_id: userId, active_sheet: sheetId }, { onConflict: "user_id" });
  return seedPlan(userId, startDate, undefined, sheetId);
 }
 

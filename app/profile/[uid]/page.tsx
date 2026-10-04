@@ -45,6 +45,7 @@ import { BadgesGrid } from "@/components/BadgesGrid";
 import { computeBadges, currentStreak, solvedTrend, difficultySplit } from "@/lib/gamification";
 import { SolvedProblemsArchive } from "@/components/SolvedProblemsArchive";
 import { QuoteLoader } from "@/components/QuoteLoader";
+import { DSA404Logo } from "@/components/DSA404Logo";
 import {
  getCanonicalProblemLink,
  normalizePlatformName,
@@ -1131,7 +1132,7 @@ export default function PublicProfilePage() {
  <div className="mx-auto flex max-w-[1400px] items-center gap-2.5 px-4 sm:px-6 lg:px-8 py-3">
  <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:">
  <div className="size-7 rounded-full overflow-hidden border border-border shadow-sm ring-1 ring-primary/20 bg-background shrink-0">
- <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
+ <DSA404Logo size={28} />
  </div>
  <div className="font-display font-black tracking-tighter text-[20px] leading-none flex items-baseline select-none">
  <span className="text-foreground drop-shadow-sm">DSA</span>
@@ -1179,9 +1180,9 @@ export default function PublicProfilePage() {
  <div className="absolute inset-0 bg-primary  /50 " />
  </div>
 
-  <div className="relative px-6 md:px-10 pb-8 -mt-16 md:-mt-20 flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 text-center md:text-left">
- {/* Avatar */}
- <div className="size-28 md:size-36 rounded-full md:rounded-[2rem] border-4 border-card shadow-sm overflow-hidden shrink-0 bg-secondary flex items-center justify-center hover:scale-[1.02] transition-transform duration-300">
+  <div className="relative px-6 md:px-10 pb-8 flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 text-center md:text-left">
+    {/* Avatar */}
+    <div className="size-28 md:size-36 rounded-full md:rounded-[2rem] border-4 border-card shadow-sm overflow-hidden shrink-0 bg-secondary flex items-center justify-center hover:scale-[1.02] transition-transform duration-300 -mt-16 md:-mt-20 z-10">
  {photoURL ? (
  <img src={photoURL} alt="Avatar" className="size-full object-cover" />
  ) : (
@@ -1380,7 +1381,7 @@ export default function PublicProfilePage() {
  <h3 className="text-xs font-bold uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
  <Flame className="size-4 text-warning" /> Achievements
  </h3>
- <BadgesGrid badges={badges} />
+ <BadgesGrid badges={badges} earnedOnly={true} />
  </div>
  )}
  

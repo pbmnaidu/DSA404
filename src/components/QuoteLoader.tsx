@@ -1,5 +1,7 @@
 "use client";
 
+import { DSA404Logo } from "@/components/DSA404Logo";
+
 
 
 export function QuoteLoader({
@@ -27,7 +29,7 @@ export function QuoteLoader({
  <div className="flex flex-col items-center gap-4 rounded-[2rem] border border-border bg-card px-12 py-10 shadow-sm ">
  
  <div className="size-20 flex items-center justify-center bg-background shadow-sm overflow-hidden border border-border animate-morph mb-2">
- <img src="/logo.jpg" alt="DSA404 Logo" className="size-full object-cover" />
+ <DSA404Logo size={80} circular={false} className="size-full" />
  </div>
 
  <div className="flex flex-col items-center text-center">

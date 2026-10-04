@@ -107,27 +107,36 @@ const PLATFORMS: {
  ];
 
 // ── Image helpers ────────────────────────────────────────────────────────────
-async function compressImageToDataUrl(file: File, maxPx = 128, quality = 0.5): Promise<string> {
- return new Promise((resolve, reject) => {
- const reader = new FileReader();
- reader.onload = (e) => {
- const img = new Image();
- img.onload = () => {
- const size = Math.min(img.width, img.height);
- const sx = (img.width - size) / 2;
- const sy = (img.height - size) / 2;
- const canvas = document.createElement("canvas");
- canvas.width = maxPx; canvas.height = maxPx;
- const ctx = canvas.getContext("2d")!;
- ctx.drawImage(img, sx, sy, size, size, 0, 0, maxPx, maxPx);
- resolve(canvas.toDataURL("image/jpeg", quality));
- };
- img.onerror = () => reject(new Error("Failed to load image"));
- img.src = e.target?.result as string;
- };
- reader.onerror = () => reject(new Error("Failed to read file"));
- reader.readAsDataURL(file);
- });
+async function compressImageToDataUrl(file: File, maxPx = 512): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        const canvas = document.createElement("canvas");
+        canvas.width = maxPx; canvas.height = maxPx;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, maxPx, maxPx);
+        
+        let quality = 0.95;
+        let dataUrl = canvas.toDataURL("image/jpeg", quality);
+        
+        // Target ~100KB (which is about 137000 characters in base64)
+        while (dataUrl.length > 137000 && quality > 0.1) {
+          quality -= 0.1;
+          dataUrl = canvas.toDataURL("image/jpeg", quality);
+        }
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
 }
 
 async function compressBannerToDataUrl(file: File, width = 1200, height = 360, quality = 0.75): Promise<string> {

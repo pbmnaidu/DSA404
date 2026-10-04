@@ -984,27 +984,68 @@ export function normalizeDailyCounts(raw?: Partial<DailyCounts> | null): DailyCo
  return { ...DEFAULT_DAILY_COUNTS };
 }
 
-/**
- * Cost of one problem as a fraction of a day based on tutor equivalence:
- * 1 Easy = 1 weight unit
- * 1 Medium = 2 weight units (2E = 1M)
- * 1 Hard = 3 weight units (3E = 1H, 2M ≈ 1H)
- *
- * Daily capacity budget = target (e.g. 4 problems = 4 weight units).
- * A student can solve 4 Easy, OR 2 Easy + 1 Medium, OR 2 Medium, OR 1 Easy + 1 Hard.
- * Ensures the student never feels burdened by overwhelming daily tasks.
- */
-export const problemCost = (d: Difficulty, counts: DailyCounts) => {
- const norm = normalizeDailyCounts(counts);
- const target = Math.max(1, norm.target || 3);
- const weight = d === "Easy" ? 1 : d === "Medium" ? 2 : 3;
- return weight / target;
+export const maxWeightForTarget = (target: number) => {
+  const combos = getDailyCombinationsForTarget(target);
+  return Math.max(...combos.map(c => c.weight), target);
 };
 
-/** How many days a bag of problems needs at the given pace. */
-export const daysNeeded = (problems: Problem[], counts: DailyCounts) => {
- const norm = normalizeDailyCounts(counts);
- return Math.max(1, Math.ceil(problems.reduce((a, p) => a + problemCost(p.difficulty, norm), 0)));
+export const problemWeight = (d: Difficulty) => {
+  return d === "Easy" ? 1 : d === "Medium" ? 2 : 3;
+};
+
+export const daysNeeded = (problems: Problem[], counts: DailyCounts, startDate = START_DATE, startPosition = 0) => {
+  const norm = normalizeDailyCounts(counts);
+  const targetCount = norm.target || 3;
+  const maxWeight = maxWeightForTarget(targetCount);
+  
+  let dayWeight = 0;
+  let countInDay = 0;
+  let studyDays = 0;
+  
+  problems.forEach((p) => {
+    const weight = problemWeight(p.difficulty);
+    if (countInDay > 0 && (countInDay >= targetCount || dayWeight + weight > maxWeight)) {
+      studyDays += 1;
+      dayWeight = 0;
+      countInDay = 0;
+    }
+    dayWeight += weight;
+    countInDay += 1;
+  });
+  if (countInDay > 0) studyDays += 1;
+
+  // Calculate calendar days by adding revision days (Sundays)
+  let calendarDays = 0;
+  let currentPosition = startPosition;
+  let studyDaysPlaced = 0;
+  
+  const startDow = new Date(`${startDate}T00:00:00Z`).getUTCDay();
+  const isThuToSun = startDow === 4 || startDow === 5 || startDow === 6 || startDow === 0;
+  let firstSundayHandled = false;
+
+  while (studyDaysPlaced < Math.max(1, studyDays)) {
+    const isSunday = (startDow + currentPosition) % 7 === 0;
+    let isRevision = false;
+    
+    if (isSunday) {
+      if (!firstSundayHandled) {
+        firstSundayHandled = true;
+        isRevision = !isThuToSun;
+      } else {
+        isRevision = true;
+      }
+    }
+
+    if (isRevision) {
+      calendarDays += 1;
+    } else {
+      studyDaysPlaced += 1;
+      calendarDays += 1;
+    }
+    currentPosition += 1;
+  }
+  
+  return { studyDays: Math.max(1, studyDays), calendarDays: Math.max(1, calendarDays) };
 };
 
 /**
@@ -1048,9 +1089,13 @@ export function rebalanceRemaining(
 
  const rebuilt: Day[] = [];
  let bucket: typeof pending = [];
- let dayBudget = 0;
+ let dayWeight = 0;
  let currentSection = pending[0].section;
  let partIndex = 1;
+
+ const norm = normalizeDailyCounts(counts);
+ const targetCount = norm.target || 3;
+ const maxWeight = maxWeightForTarget(targetCount);
 
  const flush = () => {
  if (bucket.length === 0) return;
@@ -1073,20 +1118,21 @@ export function rebalanceRemaining(
  level: bucket[0]?.level,
  });
  bucket = [];
- dayBudget = 0;
+ dayWeight = 0;
  partIndex += 1;
  };
 
  pending.forEach((item) => {
- const cost = problemCost(item.problem.difficulty, counts);
+ const weight = problemWeight(item.problem.difficulty);
 
- // Flush day ONLY when cumulative workload budget + cost exceeds 1 full day capacity (1.0001)
- if (dayBudget > 0 && dayBudget + cost > 1.0001) {
+ // Flush day ONLY when cumulative workload budget + weight exceeds the max weight for this target,
+ // OR when the number of problems in the bucket has reached the daily target count.
+ if (bucket.length > 0 && (bucket.length >= targetCount || dayWeight + weight > maxWeight)) {
  flush();
  }
 
  bucket.push(item);
- dayBudget += cost;
+ dayWeight += weight;
  });
  flush();
 
