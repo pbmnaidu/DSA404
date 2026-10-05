@@ -68,40 +68,54 @@ export function useProblemCompletions() {
  setSubmissions(localSubs);
  setCompleted(localComp);
 
- Promise.all([loadProblemCompletions(currentUid), loadCodeSubmissions(currentUid)])
- .then(([set, subMap]) => {
- if (!isMounted) return;
- const mergedSubs = { ...localSubs, ...subMap };
- for (const [probName, subObj] of Object.entries(mergedSubs) as [string, CodeSubmission][]) {
- if (!subObj.link || !subObj.link.trim()) {
- const canonical = getCanonicalProblemLink(probName);
- if (canonical) subObj.link = canonical;
- }
- }
- const mergedComp = new Set([
- ...Array.from(localComp),
- ...Array.from(set).map(s => typeof s === 'string' ? s : (s as any).name),
- ...Object.keys(mergedSubs),
- ]);
- if (typeof window !== "undefined") {
- try {
- localStorage.setItem(getLocalCompletionsKey(currentUid), JSON.stringify(Array.from(mergedComp)));
- } catch {}
- }
- setCompleted(mergedComp);
- setSubmissions(mergedSubs);
- })
- .catch((e) => {
- console.warn("Failed to load problem completions from Firestore:", e);
- })
- .finally(() => {
- if (isMounted) setLoading(false);
- });
+ const fetchCompletions = () => {
+  Promise.all([loadProblemCompletions(currentUid), loadCodeSubmissions(currentUid)])
+  .then(([set, subMap]) => {
+  if (!isMounted) return;
+  const mergedSubs = { ...localSubs, ...subMap };
+  for (const [probName, subObj] of Object.entries(mergedSubs) as [string, CodeSubmission][]) {
+  if (!subObj.link || !subObj.link.trim()) {
+  const canonical = getCanonicalProblemLink(probName);
+  if (canonical) subObj.link = canonical;
+  }
+  }
+  const mergedComp = new Set([
+  ...Array.from(localComp),
+  ...Array.from(set).map(s => typeof s === 'string' ? s : (s as any).name),
+  ...Object.keys(mergedSubs),
+  ]);
+  if (typeof window !== "undefined") {
+  try {
+  localStorage.setItem(getLocalCompletionsKey(currentUid), JSON.stringify(Array.from(mergedComp)));
+  } catch {}
+  }
+  setCompleted(mergedComp);
+  setSubmissions(mergedSubs);
+  })
+  .catch((e) => {
+  console.warn("Failed to load problem completions from Firestore:", e);
+  })
+  .finally(() => {
+  if (isMounted) setLoading(false);
+  });
+  };
 
- return () => {
- isMounted = false;
- };
- }, [user]);
+  fetchCompletions();
+
+  const onFocus = () => {
+    if (document.visibilityState === 'visible') {
+      fetchCompletions();
+    }
+  };
+  window.addEventListener('visibilitychange', onFocus);
+  window.addEventListener('focus', onFocus);
+
+  return () => {
+  isMounted = false;
+  window.removeEventListener('visibilitychange', onFocus);
+  window.removeEventListener('focus', onFocus);
+  };
+  }, [user]);
 
  /** Submit code for a problem, marking it completed and persisting locally and in DB. */
  const submitCode = useCallback(

@@ -385,7 +385,7 @@ export function DayDetail({
  <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,0.35fr)_minmax(0,0.65fr)]">
  
  {/* ── LEFT COLUMN: Context & Checklists ── */}
- <aside className="min-w-0 space-y-6">
+ <aside className="min-w-0 space-y-6 order-2 xl:order-1">
  
  {/* Reduced Height Completion Checklist UI */}
  <section aria-label="Daily checklist" className="rounded-lg border border-border bg-card p-6 shadow-sm space-y-4">
@@ -441,7 +441,7 @@ export function DayDetail({
  </aside>
 
  {/* ── RIGHT COLUMN: Workspace (Problems & Contests) ── */}
- <main className="min-w-0 space-y-6">
+ <main className="min-w-0 space-y-6 order-1 xl:order-2">
  
  <section
  aria-label="Today's Core Problems"
