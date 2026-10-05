@@ -956,7 +956,7 @@ export default function SettingsPage() {
  type="time"
  value={settings.morningReminderTime}
  disabled={!settings.morningReminderEnabled}
- onChange={(e) => void update({ morningReminderTime: e.target.value })}
+ onChange={(e) => void update({ morningReminderTime: e.target.value || "08:00" })}
  className="h-8 w-32 text-xs"
  />
  <Switch
@@ -994,7 +994,7 @@ export default function SettingsPage() {
  id="time"
  type="time"
  value={settings.reminderTime}
- onChange={(e) => void update({ reminderTime: e.target.value })}
+ onChange={(e) => void update({ reminderTime: e.target.value || "19:00" })}
  className="h-8 w-32 text-xs"
  />
  </div>

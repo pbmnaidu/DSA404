@@ -149,9 +149,9 @@ export const settingsToFields = (s: Partial<UserSettings>): Fields => {
  }
  if (s.pushEnabled !== undefined) fields.pushEnabled = s.pushEnabled;
  if (s.emailEnabled !== undefined) fields.emailEnabled = s.emailEnabled;
- if (s.reminderTime !== undefined) fields.reminderTime = s.reminderTime;
+ if (s.reminderTime !== undefined) fields.reminderTime = s.reminderTime || "19:00";
  if (s.morningReminderEnabled !== undefined) fields.morningReminderEnabled = s.morningReminderEnabled;
- if (s.morningReminderTime !== undefined) fields.morningReminderTime = s.morningReminderTime;
+ if (s.morningReminderTime !== undefined) fields.morningReminderTime = s.morningReminderTime || "08:00";
  if (s.contestReminderEnabled !== undefined) fields.contestReminderEnabled = s.contestReminderEnabled;
  if (s.timezone !== undefined) fields.timezone = s.timezone;
  if (s.paused !== undefined) fields.paused = s.paused;
@@ -242,6 +242,7 @@ export async function saveSettings(userId: string, patch: Partial<UserSettings>)
 
  if (Object.keys(updatePayload).length > 0) {
  updatePayload.user_id = userId;
- await supabase.from("user_settings").upsert(updatePayload, { onConflict: "user_id" });
+ const { error } = await supabase.from("user_settings").upsert(updatePayload, { onConflict: "user_id" });
+ if (error) throw error;
  }
 }
