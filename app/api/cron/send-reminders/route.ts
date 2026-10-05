@@ -154,11 +154,25 @@ export async function GET(req: Request) {
               try {
                 await getMessaging(getAdminApp()).sendEachForMulticast({
                   tokens: tokensByUid[uid],
+                  notification: {
+                    title: "📚 DSA⁴⁰⁴ Evening Reminder",
+                    body: `You still have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} left today. Complete them to save your streak!`,
+                  },
                   data: {
                     title: "📚 DSA⁴⁰⁴ Evening Reminder",
                     body: `You still have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} left today. Complete them to save your streak!`,
                     link: "/today",
                     tag: `evening-${today}`,
+                  },
+                  webpush: {
+                    fcmOptions: {
+                      link: "/today",
+                    },
+                    notification: {
+                      icon: "/icon.png",
+                      badge: "/icon.png",
+                      tag: `evening-${today}`,
+                    }
                   }
                 });
                 eveningSent++;
@@ -230,11 +244,25 @@ export async function GET(req: Request) {
             try {
               await getMessaging(getAdminApp()).sendEachForMulticast({
                 tokens: tokensByUid[uid],
+                notification: {
+                  title: "☀️ Good Morning!",
+                  body: `Today's topic: ${topic} (${pendingCount} problems)`,
+                },
                 data: {
                   title: "☀️ Good Morning!",
                   body: `Today's topic: ${topic} (${pendingCount} problems)`,
                   link: "/today",
                   tag: `morning-${today}`,
+                },
+                webpush: {
+                  fcmOptions: {
+                    link: "/today",
+                  },
+                  notification: {
+                    icon: "/icon.png",
+                    badge: "/icon.png",
+                    tag: `morning-${today}`,
+                  }
                 }
               });
               morningSent++;
@@ -287,11 +315,25 @@ export async function GET(req: Request) {
                 try {
                   await getMessaging(getAdminApp()).sendEachForMulticast({
                     tokens: tokensByUid[uid],
+                    notification: {
+                      title: "🔔 Revision Reminder",
+                      body: `${rem.topic}${rem.note ? ` - ${rem.note}` : ""}`,
+                    },
                     data: {
                       title: "🔔 Revision Reminder",
                       body: `${rem.topic}${rem.note ? ` - ${rem.note}` : ""}`,
                       link: "/review",
                       tag: `revision-${rem.id}`,
+                    },
+                    webpush: {
+                      fcmOptions: {
+                        link: "/review",
+                      },
+                      notification: {
+                        icon: "/icon.png",
+                        badge: "/icon.png",
+                        tag: `revision-${rem.id}`,
+                      }
                     }
                   });
                   topicSent++;
