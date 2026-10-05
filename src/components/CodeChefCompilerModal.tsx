@@ -96,8 +96,9 @@ export function CodeChefCompilerModal({
  const [copiedCode, setCopiedCode] = useState<boolean>(false);
  const [isIdeMaximized, setIsIdeMaximized] = useState<boolean>(false);
  const [ideReloadKey, setIdeReloadKey] = useState<number>(0);
- const isCodeUnchangedSinceLastRun = code.trim() === lastRunCode;
-  const canSubmit = (compileResult?.code === 0 && !compileResult.stderr) || isCodeUnchangedSinceLastRun;
+  const isCodeUnchangedSinceLastRun = code.trim() === lastRunCode;
+  const isCodeUnchangedSinceLastSubmit = !!existingSubmission && !!existingSubmission.code && code.trim() === existingSubmission.code.trim();
+  const canSubmit = (compileResult?.code === 0 && !compileResult.stderr) || isCodeUnchangedSinceLastRun || isCodeUnchangedSinceLastSubmit;
 
  // Sync state whenever modal opens
  useEffect(() => {
@@ -836,7 +837,13 @@ export function CodeChefCompilerModal({
  </Button>
  )}
 
- <div className="ml-auto flex items-center gap-2">
+ <div className="ml-auto flex flex-col items-end gap-1">
+ {!readOnly && !canSubmit && !!code.trim() && (
+ <span className="text-[10px] text-destructive font-semibold mr-1 mt-1">
+ * Run code without errors to enable submit
+ </span>
+ )}
+ <div className="flex items-center gap-2">
  <Button
  type="button"
  variant="ghost"
@@ -859,6 +866,7 @@ export function CodeChefCompilerModal({
  {busy ? "Saving..." : existingSubmission ? "Update Code" : "Submit Code & Complete"}
  </Button>
  )}
+ </div>
  </div>
  </DialogFooter>
  </DialogContent>
