@@ -12,7 +12,7 @@ export function ThemedLogo({ className = "" }: { className?: string }) {
     image.src = "/logo/dsa404-logo.png";
 
     const render = () => {
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx || !image.naturalWidth) return;
       const size = 256;
       canvas.width = size;
@@ -26,7 +26,7 @@ export function ThemedLogo({ className = "" }: { className?: string }) {
       if (!primaryToken) return;
       const swatch = document.createElement("canvas");
       swatch.width = swatch.height = 1;
-      const swatchCtx = swatch.getContext("2d");
+      const swatchCtx = swatch.getContext("2d", { willReadFrequently: true });
       if (!swatchCtx) return;
       swatchCtx.fillStyle = styles.getPropertyValue("--primary").trim();
       swatchCtx.fillRect(0, 0, 1, 1);

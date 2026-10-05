@@ -1,563 +1,439 @@
-// src/components/GitHubRepoLinkModal.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import {
- Dialog,
- DialogContent,
- DialogHeader,
- DialogTitle,
- DialogDescription,
- DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
- getLocalGitHubSyncConfig,
- saveGitHubSyncConfig,
- loadCloudGitHubSyncConfig,
- fetchUserRepositories,
- validateGitHubRepo,
- createGitHubRepository,
- type GitHubSyncConfig,
+  loadCloudGitHubSyncConfig,
+  saveGitHubSyncConfig,
+  cleanupOldGitHubTokens,
+  type GitHubSyncConfig,
 } from "@/lib/github-sync";
-import { createClient } from "@/integrations/supabase/client";
 import { GitHubIcon } from "./SocialIcons";
-import { CheckCircle2, ExternalLink, FolderGit2, Key, RefreshCw, Sparkles, AlertCircle, Plus, Lock, Globe } from "lucide-react";
+import { CheckCircle2, FolderGit2, Key, RefreshCw, Sparkles, ExternalLink, Globe, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface GitHubRepoLinkModalProps {
- open: boolean;
- onOpenChange: (open: boolean) => void;
- userId?: string | null;
- onConfigSaved?: (config: GitHubSyncConfig) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  userId?: string | null;
+  onConfigSaved?: (config: GitHubSyncConfig) => void;
 }
 
 export function GitHubRepoLinkModal({
- open,
- onOpenChange,
- userId,
- onConfigSaved,
+  open,
+  onOpenChange,
+  userId,
+  onConfigSaved,
 }: GitHubRepoLinkModalProps) {
- const [token, setToken] = useState("");
- const [owner, setOwner] = useState("");
- const [repo, setRepo] = useState("");
- const [branch, setBranch] = useState("main");
- const [folderPath, setFolderPath] = useState("solutions");
- const [enabled, setEnabled] = useState(true);
+  const router = useRouter();
+  
+  const [owner, setOwner] = useState("");
+  const [repo, setRepo] = useState("");
+  const [branch, setBranch] = useState("main");
+  const [folderPath, setFolderPath] = useState("solutions");
+  const [enabled, setEnabled] = useState(true);
 
- const [loadingRepos, setLoadingRepos] = useState(false);
- const [repoList, setRepoList] = useState<
- { fullName: string; owner: string; name: string; defaultBranch: string; isPrivate: boolean }[]
- >([]);
- const [testing, setTesting] = useState(false);
- const [isConnected, setIsConnected] = useState(false);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [repoList, setRepoList] = useState<
+    { fullName: string; owner: string; name: string; defaultBranch: string; isPrivate: boolean }[]
+  >([]);
+  const [testing, setTesting] = useState(false);
+  
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState(true);
 
- // In-modal repo creation state
- const [showCreateRepo, setShowCreateRepo] = useState(false);
- const [newRepoName, setNewRepoName] = useState("dsa-solutions");
- const [newRepoPrivate, setNewRepoPrivate] = useState(false);
- const [creatingRepo, setCreatingRepo] = useState(false);
+  // Load existing configuration on open
+  useEffect(() => {
+    if (open) {
+      let active = true;
+      setLoadingStatus(true);
+      
+      // Cleanup legacy data first
+      if (userId) {
+          cleanupOldGitHubTokens(userId);
+      }
+      
+      const targetUid = userId || null;
+      
+      if (targetUid) {
+        loadCloudGitHubSyncConfig(targetUid).then((cloudCfg) => {
+          if (!active) return;
+          if (cloudCfg) {
+            setIsAuthorized(true);
+            setOwner(cloudCfg.owner || "");
+            setRepo(cloudCfg.repo || "");
+            setBranch(cloudCfg.branch || "main");
+            setFolderPath(cloudCfg.folderPath ?? "solutions");
+            setEnabled(cloudCfg.enabled ?? true);
+            fetchRepos();
+          } else {
+            setIsAuthorized(false);
+            setOwner("");
+            setRepo("");
+            setBranch("main");
+            setFolderPath("solutions");
+            setEnabled(true);
+          }
+          setLoadingStatus(false);
+        }).catch(() => {
+            if (active) setLoadingStatus(false);
+        });
+      } else {
+          setLoadingStatus(false);
+      }
 
- // Load existing configuration on open (local storage + cloud Firestore sync)
- useEffect(() => {
- if (open) {
- let active = true;
- const targetUid = userId || null;
- const cfg = getLocalGitHubSyncConfig(targetUid);
- if (cfg) {
- setToken(cfg.token || "");
- setOwner(cfg.owner || "");
- setRepo(cfg.repo || "");
- setBranch(cfg.branch || "main");
- setFolderPath(cfg.folderPath ?? "solutions");
- setEnabled(cfg.enabled ?? true);
- setIsConnected(Boolean(cfg.token && cfg.repo));
- } else {
- setToken("");
- setOwner("");
- setRepo("");
- setBranch("main");
- setFolderPath("solutions");
- setEnabled(true);
- setIsConnected(false);
- }
+      return () => { active = false; };
+    }
+  }, [open, userId]);
 
- // If local token is empty or to verify cloud state, hydrate from Firestore
- if (targetUid) {
- loadCloudGitHubSyncConfig(targetUid).then((cloudCfg) => {
- if (!active || !cloudCfg) return;
- if (cloudCfg.token) {
- setToken(cloudCfg.token || "");
- setOwner(cloudCfg.owner || "");
- setRepo(cloudCfg.repo || "");
- setBranch(cloudCfg.branch || "main");
- setFolderPath(cloudCfg.folderPath ?? "solutions");
- setEnabled(cloudCfg.enabled ?? true);
- setIsConnected(Boolean(cloudCfg.token && cloudCfg.repo));
- }
- }).catch(() => { });
- }
+  const fetchRepos = async () => {
+    setLoadingRepos(true);
+    try {
+      const res = await fetch("/api/github/repositories");
+      if (!res.ok) {
+        throw new Error("Failed to fetch repositories.");
+      }
+      const repos = await res.json();
+      setRepoList(repos);
+      if (repos.length > 0 && !repo) {
+         setOwner(repos[0].owner);
+         setRepo(repos[0].name);
+         setBranch(repos[0].defaultBranch || "main");
+      }
+    } catch (err: any) {
+      toast.error("Could not fetch repositories", { description: err.message });
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
 
- return () => { active = false; };
- }
- }, [open, userId]);
+  const handleRepoSelect = (fullName: string) => {
+    const selected = repoList.find((r) => r.fullName === fullName);
+    if (selected) {
+      setOwner(selected.owner);
+      setRepo(selected.name);
+      setBranch(selected.defaultBranch || "main");
+    }
+  };
 
- const handleFetchRepos = async () => {
- if (!token.trim()) {
- toast.error("Please enter your GitHub Personal Access Token first.");
- return;
- }
- setLoadingRepos(true);
- try {
- const repos = await fetchUserRepositories(token);
- setRepoList(repos);
- if (repos.length > 0) {
- toast.success(`Found ${repos.length} repositories! Select one from the list.`);
- // Auto-select first repo if none selected
- if (!repo) {
- setOwner(repos[0].owner);
- setRepo(repos[0].name);
- setBranch(repos[0].defaultBranch || "main");
- }
- } else {
- toast.info("No repositories found with this token.");
- }
- } catch (err: any) {
- toast.error("Could not fetch repositories", { description: err.message });
- } finally {
- setLoadingRepos(false);
- }
- };
+  const handleSave = async () => {
+    if (!owner.trim() || !repo.trim()) {
+      toast.error("Please specify both the owner username and repository name.");
+      return;
+    }
 
- const handleRepoSelect = (fullName: string) => {
- const selected = repoList.find((r) => r.fullName === fullName);
- if (selected) {
- setOwner(selected.owner);
- setRepo(selected.name);
- setBranch(selected.defaultBranch || "main");
- }
- };
+    setTesting(true);
+    try {
+      const res = await fetch("/api/github/connection", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              owner: owner.trim(),
+              repository: repo.trim(),
+              branch: branch.trim(),
+              folderPath: folderPath.trim()
+          })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+          throw new Error(data.error || "Failed to update repository settings");
+      }
 
- const handleCreateRepo = async () => {
- if (!token.trim()) {
- toast.error("Please enter your GitHub Personal Access Token first.");
- return;
- }
- if (!newRepoName.trim()) {
- toast.error("Please provide a repository name.");
- return;
- }
+      const config: GitHubSyncConfig = {
+        enabled,
+        owner: owner.trim(),
+        repo: repo.trim(),
+        branch: branch.trim(),
+        folderPath: folderPath.trim(),
+        autoPromptDismissed: true,
+      };
 
- setCreatingRepo(true);
- try {
- const created = await createGitHubRepository(token, newRepoName.trim(), newRepoPrivate);
- if (!created.success) {
- throw new Error(created.error || "Failed to create repository");
- }
- const createdOwner = created.owner || "";
- const createdName = created.name || newRepoName.trim();
- const createdFullName = created.fullName || `${createdOwner}/${createdName}`;
- const createdBranch = created.defaultBranch || "main";
+      const targetUid = userId || null;
+      await saveGitHubSyncConfig(targetUid, config);
+      if (onConfigSaved) onConfigSaved(config);
 
- toast.success(`Created GitHub repository "${createdFullName}"! 🚀`);
- setOwner(createdOwner);
- setRepo(createdName);
- setBranch(createdBranch);
- setShowCreateRepo(false);
- // Add to list
- const newRepoItem = {
- fullName: createdFullName,
- owner: createdOwner,
- name: createdName,
- defaultBranch: createdBranch,
- isPrivate: newRepoPrivate,
- };
- setRepoList((prev) => [newRepoItem, ...prev]);
- } catch (err: any) {
- toast.error("Repository creation failed", { description: err.message });
- } finally {
- setCreatingRepo(false);
- }
- };
+      toast.success("GitHub Repository linked securely! 🐙", {
+        description: `Solutions will automatically push to ${owner}/${repo}.`,
+      });
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error("Failed to connect GitHub repository", { description: err.message });
+    } finally {
+      setTesting(false);
+    }
+  };
 
- const handleSave = async () => {
- if (!token.trim()) {
- toast.error("GitHub Personal Access Token is required.");
- return;
- }
- if (!owner.trim() || !repo.trim()) {
- toast.error("Please specify both the owner username and repository name.");
- return;
- }
+  const handleDisconnect = async () => {
+    try {
+        const res = await fetch("/api/github/connection", { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to disconnect");
+        
+        const config: GitHubSyncConfig = {
+            enabled: false,
+            owner: "",
+            repo: "",
+            branch: "main",
+            folderPath: "solutions",
+            autoPromptDismissed: true,
+        };
+        const targetUid = userId || null;
+        await saveGitHubSyncConfig(targetUid, config);
+        
+        setIsAuthorized(false);
+        setOwner("");
+        setRepo("");
+        setRepoList([]);
+        toast.info("GitHub sync disconnected.");
+    } catch (error) {
+        toast.error("Error disconnecting GitHub");
+    }
+  };
 
- setTesting(true);
- try {
- const check = await validateGitHubRepo(token, owner, repo);
- if (!check.valid) {
- toast.error("Could not access repository", { description: check.error || "Please verify credentials and repository." });
- setTesting(false);
- return;
- }
+  const handleDismiss = () => {
+    const targetUid = userId || null;
+    saveGitHubSyncConfig(targetUid, {
+      enabled: false,
+      owner: "",
+      repo: "",
+      branch: "main",
+      autoPromptDismissed: true,
+    });
+    onOpenChange(false);
+  };
 
- const finalBranch = branch.trim() || check.defaultBranch || "main";
- const config: GitHubSyncConfig = {
- enabled,
- token: token.trim(),
- owner: owner.trim(),
- repo: repo.trim(),
- branch: finalBranch,
- folderPath: folderPath.trim(),
- lastSyncedAt: new Date().toISOString(),
- autoPromptDismissed: true,
- };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg rounded-lg border border-border bg-card -2xl shadow-sm p-6">
+        <DialogHeader className="space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="size-10 rounded-lg bg-muted border border-border flex items-center justify-center text-white shrink-0 shadow-sm">
+              <GitHubIcon className="size-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
+                <span>Auto-Push Solutions to GitHub</span>
+                <span className="rounded-full bg-muted text-primary border border-border px-2 py-0.5 text-[10px] font-bold">
+                  NEW
+                </span>
+              </DialogTitle>
+              <DialogDescription className="text-xs text-foreground">
+                Whenever you add your solution code and key pattern, DSA404 will automatically commit a <span className="font-mono text-foreground">.txt</span> file to your chosen repository.
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
 
- const targetUid = userId || null;
- await saveGitHubSyncConfig(targetUid, config);
- setIsConnected(true);
- if (onConfigSaved) onConfigSaved(config);
+        {loadingStatus ? (
+             <div className="flex justify-center items-center py-8">
+                 <RefreshCw className="size-6 animate-spin text-primary" />
+             </div>
+        ) : (
+            <div className="space-y-4 py-2">
+            {/* Step 1: Authorization */}
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Key className="size-3.5 text-primary" />
+                    GitHub Connection
+                </Label>
+                {isAuthorized && (
+                    <span className="text-[11px] font-semibold text-success flex items-center gap-1">
+                        <CheckCircle2 className="size-3" /> Authorized
+                    </span>
+                )}
+                </div>
+                {!isAuthorized ? (
+                    <div className="flex flex-col gap-2">
+                        <Button
+                            type="button"
+                            onClick={() => window.location.href = "/api/github/connect"}
+                            className="w-full rounded-lg text-xs font-semibold h-10 gap-2 bg-foreground text-background hover:bg-foreground/90"
+                        >
+                            <GitHubIcon className="size-4" />
+                            <span>Connect with GitHub</span>
+                        </Button>
+                        <p className="text-[10px] text-muted-foreground text-center">
+                            Authorizing grants the <strong>repo</strong> scope, which allows reading and writing to your public and private repositories.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-muted p-3">
+                        <div className="flex items-center gap-2">
+                            <GitHubIcon className="size-4 text-foreground" />
+                            <span className="text-sm font-medium text-foreground">Connected to GitHub</span>
+                        </div>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleDisconnect}
+                            className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
+                        >
+                            Disconnect
+                        </Button>
+                    </div>
+                )}
+            </div>
 
- toast.success("GitHub Repository linked & securely encrypted in cloud! 🐙", {
- description: `Solutions will automatically push to ${owner}/${repo}. Cloud sync keeps your key active across all devices!`,
- });
- onOpenChange(false);
- } catch (err: any) {
- toast.error("Failed to connect GitHub repository", { description: err.message });
- } finally {
- setTesting(false);
- }
- };
+            {/* Step 2: Repository Selection */}
+            {isAuthorized && (
+                <>
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <FolderGit2 className="size-3.5 text-success" />
+                        Target Repository
+                    </Label>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={fetchRepos}
+                            disabled={loadingRepos}
+                            className="h-6 px-2 text-[10px]"
+                        >
+                            <RefreshCw className={loadingRepos ? "size-3 animate-spin mr-1" : "size-3 mr-1"} />
+                            Refresh
+                        </Button>
+                    </div>
+                    </div>
 
- const handleDisconnect = async () => {
- const config: GitHubSyncConfig = {
- enabled: false,
- token: "",
- owner: "",
- repo: "",
- branch: "main",
- folderPath: "solutions",
- autoPromptDismissed: true,
- };
- const targetUid = userId || null;
- await saveGitHubSyncConfig(targetUid, config);
- setToken("");
- setOwner("");
- setRepo("");
- setIsConnected(false);
- toast.info("GitHub sync disconnected.");
- onOpenChange(false);
- };
+                    {repoList.length > 0 ? (
+                    <select
+                        value={owner && repo ? `${owner}/${repo}` : ""}
+                        onChange={(e) => handleRepoSelect(e.target.value)}
+                        className="w-full h-9 rounded-lg bg-background border border-border px-3 text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                        <option value="">-- Select a repository --</option>
+                        {repoList.map((r) => (
+                        <option key={r.fullName} value={r.fullName} className="bg-popover text-popover-foreground">
+                            {r.fullName} {r.isPrivate ? "🔒" : "🌐"}
+                        </option>
+                        ))}
+                    </select>
+                    ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                        <Input
+                        placeholder="Owner (e.g. username)"
+                        value={owner}
+                        onChange={(e) => setOwner(e.target.value)}
+                        className="font-mono text-xs rounded-lg bg-background border-border"
+                        />
+                        <Input
+                        placeholder="Repo (e.g. dsa-solutions)"
+                        value={repo}
+                        onChange={(e) => setRepo(e.target.value)}
+                        className="font-mono text-xs rounded-lg bg-background border-border"
+                        />
+                    </div>
+                    )}
+                </div>
 
- const handleDismiss = () => {
- const targetUid = userId || null;
- const existing = getLocalGitHubSyncConfig(targetUid);
- if (!existing) {
- // Mark as dismissed so startup popup doesn't reappear repeatedly
- saveGitHubSyncConfig(targetUid, {
- enabled: false,
- token: "",
- owner: "",
- repo: "",
- branch: "main",
- autoPromptDismissed: true,
- });
- }
- onOpenChange(false);
- };
+                {/* Step 3: Branch and Subfolder */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold text-foreground">Branch</Label>
+                    <Input
+                        placeholder="main"
+                        value={branch}
+                        onChange={(e) => setBranch(e.target.value)}
+                        className="font-mono text-xs rounded-lg bg-background border-border h-8"
+                    />
+                    </div>
+                    <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold text-foreground">Folder Path</Label>
+                    <Input
+                        placeholder="solutions (or blank for root)"
+                        value={folderPath}
+                        onChange={(e) => setFolderPath(e.target.value)}
+                        className="font-mono text-xs rounded-lg bg-background border-border h-8"
+                    />
+                    </div>
+                </div>
 
- return (
- <Dialog open={open} onOpenChange={onOpenChange}>
- <DialogContent className="max-w-lg rounded-lg border border-border bg-card -2xl shadow-sm p-6">
- <DialogHeader className="space-y-2">
- <div className="flex items-center gap-2.5">
- <div className="size-10 rounded-lg bg-muted border border-border flex items-center justify-center text-white shrink-0 shadow-sm">
- <GitHubIcon className="size-5" />
- </div>
- <div>
- <DialogTitle className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
- <span>Auto-Push Solutions to GitHub</span>
- <span className="rounded-full bg-muted text-primary border border-border px-2 py-0.5 text-[10px] font-bold">
- NEW
- </span>
- </DialogTitle>
- <DialogDescription className="text-xs text-foreground">
- Whenever you add your solution code and key pattern, DSA404 will automatically commit a <span className="font-mono text-foreground">.txt</span> file to your chosen repository.
- </DialogDescription>
- </div>
- </div>
- </DialogHeader>
+                {/* Step 4: Auto-sync toggle */}
+                <div className="flex items-center justify-between rounded-lg border border-border bg-background p-3">
+                    <div className="space-y-0.5">
+                    <Label htmlFor="auto-sync-toggle" className="text-xs font-bold text-foreground cursor-pointer">
+                        Auto-Push Every Solved Problem
+                    </Label>
+                    <p className="text-[11px] text-foreground">
+                        Creates a <span className="font-mono text-foreground">&lt;Problem_Name&gt;.txt</span> with Key Patterns &amp; Code automatically.
+                    </p>
+                    </div>
+                    <Switch id="auto-sync-toggle" checked={enabled} onCheckedChange={setEnabled} />
+                </div>
+                </>
+            )}
+            </div>
+        )}
 
- <div className="space-y-4 py-2">
- {/* Step 1: Personal Access Token */}
- <div className="space-y-1.5">
- <div className="flex items-center justify-between">
- <Label htmlFor="gh-token" className="text-xs font-bold text-foreground flex items-center gap-1.5">
- <Key className="size-3.5 text-primary" />
- GitHub Personal Access Token (PAT)
- </Label>
- <a
- href="https://github.com/settings/tokens/new?description=DSA404%20Solutions%20Sync&scopes=repo"
- target="_blank"
- rel="noopener noreferrer"
- className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
- >
- <span>Generate token</span>
- <ExternalLink className="size-2.5" />
- </a>
- </div>
- <div className="flex items-center gap-2">
- <Input
- id="gh-token"
- type="password"
- placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
- value={token}
- onChange={(e) => setToken(e.target.value)}
- className="font-mono text-xs rounded-lg bg-background border-border"
- />
- <Button
- type="button"
- variant="outline"
- size="sm"
- onClick={handleFetchRepos}
- disabled={loadingRepos || !token.trim()}
- className="shrink-0 rounded-lg text-xs font-semibold gap-1.5 h-9"
- >
- <RefreshCw className={loadingRepos ? "size-3.5 animate-spin" : "size-3.5"} />
- <span>Fetch Repos</span>
- </Button>
- </div>
- <p className="text-[10px] text-foreground">
- Needs <strong className="text-foreground font-mono">repo</strong> scope to create solution text files in your repository.
- </p>
- </div>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-border">
+          <div className="flex items-center gap-2">
+            {!isAuthorized && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleDismiss}
+                className="rounded-lg text-xs h-8 text-foreground"
+              >
+                Maybe Later
+              </Button>
+            )}
+          </div>
 
- {/* Step 2: Repository Selection */}
- <div className="space-y-1.5">
- <div className="flex items-center justify-between">
- <Label htmlFor="gh-repo" className="text-xs font-bold text-foreground flex items-center gap-1.5">
- <FolderGit2 className="size-3.5 text-success" />
- Target Repository
- </Label>
- <div className="flex items-center gap-2">
- <button
- type="button"
- onClick={() => setShowCreateRepo((v) => !v)}
- className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline cursor-pointer"
- >
- <Plus className="size-3" />
- <span>{showCreateRepo ? "Select Existing" : "Create New Repo"}</span>
- </button>
- <span className="text-foreground text-[10px]">|</span>
- <a
- href="https://github.com/new"
- target="_blank"
- rel="noopener noreferrer"
- className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground hover:text-foreground"
- title="Create repo directly on GitHub.com"
- >
- <span>GitHub.com</span>
- <ExternalLink className="size-2.5" />
- </a>
- </div>
- </div>
-
- {/* Inline Create Repo Box */}
- {showCreateRepo && (
- <div className="p-3 rounded-lg border border-border bg-muted space-y-3 animate-fade-in-up">
- <div className="flex items-center justify-between">
- <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
- <Plus className="size-3.5 text-primary" /> Create Repository on GitHub
- </span>
- <span className="text-[10px] font-mono text-foreground">auto-initialized with main</span>
- </div>
- <div className="space-y-1.5">
- <Label className="text-[11px] text-foreground font-semibold">Repository Name</Label>
- <Input
- placeholder="e.g. dsa-solutions"
- value={newRepoName}
- onChange={(e) => setNewRepoName(e.target.value)}
- className="font-mono text-xs rounded-lg bg-background border-border h-8"
- />
- </div>
- <div className="flex items-center justify-between pt-1">
- <div className="flex items-center gap-1.5">
- {newRepoPrivate ? <Lock className="size-3.5 text-warning" /> : <Globe className="size-3.5 text-info" />}
- <Label htmlFor="new-repo-private" className="text-xs font-medium cursor-pointer">
- {newRepoPrivate ? "Private Repository" : "Public Repository"}
- </Label>
- </div>
- <Switch
- id="new-repo-private"
- checked={newRepoPrivate}
- onCheckedChange={setNewRepoPrivate}
- />
- </div>
- <div className="flex items-center justify-end gap-2 pt-1">
- <Button
- type="button"
- variant="ghost"
- size="sm"
- onClick={() => setShowCreateRepo(false)}
- className="h-7 text-xs rounded-lg text-foreground"
- >
- Cancel
- </Button>
- <Button
- type="button"
- size="sm"
- onClick={handleCreateRepo}
- disabled={creatingRepo || !token.trim() || !newRepoName.trim()}
- className="h-7 text-xs rounded-lg font-bold gap-1 bg-primary text-primary-foreground"
- >
- {creatingRepo ? (
- <>
- <RefreshCw className="size-3 animate-spin" />
- Creating...
- </>
- ) : (
- <>
- <Plus className="size-3" />
- Create &amp; Select
- </>
- )}
- </Button>
- </div>
- </div>
- )}
-
- {!showCreateRepo && repoList.length > 0 && (
- <select
- value={owner && repo ? `${owner}/${repo}` : ""}
- onChange={(e) => handleRepoSelect(e.target.value)}
- className="w-full h-9 rounded-lg bg-background border border-border px-3 text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
- >
- <option value="">-- Select a repository --</option>
- {repoList.map((r) => (
- <option key={r.fullName} value={r.fullName} className="bg-popover text-popover-foreground">
- {r.fullName} {r.isPrivate ? "🔒" : "🌐"}
- </option>
- ))}
- </select>
- )}
-
- {!showCreateRepo && repoList.length === 0 && (
- <div className="grid grid-cols-2 gap-2">
- <Input
- placeholder="Owner (e.g. username)"
- value={owner}
- onChange={(e) => setOwner(e.target.value)}
- className="font-mono text-xs rounded-lg bg-background border-border"
- />
- <Input
- placeholder="Repo (e.g. dsa-solutions)"
- value={repo}
- onChange={(e) => setRepo(e.target.value)}
- className="font-mono text-xs rounded-lg bg-background border-border"
- />
- </div>
- )}
- </div>
-
- {/* Step 3: Branch and Subfolder */}
- <div className="grid grid-cols-2 gap-3">
- <div className="space-y-1">
- <Label className="text-[11px] font-semibold text-foreground">Branch</Label>
- <Input
- placeholder="main"
- value={branch}
- onChange={(e) => setBranch(e.target.value)}
- className="font-mono text-xs rounded-lg bg-background border-border h-8"
- />
- </div>
- <div className="space-y-1">
- <Label className="text-[11px] font-semibold text-foreground">Folder Path</Label>
- <Input
- placeholder="solutions (or blank for root)"
- value={folderPath}
- onChange={(e) => setFolderPath(e.target.value)}
- className="font-mono text-xs rounded-lg bg-background border-border h-8"
- />
- </div>
- </div>
-
- {/* Step 4: Auto-sync toggle */}
- <div className="flex items-center justify-between rounded-lg border border-border bg-background p-3">
- <div className="space-y-0.5">
- <Label htmlFor="auto-sync-toggle" className="text-xs font-bold text-foreground cursor-pointer">
- Auto-Push Every Solved Problem
- </Label>
- <p className="text-[11px] text-foreground">
- Creates a <span className="font-mono text-foreground">&lt;Problem_Name&gt;.txt</span> with Key Patterns &amp; Code automatically.
- </p>
- </div>
- <Switch id="auto-sync-toggle" checked={enabled} onCheckedChange={setEnabled} />
- </div>
- </div>
-
- <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-border">
- <div className="flex items-center gap-2">
- {isConnected ? (
- <Button
- type="button"
- variant="ghost"
- size="sm"
- onClick={handleDisconnect}
- className="text-destructive hover:bg-muted rounded-lg text-xs h-8"
- >
- Disconnect
- </Button>
- ) : (
- <Button
- type="button"
- variant="ghost"
- size="sm"
- onClick={handleDismiss}
- className="rounded-lg text-xs h-8 text-foreground"
- >
- Maybe Later
- </Button>
- )}
- </div>
-
- <div className="flex items-center gap-2">
- <Button
- type="button"
- variant="outline"
- size="sm"
- onClick={() => onOpenChange(false)}
- className="rounded-lg text-xs h-8"
- >
- Cancel
- </Button>
- <Button
- type="button"
- size="sm"
- onClick={handleSave}
- disabled={testing || !token.trim() || !repo.trim()}
- className="rounded-lg text-xs h-8 font-bold bg-primary hover:bg-muted text-primary-foreground shadow-sm gap-1.5"
- >
- {testing ? (
- <>
- <RefreshCw className="size-3.5 animate-spin" />
- <span>Verifying...</span>
- </>
- ) : isConnected ? (
- <>
- <CheckCircle2 className="size-3.5" />
- <span>Update Settings</span>
- </>
- ) : (
- <>
- <Sparkles className="size-3.5" />
- <span>Connect &amp; Auto-Sync</span>
- </>
- )}
- </Button>
- </div>
- </DialogFooter>
- </DialogContent>
- </Dialog>
- );
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              className="rounded-lg text-xs h-8"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSave}
+              disabled={testing || !isAuthorized || !repo.trim()}
+              className="rounded-lg text-xs h-8 font-bold bg-primary hover:bg-muted text-primary-foreground shadow-sm gap-1.5"
+            >
+              {testing ? (
+                <>
+                  <RefreshCw className="size-3.5 animate-spin" />
+                  <span>Verifying...</span>
+                </>
+              ) : isAuthorized ? (
+                <>
+                  <CheckCircle2 className="size-3.5" />
+                  <span>Update Settings</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="size-3.5" />
+                  <span>Setup required</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }

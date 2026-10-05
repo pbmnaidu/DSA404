@@ -168,7 +168,7 @@ export function useProblemCompletions() {
 
  // Auto-push solution .txt to GitHub if configured
  const ghConfig = getLocalGitHubSyncConfig(currentUid);
- if (ghConfig?.enabled && ghConfig?.token && ghConfig?.repo && code.trim()) {
+ if (ghConfig?.enabled && ghConfig?.repo && code.trim()) {
  pushProblemSolutionToGitHub(ghConfig, {
  problemName: name,
  code,

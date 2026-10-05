@@ -568,10 +568,10 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
  (async () => {
  let cfg = getLocalGitHubSyncConfig(user.uid);
- if (!cfg?.token || !cfg?.repo) {
+ if (!cfg?.repo) {
  try {
  const cloudCfg = await loadCloudGitHubSyncConfig(user.uid);
- if (cloudCfg?.token && cloudCfg?.repo) {
+ if (cloudCfg?.repo) {
  cfg = cloudCfg;
  }
  } catch { }
@@ -581,7 +581,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
  const dismissedSession = typeof window !== "undefined" ? sessionStorage.getItem("gh_link_prompt_dismissed") : null;
  const dismissedLocal = cfg?.autoPromptDismissed;
- const isConfigured = Boolean(cfg?.token && cfg?.repo);
+ const isConfigured = Boolean(cfg?.repo);
 
  if (!isConfigured && !dismissedSession && !dismissedLocal) {
  const timer = setTimeout(() => {
