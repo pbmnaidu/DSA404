@@ -367,7 +367,7 @@ export async function GET(req: Request) {
       if (!row.paused && isWeekend && (row.email_enabled || row.push_enabled)) {
         // We'll use "14:00" as afternoon reminder
         if (nowMins >= 14 * 60) {
-          const sentWeekendToday = row.last_reminder_sent_on && row.last_reminder_sent_on.includes(`${today}:weekend`);
+          const sentWeekendToday = row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today) && row.last_reminder_sent_on.includes(`weekend`);
           if (!sentWeekendToday) {
              const { data: todayDay } = await supabase.from("study_days").select("problems").eq("user_id", uid).eq("date", today).eq("is_skipped", false).maybeSingle();
              const pendingCount = (todayDay?.problems || []).filter(p => !p.done).length;
@@ -389,7 +389,7 @@ export async function GET(req: Request) {
                 }
              }
              // Mark weekend sent
-             const updatedSentOn = row.last_reminder_sent_on ? `${row.last_reminder_sent_on},weekend` : `${today}:weekend`;
+             const updatedSentOn = row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today) ? `${row.last_reminder_sent_on},weekend` : `${today}:weekend`;
              await supabase.from("user_settings").update({ last_reminder_sent_on: updatedSentOn }).eq("user_id", uid);
              row.last_reminder_sent_on = updatedSentOn;
           }
@@ -407,7 +407,7 @@ export async function GET(req: Request) {
         if (todaysContests.length > 0) {
            // a) 7 AM Morning Summary
            if (nowMins >= 420) {
-              const sentContestMorning = row.last_reminder_sent_on && row.last_reminder_sent_on.includes(`${today}:contest_morning`);
+              const sentContestMorning = row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today) && row.last_reminder_sent_on.includes(`contest_morning`);
               if (!sentContestMorning) {
                  const formattedContests = todaysContests.map(c => {
                    const d = new Date(new Date(c.start_ms).toLocaleString("en-US", { timeZone: tz }));
@@ -428,7 +428,7 @@ export async function GET(req: Request) {
                       });
                     } catch(e) {}
                  }
-                 const updatedSentOn = row.last_reminder_sent_on ? `${row.last_reminder_sent_on},contest_morning` : `${today}:contest_morning`;
+                 const updatedSentOn = row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today) ? `${row.last_reminder_sent_on},contest_morning` : `${today}:contest_morning`;
                  await supabase.from("user_settings").update({ last_reminder_sent_on: updatedSentOn }).eq("user_id", uid);
                  row.last_reminder_sent_on = updatedSentOn;
               }
@@ -449,8 +449,8 @@ export async function GET(req: Request) {
            for (const cd of countdowns) {
               // Trigger if we are within the target window (e.g. exactly 60 mins away, up to 45 mins away if cron was delayed)
               if (timeDiffMins <= cd.target && timeDiffMins > cd.target - 15) {
-                 const tag = `${today}:contest_${c.id}_${cd.key}`;
-                 const alreadySent = row.last_reminder_sent_on && row.last_reminder_sent_on.includes(tag);
+                 const tag = `contest_${c.id}_${cd.key}`;
+                 const alreadySent = row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today) && row.last_reminder_sent_on.includes(tag);
                  if (!alreadySent) {
                     if (row.push_enabled && tokensByUid[uid]?.length > 0) {
                        try {
@@ -462,7 +462,7 @@ export async function GET(req: Request) {
                          });
                        } catch(e) {}
                     }
-                    const updatedSentOn = row.last_reminder_sent_on ? `${row.last_reminder_sent_on},${tag}` : `${today}:contest_${c.id}_${cd.key}`;
+                    const updatedSentOn = row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today) ? `${row.last_reminder_sent_on},${tag}` : `${today}:${tag}`;
                     await supabase.from("user_settings").update({ last_reminder_sent_on: updatedSentOn }).eq("user_id", uid);
                     row.last_reminder_sent_on = updatedSentOn;
                  }
