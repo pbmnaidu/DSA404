@@ -21,7 +21,19 @@ export function useInactivityLogout(enabled: boolean) {
     const now = Date.now();
 
     if (lastActive && now - lastActive > MAX_INACTIVITY_MS) {
-      createClient().auth.signOut().catch(() => {});
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          const token = window.localStorage.getItem(`dsa:fcm-token-uid:${user.id}`);
+          if (token) {
+            import("@/lib/db").then(({ removePushSubscription }) => {
+              removePushSubscription(user.id, token).catch(() => {});
+            });
+            window.localStorage.removeItem(`dsa:fcm-token-uid:${user.id}`);
+          }
+        }
+        supabase.auth.signOut().catch(() => {});
+      });
       window.localStorage.removeItem(LAST_ACTIVE_KEY);
       return;
     }

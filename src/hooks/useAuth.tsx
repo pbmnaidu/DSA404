@@ -67,6 +67,15 @@ export function useAuth() {
  }
  try {
  const supabase = createClient();
+ const { data: { user: currentUser } } = await supabase.auth.getUser();
+ if (currentUser) {
+   const token = typeof window !== "undefined" ? window.localStorage.getItem(`dsa:fcm-token-uid:${currentUser.id}`) : null;
+   if (token) {
+     const { removePushSubscription } = await import("@/lib/db");
+     await removePushSubscription(currentUser.id, token);
+     window.localStorage.removeItem(`dsa:fcm-token-uid:${currentUser.id}`);
+   }
+ }
  await supabase.auth.signOut();
  } catch {}
  };
