@@ -26,7 +26,6 @@ import { DemoShell } from "@/components/demo/DemoShell";
 import { AnimatedHeroBackground } from "@/components/AnimatedHeroBackground";
 import { DSA404Logo } from "@/components/DSA404Logo";
 import { useThemeCustomizer } from "./theme-customizer-context";
-import { useThemeCustomizer } from "./theme-customizer-context";
 
 // Icons
 function ChromeIcon({ className }: { className?: string }) {
