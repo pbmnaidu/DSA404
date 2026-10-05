@@ -7,13 +7,9 @@ const GCM_IV_LENGTH = 12;
 function getEncryptionKey() {
     const key = process.env.GITHUB_ENCRYPTION_KEY;
     if (!key || key.length < 32) {
-        return null;
+        throw new Error("GITHUB_ENCRYPTION_KEY is required and must be at least 32 characters");
     }
     return crypto.createHash('sha256').update(String(key)).digest();
-}
-
-if (!process.env.GITHUB_ENCRYPTION_KEY || process.env.GITHUB_ENCRYPTION_KEY.length < 32) {
-    throw new Error("GITHUB_ENCRYPTION_KEY is required and must be at least 32 characters");
 }
 
 export function encryptToken(text: string): string {
