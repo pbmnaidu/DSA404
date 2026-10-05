@@ -112,9 +112,24 @@ export async function GET(req: Request) {
       // ── 1. Evening Plan Reminder ──────────────────────────────────────────
       if (!row.paused && (row.email_enabled || row.push_enabled)) {
         const reminderMins = timeToMinutes(row.reminder_time || "19:00");
-        const alreadySent = row.last_reminder_sent_on === today;
+        
+        // Escalating nag logic: +0, +15, +30, +60 minutes
+        const stages = [0, 15, 30, 60];
+        let currentStage = 0;
+        
+        if (row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today)) {
+          const parts = row.last_reminder_sent_on.split("_");
+          if (parts.length > 1) {
+            currentStage = parseInt(parts[1], 10) + 1;
+          } else {
+            // Old format (just date), treat as fully sent to prevent spam
+            currentStage = stages.length;
+          }
+        }
 
-        if (!alreadySent && nowMins >= reminderMins) {
+        if (currentStage < stages.length) {
+          const targetMins = reminderMins + stages[currentStage];
+          if (nowMins >= targetMins) {
           // Check if user has pending problems today
           const { data: todayDay } = await supabase
             .from("study_days")
@@ -174,19 +189,20 @@ export async function GET(req: Request) {
             }
 
             if (sentAny) {
-              // Update last_reminder_sent_on
+              // Update last_reminder_sent_on with the stage
               await supabase
                 .from("user_settings")
-                .update({ last_reminder_sent_on: today })
+                .update({ last_reminder_sent_on: `${today}_${currentStage}` })
                 .eq("user_id", uid);
             }
           } else {
-            // Mark as sent even if no pending problems, so we don't check again today
+            // Mark as fully sent if no pending problems, so we don't check again today
             await supabase
               .from("user_settings")
-              .update({ last_reminder_sent_on: today })
+              .update({ last_reminder_sent_on: `${today}_99` })
               .eq("user_id", uid);
           }
+        }
         }
       }
 
