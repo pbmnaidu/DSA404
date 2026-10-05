@@ -625,16 +625,22 @@ export const loadProblemCompletions = getCompletedProblems;
 export const saveCodeSubmission = recordCodeSubmission;
 export const saveDay = saveDayProgress;
 export const loadCodeSubmissions = async (uid: string) => {
- // Backwards compatibility, map completedProblems to code submissions
- const problems = await getCompletedProblems(uid);
- return problems.filter(p => p.code).map(p => ({
- name: p.name,
- platform: p.platform,
- code: p.code,
- submittedAt: p.submittedAt || p.completedAt,
- submissionLink: p.submissionLink,
- keyPoints: p.keyPoints,
- }));
+  // Backwards compatibility, map completedProblems to a dictionary of code submissions
+  const problems = await getCompletedProblems(uid);
+  const result: Record<string, CodeSubmission> = {};
+  for (const p of problems) {
+    if (p.code || p.keyPoints || p.submissionLink) {
+      result[p.name] = {
+        name: p.name,
+        platform: p.platform,
+        code: p.code,
+        submittedAt: p.submittedAt || p.completedAt,
+        submissionLink: p.submissionLink,
+        keyPoints: p.keyPoints,
+      };
+    }
+  }
+  return result;
 };
 export type CodeSubmission = any;
 export const deleteAccountData = clearAccountData;

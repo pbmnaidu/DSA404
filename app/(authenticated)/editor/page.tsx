@@ -126,7 +126,9 @@ function EditorPageInner() {
   const [stdin, setStdin] = useState("");
   const [compiling, setCompiling] = useState(false);
   const [compileResult, setCompileResult] = useState<CompileResult | null>(null);
-  const canSubmit = compileResult?.code === 0 && !compileResult.stderr;
+  const [lastRunCode, setLastRunCode] = useState<string>("");
+  const isCodeUnchangedSinceLastRun = code.trim() === lastRunCode;
+  const canSubmit = (compileResult?.code === 0 && !compileResult.stderr) || isCodeUnchangedSinceLastRun;
 
   useEffect(() => {
     if (existingSubmission?.code) {
@@ -154,7 +156,10 @@ function EditorPageInner() {
     try {
       const result = await executeCode(language, code, stdin);
       setCompileResult(result);
-      if (result.code === 0 && !result.stderr) toast.success("Compiled and ran successfully.");
+      if (result.code === 0 && !result.stderr) {
+        setLastRunCode(code.trim());
+        toast.success("Compiled and ran successfully.");
+      }
       else toast.error("Compilation or execution failed. Fix the errors before submitting.");
     } catch (error: any) {
       setCompileResult({ code: 1, stdout: "", stderr: error?.message || "Compilation failed", output: "", error: error?.message });

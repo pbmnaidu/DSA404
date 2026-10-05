@@ -88,6 +88,7 @@ export function CodeChefCompilerModal({
 
  const [compiling, setCompiling] = useState<boolean>(false);
  const [compileResult, setCompileResult] = useState<CompileResult | null>(null);
+  const [lastRunCode, setLastRunCode] = useState<string>("");
 
  const [busy, setBusy] = useState<boolean>(false);
  const [ghConfig, setGhConfig] = useState<GitHubSyncConfig | null>(null);
@@ -95,7 +96,8 @@ export function CodeChefCompilerModal({
  const [copiedCode, setCopiedCode] = useState<boolean>(false);
  const [isIdeMaximized, setIsIdeMaximized] = useState<boolean>(false);
  const [ideReloadKey, setIdeReloadKey] = useState<number>(0);
- const canSubmit = compileResult?.code === 0 && !compileResult.stderr;
+ const isCodeUnchangedSinceLastRun = code.trim() === lastRunCode;
+  const canSubmit = (compileResult?.code === 0 && !compileResult.stderr) || isCodeUnchangedSinceLastRun;
 
  // Sync state whenever modal opens
  useEffect(() => {
