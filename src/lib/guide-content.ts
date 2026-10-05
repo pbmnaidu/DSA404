@@ -302,7 +302,7 @@ export const USER_GUIDE_CONTENT: GuideSection[] = [
     steps: [
       "If stats are not updating, go to Profile and click 'Refresh Stats'.",
       "If the page is stuck, try a hard refresh (Cmd/Ctrl + Shift + R).",
-      "If GitHub sync fails, ensure your Personal Access Token is valid in Settings."
+      "If GitHub sync fails, ensure your GitHub account is successfully connected in Settings."
     ],
     tips: ["You can always reach out via the Feedback form for further assistance."],
     route: "/settings",
