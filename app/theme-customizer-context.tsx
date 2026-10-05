@@ -458,7 +458,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
         if (saved) return saved;
       } catch {}
     }
-    return "auto";
+    return "desktop";
   });
 
   const [userId, setUserId] = useState<string | null>(null);

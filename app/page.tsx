@@ -946,7 +946,7 @@ export default function LandingPage() {
    onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
    variant="secondary"
    size="sm"
-   className="md:hidden relative flex items-center justify-center size-8 rounded-full text-[10px] font-mono font-bold text-primary group shadow-sm shadow-black/20 hover:text-primary"
+   className="relative flex items-center justify-center size-8 rounded-full text-[10px] font-mono font-bold text-primary group shadow-sm shadow-black/20 hover:text-primary"
    title={forceView === "desktop" ? "Switch to Mobile View" : "Switch to Desktop View"}
  >
    {forceView === "desktop" ? (
