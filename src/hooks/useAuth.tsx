@@ -60,25 +60,21 @@ export function useAuth() {
  return () => subscription.unsubscribe();
  }, []);
 
- const signOut = async () => {
- if (isGuestMode()) {
- disableGuestMode();
- setUser(null);
- }
- try {
- const supabase = createClient();
- const { data: { user: currentUser } } = await supabase.auth.getUser();
- if (currentUser) {
-   const token = typeof window !== "undefined" ? window.localStorage.getItem(`dsa:fcm-token-uid:${currentUser.id}`) : null;
-   if (token) {
-     const { removePushSubscription } = await import("@/lib/db");
-     await removePushSubscription(currentUser.id, token);
-     window.localStorage.removeItem(`dsa:fcm-token-uid:${currentUser.id}`);
-   }
- }
- await supabase.auth.signOut();
- } catch {}
- };
+  const signOut = async () => {
+    if (isGuestMode()) {
+      disableGuestMode();
+      setUser(null);
+    }
+    try {
+      const supabase = createClient();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        const { unsubscribeDevice } = await import("@/lib/push");
+        await unsubscribeDevice(currentUser.id);
+      }
+      await supabase.auth.signOut();
+    } catch {}
+  };
 
- return { user, loading, signOut };
+  return { user, loading, signOut };
 }

@@ -10,7 +10,7 @@
 
 import { savePushSubscription } from "@/lib/db";
 import { getMessagingIfSupported } from "@/integrations/firebase/client";
-import { getToken, onMessage } from "firebase/messaging";
+import { getToken, onMessage, deleteToken } from "firebase/messaging";
 
 export const pushSupported = () =>
  typeof window !== "undefined" &&
@@ -140,11 +140,46 @@ export async function subscribeDevice(userId: string, force = false): Promise<bo
 
 /** Helper to request permission and subscribe the current device in one flow */
 export async function requestAndSubscribeDevice(userId: string): Promise<boolean> {
- const perm = await requestPushPermission();
- if (perm === "granted") {
- return await subscribeDevice(userId, true);
- }
- return false;
+  const perm = await requestPushPermission();
+  if (perm === "granted") {
+    return await subscribeDevice(userId, true);
+  }
+  return false;
+}
+
+/**
+ * Unsubscribe this device from FCM push.
+ * Deletes the token from Firebase and from our backend.
+ */
+export async function unsubscribeDevice(userId: string): Promise<void> {
+  const localStorageKey = `dsa:fcm-token-uid:${userId}`;
+  const token = typeof window !== "undefined" ? localStorage.getItem(localStorageKey) : null;
+  
+  if (token) {
+    try {
+      const { removePushSubscription } = await import("@/lib/db");
+      await removePushSubscription(userId, token);
+      console.info("[push] Removed FCM token from backend DB.");
+    } catch (e) {
+      console.error("[push] Failed to remove token from DB:", e);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(localStorageKey);
+      localStorage.removeItem(`dsa:fcm-sub-time:${userId}`);
+    }
+  }
+
+  if (pushSupported()) {
+    try {
+      const messaging = await getMessagingIfSupported();
+      if (messaging) {
+        await deleteToken(messaging);
+        console.info("[push] Successfully deleted FCM token from browser.");
+      }
+    } catch (e) {
+      console.error("[push] Failed to delete token from Firebase Messaging:", e);
+    }
+  }
 }
 
 /**
