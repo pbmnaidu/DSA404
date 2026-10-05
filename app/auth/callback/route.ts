@@ -20,10 +20,16 @@ export async function GET(request: Request) {
    if (user) {
     const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
     const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : 0;
-    const isBrandNew = Math.abs(createdAt - lastSignIn) < 10_000 && !user.user_metadata?.onboarding_completed;
+    // Allow up to 1 hour difference for Magic Link logins, and ensure we only send it once
+     const isBrandNew = Math.abs(createdAt - lastSignIn) < 60 * 60 * 1000 && !user.user_metadata?.welcome_email_sent;
     if (isBrandNew && user.email) {
      const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0] || 'Learner';
      void sendWelcomeEmails(user.email, displayName).catch((sendError) => console.error('OAuth welcome email failed:', sendError));
+      
+      // Mark as sent so we don't send again if they re-login within the hour
+      await supabase.auth.updateUser({
+        data: { welcome_email_sent: true }
+      });
      return NextResponse.redirect(`${origin}${next}?new_registration=true`);
     }
    }

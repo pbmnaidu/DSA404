@@ -154,12 +154,17 @@ export async function GET(req: Request) {
               try {
                 await getMessaging(getAdminApp()).sendEachForMulticast({
                   tokens: tokensByUid[uid],
-                  data: {
+                  notification: {
                     title: "📚 DSA⁴⁰⁴ Evening Reminder",
                     body: `You still have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} left today. Complete them to save your streak!`,
+                  },
+                  data: {
                     link: "/today",
                     tag: `evening-${today}`,
                   },
+                  webpush: {
+                    fcmOptions: { link: "/today" }
+                  }
                 });
                 eveningSent++;
                 sentAny = true;
@@ -230,12 +235,17 @@ export async function GET(req: Request) {
             try {
               await getMessaging(getAdminApp()).sendEachForMulticast({
                 tokens: tokensByUid[uid],
-                data: {
+                notification: {
                   title: "☀️ Good Morning!",
                   body: `Today's topic: ${topic} (${pendingCount} problems)`,
+                },
+                data: {
                   link: "/today",
                   tag: `morning-${today}`,
                 },
+                webpush: {
+                  fcmOptions: { link: "/today" }
+                }
               });
               morningSent++;
               sentAnyMorning = true;
@@ -287,12 +297,17 @@ export async function GET(req: Request) {
                 try {
                   await getMessaging(getAdminApp()).sendEachForMulticast({
                     tokens: tokensByUid[uid],
-                    data: {
+                    notification: {
                       title: "🔔 Revision Reminder",
                       body: `${rem.topic}${rem.note ? ` - ${rem.note}` : ""}`,
+                    },
+                    data: {
                       link: "/review",
                       tag: `revision-${rem.id}`,
                     },
+                    webpush: {
+                      fcmOptions: { link: "/review" }
+                    }
                   });
                   topicSent++;
                   sentAnyTopic = true;
