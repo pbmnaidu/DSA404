@@ -153,10 +153,6 @@ export async function saveGitHubSyncConfig(
   }
  }
  }
-}`;
- localStorage.setItem(key, JSON.stringify(config));
- localStorage.setItem("dsa404_github_sync_config_default", JSON.stringify(config));
- }
 }
 
 /** Loads sync config from cloud */
