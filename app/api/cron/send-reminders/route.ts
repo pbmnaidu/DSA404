@@ -10,6 +10,8 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseServer } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
+import { getMessaging } from "firebase-admin/messaging";
+import { getAdminApp } from "@/integrations/firebase/admin.server";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -85,6 +87,18 @@ export async function GET(req: Request) {
       if (p.email) emailByUid[p.id] = p.email;
     }
 
+    // Load all push tokens at once
+    const { data: pushSubs } = await supabase
+      .from("push_subscriptions")
+      .select("user_id, token")
+      .in("user_id", userIds);
+
+    const tokensByUid: Record<string, string[]> = {};
+    for (const sub of pushSubs || []) {
+      if (!tokensByUid[sub.user_id]) tokensByUid[sub.user_id] = [];
+      if (sub.token) tokensByUid[sub.user_id].push(sub.token);
+    }
+
     // ── Process each user ──
     for (const row of allSettings) {
       const uid = row.user_id;
@@ -96,7 +110,7 @@ export async function GET(req: Request) {
       if (!userEmail) continue; // Skip users with no email in profile
 
       // ── 1. Evening Plan Reminder ──────────────────────────────────────────
-      if (!row.paused && row.email_enabled) {
+      if (!row.paused && (row.email_enabled || row.push_enabled)) {
         const reminderMins = timeToMinutes(row.reminder_time || "19:00");
         const alreadySent = row.last_reminder_sent_on === today;
 
@@ -114,27 +128,52 @@ export async function GET(req: Request) {
           const pendingCount = problems.filter((p: any) => !p.done).length;
 
           if (pendingCount > 0) {
-            try {
-              await sendEmail(
-                userEmail,
-                "📚 DSA⁴⁰⁴ Evening Reminder",
-                `Hello!\n\nYou have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} pending today in your DSA plan.\n\nLog in to DSA⁴⁰⁴ and complete them to maintain your streak!\n\nhttps://dsa404.vercel.app/today\n\n- DSA⁴⁰⁴ Team`,
-                `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;padding:28px;color:#f8fafc;border:1px solid #1e293b;">
-  <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;">DSA<span style="color:#f97316;">⁴⁰⁴</span></div>
-  <h2 style="margin-top:0;font-size:18px;">📚 ${pendingCount} Problem${pendingCount !== 1 ? "s" : ""} Waiting Today</h2>
-  <p style="color:#94a3b8;line-height:1.6;">You still have <strong style="color:#f8fafc;">${pendingCount} problem${pendingCount !== 1 ? "s" : ""}</strong> left for today's session. Complete them to save your streak!</p>
-  <a href="https://dsa404.vercel.app/today" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#0284c7;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">Continue Session →</a>
-  <p style="margin-top:24px;font-size:12px;color:#475569;">You're receiving this because you enabled evening reminders in DSA⁴⁰⁴ Settings.</p>
-</div>`
-              );
-              eveningSent++;
+            let sentAny = false;
+            if (row.email_enabled && userEmail) {
+              try {
+                await sendEmail(
+                  userEmail,
+                  "📚 DSA⁴⁰⁴ Evening Reminder",
+                  `Hello!\n\nYou have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} pending today in your DSA plan.\n\nLog in to DSA⁴⁰⁴ and complete them to maintain your streak!\n\nhttps://dsa404.vercel.app/today\n\n- DSA⁴⁰⁴ Team`,
+                  `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;padding:28px;color:#f8fafc;border:1px solid #1e293b;">
+    <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;">DSA<span style="color:#f97316;">⁴⁰⁴</span></div>
+    <h2 style="margin-top:0;font-size:18px;">📚 ${pendingCount} Problem${pendingCount !== 1 ? "s" : ""} Waiting Today</h2>
+    <p style="color:#94a3b8;line-height:1.6;">You still have <strong style="color:#f8fafc;">${pendingCount} problem${pendingCount !== 1 ? "s" : ""}</strong> left for today's session. Complete them to save your streak!</p>
+    <a href="https://dsa404.vercel.app/today" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#0284c7;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">Continue Session →</a>
+    <p style="margin-top:24px;font-size:12px;color:#475569;">You're receiving this because you enabled evening reminders in DSA⁴⁰⁴ Settings.</p>
+  </div>`
+                );
+                eveningSent++;
+                sentAny = true;
+              } catch (e) {
+                errors.push(`${uid} evening email: ${e instanceof Error ? e.message : String(e)}`);
+              }
+            }
+
+            if (row.push_enabled && tokensByUid[uid]?.length > 0) {
+              try {
+                await getMessaging(getAdminApp()).sendEachForMulticast({
+                  tokens: tokensByUid[uid],
+                  data: {
+                    title: "📚 DSA⁴⁰⁴ Evening Reminder",
+                    body: `You still have ${pendingCount} problem${pendingCount !== 1 ? "s" : ""} left today. Complete them to save your streak!`,
+                    link: "/today",
+                    tag: `evening-${today}`,
+                  }
+                });
+                eveningSent++;
+                sentAny = true;
+              } catch (e) {
+                errors.push(`${uid} evening push: ${e instanceof Error ? e.message : String(e)}`);
+              }
+            }
+
+            if (sentAny) {
               // Update last_reminder_sent_on
               await supabase
                 .from("user_settings")
                 .update({ last_reminder_sent_on: today })
                 .eq("user_id", uid);
-            } catch (e) {
-              errors.push(`${uid} evening email: ${e instanceof Error ? e.message : String(e)}`);
             }
           } else {
             // Mark as sent even if no pending problems, so we don't check again today
@@ -147,7 +186,7 @@ export async function GET(req: Request) {
       }
 
       // ── 2. Morning Reminder ──────────────────────────────────────────────
-      if (!row.paused && row.morning_reminder_enabled && row.email_enabled) {
+      if (!row.paused && row.morning_reminder_enabled && (row.email_enabled || row.push_enabled)) {
         const morningMins = timeToMinutes(row.morning_reminder_time || "08:00");
         const alreadySentMorning = row.last_morning_reminder_sent_on === today;
         const withinWindow = nowMins >= morningMins && nowMins <= morningMins + 240;
@@ -164,34 +203,59 @@ export async function GET(req: Request) {
           const topic = todayDay?.topic || "Today's Topic";
           const pendingCount = (todayDay?.problems || []).filter((p: any) => !p.done).length;
 
-          try {
-            await sendEmail(
-              userEmail,
-              `☀️ Good morning! Today's DSA topic: ${topic}`,
-              `Good morning!\n\nToday's topic is: ${topic}\nProblems scheduled: ${pendingCount}\n\nStart your session now: https://dsa404.vercel.app/today\n\n- DSA⁴⁰⁴ Team`,
-              `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;padding:28px;color:#f8fafc;border:1px solid #1e293b;">
-  <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;">DSA<span style="color:#f97316;">⁴⁰⁴</span></div>
-  <h2 style="margin-top:0;font-size:18px;">☀️ Good Morning!</h2>
-  <p style="color:#94a3b8;line-height:1.6;">Today's topic: <strong style="color:#f8fafc;">${topic}</strong><br>Problems scheduled: <strong style="color:#38bdf8;">${pendingCount}</strong></p>
-  <a href="https://dsa404.vercel.app/today" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#0284c7;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">Start Session →</a>
-  <p style="margin-top:24px;font-size:12px;color:#475569;">You're receiving this because you enabled morning reminders in DSA⁴⁰⁴ Settings.</p>
-</div>`
-            );
-            morningSent++;
+          let sentAnyMorning = false;
+          
+          if (row.email_enabled && userEmail) {
+            try {
+              await sendEmail(
+                userEmail,
+                `☀️ Good morning! Today's DSA topic: ${topic}`,
+                `Good morning!\n\nToday's topic is: ${topic}\nProblems scheduled: ${pendingCount}\n\nStart your session now: https://dsa404.vercel.app/today\n\n- DSA⁴⁰⁴ Team`,
+                `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;padding:28px;color:#f8fafc;border:1px solid #1e293b;">
+    <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;">DSA<span style="color:#f97316;">⁴⁰⁴</span></div>
+    <h2 style="margin-top:0;font-size:18px;">☀️ Good Morning!</h2>
+    <p style="color:#94a3b8;line-height:1.6;">Today's topic: <strong style="color:#f8fafc;">${topic}</strong><br>Problems scheduled: <strong style="color:#38bdf8;">${pendingCount}</strong></p>
+    <a href="https://dsa404.vercel.app/today" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#0284c7;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">Start Session →</a>
+    <p style="margin-top:24px;font-size:12px;color:#475569;">You're receiving this because you enabled morning reminders in DSA⁴⁰⁴ Settings.</p>
+  </div>`
+              );
+              morningSent++;
+              sentAnyMorning = true;
+            } catch (e) {
+              errors.push(`${uid} morning email: ${e instanceof Error ? e.message : String(e)}`);
+            }
+          }
+
+          if (row.push_enabled && tokensByUid[uid]?.length > 0) {
+            try {
+              await getMessaging(getAdminApp()).sendEachForMulticast({
+                tokens: tokensByUid[uid],
+                data: {
+                  title: "☀️ Good Morning!",
+                  body: `Today's topic: ${topic} (${pendingCount} problems)`,
+                  link: "/today",
+                  tag: `morning-${today}`,
+                }
+              });
+              morningSent++;
+              sentAnyMorning = true;
+            } catch (e) {
+              errors.push(`${uid} morning push: ${e instanceof Error ? e.message : String(e)}`);
+            }
+          }
+
+          if (sentAnyMorning) {
             await supabase
               .from("user_settings")
               .update({ last_morning_reminder_sent_on: today })
               .eq("user_id", uid);
-          } catch (e) {
-            errors.push(`${uid} morning email: ${e instanceof Error ? e.message : String(e)}`);
           }
         }
       }
 
       // ── 3. Topic Reminders (Revision tab) ─────────────────────────────────
-      if (row.email_enabled) {
+      if (row.email_enabled || row.push_enabled) {
         try {
-          const nowIso = new Date().toISOString().slice(0, 10);
           const { data: dueReminders } = await supabase
             .from("user_reminders")
             .select("*")
@@ -203,21 +267,47 @@ export async function GET(req: Request) {
             const remMins = timeToMinutes(rem.time || "09:00");
             // Only fire if today's time has passed (or if reminder date is in the past)
             if (rem.date < today || (rem.date === today && nowMins >= remMins)) {
-              try {
-                await sendEmail(
-                  userEmail,
-                  `🔔 Revision Reminder: ${rem.topic}`,
-                  `Hello!\n\nThis is your scheduled revision reminder for the topic: "${rem.topic}".\n${rem.note ? `Note: ${rem.note}\n\n` : "\n"}Log in to DSA⁴⁰⁴ to revise: https://dsa404.vercel.app/review\n\n- DSA⁴⁰⁴ Team`
-                );
-                topicSent++;
+              let sentAnyTopic = false;
+              
+              if (row.email_enabled && userEmail) {
+                try {
+                  await sendEmail(
+                    userEmail,
+                    `🔔 Revision Reminder: ${rem.topic}`,
+                    `Hello!\n\nThis is your scheduled revision reminder for the topic: "${rem.topic}".\n${rem.note ? `Note: ${rem.note}\n\n` : "\n"}Log in to DSA⁴⁰⁴ to revise: https://dsa404.vercel.app/review\n\n- DSA⁴⁰⁴ Team`
+                  );
+                  topicSent++;
+                  sentAnyTopic = true;
+                } catch (e) {
+                  errors.push(`${uid} topic email (${rem.topic}): ${e instanceof Error ? e.message : String(e)}`);
+                }
+              }
+
+              if (row.push_enabled && tokensByUid[uid]?.length > 0) {
+                try {
+                  await getMessaging(getAdminApp()).sendEachForMulticast({
+                    tokens: tokensByUid[uid],
+                    data: {
+                      title: "🔔 Revision Reminder",
+                      body: `${rem.topic}${rem.note ? ` - ${rem.note}` : ""}`,
+                      link: "/review",
+                      tag: `revision-${rem.id}`,
+                    }
+                  });
+                  topicSent++;
+                  sentAnyTopic = true;
+                } catch (e) {
+                  errors.push(`${uid} topic push (${rem.topic}): ${e instanceof Error ? e.message : String(e)}`);
+                }
+              }
+
+              if (sentAnyTopic) {
                 // Mark as triggered
                 await supabase
                   .from("user_reminders")
                   .update({ triggered: true })
                   .eq("id", rem.id)
                   .eq("user_id", uid);
-              } catch (e) {
-                errors.push(`${uid} topic email (${rem.topic}): ${e instanceof Error ? e.message : String(e)}`);
               }
             }
           }
