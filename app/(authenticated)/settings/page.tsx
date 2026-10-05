@@ -368,9 +368,11 @@ export default function SettingsPage() {
  const supabase = createClient();
  const { data: { user } } = await supabase.auth.getUser();
  if (!user) throw new Error("No active user session.");
- if (userId) {
- await deleteAccountData(userId);
- }
+ const res = await fetch("/api/auth/delete-account", { method: "DELETE" });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || "Failed to delete account");
+    }
  await qc.cancelQueries();
  qc.clear();
  if (typeof window !== "undefined") {
