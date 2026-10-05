@@ -56,6 +56,8 @@ import {
  MessageSquare,
  BookOpen,
  MoreHorizontal,
+ Monitor,
+ Smartphone,
 } from "lucide-react";
 import { loadUserProfile } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -481,7 +483,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
  const { lastSynced, days } = usePlan();
  const { settings } = useSettings();
  const { user } = useAuth();
- const { openPanel } = useThemeCustomizer();
+ const { openPanel, forceView, applyView } = useThemeCustomizer();
  const { openInApp } = useInAppBrowser();
  const router = useRouter();
  const pathname = usePathname();
@@ -702,6 +704,16 @@ export function AppShell({ email, children }: { email: string; children: React.R
  )}
  </button>
 
+ <button
+   type="button"
+   onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
+   className="flex items-center justify-center size-8 rounded-lg border border-border bg-card hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+   title={forceView === "desktop" ? "Switch to Mobile View" : "Switch to Desktop View"}
+   aria-label="Toggle view mode"
+ >
+   {forceView === "desktop" ? <Smartphone className="size-4 text-foreground" /> : <Monitor className="size-4 text-foreground" />}
+ </button>
+
  <ThemeToggle />
 
  {/* Account dropdown */}
@@ -782,6 +794,20 @@ export function AppShell({ email, children }: { email: string; children: React.R
  {unreadNotifCount}
  </span>
  )}
+ </button>
+
+ <button
+   type="button"
+   onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
+   className="relative flex items-center justify-center size-9 rounded-lg border border-border bg-card hover:bg-accent transition-all group"
+   title={forceView === "desktop" ? "Switch to Mobile View" : "Switch to Desktop View"}
+   aria-label="Toggle view mode"
+ >
+   {forceView === "desktop" ? (
+     <Smartphone className="size-4 text-foreground group-hover:text-primary transition-colors focus-visible:outline-none" />
+   ) : (
+     <Monitor className="size-4 text-foreground group-hover:text-primary transition-colors focus-visible:outline-none" />
+   )}
  </button>
 
  <span className="hidden xl:flex items-center gap-1.5 text-xs text-foreground">

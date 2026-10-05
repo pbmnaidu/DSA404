@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/integrations/supabase/client";
 import { loadSettings, saveSettings } from "@/lib/settings";
 import { isGuestMode } from "@/lib/guest-data";
@@ -577,6 +578,12 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, [colors]);
+
+  // Re-apply viewport on route changes so Next.js doesn't overwrite it
+  const pathname = usePathname();
+  useEffect(() => {
+    applyViewModeToDocument(forceView);
+  }, [pathname, forceView]);
 
   // Listen to cross-tab storage changes
   useEffect(() => {
