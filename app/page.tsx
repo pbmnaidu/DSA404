@@ -17,7 +17,7 @@ import {
  Clock, Flame, Menu, X, LayoutGrid, BarChart3, CheckCircle2,
  Calendar, FolderGit2, BookOpen, BrainCircuit, Activity, LineChart, Code, CheckSquare, Sliders, History
 } from "lucide-react";
-import { User, Bell, Settings, Mail } from "lucide-react";
+import { User, Bell, Settings, Mail, Monitor, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { InstallApkSection } from "@/components/InstallApkSection";
@@ -25,6 +25,8 @@ import { ChromeInstallModal } from "@/components/ChromeInstallModal";
 import { DemoShell } from "@/components/demo/DemoShell";
 import { AnimatedHeroBackground } from "@/components/AnimatedHeroBackground";
 import { DSA404Logo } from "@/components/DSA404Logo";
+import { useThemeCustomizer } from "./theme-customizer-context";
+import { useThemeCustomizer } from "./theme-customizer-context";
 
 // Icons
 function ChromeIcon({ className }: { className?: string }) {
@@ -892,6 +894,7 @@ export default function LandingPage() {
  const router = useRouter();
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
  const { promptInstall, isModalOpen, setIsModalOpen, isIOS, isStandalone } = usePWAInstall();
+ const { forceView, applyView } = useThemeCustomizer();
  
  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const handleEnterDemo = useCallback(() => {
@@ -939,6 +942,24 @@ export default function LandingPage() {
  )}
  <Button asChild variant="secondary" size="sm" className="hidden md:flex rounded-full px-5 font-bold font-mono text-xs text-primary hover:text-primary">
  <Link href="/auth?mode=signup">Start Learning</Link>
+ </Button>
+ <Button
+   onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
+   variant="secondary"
+   size="sm"
+   className="md:hidden relative flex items-center justify-center size-8 rounded-full text-[10px] font-mono font-bold text-primary group shadow-sm shadow-black/20 hover:text-primary"
+   title={forceView === "desktop" ? "Switch to Mobile View" : "Switch to Desktop View"}
+ >
+   {forceView === "desktop" ? (
+     <Smartphone className="size-4" />
+   ) : (
+     <>
+       <Monitor className="size-4" />
+       {/* Highlight Hint */}
+       <span className="absolute -top-1 -right-1 size-2.5 rounded-full bg-destructive animate-ping opacity-75" />
+       <span className="absolute -top-1 -right-1 size-2.5 rounded-full bg-destructive" />
+     </>
+   )}
  </Button>
  <Button variant="ghost" size="icon" className="md:hidden text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
  {isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
