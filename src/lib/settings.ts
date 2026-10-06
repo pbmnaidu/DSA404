@@ -189,6 +189,10 @@ export async function loadSettings(userId: string): Promise<UserSettings> {
  // Spread data last so any direct column names (morningReminderEnabled etc.) win.
  const raw: Fields = {
  theme: data.theme,
+ themeCustom: data.theme_custom,
+ themeFont: data.theme_font,
+ themeFontSize: data.theme_font_size,
+ themeForceView: data.theme_force_view,
  pushEnabled: data.push_enabled,
  emailEnabled: data.email_enabled,
  reminderTime: data.reminder_time,
@@ -228,6 +232,10 @@ export async function saveSettings(userId: string, patch: Partial<UserSettings>)
  
  const updatePayload: any = {};
  if (fields.theme !== undefined) updatePayload.theme = fields.theme;
+ if (fields.themeCustom !== undefined) updatePayload.theme_custom = fields.themeCustom;
+ if (fields.themeFont !== undefined) updatePayload.theme_font = fields.themeFont;
+ if (fields.themeFontSize !== undefined) updatePayload.theme_font_size = fields.themeFontSize;
+ if (fields.themeForceView !== undefined) updatePayload.theme_force_view = fields.themeForceView;
  if (fields.pushEnabled !== undefined) updatePayload.push_enabled = fields.pushEnabled;
  if (fields.emailEnabled !== undefined) updatePayload.email_enabled = fields.emailEnabled;
  if (fields.reminderTime !== undefined) updatePayload.reminder_time = fields.reminderTime;

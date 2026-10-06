@@ -490,70 +490,88 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     applyViewModeToDocument(forceView);
   }, []);
 
-  // Fetch initial user settings from Supabase
+  // Fetch initial user settings from Supabase and subscribe to changes
   useEffect(() => {
     if (!userId || isGuestMode()) return;
     let alive = true;
 
-    loadSettings(userId).then(data => {
-      if (!alive) return;
+    const fetchSettings = () => {
+      loadSettings(userId).then(data => {
+        if (!alive) return;
 
-      // 1. Theme Mode
-      if (data.theme) {
-        setThemeMode(data.theme);
-        applyThemeModeToDocument(data.theme);
-        try {
-          localStorage.setItem("dsa-theme-mode", data.theme);
-        } catch {}
-      }
+        // 1. Theme Mode
+        if (data.theme) {
+          setThemeMode(data.theme);
+          applyThemeModeToDocument(data.theme);
+          try {
+            localStorage.setItem("dsa-theme-mode", data.theme);
+          } catch {}
+        }
 
-      // 2. Theme Custom
-      if (data.themeCustom) {
-        try {
-          const rawCustom = data.themeCustom;
-          if (rawCustom?.preset === "default") {
-            setColors(PRESETS["pearl-royal"].colors);
-            setActivePreset("pearl-royal");
-            localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: PRESETS["pearl-royal"].colors, preset: "pearl-royal" }));
-          } else if (rawCustom?.colors) {
-            setColors(rawCustom.colors);
-            setActivePreset(rawCustom.preset ?? null);
-            localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: rawCustom.colors, preset: rawCustom.preset ?? null }));
-          }
-        } catch {}
-      }
+        // 2. Theme Custom
+        if (data.themeCustom) {
+          try {
+            const rawCustom = data.themeCustom;
+            if (rawCustom?.preset === "default") {
+              setColors(PRESETS["pearl-royal"].colors);
+              setActivePreset("pearl-royal");
+              localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: PRESETS["pearl-royal"].colors, preset: "pearl-royal" }));
+            } else if (rawCustom?.colors) {
+              setColors(rawCustom.colors);
+              setActivePreset(rawCustom.preset ?? null);
+              localStorage.setItem(THEME_CUSTOM_STORAGE_KEY, JSON.stringify({ colors: rawCustom.colors, preset: rawCustom.preset ?? null }));
+            }
+          } catch {}
+        }
 
-      // 3. Font
-      if (data.themeFont) {
-        setFont(data.themeFont);
-        applyFontToDocument(data.themeFont);
-        try {
-          localStorage.setItem(FONT_STORAGE_KEY, data.themeFont);
-        } catch {}
-      }
+        // 3. Font
+        if (data.themeFont) {
+          setFont(data.themeFont);
+          applyFontToDocument(data.themeFont);
+          try {
+            localStorage.setItem(FONT_STORAGE_KEY, data.themeFont);
+          } catch {}
+        }
 
-      // 4. Display Size
-      if (data.themeFontSize) {
-        setFontSize(data.themeFontSize);
-        applySizeToDocument(data.themeFontSize);
-        try {
-          localStorage.setItem(SIZE_STORAGE_KEY, data.themeFontSize);
-        } catch {}
-      }
+        // 4. Display Size
+        if (data.themeFontSize) {
+          setFontSize(data.themeFontSize);
+          applySizeToDocument(data.themeFontSize);
+          try {
+            localStorage.setItem(SIZE_STORAGE_KEY, data.themeFontSize);
+          } catch {}
+        }
 
-      // 5. Force View Mode
-      if (data.themeForceView) {
-        const v = data.themeForceView as ForceView;
-        setForceView(v);
-        applyViewModeToDocument(v);
-        try {
-          localStorage.setItem(VIEW_STORAGE_KEY, v);
-        } catch {}
-      }
-    }).catch(err => console.warn("Failed to load settings:", err));
+        // 5. Force View Mode
+        if (data.themeForceView) {
+          const v = data.themeForceView as ForceView;
+          setForceView(v);
+          applyViewModeToDocument(v);
+          try {
+            localStorage.setItem(VIEW_STORAGE_KEY, v);
+          } catch {}
+        }
+      }).catch(err => console.warn("Failed to load settings:", err));
+    };
+
+    fetchSettings();
+
+    // Subscribe to realtime changes on user_settings
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`user_settings_${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_settings', filter: `user_id=eq.${userId}` },
+        () => {
+          fetchSettings();
+        }
+      )
+      .subscribe();
 
     return () => {
       alive = false;
+      supabase.removeChannel(channel);
     };
   }, [userId]);
 

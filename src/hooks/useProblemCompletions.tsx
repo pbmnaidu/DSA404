@@ -10,6 +10,7 @@ import {
 } from "@/lib/db";
 import { getCanonicalProblemLink } from "@/lib/problems";
 import { getLocalGitHubSyncConfig, pushProblemSolutionToGitHub } from "@/lib/github-sync";
+import { createClient } from "@/integrations/supabase/client";
 
 function getLocalSubmissionsKey(uid: string) {
  return `dsa_code_submissions_${uid}`;
@@ -110,10 +111,23 @@ export function useProblemCompletions() {
   window.addEventListener('visibilitychange', onFocus);
   window.addEventListener('focus', onFocus);
 
+  const supabase = createClient();
+  const channel = supabase
+    .channel(`profiles_${currentUid}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${currentUid}` },
+      () => {
+        fetchCompletions();
+      }
+    )
+    .subscribe();
+
   return () => {
   isMounted = false;
   window.removeEventListener('visibilitychange', onFocus);
   window.removeEventListener('focus', onFocus);
+  supabase.removeChannel(channel);
   };
   }, [user]);
 
