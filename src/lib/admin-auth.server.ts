@@ -56,7 +56,7 @@ export async function verifyAdmin(
   }
 
   // Check hardcoded admin email list first (fast path)
-  const ADMIN_EMAILS = ["404dsatracker@gmail.com"];
+  const ADMIN_EMAILS = ["404dsatracker@gmail.com", "pbmnaidu.123@gmail.com"];
   if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
     return { authorized: true, user };
   }

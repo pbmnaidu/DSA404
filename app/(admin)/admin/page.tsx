@@ -95,7 +95,7 @@ function OverviewTab({ refreshTrigger }: { refreshTrigger: number }) {
     try {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch("/api/admin/stats", { headers: { Authorization: `Bearer ${session?.access_token}` }});
+      const res = await fetch("/api/admin/stats", { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined });
       if (!res.ok) throw new Error("Failed to fetch stats");
       setStats(await res.json());
     } catch (err: any) { setError(err.message); } finally { setLoading(false); }
@@ -219,7 +219,7 @@ function createDataTab({
       try {
         const supabase = createClient();
         const { data: { session } } = await supabase.auth.getSession();
-        const res = await fetch(`/api/admin/data?type=${type}`, { headers: { Authorization: `Bearer ${session?.access_token}` }});
+        const res = await fetch(`/api/admin/data?type=${type}`, { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined });
         if (!res.ok) throw new Error(await res.text());
         const json = await res.json();
         if (json.error) throw new Error(json.error);
