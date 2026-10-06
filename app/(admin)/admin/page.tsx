@@ -481,7 +481,25 @@ function SettingsTab() {
       const supabase = createClient();
       const updates: any = {};
       if (email) updates.email = email;
-      if (password) updates.password = password;
+      if (password) {
+        if (password.length < 8) {
+          throw new Error("Password must be at least 8 characters long.");
+        }
+        if (!/[A-Z]/.test(password)) {
+          throw new Error("Password must contain at least one uppercase letter.");
+        }
+        if (!/[a-z]/.test(password)) {
+          throw new Error("Password must contain at least one lowercase letter.");
+        }
+        if (!/[0-9]/.test(password)) {
+          throw new Error("Password must contain at least one number.");
+        }
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password)) {
+          throw new Error("Password must contain at least one special character.");
+        }
+        updates.password = password;
+      }
+      
       const { error } = await supabase.auth.updateUser(updates);
       if (error) throw error;
       toast.success("Credentials updated successfully!");

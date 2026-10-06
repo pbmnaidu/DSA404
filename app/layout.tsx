@@ -47,9 +47,9 @@ const antiFoucScript = `
     var doc = document.documentElement;
     doc.classList.add('disable-transitions');
     
-    // Support dark mode if explicitly set, else Pearl & Royal (light)
+    // Support dark mode by default if no saved mode is found
     var savedMode = localStorage.getItem('dsa-theme-mode');
-    var isDark = savedMode === 'dark';
+    var isDark = savedMode === null ? true : savedMode === 'dark';
     var themeColor = isDark ? '#101623' : '#FAF9F6';
     
     var metaTheme = document.querySelector('meta[name="theme-color"]');

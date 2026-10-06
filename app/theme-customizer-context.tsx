@@ -396,7 +396,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
         if (saved && ["light", "dark", "system"].includes(saved)) return saved;
       } catch {}
     }
-    return "light";
+    return "dark";
   });
   const [colors, setColors] = useState<ThemeCustom>(() => {
     if (typeof window !== "undefined") {
@@ -740,7 +740,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
   );
 
   const resetToDefault = useCallback(() => {
-    applyThemeMode("light");
+    applyThemeMode("dark");
     applyPreset("pearl-royal");
     applyFont("'Inter', sans-serif");
     applySize("auto");
