@@ -19,13 +19,19 @@ export async function DELETE(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Explicitly delete the profile first. Because of ON DELETE CASCADE,
-    // this will immediately wipe study_days, settings, push_subscriptions, etc.
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .delete()
-      .eq("id", user.id);
-
+    // Explicitly delete from all related tables to ensure no orphaned data remains
+    // just in case ON DELETE CASCADE is not configured correctly on the foreign keys.
+    const tables = ["user_settings", "study_days", "push_subscriptions", "user_feedback", "profiles"];
+    
+    for (const table of tables) {
+      const { error } = await supabaseAdmin.from(table).delete().eq("user_id", user.id);
+      if (error && table !== "profiles") {
+        console.warn(`[api/auth/delete-account] Could not delete from ${table}:`, error);
+      }
+    }
+    
+    // Profiles table uses 'id' instead of 'user_id' as the primary key reference to auth.users
+    const { error: profileError } = await supabaseAdmin.from("profiles").delete().eq("id", user.id);
     if (profileError) {
       console.error("[api/auth/delete-account] Failed to delete profile:", profileError);
     }
