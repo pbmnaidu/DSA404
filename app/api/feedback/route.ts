@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/integrations/supabase/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
+import { getMessaging } from "firebase-admin/messaging";
+import { getAdminApp } from "@/integrations/firebase/admin.server";
 
 const OFFICIAL_EMAIL = "404dsatracker@gmail.com";
 
@@ -107,6 +109,30 @@ export async function POST(req: Request) {
     } catch (emailError) {
       emailSent = false;
       console.error("[feedback] Official email failed:", emailError);
+    }
+
+    // 7. Send Web Push Notification to all admins
+    try {
+      const { data: adminUsers } = await db.from("admin_users").select("user_id");
+      if (adminUsers && adminUsers.length > 0) {
+        const adminUserIds = adminUsers.map((a: any) => a.user_id);
+        const { data: pushSubs } = await db.from("push_subscriptions").select("token").in("user_id", adminUserIds);
+        
+        if (pushSubs && pushSubs.length > 0) {
+          const adminTokens = pushSubs.map((s: any) => s.token);
+          await getMessaging(getAdminApp()).sendEachForMulticast({
+            tokens: adminTokens,
+            notification: {
+              title: `📝 New ${category === 'improvement' ? 'Improvement' : 'Feedback'} from ${username}`,
+              body: `${subject}\nBy: ${user.email}`,
+            },
+            data: { link: "/admin", tag: `feedback_${feedbackId}` },
+            webpush: { fcmOptions: { link: "/admin" } }
+          });
+        }
+      }
+    } catch (pushErr) {
+      console.error("[feedback] Failed to send admin push notification:", pushErr);
     }
 
     return NextResponse.json({
