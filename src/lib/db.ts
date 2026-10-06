@@ -36,6 +36,19 @@ export interface CompletedProblemSnapshot {
  keyPoints?: string; completedAt?: string; submittedAt?: string; topic?: string; section?: string;
 }
 
+export interface CodeSubmission {
+ name?: string;
+ code: string;
+ link: string;
+ platform?: string;
+ difficulty?: string;
+ keyPoints?: string;
+ submittedAt: string;
+ submissionLink?: string;
+ topic?: string;
+ section?: string;
+}
+
 export interface UserProfile {
  displayName: string; photoURL: string; bannerURL?: string; bio: string; aboutMe?: string; notes?: string;
  username?: string; email?: string; linkedin?: string; github?: string; portfolio?: string;
@@ -263,6 +276,51 @@ function mapDayRow(row: any): Day {
  };
 }
 
+function stripUndefined<T>(value: T): T {
+ if (Array.isArray(value)) {
+ return value.filter((item) => item !== undefined).map((item) => stripUndefined(item)) as T;
+ }
+ if (value && typeof value === "object") {
+ const cleaned: Record<string, any> = {};
+ for (const [key, val] of Object.entries(value as Record<string, any>)) {
+ if (val !== undefined) cleaned[key] = stripUndefined(val);
+ }
+ return cleaned as T;
+ }
+ return value;
+}
+
+function snapshotToSubmission(p: CompletedProblemSnapshot): CodeSubmission {
+ const link = p.submissionLink || p.link || getCanonicalProblemLink(p.name) || "";
+ return {
+ name: p.name,
+ platform: p.platform,
+ difficulty: p.difficulty,
+ code: p.code || "",
+ link,
+ submissionLink: link,
+ keyPoints: p.keyPoints || "",
+ submittedAt: p.submittedAt || p.completedAt || new Date().toISOString(),
+ topic: p.topic,
+ section: p.section,
+ };
+}
+
+function mapSubmissionRow(row: any): CodeSubmission {
+ return {
+ name: row.problem_name,
+ platform: row.platform || "Unknown",
+ difficulty: row.difficulty || "Unknown",
+ code: row.code || "",
+ link: row.submission_link || row.problem_link || getCanonicalProblemLink(row.problem_name) || "",
+ submissionLink: row.submission_link || row.problem_link || "",
+ keyPoints: row.key_points || "",
+ submittedAt: row.submitted_at || row.updated_at || new Date().toISOString(),
+ topic: row.topic || undefined,
+ section: row.section || undefined,
+ };
+}
+
 export async function loadPublicDays(uid: string): Promise<Day[]> {
  const { data } = await supabase.from("study_days").select("*").eq("user_id", uid).order("seq_index", { ascending: true });
  return (data || []).map(mapDayRow);
@@ -461,31 +519,83 @@ export async function deleteTopicNotes(uid: string, dayId: string) {
  await saveDayProgress(uid, dayId, { notes: "" });
 }
 
-export async function recordCodeSubmission(uid: string, p: { name: string; platform: string; difficulty: string; link: string; code?: string; submissionLink?: string; keyPoints?: string }, dateIso: string) {
- if (isGuestUser(uid)) { saveGuestCodeSubmission(p.name, p as CodeSubmission); return; }
- 
+export async function recordCodeSubmission(uid: string, p: { name: string; platform: string; difficulty: string; link: string; code?: string; submissionLink?: string; keyPoints?: string; topic?: string; section?: string }, dateIso: string) {
+ if (isGuestUser(uid)) {
+ saveGuestCodeSubmission(p.name, {
+ name: p.name,
+ platform: p.platform,
+ difficulty: p.difficulty,
+ code: p.code || "",
+ link: p.submissionLink || p.link || getCanonicalProblemLink(p.name) || "",
+ submissionLink: p.submissionLink || p.link || "",
+ keyPoints: p.keyPoints || "",
+ submittedAt: dateIso,
+ topic: p.topic,
+ section: p.section,
+ });
+ return;
+ }
+
+ const effectiveLink = p.link || getCanonicalProblemLink(p.name) || "";
+ const submissionLink = p.submissionLink || effectiveLink;
+ const submittedAt = dateIso || new Date().toISOString();
+ const snapshot: CompletedProblemSnapshot = {
+ name: p.name,
+ platform: p.platform || "Unknown",
+ difficulty: p.difficulty || "Unknown",
+ link: effectiveLink,
+ code: p.code || "",
+ submissionLink,
+ keyPoints: p.keyPoints || "",
+ completedAt: new Date().toISOString(),
+ submittedAt,
+ topic: p.topic,
+ section: p.section,
+ };
+
+ const { error: submissionError } = await supabase.from("code_submissions").upsert(
+ stripUndefined({
+ user_id: uid,
+ problem_name: p.name,
+ platform: snapshot.platform,
+ difficulty: snapshot.difficulty,
+ problem_link: effectiveLink,
+ code: snapshot.code,
+ submission_link: submissionLink,
+ key_points: snapshot.keyPoints,
+ topic: snapshot.topic,
+ section: snapshot.section,
+ submitted_at: submittedAt,
+ }),
+ { onConflict: "user_id,problem_name" },
+ );
+ if (submissionError) {
+ console.warn("Failed to persist code_submissions row; falling back to profile snapshot:", describeSupabaseError(submissionError));
+ }
+
  const profile = await loadOwnerProfile(uid);
  const existing = profile.completedProblems || [];
- 
- const snapshot: CompletedProblemSnapshot = {
- ...p,
- completedAt: new Date().toISOString(),
- submittedAt: dateIso,
- };
- 
- // Update logic to remove old duplicates
- const filtered = existing.filter(ex => !(ex.name === p.name && ex.platform === p.platform));
- filtered.push(snapshot);
- 
+ const filtered = existing.filter(ex => ex.name !== p.name);
+ filtered.push(stripUndefined(snapshot));
+
  await saveUserProfile(uid, { completedProblems: filtered });
 }
 
 export async function removeCodeSubmission(uid: string, p: { name: string; platform: string }) {
  if (isGuestUser(uid)) { removeGuestCodeSubmission(p.name); return; }
- 
+
+ const { error: submissionError } = await supabase
+ .from("code_submissions")
+ .delete()
+ .eq("user_id", uid)
+ .eq("problem_name", p.name);
+ if (submissionError) {
+ console.warn("Failed to remove code_submissions row; falling back to profile cleanup:", describeSupabaseError(submissionError));
+ }
+
  const profile = await loadOwnerProfile(uid);
  const existing = profile.completedProblems || [];
- const filtered = existing.filter(ex => !(ex.name === p.name && ex.platform === p.platform));
+ const filtered = existing.filter(ex => ex.name !== p.name);
  
  await saveUserProfile(uid, { completedProblems: filtered });
 }
@@ -625,24 +735,45 @@ export const loadProblemCompletions = getCompletedProblems;
 export const saveCodeSubmission = recordCodeSubmission;
 export const saveDay = saveDayProgress;
 export const loadCodeSubmissions = async (uid: string) => {
-  // Backwards compatibility, map completedProblems to a dictionary of code submissions
-  const problems = await getCompletedProblems(uid);
-  const result: Record<string, CodeSubmission> = {};
-  for (const p of problems) {
-    if (p.code || p.keyPoints || p.submissionLink) {
-      result[p.name] = {
-        name: p.name,
-        platform: p.platform,
-        code: p.code,
-        submittedAt: p.submittedAt || p.completedAt,
-        submissionLink: p.submissionLink,
-        keyPoints: p.keyPoints,
-      };
-    }
-  }
-  return result;
+ if (isGuestUser(uid)) return getGuestCodeSubmissions();
+
+ const result: Record<string, CodeSubmission> = {};
+
+ const { data, error } = await supabase
+ .from("code_submissions")
+ .select("*")
+ .eq("user_id", uid)
+ .order("updated_at", { ascending: false });
+
+ if (!error && Array.isArray(data)) {
+ for (const row of data) {
+ const sub = mapSubmissionRow(row);
+ if (sub.name && (sub.code || sub.keyPoints || sub.link)) {
+ result[sub.name] = sub;
+ }
+ }
+ } else if (error) {
+ console.warn("Failed to load code_submissions rows; using profile snapshot fallback:", describeSupabaseError(error));
+ }
+
+ // Backwards compatibility: merge older profile JSON snapshots and recover data
+ // for projects that have not applied the code_submissions migration yet.
+ const problems = await getCompletedProblems(uid);
+ for (const p of problems) {
+ if (!p.name || !(p.code || p.keyPoints || p.submissionLink || p.link)) continue;
+ const fallback = snapshotToSubmission(p);
+ result[p.name] = {
+ ...fallback,
+ ...(result[p.name] || {}),
+ code: result[p.name]?.code || fallback.code,
+ keyPoints: result[p.name]?.keyPoints || fallback.keyPoints,
+ link: result[p.name]?.link || fallback.link,
+ submissionLink: result[p.name]?.submissionLink || fallback.submissionLink,
+ };
+ }
+
+ return result;
 };
-export type CodeSubmission = any;
 export const deleteAccountData = clearAccountData;
 export const logEvent = saveRevisionEvent;
 

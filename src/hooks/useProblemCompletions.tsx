@@ -88,6 +88,7 @@ export function useProblemCompletions() {
   if (typeof window !== "undefined") {
   try {
   localStorage.setItem(getLocalCompletionsKey(currentUid), JSON.stringify(Array.from(mergedComp)));
+  localStorage.setItem(getLocalSubmissionsKey(currentUid), JSON.stringify(mergedSubs));
   } catch {}
   }
   setCompleted(mergedComp);
@@ -118,6 +119,13 @@ export function useProblemCompletions() {
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${currentUid}` },
+      () => {
+        fetchCompletions();
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'code_submissions', filter: `user_id=eq.${currentUid}` },
       () => {
         fetchCompletions();
       }
@@ -189,6 +197,8 @@ export function useProblemCompletions() {
  code: sub.code,
  submissionLink: sub.link,
  keyPoints: sub.keyPoints,
+ topic,
+ section,
  },
  sub.submittedAt,
  ).catch(() => {
