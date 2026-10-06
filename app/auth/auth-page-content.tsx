@@ -115,7 +115,7 @@ export function AuthPageContent() {
   async function proceedAfterAuth(user: User, successMessage?: { title: string; description?: string }) {
     if (successMessage) toast.success(successMessage.title, { description: successMessage.description });
     try {
-      const isAdminEmail = user.email === "pbmnaidu.123@gmail.com" || user.email === "404dsatracker@gmail.com";
+      const isAdminEmail = user.email === "404dsatracker@gmail.com";
       if (isAdminEmail || user.app_metadata?.admin || user.user_metadata?.admin) {
         router.replace("/admin");
         return;
