@@ -558,8 +558,9 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
 
     // Subscribe to realtime changes on user_settings
     const supabase = createClient();
+    const channelId = `user_settings_${userId}_${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel(`user_settings_${userId}`)
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'user_settings', filter: `user_id=eq.${userId}` },

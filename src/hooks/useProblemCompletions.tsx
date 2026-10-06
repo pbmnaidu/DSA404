@@ -112,8 +112,9 @@ export function useProblemCompletions() {
   window.addEventListener('focus', onFocus);
 
   const supabase = createClient();
+  const channelId = `profiles_${currentUid}_${Math.random().toString(36).substring(7)}`;
   const channel = supabase
-    .channel(`profiles_${currentUid}`)
+    .channel(channelId)
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${currentUid}` },
