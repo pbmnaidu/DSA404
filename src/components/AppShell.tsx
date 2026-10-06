@@ -672,9 +672,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
  {/* Brand */}
  <Link href="/today" className="flex items-center gap-1.5">
- <div className="size-6 rounded-full overflow-hidden border border-border bg-background shrink-0">
- <DSA404Logo size={24} />
- </div>
+ <DSA404Logo size={24} className="border border-border bg-background shadow-sm" />
  <span className="font-display font-black tracking-tight text-base leading-none">
  DSA<span className="text-primary">⁴⁰⁴</span>
  </span>

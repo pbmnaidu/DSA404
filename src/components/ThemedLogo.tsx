@@ -24,11 +24,30 @@ export function ThemedLogo({ className = "" }: { className?: string }) {
       const dark = root.classList.contains("dark");
       const primaryToken = styles.getPropertyValue("--primary").trim();
       if (!primaryToken) return;
+
+      // Use a temporary element to compute the actual RGB value of the --primary token.
+      // This ensures cross-browser compatibility even if the canvas context doesn't natively support oklch().
+      const tempEl = document.createElement("div");
+      tempEl.style.color = `oklch(from oklch(${primaryToken}) l c h)`; 
+      // If the token already has oklch(), we just apply it. Otherwise we format it.
+      if (primaryToken.startsWith("oklch(")) {
+        tempEl.style.color = primaryToken;
+      } else {
+        tempEl.style.color = `oklch(${primaryToken})`;
+      }
+      tempEl.style.display = "none";
+      document.body.appendChild(tempEl);
+      
+      const computedColor = getComputedStyle(tempEl).color;
+      document.body.removeChild(tempEl);
+
       const swatch = document.createElement("canvas");
       swatch.width = swatch.height = 1;
       const swatchCtx = swatch.getContext("2d", { willReadFrequently: true });
       if (!swatchCtx) return;
-      swatchCtx.fillStyle = styles.getPropertyValue("--primary").trim();
+      
+      // Fallback if computedColor failed
+      swatchCtx.fillStyle = computedColor || "#0ea5e9";
       swatchCtx.fillRect(0, 0, 1, 1);
       const theme = swatchCtx.getImageData(0, 0, 1, 1).data;
 
@@ -56,5 +75,5 @@ export function ThemedLogo({ className = "" }: { className?: string }) {
     return () => { observer.disconnect(); window.clearInterval(timer); };
   }, []);
 
-  return <canvas ref={canvasRef} className={`themed-logo ${className}`} role="img" aria-label="DSA404 logo" />;
+  return <canvas ref={canvasRef} className={`themed-logo object-contain ${className}`} role="img" aria-label="DSA404 logo" />;
 }
