@@ -515,28 +515,7 @@ export function CoderProfilePage() {
  return list;
  }, [days, pbCompleted, submissions, user?.uid, firestoreCompletedProblems]);
 
- // Auto-sync solved problems to world-readable userDoc in the background
- useEffect(() => {
- if (user?.uid && completedProblems.length > 0) {
- const snapshot = Array.from(pbCompleted).map(p => {
-      const sub = submissions[p];
-      if (sub) {
-        return {
-          name: p,
-          platform: sub.platform || 'Unknown',
-          difficulty: 'Unknown',
-          link: sub.link || '',
-          code: sub.code,
-          keyPoints: sub.keyPoints,
-          submissionLink: sub.submissionLink,
-          submittedAt: sub.submittedAt
-        };
-      }
-      return { name: p, platform: 'Unknown', difficulty: 'Unknown', link: '' };
-    });
-    void syncPublicSolvedProblems(user.uid, snapshot as any);
- }
- }, [user?.uid, completedProblems.length, days, pbCompleted, submissions]);
+ 
 
  const { heatmapData, detailMap } = useMemo(() => {
  const dateMap = new Map<string, any[]>();
