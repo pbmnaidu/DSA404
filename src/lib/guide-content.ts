@@ -9,6 +9,7 @@ export type GuideSection = {
   tips?: string[];
   route?: string;
   relatedSections?: string[];
+  actionButton?: { label: string; route: string };
 };
 
 export const USER_GUIDE_CONTENT: GuideSection[] = [
@@ -20,10 +21,12 @@ export const USER_GUIDE_CONTENT: GuideSection[] = [
     steps: [
       "Upon logging in, you will be taken to the 'Today' workspace.",
       "Complete the onboarding wizard if you haven't already to set your pace and start date.",
+      "Install PWA application for better experience and notifications.",
       "Explore the sidebar to navigate between learning, practicing, and tracking features."
     ],
     tips: ["Bookmark the site or install it as a PWA for quick access."],
     route: "/today",
+    actionButton: { label: "Go to Settings to Install", route: "/settings" },
     relatedSections: ["today-workspace", "profile-setup"]
   },
   {

@@ -12,8 +12,15 @@ import { QuoteLoader } from '@/components/QuoteLoader'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { useInactivityLogout } from '@/hooks/useInactivityLogout'
 import type { DailyCounts } from '@/lib/plan'
+import { isGuestUser } from '@/lib/guest-data'
 
 import { useAuth } from '@/hooks/useAuth'
+
+function isAlreadyOnboarded(userId: string, user: any) {
+  if (user?.user_metadata?.onboarding_completed === true) return true;
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(`dsa404_onboarded_${userId}`) === 'true';
+}
 
 export default function AuthenticatedLayout({
   children,
@@ -33,7 +40,7 @@ export default function AuthenticatedLayout({
         setLoading(false)
         // Ensure a profiles row exists (covers users before the DB trigger was added)
         const uid = user.id || (user as any).uid;
-        if (uid && !(uid as string).startsWith('guest-')) {
+        if (uid && !isGuestUser(uid)) {
           void ensureProfileExists(uid, {
             email: user.email ?? undefined,
             displayName: user.user_metadata?.full_name || user.user_metadata?.name || undefined,
@@ -96,31 +103,26 @@ function PlanBoundary({
       return;
     }
 
-    const localKey = `dsa404_onboarded_${userId}`;
-
-    // 1. Fast path: if already marked in localStorage, skip onboarding
-    if (typeof window !== 'undefined' && localStorage.getItem(localKey) === 'true') {
-      setPlanReady(true);
-      setCheckingPlan(false);
-      return;
-    }
-
-    // 2. Fast path: if already marked in Auth user_metadata, skip onboarding (works across devices)
-    if (user?.user_metadata?.onboarding_completed === true) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(localKey, 'true');
+    // 1. Fast path: if this browser or the auth session already knows onboarding is complete.
+    if (isAlreadyOnboarded(userId, user)) {
+      if (user?.user_metadata?.onboarding_completed === true && typeof window !== 'undefined') {
+        localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
       }
       setPlanReady(true);
       setCheckingPlan(false);
       return;
     }
 
-    // 3. Database check & returning user detection
+    // The remaining checks depend on loaded settings. Keep the current shell
+    // responsive for known users, but avoid flashing onboarding before settings arrive.
+    if (settingsLoading) return;
+
+    // 2. Database check & returning user detection
     import('@/lib/db').then(({ isOnboardingCompleted, markOnboardingCompleted }) => {
       isOnboardingCompleted(userId).then((isCompleted) => {
         if (isCompleted) {
           if (typeof window !== 'undefined') {
-            localStorage.setItem(localKey, 'true');
+            localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
           }
           setPlanReady(true);
           setCheckingPlan(false);
@@ -143,7 +145,7 @@ function PlanBoundary({
         if (!isFreshRegistration && hasExistingPlanOrSettings) {
           void markOnboardingCompleted(userId);
           if (typeof window !== 'undefined') {
-            localStorage.setItem(localKey, 'true');
+            localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
           }
           setPlanReady(true);
           setCheckingPlan(false);
@@ -158,9 +160,9 @@ function PlanBoundary({
         setCheckingPlan(false);
       });
     });
-  }, [userId, isAdmin, user, settings]);
+  }, [userId, isAdmin, user, settings, settingsLoading]);
 
-  const handleOnboardingComplete = async (startDate: string, counts: DailyCounts) => {
+  const handleOnboardingComplete = async (startDate: string, counts: DailyCounts, username?: string) => {
     // Save their chosen settings
     await updateSettings({ counts });
     await saveSettings(userId, { counts });
@@ -169,7 +171,7 @@ function PlanBoundary({
     
     // Mark onboarding as complete across all layers (DB, Auth metadata, localStorage)
     const { markOnboardingCompleted } = await import('@/lib/db');
-    await markOnboardingCompleted(userId);
+    await markOnboardingCompleted(userId, username);
 
     // Persist flag so refresh and new browsers won't show onboarding again
     if (typeof window !== 'undefined') {
@@ -182,7 +184,7 @@ function PlanBoundary({
     router.push('/guide');
   }
 
-  if (checkingPlan || settingsLoading) {
+  if (checkingPlan) {
     return <QuoteLoader fullScreen />
   }
 
@@ -194,7 +196,7 @@ function PlanBoundary({
           open={true}
           onClose={async () => {
             const { DEFAULT_DAILY_COUNTS, todayIso } = await import('@/lib/plan');
-            await handleOnboardingComplete(todayIso(), DEFAULT_DAILY_COUNTS);
+            await handleOnboardingComplete(todayIso(), DEFAULT_DAILY_COUNTS, "");
           }}
           onComplete={handleOnboardingComplete}
         />

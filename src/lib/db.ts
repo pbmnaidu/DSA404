@@ -868,7 +868,7 @@ export async function isOnboardingCompleted(userId: string): Promise<boolean> {
  * 3. user_settings table (stores counts.onboarding_completed and start_date)
  * 4. Server-side API endpoint (service-role write fallback)
  */
-export async function markOnboardingCompleted(userId: string): Promise<void> {
+export async function markOnboardingCompleted(userId: string, username?: string): Promise<void> {
   if (isGuestUser(userId)) return;
 
   // 1. Local browser storage
@@ -915,7 +915,7 @@ export async function markOnboardingCompleted(userId: string): Promise<void> {
     await fetch("/api/auth/complete-onboarding", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ userId, username }),
     });
   } catch {
     // Non-blocking

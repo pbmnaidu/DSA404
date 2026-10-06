@@ -5,6 +5,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const userId = body?.userId;
+    const username = body?.username;
 
     if (!userId || typeof userId !== 'string') {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
@@ -52,6 +53,15 @@ export async function POST(request: Request) {
       );
     } catch (settingsErr) {
       console.warn('[complete-onboarding] user_settings update warning:', settingsErr);
+    }
+
+    // 3. Update username in profiles table if provided
+    if (username) {
+      try {
+        await supabaseAdmin.from('profiles').update({ username }).eq('id', userId);
+      } catch (profileErr) {
+        console.warn('[complete-onboarding] profiles update warning:', profileErr);
+      }
     }
 
     return NextResponse.json({ success: true });

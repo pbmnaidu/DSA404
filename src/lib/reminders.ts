@@ -1,4 +1,5 @@
 import { createClient } from "@/integrations/supabase/client";
+import { isGuestUser } from "@/lib/guest-data";
 
 export interface TopicReminder {
  id: string;
@@ -33,7 +34,7 @@ async function getSupabaseUser() {
  */
 export async function fetchTopicReminders(uid?: string | null): Promise<TopicReminder[]> {
  // Guests / unauthenticated: use localStorage only
- if (!uid || uid.startsWith("guest-")) {
+ if (!uid || isGuestUser(uid)) {
  return _getLocal();
  }
 
@@ -82,7 +83,7 @@ export async function addTopicReminder(
  triggered: false,
  };
 
- if (uid && !uid.startsWith("guest-")) {
+ if (uid && !isGuestUser(uid)) {
  try {
  const supabase = createClient();
  const { error } = await supabase.from("user_reminders").insert({
@@ -113,7 +114,7 @@ export async function addTopicReminder(
  * Remove a topic reminder by id.
  */
 export async function removeTopicReminder(uid: string | undefined | null, id: string): Promise<void> {
- if (uid && !uid.startsWith("guest-")) {
+ if (uid && !isGuestUser(uid)) {
  try {
  const supabase = createClient();
  await supabase.from("user_reminders").delete().eq("id", id).eq("user_id", uid);
@@ -132,7 +133,7 @@ export async function removeTopicReminder(uid: string | undefined | null, id: st
  * Mark a reminder as triggered (sent) so it won't fire again.
  */
 export async function markTopicReminderTriggered(uid: string | undefined | null, id: string): Promise<void> {
- if (uid && !uid.startsWith("guest-")) {
+ if (uid && !isGuestUser(uid)) {
  try {
  const supabase = createClient();
  await supabase.from("user_reminders").update({ triggered: true }).eq("id", id).eq("user_id", uid);

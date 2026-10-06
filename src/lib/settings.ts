@@ -167,11 +167,11 @@ export async function loadSettings(userId: string): Promise<UserSettings> {
  return getGuestSettings();
  }
  const supabase = createClient();
- const { data } = await supabase.from("user_settings").select("*").eq("user_id", userId).single();
+ const { data } = await supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle();
  
  if (!data) {
  const seeded = { ...DEFAULT_SETTINGS };
- await supabase.from("user_settings").insert({
+ const { error } = await supabase.from("user_settings").upsert({
  user_id: userId,
  theme: seeded.theme,
  counts: seeded.counts,
@@ -181,7 +181,10 @@ export async function loadSettings(userId: string): Promise<UserSettings> {
  timezone: seeded.timezone,
  paused: seeded.paused,
  active_sheet: seeded.activeSheet,
- });
+ }, { onConflict: "user_id" });
+ if (error) {
+   console.warn("[settings] Could not seed default settings:", error);
+ }
  return seeded;
  }
 

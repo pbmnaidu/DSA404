@@ -149,21 +149,30 @@ export default function GuidePage() {
                 </div>
               )}
 
-              {/* Try it now Link */}
-              {activeSection.route && (
-                <div className="pt-4">
-                  {activeSection.route === "#theme-panel" ? (
-                    <Button onClick={openPanel} className="gap-2">
-                      Try it now <ExternalLink className="size-4" />
-                    </Button>
-                  ) : (
-                    <Button asChild>
-                      <Link 
-                        href={activeSection.route} 
-                        className="gap-2" 
-                        target={activeSection.route.startsWith('http') ? "_blank" : undefined}
-                      >
+              {/* Try it now Link & Custom Action Button */}
+              {(activeSection.route || activeSection.actionButton) && (
+                <div className="pt-4 flex items-center gap-4">
+                  {activeSection.route && (
+                    activeSection.route === "#theme-panel" ? (
+                      <Button onClick={openPanel} className="gap-2">
                         Try it now <ExternalLink className="size-4" />
+                      </Button>
+                    ) : (
+                      <Button asChild>
+                        <Link 
+                          href={activeSection.route} 
+                          className="gap-2" 
+                          target={activeSection.route.startsWith('http') ? "_blank" : undefined}
+                        >
+                          Try it now <ExternalLink className="size-4" />
+                        </Link>
+                      </Button>
+                    )
+                  )}
+                  {activeSection.actionButton && (
+                    <Button variant="outline" asChild>
+                      <Link href={activeSection.actionButton.route}>
+                        {activeSection.actionButton.label} <ExternalLink className="size-4 ml-2" />
                       </Link>
                     </Button>
                   )}

@@ -19,16 +19,16 @@ import {
  type DailyCounts,
  type PaceTier,
 } from "@/lib/plan";
-import { Loader2, BookOpen, Zap, Trophy, CalendarDays, Sliders, X, Sparkles, CheckCircle2 } from "lucide-react";
+import { Loader2, BookOpen, Zap, Trophy, CalendarDays, Sliders, X, Sparkles, CheckCircle2, UserCircle } from "lucide-react";
 import { DailyCombinationsBreakdown } from "@/components/DailyCombinationsBreakdown";
 
 interface OnboardingModalProps {
- open: boolean;
- onComplete: (startDate: string, counts: DailyCounts) => Promise<void>;
- onClose?: () => void;
+  open: boolean;
+  onComplete: (startDate: string, counts: DailyCounts, username: string) => Promise<void>;
+  onClose?: () => void;
 }
 
-const STEPS = ["welcome", "pace", "startdate", "ready"] as const;
+const STEPS = ["welcome", "username", "pace", "startdate", "ready"] as const;
 type Step = typeof STEPS[number];
 
 /* ── real dynamic stats ── */
@@ -48,10 +48,11 @@ const LEVEL_COUNTS = CORE_SECTIONS.reduce(
 
 export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalProps) {
  const router = useRouter();
- const [step, setStep] = useState<Step>("welcome");
- const [counts, setCounts] = useState<DailyCounts>(() => ({ ...DEFAULT_DAILY_COUNTS }));
- const [startDate, setStartDate] = useState(todayIso());
- const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState<Step>("welcome");
+  const [counts, setCounts] = useState<DailyCounts>(() => ({ ...DEFAULT_DAILY_COUNTS }));
+  const [startDate, setStartDate] = useState(todayIso());
+  const [username, setUsername] = useState("");
+  const [busy, setBusy] = useState(false);
 
  const activePreset = getPacePresetByTarget(counts.target || 3);
 
@@ -91,15 +92,15 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
  });
  };
 
- const handleFinish = async () => {
- setBusy(true);
- try {
- const normalized = normalizeDailyCounts(counts);
- await onComplete(startDate, normalized);
- } finally {
- setBusy(false);
- }
- };
+  const handleFinish = async () => {
+  setBusy(true);
+  try {
+  const normalized = normalizeDailyCounts(counts);
+  await onComplete(startDate, normalized, username);
+  } finally {
+  setBusy(false);
+  }
+  };
 
  const PRESET_TIERS: PaceTier[] = ["casual", "balanced", "standard", "intensive"];
 
@@ -172,15 +173,48 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
  </div>
  </div>
 
- <p className="text-xs sm:text-sm text-foreground leading-relaxed">
- {REAL_ROADMAP_PROBLEMS} curated problems across {REAL_SECTIONS_COUNT} core DSA topics — organised in 3 levels to take you from fundamentals to advanced DSA.
- </p>
+  <p className="text-xs sm:text-sm text-foreground leading-relaxed">
+  {REAL_ROADMAP_PROBLEMS} curated problems across {REAL_SECTIONS_COUNT} core DSA topics — organised in 3 levels to take you from fundamentals to advanced DSA.
+  </p>
 
- <Button className="w-full h-10 sm:h-11 cursor-pointer text-sm sm:text-base font-semibold" onClick={() => setStep("pace")}>
- Let's Get Started →
- </Button>
- </div>
- )}
+  <Button className="w-full h-10 sm:h-11 cursor-pointer text-sm sm:text-base font-semibold" onClick={() => setStep("username")}>
+  Let's Get Started →
+  </Button>
+  </div>
+  )}
+
+  {/* ── Step 1.5: Username ── */}
+  {step === "username" && (
+  <div className="space-y-4 sm:space-y-5">
+  <DialogHeader className="text-left">
+  <div className="flex items-center gap-2 mb-0.5">
+  <UserCircle className="size-4 sm:size-5 text-primary" />
+  <DialogTitle className="text-lg sm:text-xl">Choose your unique Username</DialogTitle>
+  </div>
+  <DialogDescription className="text-xs sm:text-sm">
+  This will be your public identity on DSA⁴⁰⁴. Please choose a unique handle.
+  </DialogDescription>
+  </DialogHeader>
+
+  <div className="space-y-2">
+  <Label htmlFor="username" className="text-xs sm:text-sm">Username</Label>
+  <Input
+  id="username"
+  type="text"
+  placeholder="e.g. code_ninja99"
+  value={username}
+  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+  className="text-sm sm:text-base h-10"
+  />
+  <p className="text-[10px] text-muted-foreground">Only lowercase letters, numbers, and underscores are allowed.</p>
+  </div>
+
+  <div className="flex gap-2 pt-1">
+  <Button variant="outline" className="flex-1 cursor-pointer h-10" onClick={() => setStep("welcome")}>Back</Button>
+  <Button className="flex-1 cursor-pointer h-10" onClick={() => setStep("pace")} disabled={!username || username.length < 3}>Next →</Button>
+  </div>
+  </div>
+  )}
 
  {/* ── Step 2: Daily Pace (Tutor Recommended Ratio) ── */}
  {step === "pace" && (
@@ -268,10 +302,10 @@ export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalPr
  {/* Tutor Pedagogical Workload Combinations Breakdown */}
  <DailyCombinationsBreakdown target={counts.target || 3} showPlanFrequency={false} />
 
- <div className="flex gap-2 pt-1">
- <Button variant="outline" className="flex-1 cursor-pointer h-10" onClick={() => setStep("welcome")}>Back</Button>
- <Button className="flex-1 cursor-pointer h-10" onClick={() => setStep("startdate")}>Next →</Button>
- </div>
+  <div className="flex gap-2 pt-1">
+  <Button variant="outline" className="flex-1 cursor-pointer h-10" onClick={() => setStep("username")}>Back</Button>
+  <Button className="flex-1 cursor-pointer h-10" onClick={() => setStep("startdate")}>Next →</Button>
+  </div>
  </div>
  )}
 

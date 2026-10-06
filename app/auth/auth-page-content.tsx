@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { createClient } from "@/integrations/supabase/client";
@@ -21,7 +21,6 @@ import {
   claimUsername,
   getEmailByUsername,
   isUsernameAvailable,
-  loadOwnerProfile,
   normalizeUsername,
   saveUserProfile,
   USERNAME_REGEX,
@@ -39,8 +38,14 @@ function authErrorMessage(e: any): string {
   return String(e || "An error occurred");
 }
 
+function runAfterAuth(task: () => Promise<void>, label: string) {
+  void task().catch((error) => {
+    console.warn(`[auth] ${label} failed:`, error);
+  });
+}
+
 export function AuthPageContent() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/today";
@@ -71,12 +76,17 @@ export function AuthPageContent() {
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
+  useEffect(() => {
+    router.prefetch(next);
+    router.prefetch("/admin");
+  }, [router, next]);
+
   function handleGuestLogin() {
     enableGuestMode();
     toast.success("Welcome to Demo Mode! 🎉", {
       description: "Logged in as Alex Rivera (3★ Coder Account).",
     });
-    router.push(next || "/today");
+    router.replace(next || "/today");
   }
 
   useEffect(() => {
@@ -107,13 +117,13 @@ export function AuthPageContent() {
     try {
       const isAdminEmail = user.email === "pbmnaidu.123@gmail.com" || user.email === "404dsatracker@gmail.com";
       if (isAdminEmail || user.app_metadata?.admin || user.user_metadata?.admin) {
-        window.location.href = "/admin";
+        router.replace("/admin");
         return;
       }
     } catch {
       // Ignored
     }
-    router.push(next);
+    router.replace(next);
   }
 
   async function handleSignIn() {
@@ -159,7 +169,7 @@ export function AuthPageContent() {
         sessionStorage.removeItem(`dsa404_just_registered_${data.user.id}`);
       }
 
-      await proceedAfterAuth(data.user, {
+      void proceedAfterAuth(data.user, {
         title: "Welcome back! Thanks for logging in to our website.",
         description: "Ready to solve today's DSA problems?",
       });
@@ -225,25 +235,28 @@ export function AuthPageContent() {
 
       // Claim username in legacy DB
       await claimUsername(data.user.id, u, trimmedEmail);
-      await saveUserProfile(data.user.id, { displayName: trimmedName });
-
-      // Automatically send 2 welcome & platform feature guide emails upon registration
-      const onboardingResponse = await fetch("/api/send-email/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
-      });
-      if (!onboardingResponse.ok) {
-        console.warn("Onboarding emails were not sent", await onboardingResponse.text());
-        toast.warning("Account created. Your welcome emails will be sent after email verification.");
-      }
+      runAfterAuth(
+        () => saveUserProfile(data.user!.id, { displayName: trimmedName }),
+        "profile display name update",
+      );
 
       // Mark session storage that this is a fresh registration for the onboarding wizard
       if (typeof window !== "undefined") {
         sessionStorage.setItem(`dsa404_just_registered_${data.user.id}`, "true");
       }
 
-      await proceedAfterAuth(data.user, {
+      runAfterAuth(async () => {
+        const onboardingResponse = await fetch("/api/send-email/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmedEmail, name: trimmedName, username: u }),
+        });
+        if (!onboardingResponse.ok) {
+          console.warn("Onboarding emails were not sent", await onboardingResponse.text());
+        }
+      }, "onboarding emails");
+
+      void proceedAfterAuth(data.user, {
         title: "Account created successfully! 🎉",
         description: `Welcome @${u}! Let's set up your plan.`,
       });
@@ -306,13 +319,16 @@ export function AuthPageContent() {
   }
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user && event === "SIGNED_IN") {
-        router.push(next);
+    let alive = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (alive && session?.user) {
+        router.replace(next);
       }
     });
-    return () => subscription.unsubscribe();
-  }, [router, next]);
+    return () => {
+      alive = false;
+    };
+  }, [router, next, supabase]);
 
   const usernameIcon =
     usernameStatus === "checking" ? (
