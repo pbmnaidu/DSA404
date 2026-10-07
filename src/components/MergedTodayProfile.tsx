@@ -875,6 +875,11 @@ export function MergedTodayProfile() {
  </div>
  </section>
  
+ {/* Keep contests in the open right-side workspace, not below the full dashboard. */}
+ <section className="min-w-0 pt-2" aria-label="Today&apos;s contests and competitions">
+ <TodayContestsSection />
+ </section>
+ 
  {/* AI Tutor Entry Point */}
  <section className="space-y-4">
  <h2 className="font-display text-lg font-bold tracking-tight border-b border-border pb-2">
