@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { format, subDays, startOfWeek, addDays, getMonth } from "date-fns";
 import { Flame, Calendar, Sparkles, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -158,6 +158,13 @@ export function PlatformActivityHeatmap({
  };
 
  const hasActivity = totalSubmissionsCount > 0 || totalActiveDays > 0;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [weeks]);
+
 
  return (
  <div className="space-y-3">
@@ -175,7 +182,7 @@ export function PlatformActivityHeatmap({
  </div>
 
  {/* Mini Heatmap Grid */}
- <div className="w-full overflow-x-auto pb-1 pt-1">
+ <div className="w-full overflow-x-auto pb-1 pt-1" ref={scrollRef}>
  <div className="flex flex-col gap-1 min-w-fit items-start sm:items-center">
  {/* Month headers row */}
  <div className="h-4 flex items-center gap-1 mb-1">

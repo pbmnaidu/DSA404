@@ -43,6 +43,7 @@ export function GitHubRepoLinkModal({
   const [repo, setRepo] = useState("");
   const [branch, setBranch] = useState("main");
   const [folderPath, setFolderPath] = useState("solutions");
+  const [notesFolderPath, setNotesFolderPath] = useState("notes");
   const [enabled, setEnabled] = useState(true);
 
   const [loadingRepos, setLoadingRepos] = useState(false);
@@ -76,6 +77,7 @@ export function GitHubRepoLinkModal({
             setRepo(cloudCfg.repo || "");
             setBranch(cloudCfg.branch || "main");
             setFolderPath(cloudCfg.folderPath ?? "solutions");
+            setNotesFolderPath(cloudCfg.notesFolderPath ?? "notes");
             setEnabled(cloudCfg.enabled ?? true);
             fetchRepos();
           } else {
@@ -84,6 +86,7 @@ export function GitHubRepoLinkModal({
             setRepo("");
             setBranch("main");
             setFolderPath("solutions");
+            setNotesFolderPath("notes");
             setEnabled(true);
           }
           setLoadingStatus(false);
@@ -103,7 +106,20 @@ export function GitHubRepoLinkModal({
     try {
       const res = await fetch("/api/github/repositories");
       if (!res.ok) {
-        throw new Error("Failed to fetch repositories.");
+        let errorMsg = "Failed to fetch repositories.";
+        try {
+          const errData = await res.json();
+          if (errData.error) errorMsg = errData.error;
+        } catch(e) {}
+        
+        if (res.status === 401) {
+            setIsAuthorized(false);
+            setOwner("");
+            setRepo("");
+            setRepoList([]);
+        }
+        
+        throw new Error(errorMsg);
       }
       const repos = await res.json();
       setRepoList(repos);
@@ -113,7 +129,7 @@ export function GitHubRepoLinkModal({
          setBranch(repos[0].defaultBranch || "main");
       }
     } catch (err: any) {
-      toast.error("Could not fetch repositories", { description: err.message });
+      toast.error("Could not fetch repositories", { description: err.message + " If it's not fetching, please try to reconnect." });
     } finally {
       setLoadingRepos(false);
     }
@@ -143,7 +159,8 @@ export function GitHubRepoLinkModal({
               owner: owner.trim(),
               repository: repo.trim(),
               branch: branch.trim(),
-              folderPath: folderPath.trim()
+              folderPath: folderPath.trim(),
+              notesFolderPath: notesFolderPath.trim()
           })
       });
       
@@ -158,6 +175,7 @@ export function GitHubRepoLinkModal({
         repo: repo.trim(),
         branch: branch.trim(),
         folderPath: folderPath.trim(),
+        notesFolderPath: notesFolderPath.trim(),
         autoPromptDismissed: true,
       };
 
@@ -187,6 +205,7 @@ export function GitHubRepoLinkModal({
             repo: "",
             branch: "main",
             folderPath: "solutions",
+            notesFolderPath: "notes",
             autoPromptDismissed: true,
         };
         const targetUid = userId || null;
@@ -259,7 +278,7 @@ export function GitHubRepoLinkModal({
                     <div className="flex flex-col gap-2">
                         <Button
                             type="button"
-                            onClick={() => window.location.href = "/api/github/connect"}
+                            onClick={() => window.location.href = `/api/github/connect?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
                             className="w-full rounded-lg text-xs font-semibold h-10 gap-2 bg-foreground text-background hover:bg-foreground/90"
                         >
                             <GitHubIcon className="size-4" />
@@ -344,7 +363,7 @@ export function GitHubRepoLinkModal({
                 </div>
 
                 {/* Step 3: Branch and Subfolder */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1">
                     <Label className="text-[11px] font-semibold text-foreground">Branch</Label>
                     <Input
@@ -355,11 +374,20 @@ export function GitHubRepoLinkModal({
                     />
                     </div>
                     <div className="space-y-1">
-                    <Label className="text-[11px] font-semibold text-foreground">Folder Path</Label>
+                    <Label className="text-[11px] font-semibold text-foreground">Solutions Folder</Label>
                     <Input
-                        placeholder="solutions (or blank for root)"
+                        placeholder="solutions (blank for root)"
                         value={folderPath}
                         onChange={(e) => setFolderPath(e.target.value)}
+                        className="font-mono text-xs rounded-lg bg-background border-border h-8"
+                    />
+                    </div>
+                    <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold text-foreground">Notes Folder</Label>
+                    <Input
+                        placeholder="notes"
+                        value={notesFolderPath}
+                        onChange={(e) => setNotesFolderPath(e.target.value)}
                         className="font-mono text-xs rounded-lg bg-background border-border h-8"
                     />
                     </div>

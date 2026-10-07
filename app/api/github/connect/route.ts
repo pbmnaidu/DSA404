@@ -14,8 +14,10 @@ export async function GET(req: Request) {
     }
 
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/github/callback`;
+    const url = new URL(req.url);
+    const nextPath = url.searchParams.get("next") || "/settings";
     const state = crypto.randomBytes(16).toString("hex");
-    
+
     const response = NextResponse.redirect(
         `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=repo`
     );
@@ -23,6 +25,13 @@ export async function GET(req: Request) {
         httpOnly: true, 
         secure: process.env.NODE_ENV === "production", 
         path: "/", 
+        maxAge: 600,
+        sameSite: "lax"
+    });
+    response.cookies.set("github_oauth_next", nextPath, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
         maxAge: 600,
         sameSite: "lax"
     });

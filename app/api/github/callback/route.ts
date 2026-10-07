@@ -80,7 +80,10 @@ export async function GET(req: Request) {
             return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?error=Database_Error`);
         }
 
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?github_connected=true`);
+        const nextPath = cookieStore.get("github_oauth_next")?.value || "/settings";
+        cookieStore.delete("github_oauth_next");
+
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${nextPath}?github_connected=true`);
     } catch (error) {
         console.error("GitHub callback error:", error instanceof Error ? error.message : "Unknown error");
         return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?error=Internal_Error`);

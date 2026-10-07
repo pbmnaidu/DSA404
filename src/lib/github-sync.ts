@@ -6,6 +6,7 @@ export interface GitHubSyncConfig {
     repo: string;
     branch: string;
     folderPath?: string;
+    notesFolderPath?: string;
     lastSyncedAt?: string;
     autoPromptDismissed?: boolean;
 }
@@ -38,6 +39,7 @@ export async function loadCloudGitHubSyncConfig(userId?: string | null): Promise
                 repo: data.repository,
                 branch: data.branch,
                 folderPath: data.folderPath,
+                notesFolderPath: data.notesFolderPath,
                 lastSyncedAt: data.updatedAt,
                 autoPromptDismissed: true
             };

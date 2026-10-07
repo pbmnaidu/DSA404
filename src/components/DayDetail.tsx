@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePlan } from "@/hooks/usePlan";
 import type { Day, DayStatus } from "@/lib/types";
 import { addDays, formatDate, todayIso } from "@/lib/plan";
@@ -27,7 +27,9 @@ import {
  RotateCcw,
  Ban,
  Undo2,
+  UploadCloud,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
  Tooltip,
  TooltipContent,
@@ -89,6 +91,48 @@ export function DayDetail({
  skipTopic,
  restoreDay,
  } = usePlan();
+
+  const [isPushingNotes, setIsPushingNotes] = useState(false);
+  const handlePushNotes = async () => {
+    if (isPushingNotes) return;
+    setIsPushingNotes(true);
+    const loadingToast = toast.loading("Pushing Today's Notes to GitHub......");
+    try {
+      const res = await fetch("/api/push-notes", { 
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notes: day.notes, date: day.date, dayNumber: day.dayNumber })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message, { id: loadingToast });
+        updateDay(day.dayNumber, (d) => ({ ...d, notesPushedAt: new Date().toISOString() }));
+      } else {
+        toast.error(data.error || "Failed to push notes.", { id: loadingToast });
+      }
+    } catch (err) {
+      toast.error("An error occurred while pushing notes.", { id: loadingToast });
+    } finally {
+      setIsPushingNotes(false);
+    }
+  };
+
+  // Auto-push logic at 11:55 PM
+  useEffect(() => {
+      const checkAndAutoPush = () => {
+          const now = new Date();
+          if (now.getHours() === 23 && now.getMinutes() >= 55) {
+              const todayStr = new Date().toISOString().split('T')[0];
+              // check if notes exist and not already pushed today
+              if (day.notes && (!day.notesPushedAt || day.notesPushedAt.split('T')[0] !== todayStr)) {
+                  handlePushNotes();
+              }
+          }
+      };
+      
+      const interval = setInterval(checkAndAutoPush, 60000); // Check every minute
+      return () => clearInterval(interval);
+  }, [day.notes, day.notesPushedAt, day.dayNumber]);
 
  const [newDate, setNewDate] = useState(() => addDays(day.date, 1));
 
@@ -562,9 +606,24 @@ export function DayDetail({
  
  {/* Daily Notes */}
  <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-6 shadow-sm">
- <Label htmlFor={`notes-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
- Topic Notes & Takeaways
- </Label>
+ <div className="flex items-center justify-between">
+            <Label htmlFor={`notes-${day.dayNumber}`} className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+              Today's Notes & Takeaways
+            </Label>
+            <HoverHint hint="Push Today's Notes to GitHub">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                className="h-7 text-[10px] uppercase font-bold tracking-wider gap-1.5 bg-background hover:bg-accent disabled:opacity-50"
+                onClick={handlePushNotes}
+                disabled={isPushingNotes || locked}
+              >
+                <UploadCloud className={cn("size-3.5", isPushingNotes && "animate-pulse")} />
+                {isPushingNotes ? "Pushing..." : "Push"}
+              </Button>
+            </HoverHint>
+          </div>
  <Textarea
  id={`notes-${day.dayNumber}`}
  rows={5}
@@ -574,6 +633,18 @@ export function DayDetail({
  className="flex-1 bg-secondary border-border rounded-lg text-sm resize-none focus-visible:ring-primary/20 p-4"
  onBlur={(e) => void updateDay(day.dayNumber, (d) => ({ ...d, notes: e.target.value }))}
  />
+ {(!day.notesPushedAt || day.notesPushedAt.split("T")[0] !== new Date().toISOString().split("T")[0]) && day.notes && (
+    <p className="text-[11px] text-warning flex items-center gap-1.5 mt-1">
+      <AlertTriangle className="size-3" />
+      Notes not pushed today. Please push manually if the auto-push at 11:55 PM was missed.
+    </p>
+ )}
+ {day.notesPushedAt && day.notesPushedAt.split("T")[0] === new Date().toISOString().split("T")[0] && (
+    <p className="text-[11px] text-success flex items-center gap-1.5 mt-1">
+      <CheckCircle2 className="size-3" />
+      Notes successfully pushed today!
+    </p>
+ )}
  </div>
 
  {/* Revision Reminders */}

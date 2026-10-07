@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { format, parseISO, startOfWeek, addDays, getMonth, getYear } from "date-fns";
 import { DayDetailModal } from "./DayDetailModal";
 import { Flame, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
@@ -69,6 +69,8 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
 
  // Month chunks / sliding window (12 months desktop, 3 months mobile)
  const isMobile = useIsMobile();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
 
  // Construct calendar weeks grid (guaranteed 52 weeks or full selected year)
  const allWeeksData = useMemo(() => {
@@ -155,6 +157,11 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  }));
  }, [allWeeksData.monthHeaders, currentWindowStartWeek, currentWindowEndWeek]);
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [selectedYear, windowStartWeek, allWeeksData]);
  return (
  <div className="space-y-4">
  {/* ── Submissions Summary & Controls Header ── */}
@@ -215,7 +222,7 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  </div>
 
  {/* ── Larger GitHub / LeetCode Heatmap Grid ── */}
- <div className="overflow-x-auto pb-2 scrollbar-thin">
+ <div className="overflow-x-auto pb-2 scrollbar-thin" ref={scrollRef}>
  <div className="inline-block min-w-full align-middle">
  {/* Month headers row */}
  <div className="flex text-[11px] font-medium text-foreground mb-1.5 pl-8">

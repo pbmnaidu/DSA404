@@ -68,9 +68,10 @@ export interface Day {
  problems: Problem[];
  checklist: ChecklistItem[];
  status: DayStatus;
- notes: string;
- revisionNotes: string;
- skipped: boolean;
+  notes: string;
+  revisionNotes: string;
+  skipped: boolean;
+  notesPushedAt?: string;
  /** Roadmap level: "Level 1" (Basics), "Level 2" (Intermediate), "Level 3" (Advanced) */
  level?: string;
  /** Present only on days with status "merged" — used to restore the original two days. */

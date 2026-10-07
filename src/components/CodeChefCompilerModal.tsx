@@ -401,7 +401,7 @@ export function CodeChefCompilerModal({
  className="h-7 px-2.5 rounded-lg text-xs font-semibold border-border text-foreground hover:bg-white gap-1.5 cursor-pointer"
  >
  <Terminal className="size-3 text-primary" />
- <span>Run in Live Compiler</span>
+ <span>Go to Live Code (Add inputs based on code)</span>
  </Button>
  </div>
  </div>
@@ -616,31 +616,15 @@ export function CodeChefCompilerModal({
  >
  <Maximize2 className="size-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Open in Full Editor</span>
  </Button>
- <Button
- type="button"
- size="sm"
- onClick={handleRunCode}
- disabled={compiling || !code.trim()}
- className="h-8 px-4 rounded-lg font-bold bg-primary text-white shadow-sm shadow-warning hover:opacity-95 cursor-pointer"
- >
- {compiling ? (
- <>
- <Loader2 className="size-3.5 mr-1.5 animate-spin" /> Compiling...
- </>
- ) : (
- <>
- <Play className="size-3.5 mr-1.5 fill-white" /> Run Code (Compile)
- </>
- )}
- </Button>
+ 
  </div>
  </div>
 
  {/* Code Editor & Custom Stdin Input Stack */}
- <ResizablePanelGroup direction="vertical" className="flex-1 min-h-[400px]">
+ <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-[400px]">
  <ResizablePanel defaultSize={60} minSize={30} className="flex flex-col min-h-0">
  {/* Main Editor with full IDE features */}
- <div className="flex flex-col h-full bg-background overflow-hidden border-b border-border">
+ <div className="flex flex-col h-full bg-background overflow-hidden border-r border-border">
  <div className="flex items-center justify-between text-xs font-bold text-foreground shrink-0 p-2.5 bg-muted/30 border-b border-border">
  <span className="flex items-center gap-1.5">
  <Code2 className="size-4 text-primary" /> Live Code Editor (Formatted &amp; Enhanced)
@@ -669,9 +653,11 @@ export function CodeChefCompilerModal({
  <ResizableHandle withHandle className="hover:bg-primary/20 transition-colors bg-border/50" />
 
  <ResizablePanel defaultSize={40} minSize={20} className="flex flex-col min-h-0 bg-background">
- <div className="flex flex-col gap-4 p-3 h-full overflow-y-auto">
+ <ResizablePanelGroup direction="vertical" className="flex-1 min-h-0">
+ <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col min-h-0">
+ <div className="flex flex-col p-3 h-full overflow-y-auto">
  {/* Custom Input (stdin) */}
- <div className="flex flex-col space-y-2 flex-1 min-w-0">
+ <div className="flex flex-col space-y-2 flex-1 min-w-0 h-full">
  <Label htmlFor="custom-stdin" className="text-xs font-bold text-foreground flex items-center gap-1.5">
  <Terminal className="size-4 text-warning" /> Custom Input (stdin)
  </Label>
@@ -680,15 +666,21 @@ export function CodeChefCompilerModal({
  value={stdin}
  onChange={(e) => setStdin(e.target.value)}
  placeholder="Enter custom input / test cases here..."
- className="font-mono text-xs min-h-[140px] bg-background border border-border rounded-lg p-3 focus-visible:ring-primary resize-y"
+ className="font-mono text-xs flex-1 bg-background border border-border rounded-lg p-3 focus-visible:ring-primary resize-none min-h-[100px]"
  />
- <p className="text-[10px] text-foreground italic">
+ <p className="text-[10px] text-foreground italic shrink-0 mt-2">
  Input is passed as standard input stream (stdin) when clicking Run Code.
  </p>
  </div>
+ </div>
+ </ResizablePanel>
 
+ <ResizableHandle withHandle className="hover:bg-primary/20 transition-colors bg-border/50" />
+
+ <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col min-h-0">
+ <div className="flex flex-col p-3 h-full overflow-y-auto">
  {/* Console Execution Output Window */}
- <div className="flex flex-col space-y-2 flex-1 min-w-0">
+ <div className="flex flex-col space-y-2 flex-1 min-w-0 h-full">
  <div className="flex items-center justify-between text-xs font-bold text-foreground">
  <span className="flex items-center gap-1.5">
  <Terminal className="size-4 text-success" /> Execution Console
@@ -746,6 +738,8 @@ export function CodeChefCompilerModal({
  </div>
  </div>
  </div>
+ </ResizablePanel>
+ </ResizablePanelGroup>
  </ResizablePanel>
  </ResizablePanelGroup>
  </div>
@@ -853,6 +847,25 @@ export function CodeChefCompilerModal({
  >
  {readOnly ? "Close" : "Cancel"}
  </Button>
+ {!readOnly && (
+ <Button
+ type="button"
+ size="sm"
+ onClick={handleRunCode}
+ disabled={compiling || !code.trim()}
+ className="rounded-lg text-xs h-8 font-bold bg-primary hover:bg-primary/90 text-white shadow-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+ >
+ {compiling ? (
+ <>
+ <Loader2 className="size-3.5 mr-1.5 animate-spin" /> Compiling...
+ </>
+ ) : (
+ <>
+ <Play className="size-3.5 mr-1.5 fill-white" /> Run Code
+ </>
+ )}
+ </Button>
+ )}
  {!readOnly && (
  <Button
  type="button"

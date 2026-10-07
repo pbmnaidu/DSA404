@@ -29,6 +29,7 @@ export async function GET(req: Request) {
         repository: data.repository,
         branch: data.branch,
         folderPath: data.folder_path,
+        notesFolderPath: user.user_metadata?.notes_folder_path || "notes",
         updatedAt: data.updated_at,
     });
 }
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
     }
     
-    const { owner, repository, branch, folderPath } = payload;
+    const { owner, repository, branch, folderPath, notesFolderPath } = payload;
 
     if (!owner || typeof owner !== "string" || owner.length > 100 || !repository || typeof repository !== "string" || repository.length > 100) {
         return NextResponse.json({ error: "Invalid owner or repository names." }, { status: 400 });
@@ -102,6 +103,13 @@ export async function POST(req: Request) {
             updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);
+
+    // Store notesFolderPath in user metadata since we can't alter the table safely right now
+    if (!updateError) {
+        await supabase.auth.updateUser({
+            data: { notes_folder_path: notesFolderPath || "notes" }
+        });
+    }
 
     if (updateError) {
         return NextResponse.json({ error: "Failed to update connection" }, { status: 500 });

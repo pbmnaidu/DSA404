@@ -1,7 +1,7 @@
 // src/components/GitHubContributionHeatmap.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { GitHubIcon } from "./SocialIcons";
 import { ExternalLink, Flame, RefreshCw, AlertCircle } from "lucide-react";
 
@@ -64,7 +64,13 @@ export function GitHubContributionHeatmap({
  const chartUrl = `https://ghchart.rshah.org/${accentColor}/${encodeURIComponent(cleanUser)}`;
  const profileUrl = `https://github.com/${encodeURIComponent(cleanUser)}`;
 
- return (
+ const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [loading]);
+  return (
  <section className={`rounded-lg border border-border bg-card p-5 sm:p-6 shadow-sm overflow-hidden ${className}`}>
  {/* Header */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4 mb-4">
@@ -121,7 +127,7 @@ export function GitHubContributionHeatmap({
  ) : (
  <div className="space-y-3">
  {/* Scrollable container for full 52-week width on mobile */}
- <div className="w-full overflow-x-auto rounded-lg border border-border bg-background p-3 sm:p-4 shadow-sm relative">
+ <div className="w-full overflow-x-auto rounded-lg border border-border bg-background p-3 sm:p-4 shadow-sm relative" ref={scrollRef}>
  {loading && (
  <div className="h-28 flex items-center justify-center text-xs text-foreground gap-2">
  <RefreshCw className="size-4 animate-spin text-primary" />

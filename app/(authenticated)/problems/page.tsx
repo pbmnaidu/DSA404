@@ -118,7 +118,7 @@ function platformSearchLink(name: string, platform: Platform | string): string {
 }
 
 function googleSearchUrl(problemName: string) {
-  const query = `${problemName} DSA solution explanation site:leetcode.com OR site:geeksforgeeks.org OR site:takeuforward.org OR site:naukri.com OR site:interviewbit.com OR site:programiz.com OR site:w3schools.com OR site:hackerrank.com OR site:hackerearth.com OR site:codechef.com OR site:codeforces.com OR site:neetcode.io OR site:cp-algorithms.com`;
+  const query = `${problemName} DSA resources official editorial articles discussions`;
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 

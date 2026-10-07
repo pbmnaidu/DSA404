@@ -46,8 +46,13 @@ export async function GET(req: Request) {
         }));
 
         return NextResponse.json(mappedRepos);
-    } catch (err) {
-        console.error("Error fetching repositories from GitHub API.");
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    } catch (err: any) {
+        console.error("Error fetching repositories from GitHub API:", err.message);
+        
+        if (err.message?.toLowerCase().includes("encryption") || err.message?.toLowerCase().includes("decrypt")) {
+            return NextResponse.json({ error: "GitHub connection expired or invalid. Please reconnect." }, { status: 401 });
+        }
+        
+        return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
     }
 }
