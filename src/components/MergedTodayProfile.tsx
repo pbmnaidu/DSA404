@@ -660,7 +660,7 @@ export function MergedTodayProfile() {
 
  {/* Right Content (Assistant & Orbit/Visuals) */}
  <div className="flex flex-col gap-6 xl:w-[320px] shrink-0">
- <MissionWelcomeMascot name={userNameDisplay} />
+ <MissionWelcomeMascot name={userNameDisplay} streakCount={streakCount} />
  
  <div className="flex items-center justify-center bg-background rounded-xl border border-border p-4 shadow-sm h-full min-h-[220px]">
  <TodayMissionOrbit
@@ -975,10 +975,6 @@ export function MergedTodayProfile() {
  </div>
  </section>
 
- {/* Keep contests in the open right-side workspace, not below the full dashboard. */}
- <section className="min-w-0 pt-2" aria-label="Today&apos;s contests and competitions">
- <TodayContestsSection />
- </section>
 
  </aside>
 
