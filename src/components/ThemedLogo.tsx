@@ -28,13 +28,13 @@ export function ThemedLogo({ className = "" }: { className?: string }) {
       // Use a temporary element to compute the actual RGB value of the --primary token.
       // This ensures cross-browser compatibility even if the canvas context doesn't natively support oklch().
       const tempEl = document.createElement("div");
-      tempEl.style.color = `oklch(from oklch(${primaryToken}) l c h)`; 
-      // If the token already has oklch(), we just apply it. Otherwise we format it.
-      if (primaryToken.startsWith("oklch(")) {
-        tempEl.style.color = primaryToken;
-      } else {
-        tempEl.style.color = `oklch(${primaryToken})`;
+      
+      let cssColor = primaryToken;
+      // Handle shadcn space-separated HSL values like "210 100% 50%"
+      if (/^[\d.]+\s+[\d.]+%?\s+[\d.]+%?$/.test(primaryToken)) {
+          cssColor = `hsl(${primaryToken})`;
       }
+      tempEl.style.color = cssColor;
       tempEl.style.display = "none";
       document.body.appendChild(tempEl);
       

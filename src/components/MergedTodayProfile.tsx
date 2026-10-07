@@ -138,81 +138,113 @@ function ThemedTooltip({ hint, children }: { hint: string; children: React.React
 }
 
 function MissionWelcomeMascot({ name, streakCount }: { name: string; streakCount: number }) {
- const [isFirstVisit, setIsFirstVisit] = useState(true);
- const [mounted, setMounted] = useState(false);
- const [timeOfDay, setTimeOfDay] = useState<"morning" | "afternoon" | "evening" | "night">("morning");
+  const [mounted, setMounted] = useState(false);
+  const [msgIndex, setMsgIndex] = useState(0);
 
- useEffect(() => {
- const hour = new Date().getHours();
- setTimeOfDay(hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night");
- setMounted(true);
+  const defaultMotivations = [
+    `Consistency is key, ${name}. Keep showing up!`,
+    "Every problem solved is a step closer to mastery.",
+    "Don't wait for inspiration. Build discipline.",
+    "Small daily progress adds up to massive results.",
+    "The hardest part is starting. You're already here!"
+  ];
 
- try {
- const visitKey = `dsa404:today-welcome:${todayIso()}`;
- const hasVisitedToday = window.localStorage.getItem(visitKey) === "true";
- setIsFirstVisit(!hasVisitedToday);
- window.localStorage.setItem(visitKey, "true");
- } catch {
- // Keep the welcome state when browser storage is unavailable.
- }
- }, []);
+  const zeroStreakMotivations = [
+    `Time to start a new streak, ${name}.`,
+    "Today is Day 1. Let's make it count.",
+    "A clean slate. Begin your journey today."
+  ];
 
- const messages = {
- morning: "Good morning — let's solve today's problems!",
- afternoon: "Good afternoon — keep your momentum going!",
- evening: "Good evening — one focused session can change your day.",
- night: "Night owl mode — conquer today's problems before bed!",
- };
- 
- let message = isFirstVisit ? `Hey ${name}, welcome back! Let's solve your problems.` : messages[timeOfDay];
- let owlEmoji = "🦉";
- let owlSubMessage = "Your learning companion is ready.";
+  const activeStreakMotivations = [
+    `You're on a roll! ${streakCount} days straight.`,
+    `Momentum is building. Keep it going!`,
+    `Look at that streak! Your future self is proud.`
+  ];
 
- if (streakCount > 7) {
- owlEmoji = "🔥🦉🔥";
- message = `Incredible ${streakCount}-day streak, ${name}! Don't break it now!`;
- owlSubMessage = "The owl is fired up! Maintain the streak!";
- } else if (streakCount > 3) {
- owlEmoji = "😎🦉";
- message = `You're on a roll! ${streakCount} days straight.`;
- owlSubMessage = "The owl is proud of you.";
- } else if (streakCount === 0) {
- owlEmoji = "🥺🦉";
- message = `Time to start a new streak, ${name}.`;
- owlSubMessage = "The owl is waiting for you to begin.";
- }
+  const highStreakMotivations = [
+    `Incredible ${streakCount}-day streak! Don't break it now!`,
+    `You are an unstoppable force of nature, ${name}!`,
+    `${streakCount} days! The owl is in awe of your dedication.`
+  ];
 
- return (
- <div
- className={cn("hidden min-w-0 flex-1 items-center justify-center gap-3 xl:flex", mounted ? "animate-in fade-in duration-700" : "opacity-0")}
- aria-live="polite"
- >
- <style jsx>{`
- @keyframes owlFlyIn {
- 0% { transform: translate(-100px, -100px) scale(0.5) rotate(-20deg); opacity: 0; }
- 50% { transform: translate(10px, 10px) scale(1.1) rotate(10deg); opacity: 1; }
- 100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
- }
- @keyframes owlHover {
- 0%, 100% { transform: translateY(0); }
- 50% { transform: translateY(-8px); }
- }
- .owl-animated { 
- animation: owlFlyIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, owlHover 3s ease-in-out 1.2s infinite;
- }
- @media (prefers-reduced-motion: reduce) { 
- .owl-animated { animation: none; } 
- }
- `}</style>
- <div className="owl-animated relative flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-4xl shadow-sm z-10">
- <span role="img" aria-label="Owl mascot" className="transform transition-transform hover:scale-110">{owlEmoji}</span>
- </div>
- <div className="max-w-[220px] rounded-lg rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/30 z-0">
- <p className="text-xs font-bold leading-5 text-foreground">{message}</p>
- <p className="mt-1 text-[10px] font-medium text-foreground">{owlSubMessage}</p>
- </div>
- </div>
- );
+  useEffect(() => {
+    setMounted(true);
+    const interval = setInterval(() => {
+      setMsgIndex(prev => prev + 1);
+    }, 8000); // Change message every 8 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  let messagesPool = defaultMotivations;
+  let owlEmoji = "🦉";
+  let owlSubMessage = "Your learning companion";
+
+  if (streakCount > 7) {
+    owlEmoji = "🔥🦉🔥";
+    messagesPool = highStreakMotivations;
+    owlSubMessage = "The owl is fired up!";
+  } else if (streakCount > 3) {
+    owlEmoji = "😎🦉";
+    messagesPool = activeStreakMotivations;
+    owlSubMessage = "The owl is proud of you.";
+  } else if (streakCount === 0) {
+    owlEmoji = "🥺🦉";
+    messagesPool = zeroStreakMotivations;
+    owlSubMessage = "The owl is waiting.";
+  }
+
+  const currentMessage = messagesPool[msgIndex % messagesPool.length];
+
+  return (
+    <div
+      className={cn("hidden min-w-0 flex-1 items-center justify-center gap-4 xl:flex", mounted ? "animate-in fade-in zoom-in duration-700" : "opacity-0")}
+      aria-live="polite"
+    >
+      <style jsx>{`
+        @keyframes owlFlyIn {
+          0% { transform: translate(-100px, -100px) scale(0.5) rotate(-20deg); opacity: 0; }
+          50% { transform: translate(10px, 10px) scale(1.1) rotate(10deg); opacity: 1; }
+          100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes owlPetBreath {
+          0%, 100% { transform: translateY(0) scale(1, 1); }
+          50% { transform: translateY(-4px) scale(1.03, 0.97); }
+        }
+        @keyframes owlWingWave {
+          0%, 100% { transform: rotate(0deg) scale(1); }
+          20% { transform: rotate(25deg) scale(1.1); }
+          40% { transform: rotate(-15deg) scale(1.1); }
+          60% { transform: rotate(25deg) scale(1.1); }
+          80% { transform: rotate(-10deg) scale(1.1); }
+        }
+        .owl-animated { 
+          animation: owlFlyIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, owlPetBreath 3.5s ease-in-out 1.2s infinite;
+        }
+        .owl-wing {
+          transform-origin: bottom right;
+          animation: owlWingWave 5s ease-in-out infinite;
+        }
+        .msg-transition {
+          animation: fade-swap 0.5s ease-in-out;
+        }
+        @keyframes fade-swap {
+          0% { opacity: 0; transform: translateY(2px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) { 
+          .owl-animated, .owl-wing, .msg-transition { animation: none; } 
+        }
+      `}</style>
+      <div className="owl-animated relative flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-4xl shadow-sm z-10">
+        <span role="img" aria-label="Owl mascot" className="transform transition-transform hover:scale-110">{owlEmoji}</span>
+        <span className="owl-wing absolute -right-3 top-1 text-2xl" aria-hidden="true">👋</span>
+      </div>
+      <div className="max-w-[220px] rounded-lg rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/30 z-0">
+        <p key={msgIndex} className="msg-transition text-xs font-bold leading-5 text-foreground">{currentMessage}</p>
+        <p className="mt-1 text-[10px] font-medium text-muted-foreground">{owlSubMessage}</p>
+      </div>
+    </div>
+  );
 }
 
 export function MergedTodayProfile() {
