@@ -137,7 +137,7 @@ function ThemedTooltip({ hint, children }: { hint: string; children: React.React
  );
 }
 
-function MissionWelcomeMascot({ name }: { name: string }) {
+function MissionWelcomeMascot({ name, streakCount }: { name: string; streakCount: number }) {
  const [isFirstVisit, setIsFirstVisit] = useState(true);
  const [mounted, setMounted] = useState(false);
  const [timeOfDay, setTimeOfDay] = useState<"morning" | "afternoon" | "evening" | "night">("morning");
@@ -163,31 +163,53 @@ function MissionWelcomeMascot({ name }: { name: string }) {
  evening: "Good evening — one focused session can change your day.",
  night: "Night owl mode — conquer today's problems before bed!",
  };
- const message = isFirstVisit ? `Hey ${name}, welcome back! Let's solve your problems.` : messages[timeOfDay];
+ 
+ let message = isFirstVisit ? `Hey ${name}, welcome back! Let's solve your problems.` : messages[timeOfDay];
+ let owlEmoji = "🦉";
+ let owlSubMessage = "Your learning companion is ready.";
+
+ if (streakCount > 7) {
+ owlEmoji = "🔥🦉🔥";
+ message = `Incredible ${streakCount}-day streak, ${name}! Don't break it now!`;
+ owlSubMessage = "The owl is fired up! Maintain the streak!";
+ } else if (streakCount > 3) {
+ owlEmoji = "😎🦉";
+ message = `You're on a roll! ${streakCount} days straight.`;
+ owlSubMessage = "The owl is proud of you.";
+ } else if (streakCount === 0) {
+ owlEmoji = "🥺🦉";
+ message = `Time to start a new streak, ${name}.`;
+ owlSubMessage = "The owl is waiting for you to begin.";
+ }
 
  return (
  <div
- className={cn("hidden min-w-0 flex-1 items-center justify-center gap-3 xl:flex", mounted ? "animate-in fade-in duration-500" : "opacity-0")}
+ className={cn("hidden min-w-0 flex-1 items-center justify-center gap-3 xl:flex", mounted ? "animate-in fade-in duration-700" : "opacity-0")}
  aria-live="polite"
  >
  <style jsx>{`
- @keyframes owlWave {
- 0%, 100% { transform: rotate(0deg); }
- 20% { transform: rotate(18deg); }
- 40% { transform: rotate(-12deg); }
- 60% { transform: rotate(18deg); }
- 80% { transform: rotate(-6deg); }
+ @keyframes owlFlyIn {
+ 0% { transform: translate(-100px, -100px) scale(0.5) rotate(-20deg); opacity: 0; }
+ 50% { transform: translate(10px, 10px) scale(1.1) rotate(10deg); opacity: 1; }
+ 100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
  }
- .owl-wave { transform-origin: 80% 85%; animation: owlWave 1.8s ease-in-out 0.25s 2; }
- @media (prefers-reduced-motion: reduce) { .owl-wave { animation: none; } }
+ @keyframes owlHover {
+ 0%, 100% { transform: translateY(0); }
+ 50% { transform: translateY(-8px); }
+ }
+ .owl-animated { 
+ animation: owlFlyIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, owlHover 3s ease-in-out 1.2s infinite;
+ }
+ @media (prefers-reduced-motion: reduce) { 
+ .owl-animated { animation: none; } 
+ }
  `}</style>
- <div className="relative flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-4xl shadow-sm">
- <span role="img" aria-label="Owl mascot">🦉</span>
- <span className="owl-wave absolute -right-3 -top-2 text-xl" aria-hidden="true">👋</span>
+ <div className="owl-animated relative flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-4xl shadow-sm z-10">
+ <span role="img" aria-label="Owl mascot" className="transform transition-transform hover:scale-110">{owlEmoji}</span>
  </div>
- <div className="max-w-[220px] rounded-lg rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm">
+ <div className="max-w-[220px] rounded-lg rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/30 z-0">
  <p className="text-xs font-bold leading-5 text-foreground">{message}</p>
- <p className="mt-1 text-[10px] font-medium text-foreground">Your learning companion is ready.</p>
+ <p className="mt-1 text-[10px] font-medium text-foreground">{owlSubMessage}</p>
  </div>
  </div>
  );
@@ -786,7 +808,6 @@ export function MergedTodayProfile() {
  <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
  <Target className="size-5 text-primary" /> Current Topic
  </h2>
- <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden p-1">
  <DayDetail
  day={sanitizedDay}
  readOnly={false}
@@ -794,8 +815,7 @@ export function MergedTodayProfile() {
  headerOnly
  hideContests
  />
- </div>
- </section>
+  </section>
  )}
 
  {/* Main Problem Queue */}
