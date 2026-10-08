@@ -742,10 +742,34 @@ export async function switchUserSheet(userId: string, sheetId: string, ignoredOl
   
   const idealStartDate = addDays(todayIso(), -daysCompleted);
 
-  if (isGuestUser(userId)) return seedPlan(userId, idealStartDate, undefined, sheetId);
-  const settings = await loadSettings(userId);
-  await supabase.from("user_settings").upsert({ user_id: userId, active_sheet: sheetId }, { onConflict: "user_id" });
-  return seedPlan(userId, idealStartDate, settings.counts, sheetId);
+  let counts;
+  if (!isGuestUser(userId)) {
+    const settings = await loadSettings(userId);
+    counts = settings.counts;
+    await supabase.from("user_settings").upsert({ user_id: userId, active_sheet: sheetId }, { onConflict: "user_id" });
+  }
+
+  const result = await seedPlan(userId, idealStartDate, counts, sheetId);
+  
+  let changed = false;
+  result.days.forEach((day) => {
+    day.problems.forEach((p) => {
+      if (completedNames.has(p.name)) {
+        p.done = true;
+        changed = true;
+      }
+    });
+  });
+
+  if (changed) {
+    if (isGuestUser(userId)) {
+      saveGuestPlan(result.days);
+    } else {
+      await writeAllDays(userId, result.days);
+    }
+  }
+
+  return result;
 }
 
 // Aliases to avoid breaking existing imports

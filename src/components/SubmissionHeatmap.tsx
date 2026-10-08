@@ -7,7 +7,7 @@ import { Flame, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 export interface SubmissionHeatmapProps {
- data: { date: string; solved: number }[];
+ data: { date: string; solved: number; platform?: string }[];
  detailMap: Record<string, any[]>;
 }
 
@@ -21,6 +21,51 @@ function getHeatmapLevel(count: number): number {
  if (count <= 4) return 2;
  if (count <= 6) return 3;
  return 4;
+}
+
+const PLATFORM_HEX_COLORS: Record<string, string> = {
+  "LeetCode": "#FFA116",
+  "GeeksforGeeks": "#2F8D46",
+  "Codeforces": "#3B5998",
+  "CodeChef": "#5B4638",
+  "HackerRank": "#2EC866",
+  "AtCoder": "#222222",
+};
+
+export function getPlatformColorClass(platform: string | undefined, level: number): string {
+  if (level === 0) return "bg-muted/50 border border-border/50 hover:border-foreground/20";
+  
+  let normalized = "DSA";
+  if (platform) {
+    const p = platform.toLowerCase();
+    if (p.includes("leetcode")) normalized = "LeetCode";
+    else if (p.includes("geeks") || p.includes("gfg")) normalized = "GeeksforGeeks";
+    else if (p.includes("codeforces")) normalized = "Codeforces";
+    else if (p.includes("hackerrank")) normalized = "HackerRank";
+    else if (p.includes("codechef")) normalized = "CodeChef";
+    else if (p.includes("atcoder")) normalized = "AtCoder";
+  }
+  
+  const opacities = ["", "opacity-30", "opacity-50", "opacity-75", "opacity-100"];
+  
+  if (normalized !== "DSA" && PLATFORM_HEX_COLORS[normalized]) {
+    return `border ${opacities[level]}`;
+  }
+  
+  return `bg-primary border-primary ${opacities[level]}`;
+}
+
+export function getPlatformHexColor(platform: string | undefined): string | undefined {
+  if (!platform) return undefined;
+  let normalized = "DSA";
+  const p = platform.toLowerCase();
+  if (p.includes("leetcode")) normalized = "LeetCode";
+  else if (p.includes("geeks") || p.includes("gfg")) normalized = "GeeksforGeeks";
+  else if (p.includes("codeforces")) normalized = "Codeforces";
+  else if (p.includes("hackerrank")) normalized = "HackerRank";
+  else if (p.includes("codechef")) normalized = "CodeChef";
+  else if (p.includes("atcoder")) normalized = "AtCoder";
+  return PLATFORM_HEX_COLORS[normalized];
 }
 
 const LEVEL_CLASSES: Record<number, string> = {
@@ -62,8 +107,8 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
 
  // Map date -> solved count for O(1) lookup
  const countMap = useMemo(() => {
- const map = new Map<string, number>();
- filteredData.forEach((d) => map.set(d.date, d.solved));
+ const map = new Map<string, { solved: number; platform?: string }>();
+ filteredData.forEach((d) => map.set(d.date, { solved: d.solved, platform: d.platform }));
  return map;
  }, [filteredData]);
 
@@ -258,7 +303,9 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  {visibleWeeks.map((week, wi) => (
  <div key={wi} className="grid grid-rows-7 gap-1 shrink-0">
  {week.map(({ dateStr }) => {
- const count = countMap.get(dateStr) ?? 0;
+ const cellData = countMap.get(dateStr) || { solved: 0 };
+ const count = cellData.solved;
+ const platform = cellData.platform;
  const level = getHeatmapLevel(count);
  let formattedDate = dateStr;
  try {
@@ -276,8 +323,8 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  return (
  <button
  key={dateStr}
- onClick={() => setSelectedDate(dateStr)}
- className={`relative size-4 sm:size-4.5 rounded-[3px] transition-all hover:scale-125 hover:z-20 focus:outline-none focus:ring-2 focus:ring-ring ${LEVEL_CLASSES[level]} ${todayClass}`}
+ style={getPlatformHexColor(platform) && level > 0 ? { backgroundColor: getPlatformHexColor(platform), borderColor: getPlatformHexColor(platform) } : undefined} onClick={() => setSelectedDate(dateStr)}
+ className={`relative size-4 sm:size-4.5 rounded-[3px] transition-all hover:scale-125 hover:z-20 focus:outline-none focus:ring-2 focus:ring-ring ${getPlatformColorClass(platform, level)} ${todayClass}`}
  title={`${isToday ? "Today, " : ""}${formattedDate}: ${count} problem${count === 1 ? "" : "s"} solved`}
  aria-label={`${isToday ? "Today, " : ""}${formattedDate}: ${count} solved`}
  />

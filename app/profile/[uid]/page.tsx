@@ -1001,20 +1001,89 @@ export default function PublicProfilePage() {
  }
  }
 
- const hData: { date: string; solved: number }[] = [];
+ const normalizeDateKey = (key: string | number): string | null => {
+ if (key === undefined || key === null) return null;
+ const str = String(key).trim();
+ if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+ const num = Number(str);
+ if (!isNaN(num) && num > 0) {
+ const ms = num < 1e11 ? num * 1000 : num;
+ try {
+ const d = new Date(ms);
+ if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+ } catch {}
+ }
+ return null;
+ };
+
+ const hData: { date: string; solved: number; platform?: string }[] = [];
  const dMap: Record<string, any[]> = {};
+ const platformCountsByDate: Record<string, Record<string, number>> = {};
+
  dateMap.forEach((probs, dateStr) => {
  if (dateStr <= todayStr) {
- const syncedCount = activityHeatmap?.[dateStr] ?? 0;
- const count = Math.max(probs.length, syncedCount);
- hData.push({ date: dateStr, solved: count });
+ platformCountsByDate[dateStr] = {};
+ for (const p of probs) {
+ let plat = p.platform;
+ if (!plat || plat === "DSA" || plat === "Unknown") {
+ const linkStr = ((p as any).submissionLink || p.link || (typeof getCanonicalProblemLink === "function" ? getCanonicalProblemLink(p.name) : "") || "").toLowerCase();
+ plat = linkStr.includes("leetcode") ? "LeetCode" 
+ : linkStr.includes("geeksforgeeks") || linkStr.includes("gfg") ? "GeeksforGeeks"
+ : linkStr.includes("codeforces") ? "Codeforces"
+ : linkStr.includes("hackerrank") ? "HackerRank"
+ : linkStr.includes("codechef") ? "CodeChef"
+ : "DSA";
+ }
+ platformCountsByDate[dateStr][plat] = (platformCountsByDate[dateStr][plat] || 0) + 1;
+ }
  dMap[dateStr] = probs;
  }
  });
 
- // Only populate non-future days up to today with 0 count
+ if (typeof platformStats === "object" && platformStats !== null) {
+ for (const [rawKey, prof] of Object.entries(platformStats)) {
+ if (!prof || typeof prof !== "object") continue;
+ let platformName = "DSA";
+ const keyLower = rawKey.toLowerCase();
+ if (keyLower.includes("leetcode")) platformName = "LeetCode";
+ else if (keyLower.includes("codeforces")) platformName = "Codeforces";
+ else if (keyLower.includes("codechef")) platformName = "CodeChef";
+ else if (keyLower.includes("hackerrank")) platformName = "HackerRank";
+ else if (keyLower.includes("gfg") || keyLower.includes("geeks")) platformName = "GeeksforGeeks";
+ else if (keyLower.includes("atcoder")) platformName = "AtCoder";
+ else platformName = rawKey;
+
+ if (prof.submissionCalendar) {
+ try {
+ const obj = typeof prof.submissionCalendar === "string" ? JSON.parse(prof.submissionCalendar) : prof.submissionCalendar;
+ if (obj && typeof obj === "object") {
+ for (const [k, v] of Object.entries(obj)) {
+ const dateStr = normalizeDateKey(k);
+ if (dateStr && dateStr <= todayStr && typeof v === "number") {
+ if (!platformCountsByDate[dateStr]) platformCountsByDate[dateStr] = {};
+ platformCountsByDate[dateStr][platformName] = Math.max(platformCountsByDate[dateStr][platformName] || 0, v);
+ }
+ }
+ }
+ } catch {}
+ }
+ }
+ }
+
+ for (const [dateStr, counts] of Object.entries(platformCountsByDate)) {
+ let majorityPlat = "DSA";
+ let max = 0;
+ let totalSolved = 0;
+ for (const [plat, c] of Object.entries(counts)) {
+ totalSolved += c;
+ if (c > max) { max = c; majorityPlat = plat; }
+ }
+ const syncedCount = activityHeatmap?.[dateStr] ?? 0;
+ hData.push({ date: dateStr, solved: Math.max(totalSolved, syncedCount), platform: majorityPlat });
+ }
+
  for (const day of daysToUse ?? []) {
- if (day.date && dateRegex.test(day.date) && day.date <= todayStr && !day.skipped && !dateMap.has(day.date)) {
+ if (day.date && dateRegex.test(day.date) && day.date <= todayStr && !day.skipped && !platformCountsByDate[day.date]) {
  hData.push({ date: day.date, solved: 0 });
  }
  }

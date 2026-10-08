@@ -549,12 +549,20 @@ export function MergedTodayProfile() {
  const existing = dateMap.get(dateStr) ?? [];
  if (!existing.some((p) => p.name === probName)) {
  const platLink = getCanonicalProblemLink(probName) || "";
+ const linkStr = (sub.link || platLink || "").toLowerCase();
+ const guessedPlatform = linkStr.includes("leetcode") ? "LeetCode" 
+ : linkStr.includes("geeksforgeeks") || linkStr.includes("gfg") ? "GeeksforGeeks"
+ : linkStr.includes("codeforces") ? "Codeforces"
+ : linkStr.includes("hackerrank") ? "HackerRank"
+ : linkStr.includes("codechef") ? "CodeChef"
+ : "DSA";
+
  dateMap.set(dateStr, [
  ...existing,
  {
  name: probName,
  done: true,
- platform: "Problems Tab",
+ platform: guessedPlatform,
  submissionLink: sub.link || platLink || undefined,
  code: sub.code || undefined,
  keyPoints: sub.keyPoints || undefined,
@@ -564,11 +572,32 @@ export function MergedTodayProfile() {
  }
  }
 
- const hData: { date: string; solved: number }[] = [];
+ const hData: { date: string; solved: number; platform?: string }[] = [];
  const dMap: Record<string, any[]> = {};
 
  dateMap.forEach((probs, dateStr) => {
- hData.push({ date: dateStr, solved: probs.length });
+ let majorityPlat = "DSA";
+ if (probs.length > 0) {
+ const counts: Record<string, number> = {};
+ for (const p of probs) {
+ let plat = p.platform;
+ if (!plat || plat === "DSA" || plat === "Unknown") {
+ const linkStr = ((p as any).submissionLink || p.link || (typeof getCanonicalProblemLink === "function" ? getCanonicalProblemLink(p.name) : "") || "").toLowerCase();
+ plat = linkStr.includes("leetcode") ? "LeetCode" 
+ : linkStr.includes("geeksforgeeks") || linkStr.includes("gfg") ? "GeeksforGeeks"
+ : linkStr.includes("codeforces") ? "Codeforces"
+ : linkStr.includes("hackerrank") ? "HackerRank"
+ : linkStr.includes("codechef") ? "CodeChef"
+ : "DSA";
+ }
+ counts[plat] = (counts[plat] || 0) + 1;
+ }
+ let max = 0;
+ for (const [plat, c] of Object.entries(counts)) {
+ if (c > max) { max = c; majorityPlat = plat; }
+ }
+ }
+ hData.push({ date: dateStr, solved: probs.length, platform: majorityPlat });
  dMap[dateStr] = probs;
  });
 
