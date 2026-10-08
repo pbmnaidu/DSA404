@@ -58,6 +58,7 @@ import {
  MoreHorizontal,
  Monitor,
  Smartphone,
+  Scale,
 } from "lucide-react";
 import { loadUserProfile } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -69,6 +70,8 @@ import { NotificationPanel } from "@/components/NotificationPanel";
 import { getLocalGitHubSyncConfig, loadCloudGitHubSyncConfig } from "@/lib/github-sync";
 import { useInAppBrowser } from "@/components/in-app-browser/InAppBrowserContext";
 import { DemoHelperBanner } from "@/components/DemoHelperBanner";
+import { FooterDisclaimer } from "@/components/FooterDisclaimer";
+import { LegalDisclaimerModal } from "@/components/LegalDisclaimerModal";
 import { isGuestMode, disableGuestMode } from "@/lib/guest-data";
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -558,6 +561,7 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
  const [searchOpen, setSearchOpen] = useState(false);
  const [githubModalOpen, setGithubModalOpen] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
  const [notificationsOpen, setNotificationsOpen] = useState(false);
  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
@@ -704,7 +708,8 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
  <button
    type="button"
-   onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
+   suppressHydrationWarning
+    onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
    className="flex items-center justify-center size-8 rounded-lg border border-border bg-card hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
    title={forceView === "desktop" ? "Switch to Mobile View" : "Switch to Desktop View"}
    aria-label="Toggle view mode"
@@ -731,7 +736,10 @@ export function AppShell({ email, children }: { email: string; children: React.R
  </DropdownMenuItem>
  <DropdownMenuItem asChild><Link href="/progress"><BarChart3 className="mr-2 size-4 text-[var(--streak)]" /> Progress</Link></DropdownMenuItem>
  <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" /> Settings</Link></DropdownMenuItem>
- <DropdownMenuItem onSelect={() => setGithubModalOpen(true)}>
+ <DropdownMenuItem onSelect={() => setLegalModalOpen(true)} className="cursor-pointer">
+          <Scale className="mr-2 size-4 text-primary" /> Legal &amp; Attribution
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => setGithubModalOpen(true)}>
  <FolderGit2 className="mr-2 size-4 text-[var(--success)]" /> GitHub Sync
  </DropdownMenuItem>
  <DropdownMenuItem onSelect={() => openPanel()}><Palette className="mr-2 size-4" /> Theme & Display</DropdownMenuItem>
@@ -796,7 +804,8 @@ export function AppShell({ email, children }: { email: string; children: React.R
 
  <button
    type="button"
-   onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
+   suppressHydrationWarning
+    onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
    className="relative flex items-center justify-center size-9 rounded-lg border border-border bg-card hover:bg-accent transition-all group"
    title={forceView === "desktop" ? "Switch to Mobile View" : "Switch to Desktop View"}
    aria-label="Toggle view mode"
@@ -855,7 +864,8 @@ export function AppShell({ email, children }: { email: string; children: React.R
  <main className="w-full min-w-0 px-4 pb-24 pt-6 md:pb-8 md:px-6 lg:px-8">
  <DemoHelperBanner />
  {children}
- </main>
+ <FooterDisclaimer />
+      </main>
 
  {/* Theme customizer */}
  <ThemeCustomizerPanel />
@@ -923,7 +933,9 @@ export function AppShell({ email, children }: { email: string; children: React.R
  />
 
  {/* Right Side Notification Panel */}
- <NotificationPanel
+ <LegalDisclaimerModal open={legalModalOpen} onOpenChange={setLegalModalOpen} />
+
+      <NotificationPanel
  open={notificationsOpen}
  onClose={() => setNotificationsOpen(false)}
  onUnreadCountChange={setUnreadNotifCount}

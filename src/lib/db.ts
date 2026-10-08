@@ -1,7 +1,7 @@
 import { createClient } from "@/integrations/supabase/client";
 import type { Day } from "./types";
 import { SCHEMA_VERSION } from "./types";
-import { DEFAULT_DAILY_COUNTS, type DailyCounts, rebalanceRemaining, seedDays, START_DATE, todayIso } from "./plan";
+import { DEFAULT_DAILY_COUNTS, type DailyCounts, rebalanceRemaining, seedDays, START_DATE, todayIso, addDays } from "./plan";
 import { getCanonicalProblemLink, normalizePlatformName, getProblemMetadata } from "./problems";
 import { loadSettings } from "./settings";
 import {
@@ -164,7 +164,7 @@ export async function updateUserProfile(uid: string, patch: { displayName?: stri
 
 export async function loadUserProfile(uid: string): Promise<Partial<UserProfile>> {
  if (isGuestUser(uid)) return getGuestProfile();
- const { data } = await supabase.from("profiles").select("*").eq("id", uid).single();
+ const { data } = await supabase.from("profiles").select("display_name, photo_url, banner_url, bio, about_me, username, email, linkedin, github, portfolio, social_links, coding_profiles, public_stats, platform_stats, completed_problems, activity_heatmap").eq("id", uid).single();
  if (!data) return {};
  return {
  displayName: data.display_name || "",
@@ -322,15 +322,15 @@ function mapSubmissionRow(row: any): CodeSubmission {
 }
 
 export async function loadPublicDays(uid: string): Promise<Day[]> {
- const { data } = await supabase.from("study_days").select("*").eq("user_id", uid).order("seq_index", { ascending: true });
+ const { data } = await supabase.from("study_days").select("id, day_number, date, topic, section, subtopics, problems, checklist, status, notes, revision_notes, is_skipped, level, merge_snapshot, is_revision_day, revision_day_numbers, seq_index").eq("user_id", uid).order("seq_index", { ascending: true });
  return (data || []).map(mapDayRow);
 }
 
 export async function loadPlan(userId: string): Promise<{ days: Day[]; meta: PlanMeta; sheetId?: string }> {
   if (isGuestUser(userId)) return getGuestPlan();
   
-  const { data: daysData, error: daysError } = await supabase.from("study_days").select("*").eq("user_id", userId).order("seq_index", { ascending: true });
-  const { data: settingsData, error: settingsError } = await supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle();
+  const { data: daysData, error: daysError } = await supabase.from("study_days").select("id, day_number, date, topic, section, subtopics, problems, checklist, status, notes, revision_notes, is_skipped, level, merge_snapshot, is_revision_day, revision_day_numbers, seq_index").eq("user_id", userId).order("seq_index", { ascending: true });
+  const { data: settingsData, error: settingsError } = await supabase.from("user_settings").select("start_date, counts, active_sheet, last_active_date, updated_at").eq("user_id", userId).maybeSingle();
   if (daysError) throw new Error(`Could not load study days: ${daysError.message}`);
   if (settingsError) throw new Error(`Could not load plan settings: ${settingsError.message}`);
   
@@ -618,7 +618,7 @@ export async function saveRevisionEvent(uid: string, kind: string, detail: strin
 
 export async function listEvents(uid: string) {
  if (isGuestUser(uid)) return getGuestScheduleEvents();
- const { data } = await supabase.from("revision_events").select("*").eq("user_id", uid).order("created_at", { ascending: false });
+ const { data } = await supabase.from("revision_events").select("id, created_at, kind, detail, snapshot").eq("user_id", uid).order("created_at", { ascending: false });
  const now = Date.now();
  return (data || []).map(row => {
  const isWithinWeek = now - new Date(row.created_at).getTime() < 7 * 86400000;
@@ -722,12 +722,30 @@ export async function saveSequence(userId: string, days: Day[]) {
  await writeAllDays(userId, days);
 }
 
-export async function switchUserSheet(userId: string, sheetId: string, startDate?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
- if (isGuestUser(userId)) return seedPlan(userId, startDate, undefined, sheetId);
- const settings = await loadSettings(userId);
- await supabase.from("user_settings").upsert({ user_id: userId, active_sheet: sheetId }, { onConflict: "user_id" });
- const { data: current } = await supabase.from("user_settings").select("start_date").eq("user_id", userId).single();
- return seedPlan(userId, startDate || current?.start_date, settings.counts, sheetId);
+export async function switchUserSheet(userId: string, sheetId: string, ignoredOldStartDate?: string): Promise<{ days: Day[]; meta: PlanMeta }> {
+  const completed = await getCompletedProblems(userId);
+  const submissions = await loadCodeSubmissions(userId);
+  const completedNames = new Set([
+    ...completed.map(c => c.name),
+    ...Object.keys(submissions)
+  ]);
+  
+  const dummyDays = seedDays(todayIso(), sheetId);
+  let daysCompleted = 0;
+  for (const d of dummyDays) {
+    if (d.problems.length > 0 && d.problems.every(p => completedNames.has(p.name))) {
+      daysCompleted++;
+    } else {
+      break;
+    }
+  }
+  
+  const idealStartDate = addDays(todayIso(), -daysCompleted);
+
+  if (isGuestUser(userId)) return seedPlan(userId, idealStartDate, undefined, sheetId);
+  const settings = await loadSettings(userId);
+  await supabase.from("user_settings").upsert({ user_id: userId, active_sheet: sheetId }, { onConflict: "user_id" });
+  return seedPlan(userId, idealStartDate, settings.counts, sheetId);
 }
 
 // Aliases to avoid breaking existing imports
@@ -741,7 +759,7 @@ export const loadCodeSubmissions = async (uid: string) => {
 
  const { data, error } = await supabase
  .from("code_submissions")
- .select("*")
+ .select("problem_name, platform, difficulty, code, submission_link, problem_link, key_points, submitted_at, updated_at, topic, section")
  .eq("user_id", uid)
  .order("updated_at", { ascending: false });
 

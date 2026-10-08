@@ -42,7 +42,7 @@ export async function fetchTopicReminders(uid?: string | null): Promise<TopicRem
  const supabase = createClient();
  const { data, error } = await supabase
  .from("user_reminders")
- .select("*")
+ .select("id, topic, date, time, note, created_at, triggered")
  .eq("user_id", uid)
  .order("created_at", { ascending: true });
 

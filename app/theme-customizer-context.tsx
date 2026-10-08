@@ -451,15 +451,7 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     return "auto";
   });
 
-  const [forceView, setForceView] = useState<ForceView>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem(VIEW_STORAGE_KEY) as ForceView | null;
-        if (saved) return saved;
-      } catch {}
-    }
-    return "desktop";
-  });
+  const [forceView, setForceView] = useState<ForceView>("desktop");
 
   const [userId, setUserId] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -482,12 +474,22 @@ export function ThemeCustomizerProvider({ children }: { children: React.ReactNod
     return () => subscription.unsubscribe();
   }, []);
 
-  // Apply initial theme, font, size, view to document
+  // Apply initial theme, font, size, view to document & load stored view after mount
   useEffect(() => {
+    try {
+      const savedView = localStorage.getItem(VIEW_STORAGE_KEY) as ForceView | null;
+      if (savedView && (savedView === "desktop" || savedView === "mobile" || savedView === "auto")) {
+        setForceView(savedView);
+        applyViewModeToDocument(savedView);
+      } else {
+        applyViewModeToDocument("desktop");
+      }
+    } catch {
+      applyViewModeToDocument("desktop");
+    }
     applyThemeModeToDocument(themeMode);
     applyFontToDocument(font);
     applySizeToDocument(fontSize);
-    applyViewModeToDocument(forceView);
   }, []);
 
   // Fetch initial user settings from Supabase and subscribe to changes

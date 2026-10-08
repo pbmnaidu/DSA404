@@ -1,0 +1,2127 @@
+{
+  "Read and Print a Number": {
+    "leetcode": "not_found"
+  },
+  "Basic Data Types": {
+    "leetcode": "not_found"
+  },
+  "Basic Arithmetic Operations": {
+    "leetcode": "https://leetcode.com/problems/basic-calculator"
+  },
+  "Check Even or Odd": {
+    "leetcode": "not_found"
+  },
+  "Find Largest of Three Numbers": {
+    "leetcode": "not_found"
+  },
+  "Print Numbers from 1 to N": {
+    "leetcode": "not_found"
+  },
+  "Sum of First N Natural Numbers": {
+    "leetcode": "not_found"
+  },
+  "Pattern Printing": {
+    "leetcode": "not_found"
+  },
+  "Functions in Programming": {
+    "leetcode": "not_found"
+  },
+  "Array Traversal": {
+    "leetcode": "not_found"
+  },
+  "String Traversal": {
+    "leetcode": "not_found"
+  },
+  "Count Digits in a Number": {
+    "leetcode": "not_found"
+  },
+  "Sum of Digits": {
+    "leetcode": "not_found"
+  },
+  "Time and Space Complexity Basics": {
+    "leetcode": "not_found"
+  },
+  "Prime Factors": {
+    "leetcode": "not_found"
+  },
+  "Closest Number": {
+    "leetcode": "not_found"
+  },
+  "Euler's Totient": {
+    "leetcode": "not_found"
+  },
+  "Kth Set Bit": {
+    "leetcode": "not_found"
+  },
+  "Only set bit": {
+    "leetcode": "not_found"
+  },
+  "nCr": {
+    "leetcode": "not_found"
+  },
+  "Check if a Number is Prime": {
+    "leetcode": "not_found"
+  },
+  "GCD of Two Numbers": {
+    "leetcode": "not_found"
+  },
+  "LCM of Two Numbers": {
+    "leetcode": "not_found"
+  },
+  "Count Set": {
+    "leetcode": "not_found"
+  },
+  "Count Primes — Sieve of Eratosthenes": {
+    "geeksforgeeks": "not_found"
+  },
+  "Pow(x, n)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Modular Exponentiation": {
+    "leetcode": "not_found"
+  },
+  "Linear Search": {
+    "leetcode": "not_found"
+  },
+  "Find Minimum and Maximum": {
+    "leetcode": "not_found"
+  },
+  "Third Largest Element": {
+    "leetcode": "not_found"
+  },
+  "Rotate Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reverse Array in Groups": {
+    "leetcode": "not_found"
+  },
+  "Move All Zeroes to End": {
+    "leetcode": "not_found"
+  },
+  "Maximum Consecutive Ones": {
+    "leetcode": "not_found",
+    "geeksforgeeks": "not_found"
+  },
+  "Array Leaders": {
+    "leetcode": "not_found"
+  },
+  "Wave Array": {
+    "leetcode": "not_found"
+  },
+  "Plus One": {
+    "geeksforgeeks": "not_found"
+  },
+  "Stock Buy and Sell — One Transaction": {
+    "geeksforgeeks": "not_found"
+  },
+  "Rearrange Array Alternately": {
+    "leetcode": "not_found"
+  },
+  "Find Common Elements in Three Sorted Arrays": {
+    "leetcode": "not_found"
+  },
+  "Maximum Difference Between Two Elements": {
+    "leetcode": "not_found"
+  },
+  "Majority Element": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find all Duplicate Numbers": {
+    "geeksforgeeks": "not_found"
+  },
+  "Set Mismatch": {
+    "geeksforgeeks": "not_found"
+  },
+  "Remove Duplicates from Sorted Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Missing and Repeating in Array": {
+    "leetcode": "not_found"
+  },
+  "Find the Missing Number": {
+    "leetcode": "not_found"
+  },
+  "Second Largest Element": {
+    "leetcode": "not_found"
+  },
+  "Reverse an Array": {
+    "leetcode": "not_found"
+  },
+  "Sum of All Subarrays": {
+    "leetcode": "not_found"
+  },
+  "Maximum Subarray": {
+    "geeksforgeeks": "not_found"
+  },
+  "Majority Element II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Next Permutation": {
+    "geeksforgeeks": "not_found"
+  },
+  "Maximum Circular Subarray Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Union of 2 Sorted": {
+    "leetcode": "not_found"
+  },
+  "Cycle Sort": {
+    "leetcode": "not_found"
+  },
+  "Min Swaps to Sort": {
+    "leetcode": "not_found"
+  },
+  "First Missing Positive": {
+    "geeksforgeeks": "not_found"
+  },
+  "Trapping Rain Water": {
+    "geeksforgeeks": "not_found"
+  },
+  "Smallest Missing Positive Number": {
+    "leetcode": "not_found"
+  },
+  "Find the First K Missing Positive Numbers": {
+    "geeksforgeeks": "not_found"
+  },
+  "Manacher's Algorithm": {
+    "leetcode": "not_found"
+  },
+  "Longest Prefix Suffix": {
+    "leetcode": "not_found"
+  },
+  "Same Strings": {
+    "leetcode": "not_found"
+  },
+  "Reverse String": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reverse Words in a String III": {
+    "geeksforgeeks": "not_found"
+  },
+  "Rotate String": {
+    "geeksforgeeks": "not_found"
+  },
+  "String Compression": {
+    "geeksforgeeks": "not_found"
+  },
+  "Multiply Large Numbers": {
+    "leetcode": "not_found"
+  },
+  "URLify": {
+    "leetcode": "not_found"
+  },
+  "Longest Palindromic Substrings": {
+    "geeksforgeeks": "not_found"
+  },
+  "Palindromic Substrings": {
+    "geeksforgeeks": "not_found"
+  },
+  "Palindrome": {
+    "geeksforgeeks": "not_found"
+  },
+  "Min Repeats for Substring": {
+    "leetcode": "not_found"
+  },
+  "Find the Index of the First Occurrence in a String": {
+    "geeksforgeeks": "not_found"
+  },
+  "Repeated Substring Pattern": {
+    "geeksforgeeks": "not_found"
+  },
+  "Repeated String Match": {
+    "geeksforgeeks": "not_found"
+  },
+  "String to Integer (atoi)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Zigzag Conversion": {
+    "geeksforgeeks": "not_found"
+  },
+  "Encode and Decode Strings": {
+    "geeksforgeeks": "not_found"
+  },
+  "Text Justification": {
+    "geeksforgeeks": "not_found"
+  },
+  "Valid Number": {
+    "geeksforgeeks": "not_found"
+  },
+  "Palindrome Substring Queries": {
+    "leetcode": "not_found"
+  },
+  "Roman to Integer": {
+    "geeksforgeeks": "not_found"
+  },
+  "Separate Chaining": {
+    "leetcode": "not_found"
+  },
+  "Anagrams": {
+    "geeksforgeeks": "not_found"
+  },
+  "Most Frequent": {
+    "leetcode": "not_found"
+  },
+  "First Unique Character in a String": {
+    "geeksforgeeks": "not_found"
+  },
+  "Two Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Contains Duplicate": {
+    "geeksforgeeks": "not_found"
+  },
+  "Isomorphic Strings": {
+    "geeksforgeeks": "not_found"
+  },
+  "Group Anagrams": {
+    "geeksforgeeks": "not_found"
+  },
+  "Subarray Sum Equals K": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Consecutive Sequence": {
+    "geeksforgeeks": "not_found"
+  },
+  "4Sum II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Substring with At Most Two Distinct Characters": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sort by Length": {
+    "leetcode": "not_found"
+  },
+  "Wave Form": {
+    "leetcode": "not_found"
+  },
+  "Is Sorted": {
+    "leetcode": "not_found"
+  },
+  "Kth of two sorted": {
+    "leetcode": "not_found"
+  },
+  "Median of two sorted": {
+    "leetcode": "not_found"
+  },
+  "Merge Overlapping": {
+    "leetcode": "not_found"
+  },
+  "Shop in Candy Store": {
+    "leetcode": "not_found"
+  },
+  "Intersection of 2 Sorted": {
+    "leetcode": "not_found"
+  },
+  "Merge Without Extra Space": {
+    "leetcode": "not_found"
+  },
+  "Quick Sort": {
+    "leetcode": "not_found"
+  },
+  "Sort Binary": {
+    "leetcode": "not_found"
+  },
+  "Two Sum II - Sorted Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Valid Palindrome II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sort Colors": {
+    "geeksforgeeks": "not_found"
+  },
+  "3Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Container With Most Water": {
+    "geeksforgeeks": "not_found"
+  },
+  "Subarrays Less Than K": {
+    "leetcode": "not_found"
+  },
+  "Subarrays with k odds": {
+    "leetcode": "not_found"
+  },
+  "First negative in every window": {
+    "leetcode": "not_found"
+  },
+  "Min Swaps to group all 1's": {
+    "leetcode": "not_found"
+  },
+  "Number of Subarrays having Average Greater or Equal to   Threshold": {
+    "geeksforgeeks": "not_found"
+  },
+  "Repeated DNA sequences": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Substring Without Repeating Characters": {
+    "geeksforgeeks": "not_found"
+  },
+  "Minimum Window Subsequence": {
+    "leetcode": "not_found"
+  },
+  "Smallest containing 0, 1 and 2": {
+    "leetcode": "not_found"
+  },
+  "Count Anagrams": {
+    "leetcode": "not_found"
+  },
+  "Find All Anagrams in a String": {
+    "geeksforgeeks": "not_found"
+  },
+  "Full Distinct Subarrays": {
+    "leetcode": "not_found"
+  },
+  "Max Consecutive Ones": {
+    "geeksforgeeks": "not_found"
+  },
+  "Maximize Ones": {
+    "leetcode": "not_found"
+  },
+  "Subarray with given sum": {
+    "leetcode": "not_found"
+  },
+  "Subarray Product Less Than K": {
+    "geeksforgeeks": "not_found"
+  },
+  "Max Subarray Length with K Increments": {
+    "leetcode": "not_found"
+  },
+  "Sliding Window Maximum": {
+    "leetcode": "not_found"
+  },
+  "Minimum Window Substring": {
+    "geeksforgeeks": "not_found"
+  },
+  "Count with given XOR": {
+    "leetcode": "not_found"
+  },
+  "Compute before Matrix": {
+    "leetcode": "not_found"
+  },
+  "Point Counts from Intervals": {
+    "leetcode": "not_found"
+  },
+  "Longest Span": {
+    "leetcode": "not_found"
+  },
+  "Original Array": {
+    "leetcode": "not_found"
+  },
+  "Largest with sum divisible by k": {
+    "leetcode": "not_found"
+  },
+  "Longest with Sum K": {
+    "leetcode": "not_found"
+  },
+  "Product of Array Except Self": {
+    "geeksforgeeks": "not_found"
+  },
+  "First Bad Version": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sqrt(x)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Search in Rotated Sorted Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "M bouquets": {
+    "leetcode": "not_found"
+  },
+  "kth in Multiplication Table": {
+    "leetcode": "not_found"
+  },
+  "Minimum Number of Days to Make m Bouquets": {
+    "geeksforgeeks": "not_found"
+  },
+  "Binary Search": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find First and Last Position of Element in Sorted Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find Peak Element": {
+    "geeksforgeeks": "not_found"
+  },
+  "Linked List Cycle": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reverse Linked List": {
+    "geeksforgeeks": "not_found"
+  },
+  "Linked List Cycle II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reverse Linked List II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reverse a Doubly": {
+    "leetcode": "not_found"
+  },
+  "Reverse in Groups (K-group reversal)": {
+    "leetcode": "not_found"
+  },
+  "Add Two Numbers": {
+    "leetcode": "not_found"
+  },
+  "Sort 0s, 1s, 2s": {
+    "leetcode": "not_found"
+  },
+  "Length of the Loop": {
+    "leetcode": "not_found"
+  },
+  "Intersection Point": {
+    "leetcode": "not_found"
+  },
+  "Merge two sorted linked lists": {
+    "leetcode": "not_found"
+  },
+  "Palindrome Linked List": {
+    "leetcode": "not_found"
+  },
+  "Rotate List": {
+    "geeksforgeeks": "not_found"
+  },
+  "Clone with Random Pointer": {
+    "leetcode": "not_found"
+  },
+  "Flattening": {
+    "leetcode": "not_found"
+  },
+  "Reverse Nodes in k-Group": {
+    "geeksforgeeks": "not_found"
+  },
+  "Valid Parentheses": {
+    "geeksforgeeks": "not_found"
+  },
+  "Min Stack": {
+    "geeksforgeeks": "not_found"
+  },
+  "Implement Queue using Stacks": {
+    "leetcode": "not_found"
+  },
+  "Implement Stack using Linked List": {
+    "leetcode": "not_found"
+  },
+  "Next Greater Element I": {
+    "geeksforgeeks": "not_found"
+  },
+  "Decode String": {
+    "leetcode": "not_found"
+  },
+  "Longest Valid": {
+    "leetcode": "not_found"
+  },
+  "Score of Balanced": {
+    "leetcode": "not_found"
+  },
+  "Sort": {
+    "leetcode": "not_found"
+  },
+  "Daily Temperatures": {
+    "geeksforgeeks": "not_found"
+  },
+  "Next Greater Element II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Largest Rectangle in Histogram": {
+    "geeksforgeeks": "not_found"
+  },
+  "Online Stock Span": {
+    "geeksforgeeks": "not_found"
+  },
+  "Infix to Postfix Conversion": {
+    "leetcode": "not_found"
+  },
+  "Implement Stack using Queues": {
+    "leetcode": "not_found"
+  },
+  "First non-repeating in a stream": {
+    "leetcode": "not_found"
+  },
+  "Deque": {
+    "leetcode": "not_found"
+  },
+  "Longest Subarray with Difference ≤ X": {
+    "leetcode": "not_found"
+  },
+  "Design Hit Counter": {
+    "geeksforgeeks": "not_found"
+  },
+  "Factorial of a Number": {
+    "leetcode": "not_found"
+  },
+  "Check if Array is Sorted": {
+    "leetcode": "not_found"
+  },
+  "Reverse a String": {
+    "leetcode": "not_found"
+  },
+  "Generate Parentheses": {
+    "geeksforgeeks": "not_found"
+  },
+  "Rat in a Maze": {
+    "leetcode": "not_found"
+  },
+  "Permutations": {
+    "geeksforgeeks": "not_found"
+  },
+  "Unique Generalized Abbreviations": {
+    "geeksforgeeks": "not_found"
+  },
+  "Max Subsets": {
+    "leetcode": "not_found"
+  },
+  "Subsets With Duplicates": {
+    "geeksforgeeks": "not_found"
+  },
+  "Word Search": {
+    "leetcode": "not_found"
+  },
+  "Knight's Tour": {
+    "leetcode": "not_found"
+  },
+  "N Queen Problem": {
+    "geeksforgeeks": "not_found"
+  },
+  "Combination Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Palindrome Partitioning": {
+    "geeksforgeeks": "not_found"
+  },
+  "Complement of Base 10 Number": {
+    "geeksforgeeks": "not_found"
+  },
+  "Max XOR of Two": {
+    "leetcode": "not_found"
+  },
+  "Pairs with XOR less than K": {
+    "leetcode": "not_found"
+  },
+  "Missing Number using XOR": {
+    "geeksforgeeks": "not_found"
+  },
+  "Power of Two": {
+    "geeksforgeeks": "not_found"
+  },
+  "Number of 1 Bits": {
+    "geeksforgeeks": "not_found"
+  },
+  "Counting Bits": {
+    "geeksforgeeks": "not_found"
+  },
+  "Single Number": {
+    "geeksforgeeks": "not_found"
+  },
+  "Single Number III": {
+    "geeksforgeeks": "not_found"
+  },
+  "Single Number II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Bitwise AND of Numbers Range": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sum of Two Integers": {
+    "geeksforgeeks": "not_found"
+  },
+  "Subsets": {
+    "geeksforgeeks": "not_found"
+  },
+  "Check for Heap": {
+    "leetcode": "not_found"
+  },
+  "Heap Sort": {
+    "leetcode": "not_found"
+  },
+  "Kth Largest Element in an Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "K Max sum combinations": {
+    "leetcode": "not_found"
+  },
+  "BST to Min Heap": {
+    "leetcode": "not_found"
+  },
+  "Top K Frequent Elements": {
+    "geeksforgeeks": "not_found"
+  },
+  "Top K Frequent Words": {
+    "geeksforgeeks": "not_found"
+  },
+  "K Closest Points to Origin": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reorganize String": {
+    "geeksforgeeks": "not_found"
+  },
+  "Next Interval": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find K Pairs with Smallest Sums": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sort by Frequency": {
+    "leetcode": "not_found"
+  },
+  "The Skyline Problem": {
+    "leetcode": "not_found"
+  },
+  "Sliding Window Median": {
+    "geeksforgeeks": "not_found"
+  },
+  "IPO": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find Median from Data Stream": {
+    "geeksforgeeks": "not_found"
+  },
+  "Smallest Range: Smallest Range Covering Elements from K Lists": {
+    "geeksforgeeks": "not_found"
+  },
+  "Merge k Sorted Lists": {
+    "geeksforgeeks": "not_found"
+  },
+  "Binary Tree Level Order Traversal": {
+    "geeksforgeeks": "not_found"
+  },
+  "Right View": {
+    "leetcode": "not_found"
+  },
+  "Morris Inorder": {
+    "leetcode": "not_found"
+  },
+  "Postorder": {
+    "leetcode": "not_found"
+  },
+  "Smallest string starting from Leaf": {
+    "geeksforgeeks": "not_found"
+  },
+  "Balanced Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Binary Tree Paths": {
+    "geeksforgeeks": "not_found"
+  },
+  "Diameter of Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Maximum Depth of Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Level Averages in a Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reverse Level Order Traversal": {
+    "geeksforgeeks": "not_found"
+  },
+  "Binary Tree Zigzag Level Order Traversal": {
+    "geeksforgeeks": "not_found"
+  },
+  "Boundary Traversal": {
+    "leetcode": "not_found"
+  },
+  "Bottom View": {
+    "leetcode": "not_found"
+  },
+  "Vertical Traversal": {
+    "leetcode": "not_found"
+  },
+  "Count Paths for a Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "All Nodes Distance K in Binary tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Maximum width of Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Construct BT from Postorder and Inorder": {
+    "geeksforgeeks": "not_found"
+  },
+  "Construct BT from Preorder and Inorder": {
+    "geeksforgeeks": "not_found"
+  },
+  "LCA of Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "LCA": {
+    "leetcode": "not_found"
+  },
+  "Spiral Level Order": {
+    "leetcode": "not_found"
+  },
+  "Binary Tree Maximum Path Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Kth Ancestor of a Tree Node": {
+    "geeksforgeeks": "not_found"
+  },
+  "Serialize and Deserialize Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Insert into a BST": {
+    "geeksforgeeks": "not_found"
+  },
+  "LCA of BST": {
+    "geeksforgeeks": "not_found"
+  },
+  "Validate Binary Search Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Merge two BSTs": {
+    "leetcode": "not_found"
+  },
+  "Sorted Array to BST": {
+    "leetcode": "not_found"
+  },
+  "Recover BST": {
+    "leetcode": "not_found"
+  },
+  "Count of Structurally Unique Binary Search Trees": {
+    "geeksforgeeks": "not_found"
+  },
+  "Structurally Unique Binary Search Trees": {
+    "geeksforgeeks": "not_found"
+  },
+  "2 Sum in BST": {
+    "leetcode": "not_found"
+  },
+  "Kth Smallest Element": {
+    "leetcode": "not_found"
+  },
+  "Construct BST from Preorder": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Word With All Prefixes": {
+    "leetcode": "not_found"
+  },
+  "Implement Trie (Prefix Tree)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Implement Trie II (Prefix Tree)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Count of distinct substrings": {
+    "leetcode": "not_found"
+  },
+  "Search Suggestions System": {
+    "leetcode": "not_found"
+  },
+  "Palindrome Pairs": {
+    "leetcode": "not_found"
+  },
+  "Meeting Rooms": {
+    "leetcode": "not_found"
+  },
+  "Insert Interval": {
+    "geeksforgeeks": "not_found"
+  },
+  "Merge Intervals": {
+    "geeksforgeeks": "not_found"
+  },
+  "Non-Overlapping Intervals": {
+    "leetcode": "not_found"
+  },
+  "Assign Cookies": {
+    "leetcode": "not_found"
+  },
+  "Fractional Knapsack": {
+    "leetcode": "not_found"
+  },
+  "Jump Game": {
+    "leetcode": "not_found"
+  },
+  "Job Sequencing": {
+    "leetcode": "not_found"
+  },
+  "Task Scheduler": {
+    "geeksforgeeks": "not_found"
+  },
+  "Minimum Cost to Connect Sticks": {
+    "geeksforgeeks": "not_found"
+  },
+  "Min time to finish all jobs with given constraints": {
+    "leetcode": "not_found"
+  },
+  "Minimize cash flow": {
+    "leetcode": "not_found"
+  },
+  "Maximum Performance of a Team": {
+    "geeksforgeeks": "not_found"
+  },
+  "BFS of Graph": {
+    "leetcode": "not_found"
+  },
+  "DFS of Graph": {
+    "leetcode": "not_found"
+  },
+  "Flood Fill Algorithm": {
+    "geeksforgeeks": "not_found"
+  },
+  "Detect cycle in an undirected graph": {
+    "leetcode": "not_found"
+  },
+  "Min Knight steps for target": {
+    "leetcode": "not_found"
+  },
+  "Minimum Height Trees": {
+    "geeksforgeeks": "not_found"
+  },
+  "Number of islands": {
+    "geeksforgeeks": "not_found"
+  },
+  "Bipartite Graph": {
+    "geeksforgeeks": "not_found"
+  },
+  "Shortest Path in Binary Matrix": {
+    "geeksforgeeks": "not_found"
+  },
+  "Word Ladder": {
+    "geeksforgeeks": "not_found"
+  },
+  "Shortest cycle in an undirected graph": {
+    "leetcode": "not_found"
+  },
+  "Course Schedule": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sequence Reconstruction": {
+    "geeksforgeeks": "not_found"
+  },
+  "Topological Sort": {
+    "leetcode": "not_found"
+  },
+  "Bellman Ford: Network Delay time": {
+    "geeksforgeeks": "not_found"
+  },
+  "Shortest path with one curved edge in an undirected Graph": {
+    "leetcode": "not_found"
+  },
+  "Shortest Path with Negative Edges": {
+    "leetcode": "not_found"
+  },
+  "Dijkstra's Algorithm: Cheapest Flights Within K Stops": {
+    "geeksforgeeks": "not_found"
+  },
+  "Floyd-Warshall: Find the City with Smallest Number of   Neighbours at a Threshold Distance": {
+    "geeksforgeeks": "not_found"
+  },
+  "Floyd Warshall": {
+    "leetcode": "not_found"
+  },
+  "Total Spanning Trees": {
+    "leetcode": "not_found"
+  },
+  "Alien Dictionary": {
+    "geeksforgeeks": "not_found"
+  },
+  "Minimum Cost to Make at Least One Valid Path in a Grid": {
+    "geeksforgeeks": "not_found"
+  },
+  "Minimum Obstacle Removal to Reach Corner": {
+    "geeksforgeeks": "not_found"
+  },
+  "Kruskal's Algorithm: Minimum Cost to connect all Points": {
+    "geeksforgeeks": "not_found"
+  },
+  "Union": {
+    "leetcode": "not_found"
+  },
+  "Detect Cycle using DSU": {
+    "leetcode": "not_found"
+  },
+  "Number of connected components": {
+    "leetcode": "not_found"
+  },
+  "Number of Operations to Make Network Connected": {
+    "geeksforgeeks": "not_found"
+  },
+  "Redundant Connection": {
+    "geeksforgeeks": "not_found"
+  },
+  "Kruskal's Minimum Spanning Tree": {
+    "leetcode": "not_found"
+  },
+  "Prim's Minimum Spanning Tree": {
+    "leetcode": "not_found"
+  },
+  "Queries in a Matrix": {
+    "leetcode": "not_found"
+  },
+  "Game of Life": {
+    "geeksforgeeks": "not_found"
+  },
+  "Max Area of Island": {
+    "geeksforgeeks": "not_found"
+  },
+  "Number of Closed Islands": {
+    "geeksforgeeks": "not_found"
+  },
+  "Set Matrix Zeroes": {
+    "geeksforgeeks": "not_found"
+  },
+  "Surrounded Regions": {
+    "geeksforgeeks": "not_found"
+  },
+  "Rotting Oranges": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Increasing Path in a Matrix": {
+    "geeksforgeeks": "not_found"
+  },
+  "Fibonacci Number": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Common Subsequence": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sorted subsequence of 3": {
+    "leetcode": "not_found"
+  },
+  "Derangements": {
+    "leetcode": "not_found"
+  },
+  "Possible Decodings": {
+    "leetcode": "not_found"
+  },
+  "Coin Change": {
+    "geeksforgeeks": "not_found"
+  },
+  "Interleaving String": {
+    "leetcode": "not_found"
+  },
+  "House Robber ii": {
+    "geeksforgeeks": "not_found"
+  },
+  "Target Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Coin Change II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Minimum Cost For Tickets": {
+    "geeksforgeeks": "not_found"
+  },
+  "Perfect Squares": {
+    "geeksforgeeks": "not_found"
+  },
+  "0/1 Knapsack": {
+    "leetcode": "not_found"
+  },
+  "Maximum Length of Pair Chain": {
+    "geeksforgeeks": "not_found"
+  },
+  "Number of LIS": {
+    "geeksforgeeks": "not_found"
+  },
+  "Rod Cutting": {
+    "leetcode": "not_found"
+  },
+  "Consecutive Subsequence": {
+    "leetcode": "not_found"
+  },
+  "Longest Consecutive Subsequence": {
+    "leetcode": "not_found"
+  },
+  "Longest Common Substring": {
+    "leetcode": "not_found"
+  },
+  "Check Subsequence": {
+    "leetcode": "not_found"
+  },
+  "Longest Palindromic Subsequence": {
+    "geeksforgeeks": "not_found"
+  },
+  "Largest Square Submatrix with All 1s": {
+    "leetcode": "not_found"
+  },
+  "Longest Increasing Path": {
+    "leetcode": "not_found"
+  },
+  "Maximum path sum in matrix": {
+    "leetcode": "not_found"
+  },
+  "Dungeon Game: Dungeon Game": {
+    "geeksforgeeks": "not_found"
+  },
+  "Maximal Square": {
+    "geeksforgeeks": "not_found"
+  },
+  "Minimum cost Path": {
+    "leetcode": "not_found"
+  },
+  "Buy and Sell Stocks iii": {
+    "geeksforgeeks": "not_found"
+  },
+  "Buy and Sell Stocks iv": {
+    "geeksforgeeks": "not_found"
+  },
+  "Buy and Sell - k Transactions": {
+    "leetcode": "not_found"
+  },
+  "Buy and Sell with Transaction Fee": {
+    "leetcode": "not_found"
+  },
+  "Matrix Chain Multiplication": {
+    "leetcode": "not_found"
+  },
+  "Boolean Parenthesization": {
+    "leetcode": "not_found"
+  },
+  "Optimal Strategy": {
+    "leetcode": "not_found"
+  },
+  "Minimum Cost to Cut a Stick": {
+    "geeksforgeeks": "not_found"
+  },
+  "House Robber III": {
+    "geeksforgeeks": "not_found"
+  },
+  "Distribute Coins in Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest ZigZag Path in a Binary Tree": {
+    "geeksforgeeks": "not_found"
+  },
+  "Partition to K Equal Sum Subsets": {
+    "geeksforgeeks": "not_found"
+  },
+  "Burst Balloons": {
+    "geeksforgeeks": "not_found"
+  },
+  "Binary Tree Cameras": {
+    "geeksforgeeks": "not_found"
+  },
+  "Smallest Sufficient Team": {
+    "geeksforgeeks": "not_found"
+  },
+  "Shortest Path Visiting All Nodes": {
+    "geeksforgeeks": "not_found"
+  },
+  "Traveling Salesman Problem": {
+    "leetcode": "not_found"
+  },
+  "Range Sum Query - Mutable": {
+    "geeksforgeeks": "not_found"
+  },
+  "Range Sum Query 2D - Mutable": {
+    "geeksforgeeks": "not_found"
+  },
+  "Count of Smaller Numbers After Self": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Increasing Subsequence II": {
+    "geeksforgeeks": "not_found"
+  },
+  "My Calendar III": {
+    "geeksforgeeks": "not_found"
+  },
+  "Design HashMap": {
+    "geeksforgeeks": "not_found"
+  },
+  "LRU Cache": {
+    "geeksforgeeks": "not_found"
+  },
+  "Design Circular Queue": {
+    "geeksforgeeks": "not_found"
+  },
+  "Design Twitter": {
+    "geeksforgeeks": "not_found"
+  },
+  "Insert Delete GetRandom O(1)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Design Add and Search Words Data Structure": {
+    "geeksforgeeks": "not_found"
+  },
+  "Time Based Key-Value Store": {
+    "geeksforgeeks": "not_found"
+  },
+  "LFU Cache": {
+    "geeksforgeeks": "not_found"
+  },
+  "User Input / Output": {
+    "leetcode": "not_found"
+  },
+  "Data Types": {
+    "leetcode": "not_found"
+  },
+  "If Else Statements": {
+    "leetcode": "not_found"
+  },
+  "Switch Statement": {
+    "leetcode": "not_found"
+  },
+  "For Loops": {
+    "leetcode": "not_found"
+  },
+  "While Loops": {
+    "leetcode": "not_found"
+  },
+  "Functions (Pass by Reference and Value)": {
+    "leetcode": "not_found"
+  },
+  "Pattern 1: Rectangular Star Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 2: Right-Angled Triangle Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 3: Right-Angled Number Triangle": {
+    "leetcode": "not_found"
+  },
+  "Pattern 4: Right-Angled Number Triangle - II": {
+    "leetcode": "not_found"
+  },
+  "Pattern 5: Inverted Right Pyramid": {
+    "leetcode": "not_found"
+  },
+  "Pattern 6: Inverted Numbered Right Pyramid": {
+    "leetcode": "not_found"
+  },
+  "Pattern 7: Star Pyramid": {
+    "leetcode": "not_found"
+  },
+  "Pattern 8: Inverted Star Pyramid": {
+    "leetcode": "not_found"
+  },
+  "Pattern 9: Diamond Star Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 10: Half Diamond Star Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 11: Binary Number Triangle Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 12: Number Crown Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 13: Increasing Number Triangle Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 14: Increasing Letter Triangle Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 15: Reverse Letter Triangle Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 16: Alpha-Ramp Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 17: Alpha-Hill Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 18: Alpha-Triangle Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 19: Symmetric Void Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 20: Symmetric Butterfly Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 21: Hollow Rectangle Pattern": {
+    "leetcode": "not_found"
+  },
+  "Pattern 22: The Number Pattern": {
+    "leetcode": "not_found"
+  },
+  "Count Digits": {
+    "leetcode": "not_found"
+  },
+  "Reverse a Number": {
+    "geeksforgeeks": "not_found"
+  },
+  "Check Palindrome": {
+    "geeksforgeeks": "not_found"
+  },
+  "GCD Or HCF": {
+    "leetcode": "not_found"
+  },
+  "Armstrong Numbers": {
+    "leetcode": "not_found"
+  },
+  "Print all Divisors": {
+    "leetcode": "not_found"
+  },
+  "Check for Prime": {
+    "leetcode": "not_found"
+  },
+  "Print 1 to N without loop": {
+    "leetcode": "not_found"
+  },
+  "Print N to 1 without loop": {
+    "leetcode": "not_found"
+  },
+  "Sum of first n terms": {
+    "leetcode": "not_found"
+  },
+  "Factorial of N numbers": {
+    "leetcode": "not_found"
+  },
+  "Check if String is Palindrome": {
+    "geeksforgeeks": "not_found"
+  },
+  "Counting frequencies of array elements": {
+    "leetcode": "not_found"
+  },
+  "Find the highest/lowest frequency element": {
+    "leetcode": "not_found"
+  },
+  "Selection Sort": {
+    "leetcode": "not_found"
+  },
+  "Bubble Sort": {
+    "leetcode": "not_found"
+  },
+  "Insertion Sort": {
+    "leetcode": "not_found"
+  },
+  "Merge Sort": {
+    "leetcode": "not_found"
+  },
+  "Recursive Bubble Sort": {
+    "leetcode": "not_found"
+  },
+  "Recursive Insertion Sort": {
+    "leetcode": "not_found"
+  },
+  "Largest Element in an Array": {
+    "leetcode": "not_found"
+  },
+  "Second Largest Element in an Array without sorting": {
+    "leetcode": "not_found"
+  },
+  "Check if the array is sorted": {
+    "geeksforgeeks": "not_found"
+  },
+  "Remove duplicates from Sorted array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Left Rotate an array by one place": {
+    "geeksforgeeks": "not_found"
+  },
+  "Left rotate an array by D places": {
+    "geeksforgeeks": "not_found"
+  },
+  "Move Zeros to end": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find the Union and Intersection of two sorted arrays": {
+    "leetcode": "not_found"
+  },
+  "Find missing number in an array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find the number that appears once, and other numbers twice": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest subarray with given sum K (Positives)": {
+    "leetcode": "not_found"
+  },
+  "Longest subarray with sum K (Positives + Negatives)": {
+    "leetcode": "not_found"
+  },
+  "2Sum Problem": {
+    "geeksforgeeks": "not_found"
+  },
+  "Sort an array of 0s, 1s and 2s": {
+    "geeksforgeeks": "not_found"
+  },
+  "Majority Element (>n/2 times)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Kadane's Algorithm, maximum subarray sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Print subarray with maximum subarray sum": {
+    "leetcode": "not_found"
+  },
+  "Stock Buy and Sell": {
+    "geeksforgeeks": "not_found"
+  },
+  "Rearrange Array Elements by Sign": {
+    "geeksforgeeks": "not_found"
+  },
+  "Leaders in an Array problem": {
+    "leetcode": "not_found"
+  },
+  "Longest Consecutive Sequence in an Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Set Matrix Zeros": {
+    "geeksforgeeks": "not_found"
+  },
+  "Rotate Matrix by 90 degrees": {
+    "geeksforgeeks": "not_found"
+  },
+  "Print the matrix in spiral manner": {
+    "geeksforgeeks": "not_found"
+  },
+  "Count Subarray sum Equals K": {
+    "geeksforgeeks": "not_found"
+  },
+  "Pascal's Triangle": {
+    "geeksforgeeks": "not_found"
+  },
+  "Majority Element (>n/3 times)": {
+    "geeksforgeeks": "not_found"
+  },
+  "3 Sum Problem": {
+    "geeksforgeeks": "not_found"
+  },
+  "4 Sum Problem": {
+    "geeksforgeeks": "not_found"
+  },
+  "Largest Subarray with 0 Sum": {
+    "leetcode": "not_found"
+  },
+  "Count the number of subarrays with given XOR K": {
+    "leetcode": "not_found"
+  },
+  "Merge Overlapping Subintervals": {
+    "geeksforgeeks": "not_found"
+  },
+  "Merge two sorted arrays without extra space": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find the repeating and missing number": {
+    "leetcode": "not_found"
+  },
+  "Count Inversions": {
+    "leetcode": "not_found"
+  },
+  "Reverse Pairs": {
+    "geeksforgeeks": "not_found"
+  },
+  "Maximum Product Subarray": {
+    "geeksforgeeks": "not_found"
+  },
+  "Binary Search to find X in sorted array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Implement Lower Bound": {
+    "leetcode": "not_found"
+  },
+  "Implement Upper Bound": {
+    "leetcode": "not_found"
+  },
+  "Search Insert Position": {
+    "geeksforgeeks": "not_found"
+  },
+  "Check if array is sorted and rotated": {
+    "geeksforgeeks": "not_found"
+  },
+  "First and Last Position of an Element In Sorted Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Count occurrences of a number in a sorted array with duplicates": {
+    "leetcode": "not_found"
+  },
+  "Search in Rotated Sorted Array I": {
+    "geeksforgeeks": "not_found"
+  },
+  "Search in Rotated Sorted Array II": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find minimum in Rotated Sorted Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find out how many times array has been rotated": {
+    "leetcode": "not_found"
+  },
+  "Single element in a Sorted Array": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find peak element": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find square root of a number in O(log N)": {
+    "leetcode": "not_found"
+  },
+  "Find the Nth root of an Integer": {
+    "leetcode": "not_found"
+  },
+  "Koko Eating Bananas": {
+    "geeksforgeeks": "not_found"
+  },
+  "Minimum days to make M bouquets": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find the smallest Divisor Given a Threshold": {
+    "geeksforgeeks": "not_found"
+  },
+  "Capacity to Ship Packages within D Days": {
+    "geeksforgeeks": "not_found"
+  },
+  "Kth Missing Positive Number": {
+    "geeksforgeeks": "not_found"
+  },
+  "Aggressive Cows": {
+    "leetcode": "not_found"
+  },
+  "Book Allocation Problem": {
+    "leetcode": "not_found"
+  },
+  "Split Array Largest Sum": {
+    "geeksforgeeks": "not_found"
+  },
+  "Painter's Partition Problem": {
+    "leetcode": "not_found"
+  },
+  "Median of 2 sorted arrays": {
+    "geeksforgeeks": "not_found"
+  },
+  "Kth element of 2 sorted arrays": {
+    "leetcode": "not_found"
+  },
+  "Search in a 2 D matrix": {
+    "geeksforgeeks": "not_found"
+  },
+  "Search in a row and column wise sorted matrix": {
+    "geeksforgeeks": "not_found"
+  },
+  "Find Peak Element (2D Matrix)": {
+    "geeksforgeeks": "not_found"
+  },
+  "Matrix Median": {
+    "leetcode": "not_found"
+  },
+  "Remove Outermost Parentheses": {
+    "geeksforgeeks": "not_found"
+  },
+  "Reverse Words in a String": {
+    "geeksforgeeks": "not_found"
+  },
+  "Largest Odd Number in String": {
+    "geeksforgeeks": "not_found"
+  },
+  "Longest Common Prefix": {},
+  "Check whether one string is a rotation of another": {},
+  "Check if two strings are anagram of each other": {},
+  "Sort Characters By Frequency": {},
+  "Maximum Nesting Depth of the Parentheses": {},
+  "Integer to Roman": {},
+  "Count Number of Substrings": {},
+  "Longest Palindromic Substring": {},
+  "Sum of Beauty of All Substrings": {},
+  "Reverse Every Word in A String": {},
+  "Introduction to LinkedList": {},
+  "Insert a node in LinkedList": {},
+  "Delete a Node in LinkedList": {},
+  "Find length of LinkedList": {},
+  "Search an element in the LL": {},
+  "Introduction to Doubly LinkedList": {},
+  "Insert a node in DLL": {},
+  "Delete a node in DLL": {},
+  "Reverse a DLL": {},
+  "Middle of a LinkedList": {},
+  "Reverse a LinkedList [Iterative]": {},
+  "Reverse a LinkedList [Recursive]": {},
+  "Detect a loop in LL": {},
+  "Find the starting point in LL": {},
+  "Length of Loop in LL": {},
+  "Check if LL is palindrome": {},
+  "Segregate odd and even nodes in LL": {},
+  "Remove Nth node from the back of the LL": {},
+  "Delete the middle node of LL": {},
+  "Sort LL": {},
+  "Sort a LL of 0's 1's and 2's": {},
+  "Find the intersection point of Y LL": {},
+  "Add 1 to a number represented by LL": {},
+  "Add 2 numbers in LL": {},
+  "Reverse LL in group of given size K": {},
+  "Rotate a LL": {},
+  "Flattening of LL": {},
+  "Clone a LL with random and next pointer": {},
+  "Generate all binary strings": {},
+  "Print all subsequences / Power Set": {},
+  "Better String": {},
+  "Count all subsequences with sum K": {},
+  "Check if there exists a subsequence with sum K": {},
+  "Combination Sum-II": {},
+  "Subset Sum-I": {},
+  "Subset Sum-II": {},
+  "Combination Sum - III": {},
+  "Letter Combinations of a Phone number": {},
+  "N Queen": {},
+  "Word Break": {},
+  "M Coloring Problem": {},
+  "Sudoku Solver": {},
+  "Expression Add Operators": {},
+  "Introduction to Bit Manipulation": {},
+  "Check if the i-th bit is set or not": {},
+  "Check if a number is odd or not": {},
+  "Check if a number is power of 2 or not": {},
+  "Count the number of set bits": {},
+  "Set/Unset the rightmost unset bit": {},
+  "Swap two numbers": {},
+  "Divide two integers without using multiplication, division and mod": {},
+  "Minimum Bit Flips to Convert Number": {},
+  "Single Number - I": {},
+  "Single Number - II": {},
+  "Single Number - III": {},
+  "Find XOR of numbers from L to R": {},
+  "Two numbers with odd occurrences": {},
+  "Implement Stack using Arrays": {},
+  "Implement Queue using Arrays": {},
+  "Implement Stack using LinkedList": {},
+  "Implement Queue using LinkedList": {},
+  "Check for Balanced Parentheses": {},
+  "Implement Min Stack": {},
+  "Prefix to Infix Conversion": {},
+  "Prefix to Postfix Conversion": {},
+  "Postfix to Prefix Conversion": {},
+  "Postfix to Infix Conversion": {},
+  "Next Greater Element": {},
+  "Next Greater Element 2": {},
+  "Next Smaller Element": {},
+  "Trapping Rainwater": {},
+  "Sum of subarray minimums": {},
+  "Asteroid Collision": {},
+  "Sum of subarray ranges": {},
+  "Remove k Digits": {},
+  "Largest rectangle in a histogram": {},
+  "Maximal Rectangles": {},
+  "The Celebrity Problem": {},
+  "Rotten Oranges": {},
+  "Max Consecutive Ones III": {},
+  "Fruit Into Baskets": {},
+  "Longest Repeating Character Replacement": {},
+  "Binary subarray with sum": {},
+  "Count number of nice subarrays": {},
+  "Number of substring containing all three characters": {},
+  "Maximum Points You Can Obtain from Cards": {},
+  "Longest Substring with At Most K Distinct Characters": {},
+  "Subarrays with K Different Integers": {},
+  "Introduction to Priority Queues using Binary Heaps": {},
+  "Min Heap and Max Heap Implementation": {},
+  "Check if an array represents a min-heap or not": {},
+  "Convert Min Heap to Max Heap": {},
+  "Kth Smallest Element in an Array": {},
+  "Sort K-sorted Array": {},
+  "Merge M sorted Lists": {},
+  "Replace elements by its rank in the array": {},
+  "Hands of Straights": {},
+  "Design twitter": {},
+  "Connect `n` ropes with minimal cost": {},
+  "Kth largest element in a stream of running integers": {},
+  "Maximum Sum Combination": {},
+  "K most frequent elements": {},
+  "Fractional Knapsack Problem": {},
+  "Greedy algorithm to find minimum number of coins": {},
+  "Lemonade Change": {},
+  "Valid Parenthesis String": {},
+  "N meetings in one room": {},
+  "Jump Game II": {},
+  "Minimum platforms required for railway": {},
+  "Job Sequencing Problem": {},
+  "Candy": {},
+  "Program for Shortest Job First (or SJF) CPU Scheduling": {},
+  "Non-overlapping Intervals": {},
+  "Binary Tree Traversals in Binary Tree": {},
+  "Preorder Traversal of Binary Tree": {},
+  "Inorder Traversal of Binary Tree": {},
+  "Post-order Traversal of Binary Tree": {},
+  "Level order Traversal / Spiral Level Order": {},
+  "Iterative Preorder Traversal of Binary Tree": {},
+  "Iterative Inorder Traversal of Binary Tree": {},
+  "Height of a Binary Tree": {},
+  "Check if the Binary tree is height-balanced or not": {},
+  "Maximum path sum": {},
+  "Check if two trees are identical or not": {},
+  "Zig Zag Traversal of Binary Tree": {},
+  "Boundary Traversal of Binary Tree": {},
+  "Vertical Order Traversal of Binary Tree": {},
+  "Top View of Binary Tree": {},
+  "Bottom View of Binary Tree": {},
+  "Right/Left View of Binary Tree": {},
+  "Symmetric Binary Tree": {},
+  "Root to Node Path in Binary Tree": {},
+  "LCA in Binary Tree": {},
+  "Maximum width of a Binary Tree": {},
+  "Check for Children Sum Property": {},
+  "Print all the Nodes at a distance of K in a Binary Tree": {},
+  "Minimum time taken to BURN the Binary Tree from a Node": {},
+  "Count total Nodes in a COMPLETE Binary Tree": {},
+  "Construct Binary Tree from Inorder and Preorder": {},
+  "Construct Binary Tree from Inorder and Postorder": {},
+  "Serialize and deserialize Binary Tree": {},
+  "Morris Inorder Traversal of a Binary Tree": {},
+  "Flatten Binary Tree to LinkedList": {},
+  "Introduction to Binary Search Trees": {},
+  "Search in a Binary Search Tree": {},
+  "Find Min/Max in BST": {},
+  "Ceil in a BST": {},
+  "Floor in a BST": {},
+  "Insert a given Node in BST": {},
+  "Delete a Node in BST": {},
+  "Find K-th smallest element in BST": {},
+  "Find K-th largest element in BST": {},
+  "Check if a tree is a BST or BT": {},
+  "LCA in Binary Search Tree": {},
+  "Construct a BST from a preorder traversal": {},
+  "Inorder Successor/Predecessor in BST": {},
+  "Binary Search Tree Iterator": {},
+  "Two Sum In BST | Check if there exists a pair with Sum K": {},
+  "Correct BST with two nodes swapped": {},
+  "Largest BST in Binary Tree": {},
+  "Introduction to Graph": {},
+  "Connected Components in Graph": {},
+  "Number of Provinces": {},
+  "Number of Islands": {},
+  "Flood Fill": {},
+  "Detect Cycle in an Undirected Graph (using BFS)": {},
+  "Detect Cycle in an Undirected Graph (using DFS)": {},
+  "0/1 Matrix (Bfs Problem)": {},
+  "Number of Enclaves": {},
+  "Word Ladder - I": {},
+  "Word Ladder - II": {},
+  "Number of Distinct Islands": {},
+  "Bipartite Graph (BFS)": {},
+  "Bipartite Graph (DFS)": {},
+  "Detect Cycle in a Directed Graph (using DFS)": {},
+  "Topological Sort (DFS)": {},
+  "Kahn's Algorithm (Topological Sort BFS)": {},
+  "Detect Cycle in a Directed Graph (using BFS)": {},
+  "Course Schedule - I": {},
+  "Course Schedule - II": {},
+  "Find Eventual Safe States": {},
+  "Shortest Path in Undirected Graph with unit weights": {},
+  "Shortest Path in DAG": {},
+  "Dijkstra's Algorithm - Using Priority Queue": {},
+  "Dijkstra's Algorithm - Using Set": {},
+  "Shortest Path in a Binary Maze": {},
+  "Path With Minimum Effort": {},
+  "Cheapest Flights Within K Stops": {},
+  "Network Delay Time": {},
+  "Number of Ways to Arrive at Destination": {},
+  "Minimum Steps by Knight": {},
+  "Bellman Ford Algorithm": {},
+  "Floyd Warshall Algorithm": {},
+  "Find the City With the Smallest Number of Neighbors at a Threshold Distance": {},
+  "Minimum Spanning Tree (Prim's Algorithm)": {},
+  "Disjoint Set [Union by Rank / Size]": {},
+  "Kruskal's Algorithm": {},
+  "Most Stones Removed with Same Row or Column": {},
+  "Accounts Merge": {},
+  "Number of Island II": {},
+  "Making a Large Island": {},
+  "Swim in Rising Water": {},
+  "Strongly Connected Components (Kosaraju's Algo)": {},
+  "Bridges in Graph (Tarjan's Algo)": {},
+  "Articulation Point in Graph": {},
+  "Introduction to DP": {},
+  "Climbing Stars": {},
+  "Frog Jump (DP-3)": {},
+  "Frog Jump with k distances (DP-4)": {},
+  "Maximum sum of non-adjacent elements (DP 5)": {},
+  "House Robber II (DP 6)": {},
+  "Ninja's Training (DP 7)": {},
+  "Grid Unique Paths (DP 8)": {},
+  "Grid Unique Paths 2 (DP 9)": {},
+  "Minimum path sum in Grid (DP 10)": {},
+  "Triangle (DP 11)": {},
+  "Minimum/Maximum Falling Path Sum (DP 12)": {},
+  "Cherry Pickup II (DP 13)": {},
+  "Subset sum equal to target (DP- 14)": {},
+  "Partition Equal Subset Sum (DP- 15)": {},
+  "Partition A Set Into Two Subsets With Minimum Absolute Sum Difference (DP- 16)": {},
+  "Count Subsets with Sum K (DP- 17)": {},
+  "Count Partitions with Given Difference (DP- 18)": {},
+  "0/1 Knapsack (DP - 19)": {},
+  "Minimum Coins (DP - 20)": {},
+  "Target Sum (DP - 21)": {},
+  "Coin Change 2 (DP - 22)": {},
+  "Unbounded Knapsack (DP - 23)": {},
+  "Rod Cutting Problem (DP - 24)": {},
+  "Longest Common Subsequence (DP - 25)": {},
+  "Print Longest Common Subsequence (DP - 26)": {},
+  "Longest Common Substring (DP - 27)": {},
+  "Longest Palindromic Subsequence (DP - 28)": {},
+  "Minimum insertions to make string palindrome (DP - 29)": {},
+  "Minimum Insertions/Deletions to Convert String (DP - 30)": {},
+  "Shortest Common Supersequence (DP - 31)": {},
+  "Distinct Subsequences (DP - 32)": {},
+  "Edit Distance (DP - 33)": {},
+  "Wildcard Matching (DP - 34)": {},
+  "Best Time to Buy and Sell Stock (DP - 35)": {},
+  "Buy and Sell Stock - II (DP - 36)": {},
+  "Buy and Sell Stocks III (DP - 37)": {},
+  "Buy and Sell Stock IV (DP - 38)": {},
+  "Buy and Sell Stocks With Cooldown (DP - 39)": {},
+  "Buy and Sell Stocks With Transaction Fee (DP - 40)": {},
+  "Longest Increasing Subsequence (DP - 41)": {},
+  "Printing Longest Increasing Subsequence (DP - 42)": {},
+  "Longest Increasing Subsequence Binary Search (DP - 43)": {},
+  "Largest Divisible Subset (DP - 44)": {},
+  "Longest String Chain (DP - 45)": {},
+  "Longest Bitonic Subsequence (DP - 46)": {},
+  "Number of Longest Increasing Subsequences (DP - 47)": {},
+  "Matrix Chain Multiplication (DP - 48)": {},
+  "Matrix Chain Multiplication Bottom Up (DP - 49)": {},
+  "Minimum Cost to Cut the Stick (DP - 50)": {},
+  "Burst Balloons (DP - 51)": {},
+  "Evaluate Boolean Expression to True (DP - 52)": {},
+  "Palindrome Partitioning - II (DP - 53)": {},
+  "Partition Array for Maximum Sum (DP - 54)": {},
+  "Maximum Rectangle Area with all 1's (DP - 55)": {},
+  "Count Square Submatrices with All Ones (DP - 56)": {},
+  "Kadane's Algorithm - Maximum Subarray": {},
+  "Sort an Array of 0s, 1s and 2s": {},
+  "Rotate Matrix": {},
+  "Merge Two Sorted Arrays Without Extra Space": {},
+  "Find the Duplicate in an Array of N+1 Integers": {},
+  "Repeat and Missing Number": {},
+  "Inversion of Array (Pre-req: Merge Sort)": {},
+  "Search in a 2D Matrix": {},
+  "Majority Element (> N/2 times)": {},
+  "Majority Element (> N/3 times)": {},
+  "Grid Unique Paths": {},
+  "Reverse Pairs (LeetCode)": {},
+  "2 Sum Problem": {},
+  "Count number of subarrays with given XOR K": {},
+  "Longest Substring Without Repeat": {},
+  "Reverse a LinkedList": {},
+  "Find the Middle of LinkedList": {},
+  "Merge Two Sorted LinkedList": {},
+  "Remove Nth Node from End of List": {},
+  "Add Two Numbers as LinkedList": {},
+  "Delete a given Node when a node is given (0(1) solution)": {},
+  "Find Intersection Point of Y LinkedList": {},
+  "Detect a Cycle in LinkedList": {},
+  "Reverse a LinkedList in groups of size k": {},
+  "Check if a LinkedList is Palindrome or not": {},
+  "Find the starting point of the Loop of LinkedList": {},
+  "Flattening of a LinkedList": {},
+  "Rotate a LinkedList": {},
+  "Clone a Linked List with random and next pointer": {},
+  "3 Sum": {},
+  "Remove Duplicate from Sorted array": {},
+  "Greedy algorithm to find minimum number of Coins": {},
+  "Subset Sums": {},
+  "Subset-II": {},
+  "Combination Sum-1": {},
+  "Combination Sum-2": {},
+  "K-th Permutation Sequence": {},
+  "Print all Permutations of a string/array": {},
+  "N Queens Problem": {},
+  "Word Break (print all ways)": {},
+  "The N-th root of an integer": {},
+  "Find the element that appears once in sorted array": {},
+  "Search element in a sorted and rotated array": {},
+  "K-th element of two sorted arrays": {},
+  "Allocate Minimum Number of Pages": {},
+  "Max Heap, Min Heap Implementation": {},
+  "Kth Largest Element": {},
+  "Merge K Sorted Arrays": {},
+  "Implement Stack using Queue (using single queue)": {},
+  "Implement Queue using Stack (0(1) amortized)": {},
+  "Check for balanced parentheses": {},
+  "Sort a Stack": {},
+  "Rotten Orange (Using BFS)": {},
+  "Stock Span Problem": {},
+  "Find the Maximum of minimums of every window size": {},
+  "Longest Palindrome in a string": {},
+  "Roman Number to Integer and vice versa": {},
+  "Implement ATOI/STRSTR": {},
+  "Rabin Karp Algorithm": {},
+  "Z-Function Algorithm": {},
+  "KMP Algorithm / LPS Array": {},
+  "Minimum characters to make string Palindrome": {},
+  "Check for Anagrams": {},
+  "Count and Say": {},
+  "Compare Version Numbers": {},
+  "Inorder Traversal": {},
+  "Preorder Traversal": {},
+  "Postorder Traversal": {},
+  "Morris Inorder Traversal": {},
+  "Morris Preorder Traversal": {},
+  "LeftView Of Binary Tree": {},
+  "Preorder, Inorder, Postorder in a single traversal": {},
+  "Vertical order traversal": {},
+  "Root to node path in a Binary Tree": {},
+  "Max width of a Binary Tree": {},
+  "Check if Binary tree is height balanced or not": {},
+  "Check if Binary Tree is mirror of itself or not": {},
+  "Populate Next Right pointers of Tree": {},
+  "Search given Key in BST": {},
+  "Construct BST from given keys": {},
+  "Construct BST from preorder traversal": {},
+  "Check is a BT is BST or not": {},
+  "Find LCA of two nodes in BST": {},
+  "Find the inorder predecessor/successor of a given Key in BST": {},
+  "Find a pair with a given sum in BST": {},
+  "BST iterator": {},
+  "Size of the largest BST in a Binary Tree": {},
+  "Binary Tree to Double Linked List": {},
+  "Find median in a stream of running integers": {},
+  "K-th largest element in a stream": {},
+  "Distinct numbers in Window": {},
+  "K-th largest element in an unsorted array": {},
+  "Flood-fill Algorithm": {},
+  "Clone a graph (Clone an undirected graph)": {},
+  "Detect A cycle in Undirected Graph using BFS": {},
+  "Detect A cycle in Undirected Graph using DFS": {},
+  "Detect A cycle in a Directed Graph using DFS": {},
+  "Detect A cycle in a Directed Graph using BFS": {},
+  "Topological Sort using BFS": {},
+  "Topological Sort using DFS": {},
+  "Number of islands (Do in grid and graph both)": {},
+  "Bipartite Check using BFS": {},
+  "Bipartite Check using DFS": {},
+  "Strongly Connected Component (Kosaraju Algo)": {},
+  "Dijkstra's Algorithm": {},
+  "MST using Prim's Algo": {},
+  "MST using Kruskal's Algo": {},
+  "Max Product Subarray": {},
+  "Longest Increasing Subsequence": {},
+  "0-1 Knapsack": {},
+  "Edit Distance": {},
+  "Maximum sum increasing subsequence": {},
+  "Maximum profit in Job scheduling": {},
+  "Subset Sum Equal To K": {},
+  "Egg Dropping": {},
+  "Palindromic Partitioning (MCM Variation)": {},
+  "Valid Anagram": {},
+  "Valid Sudoku": {},
+  "Valid Palindrome": {},
+  "Two Sum II - Input Array Is Sorted": {},
+  "Best Time to Buy and Sell Stock": {},
+  "Permutation in String": {},
+  "Evaluate Reverse Polish Notation": {},
+  "Car Fleet": {},
+  "Search a 2D Matrix": {},
+  "Find Minimum in Rotated Sorted Array": {},
+  "Median of Two Sorted Arrays": {},
+  "Merge Two Sorted Lists": {},
+  "Reorder List": {},
+  "Remove Nth Node From End of List": {},
+  "Copy List with Random Pointer": {},
+  "Find the Duplicate Number": {},
+  "Invert Binary Tree": {},
+  "Same Tree": {},
+  "Subtree of Another Tree": {},
+  "Lowest Common Ancestor of a BST": {},
+  "Binary Tree Right Side View": {},
+  "Count Good Nodes in Binary Tree": {},
+  "Kth Smallest Element in a BST": {},
+  "Construct Binary Tree from Preorder and Inorder Traversal": {},
+  "Word Search II": {},
+  "Kth Largest Element in a Stream": {},
+  "Last Stone Weight": {},
+  "Subsets II": {},
+  "Combination Sum II": {},
+  "Letter Combinations of a Phone Number": {},
+  "N-Queens": {},
+  "Clone Graph": {},
+  "Walls and Gates": {},
+  "Pacific Atlantic Water Flow": {},
+  "Course Schedule II": {},
+  "Graph Valid Tree": {},
+  "Number of Connected Components in an Undirected Graph": {},
+  "Reconstruct Itinerary": {},
+  "Min Cost to Connect All Points": {},
+  "Climbing Stairs": {},
+  "Min Cost Climbing Stairs": {},
+  "House Robber": {},
+  "House Robber II": {},
+  "Decode Ways": {},
+  "Partition Equal Subset Sum": {},
+  "Unique Paths": {},
+  "Best Time to Buy and Sell Stock with Cooldown": {},
+  "Distinct Subsequences": {},
+  "Regular Expression Matching": {},
+  "Gas Station": {},
+  "Hand of Straights": {},
+  "Merge Triplets to Form Target Triplet": {},
+  "Partition Labels": {},
+  "Meeting Rooms II": {},
+  "Minimum Interval to Include Each Query": {},
+  "Rotate Image": {},
+  "Spiral Matrix": {},
+  "Happy Number": {},
+  "Multiply Strings": {},
+  "Detect Squares": {},
+  "Reverse Bits": {},
+  "Missing Number": {},
+  "Reverse Integer": {},
+  "Reverse the array": {},
+  "Find the maximum and minimum element in an array": {},
+  "Find the Kth max and min element of an array": {},
+  "Given an array of size N containing 0, 1, and 2; sort the array without sorting algo": {},
+  "Move all negative elements to one side of array": {},
+  "Cyclically rotate an array by one": {},
+  "Find Largest sum contiguous Subarray [Kadane's Algorithm]": {},
+  "Minimize the maximum difference between heights": {},
+  "Minimum no. of Jumps to reach end of an array": {},
+  "Find duplicate in an array of N+1 Integers": {},
+  "Merge 2 sorted arrays without using extra space": {},
+  "Kadane's Algo [VVV. Imp]": {},
+  "Count Inversion": {},
+  "Best time to buy and Sell stock": {},
+  "Find all pairs on integer array whose sum is equal to given number": {},
+  "Find common elements in 3 sorted arrays": {},
+  "Rearrange the array in alternating positive & negative items with O(1) extra space": {},
+  "Find if there is any subarray with sum equal to 0": {},
+  "Find factorial of a large number": {},
+  "Find maximum product subarray": {},
+  "Find longest consecutive subsequence": {},
+  "Given an array of size n and a number k, find all elements that appear more than n/k times": {},
+  "Maximum profit by buying and selling a share at most twice": {},
+  "Find whether an array is a subset of another array": {},
+  "Find the triplet that sum to a given value": {},
+  "Trapping Rain water problem": {},
+  "Chocolate Distribution problem": {},
+  "Smallest Subarray with sum greater than a given value": {},
+  "Three way partitioning of an array around a given value": {},
+  "Minimum swaps required bring elements less equal K together": {},
+  "Minimum no. of operations required to make an array palindrome": {},
+  "Median of 2 sorted arrays of equal size": {},
+  "Median of 2 sorted arrays of different size": {},
+  "Spiral traversal on a Matrix": {},
+  "Search an element in a Matrix": {},
+  "Find median in a row wise sorted matrix": {},
+  "Find row with maximum no. of 1's": {},
+  "Print elements in sorted order using row-column sorted matrix": {},
+  "Maximum size rectangle binary sub-matrix with all 1s": {},
+  "Find a specific pair in matrix": {},
+  "Rotate matrix by 90 degrees": {},
+  "Kth smallest element in a row-column sorted matrix": {},
+  "Common elements in all rows of a given matrix": {},
+  "Check whether a String is Palindrome or not": {},
+  "Find Duplicate characters in a string": {},
+  "Write a Code to check whether one string is a rotation of another": {},
+  "Write a Program to check whether a string is a valid shuffle of two strings or not": {},
+  "Count and Say problem": {},
+  "Write a program to find the longest Palindrome in a string": {},
+  "Find Longest Recurring Subsequence in String": {},
+  "Print all Subsequences of a string": {},
+  "Print all the permutations of the given string": {},
+  "Split the Binary string into two substring with equal 0’s and 1’s": {},
+  "Word Wrap Problem [VERY IMP]": {},
+  "EDIT Distance [Very Imp]": {},
+  "Find next greater number with same set of digits": {},
+  "Balanced Parenthesis problem.[Imp]": {},
+  "Word Break Problem[ Very Imp]": {},
+  "Rabin Karp Algo": {},
+  "KMP Algo": {},
+  "Convert a Sentence into its equivalent mobile numeric keypad sequence": {},
+  "Minimum number of bracket reversals needed to make an expression balanced": {},
+  "Count All Palindromic Subsequence in a given String": {},
+  "Count of number of given string in 2D character array": {},
+  "Search a Word in a 2D Grid of characters": {},
+  "Boyer Moore Algorithm for Pattern Searching": {},
+  "Converting Roman Numerals to Decimal": {},
+  "Number of flips to make binary string alternate": {},
+  "Find the first repeated word in string": {},
+  "Minimum number of swaps for bracket balancing": {},
+  "Find the longest common subsequence between two strings": {},
+  "Program to generate all possible valid IP addresses from given string": {},
+  "Smallest window in a string containing all the characters of another string": {},
+  "Recursively remove all adjacent duplicates": {},
+  "String matching where one string contains wildcard characters": {},
+  "Function to find Number of customers who could not get a computer": {},
+  "Transform One String to Another using Minimum Number of Given Operation": {},
+  "Check if two given strings are isomorphic to each other": {},
+  "Recursively print all sentences that can be formed from list of word lists": {},
+  "Find first and last positions of an element in a sorted array": {},
+  "Find a Fixed Point (Value equal to index) in a given array": {},
+  "Search in a rotated sorted array": {},
+  "Square root of an integer": {},
+  "Maximum and minimum of an array using minimum number of comparisons": {},
+  "Find the repeating and the missing": {},
+  "Find majority element": {},
+  "Searching in an array where adjacent differ by at most k": {},
+  "Find pair with given difference": {},
+  "Find four elements that sum to a given value": {},
+  "Maximum sum such that no 2 elements are adjacent": {},
+  "Count triplet with sum smaller than a given value": {},
+  "Merge 2 sorted arrays": {},
+  "Product array puzzle": {},
+  "Sort array according to count of set bits": {},
+  "Minimum no. of swaps required to sort the array": {},
+  "Bishu and Soldiers": {},
+  "Kth smallest number again": {},
+  "Find pivot element in sorted rotated array": {},
+  "K-th Element of Two Sorted Arrays": {},
+  "Aggressive cows": {},
+  "EKOSPOJ": {},
+  "Job Scheduling Algo": {},
+  "Write a Program to reverse the Linked List. (Both Iterative and recursive)": {},
+  "Reverse a Linked List in group of Given Size. [Very Imp]": {},
+  "Write a program to Detect loop in a linked list.": {},
+  "Write a program to Delete loop in a linked list.": {},
+  "Find the starting point of the loop.": {},
+  "Remove Duplicate in a Sorted Linked List.": {},
+  "Remove Duplicates in a Un-sorted Linked List.": {},
+  "Write a Program to Move the last element to Front in a Linked List.": {},
+  "Add “1” to a number represented as a Linked List.": {},
+  "Add two numbers represented by linked lists.": {},
+  "Intersection of two Sorted Linked List.": {},
+  "Intersection Point of two Linked Lists.": {},
+  "Merge Sort for Linked Lists.[Very Important]": {},
+  "Quicksort for Linked List.[Very Important]": {},
+  "Find the middle Element of a linked list.": {},
+  "Check if a linked list is a circular linked list.": {},
+  "Split a Circular linked list into two halves.": {},
+  "Write a Program to check whether the Singly Linked list is a palindrome or not.": {},
+  "Deletion from a Circular Linked List.": {},
+  "Reverse a Doubly Linked list.": {},
+  "Find pairs with a given sum in a DLL.": {},
+  "Count triplets in a sorted DLL whose sum is equal to given value “X”.": {},
+  "Rotate Doubly Linked list by N nodes.": {},
+  "Rotate a Doubly Linked list in group of Given Size.[Very IMP]": {},
+  "Flatten a Linked List": {},
+  "Sort a LL of 0's, 1's and 2's": {},
+  "Clone a linked list with next and random pointer": {},
+  "Merge K sorted Linked list": {},
+  "Multiply 2 no. represented by LL": {},
+  "Delete nodes which have a greater value on right side": {},
+  "Segregate even and odd nodes in a Linked List": {},
+  "Program for nth node from the end of a Linked List": {},
+  "level order traversal": {},
+  "Reverse Level Order traversal": {},
+  "Height of a tree": {},
+  "Diameter of a tree": {},
+  "Mirror of a tree": {},
+  "Inorder Traversal of a tree both using recursion and Iteration": {},
+  "Preorder Traversal of a tree both using recursion and Iteration": {},
+  "Postorder Traversal of a tree both using recursion and Iteration": {},
+  "Left View of a tree": {},
+  "Right View of Tree": {},
+  "Top View of a tree": {},
+  "Bottom View of a tree": {},
+  "Zig-Zag traversal of a binary tree": {},
+  "Check if a tree is balanced or not": {},
+  "Diagonal Traversal of a Binary tree": {},
+  "Boundary traversal of a Binary tree": {},
+  "Construct Binary Tree from String with bracket representation": {},
+  "Convert Binary tree into Doubly Linked List": {},
+  "Convert Binary tree into Sum tree": {},
+  "Construct Binary tree from Inorder and preorder traversal": {},
+  "Find minimum swaps required to convert a Binary tree into BST": {},
+  "Check if Binary tree is Sum tree or not": {},
+  "Check if all leaf nodes are at same level or not": {},
+  "Check if a given Graph is tree or not. [IMP]": {},
+  "Find Largest subtree sum in a tree": {},
+  "Maximum Sum of nodes in Binary tree such that no two are adjacent": {},
+  "Find LCA in a Binary tree": {},
+  "Find distance between 2 nodes in a Binary tree": {},
+  "Kth Ancestor of node in a Binary tree": {},
+  "Find all Duplicate subtrees in a Binary tree [IMP]": {},
+  "Check if 2 trees are mirror or not": {},
+  "4Sum": {},
+  "Sort Colors (Dutch National Flag)": {},
+  "Move Zeroes": {},
+  "Middle of the Linked List": {},
+  "Capacity To Ship Packages Within D Days": {},
+  "Maximal Rectangle": {},
+  "Lowest Common Ancestor of a Binary Tree": {},
+  "Convert Sorted Array to Binary Search Tree": {},
+  "Delete Node in a BST": {}
+}

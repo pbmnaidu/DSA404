@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import { Providers } from './providers'
 import './globals.css'
 
@@ -117,8 +118,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#FAF9F6" />
         <meta name="msapplication-navbutton-color" content="#FAF9F6" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        {/* Synchronous anti-FOUC script — applies saved theme, custom colors, and typography before paint */}
-        <script id="anti-fouc" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: antiFoucScript }} />
+        {/* Synchronous anti-FOUC script inside head for React 19 & Next.js */}
+        <script id="anti-fouc" dangerouslySetInnerHTML={{ __html: antiFoucScript }} />
       </head>
       <body className="antialiased text-foreground min-h-screen">
         <Providers>{children}</Providers>

@@ -253,63 +253,129 @@ function buildDefaultGuestProfile(): UserProfile {
 
 // ─── Default 3-Star Coder Submissions & Solutions ─────────────────────────────
 function buildDefaultGuestSubmissions(): Record<string, CodeSubmission> {
- const nowIso = new Date().toISOString();
- return {
- "Two Sum": {
- code: `class Solution {\npublic:\n vector<int> twoSum(vector<int>& nums, int target) {\n unordered_map<int, int> seen;\n for (int i = 0; i < nums.size(); ++i) {\n int complement = target - nums[i];\n if (seen.count(complement)) {\n return {seen[complement], i};\n }\n seen[nums[i]] = i;\n }\n return {};\n }\n};`,
- link: "https://leetcode.com/problems/two-sum/",
- keyPoints: "Single pass hash map. Stores {value: index}. Time: O(N), Space: O(N).",
- submittedAt: nowIso,
- },
- "Valid Palindrome": {
- code: `class Solution {\npublic:\n bool isPalindrome(string s) {\n int l = 0, r = s.size() - 1;\n while (l < r) {\n while (l < r && !isalnum(s[l])) l++;\n while (l < r && !isalnum(s[r])) r--;\n if (tolower(s[l]) != tolower(s[r])) return false;\n l++; r--;\n }\n return true;\n }\n};`,
- link: "https://leetcode.com/problems/valid-palindrome/",
- keyPoints: "Two pointers inward from bounds. Skips non-alphanumeric. Time: O(N), Space: O(1).",
- submittedAt: nowIso,
- },
- "Container With Most Water": {
- code: `class Solution {\npublic:\n int maxArea(vector<int>& height) {\n int l = 0, r = height.size() - 1;\n int maxWater = 0;\n while (l < r) {\n int h = min(height[l], height[r]);\n maxWater = max(maxWater, h * (r - l));\n if (height[l] < height[r]) l++;\n else r--;\n }\n return maxWater;\n }\n};`,
- link: "https://leetcode.com/problems/container-with-most-water/",
- keyPoints: "Two pointers from edges inward. Always shrink from smaller height. Time: O(N), Space: O(1).",
- submittedAt: nowIso,
- },
- "Lowest Common Ancestor of a BST": {
- code: `class Solution {\npublic:\n TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {\n while (root) {\n if (p->val < root->val && q->val < root->val) root = root->left;\n else if (p->val > root->val && q->val > root->val) root = root->right;\n else return root;\n }\n return nullptr;\n }\n};`,
- link: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
- keyPoints: "BST search property: if both values deviate on sides, root is LCA split point. Time: O(H), Space: O(1).",
- submittedAt: nowIso,
- },
- "Validate Binary Search Tree": {
- code: `class Solution {\npublic:\n bool validate(TreeNode* node, long minVal, long maxVal) {\n if (!node) return true;\n if (node->val <= minVal || node->val >= maxVal) return false;\n return validate(node->left, minVal, node->val) && validate(node->right, node->val, maxVal);\n }\n bool isValidBST(TreeNode* root) {\n return validate(root, LONG_MIN, LONG_MAX);\n }\n};`,
- link: "https://leetcode.com/problems/validate-binary-search-tree/",
- keyPoints: "Pass valid value range (minVal, maxVal) recursively down tree. Time: O(N), Space: O(H).",
- submittedAt: nowIso,
- },
- "Reverse Linked List": {
- code: `class Solution {\npublic:\n ListNode* reverseList(ListNode* head) {\n ListNode* prev = nullptr;\n ListNode* curr = head;\n while (curr) {\n ListNode* next = curr->next;\n curr->next = prev;\n prev = curr;\n curr = next;\n }\n return prev;\n }\n};`,
- link: "https://leetcode.com/problems/reverse-linked-list/",
- keyPoints: "Classic 3-pointer iterative pointer reversal. Time: O(N), Space: O(1).",
- submittedAt: nowIso,
- },
- "Longest Substring Without Repeating Characters": {
- code: `class Solution {\npublic:\n int lengthOfLongestSubstring(string s) {\n unordered_map<char, int> lastSeen;\n int maxLen = 0, start = 0;\n for (int i = 0; i < s.size(); ++i) {\n if (lastSeen.count(s[i]) && lastSeen[s[i]] >= start) {\n start = lastSeen[s[i]] + 1;\n }\n lastSeen[s[i]] = i;\n maxLen = max(maxLen, i - start + 1);\n }\n return maxLen;\n }\n};`,
- link: "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
- keyPoints: "Sliding window with last seen character index map. Time: O(N), Space: O(min(N, M)).",
- submittedAt: nowIso,
- },
- "Coin Change": {
- code: `class Solution {\npublic:\n int coinChange(vector<int>& coins, int amount) {\n vector<int> dp(amount + 1, amount + 1);\n dp[0] = 0;\n for (int i = 1; i <= amount; ++i) {\n for (int c : coins) {\n if (i - c >= 0) dp[i] = min(dp[i], dp[i - c] + 1);\n }\n }\n return dp[amount] > amount ? -1 : dp[amount];\n }\n};`,
- link: "https://leetcode.com/problems/coin-change/",
- keyPoints: "Bottom-up 1D DP. dp[i] = min coins to make value i. Time: O(N * amount), Space: O(amount).",
- submittedAt: nowIso,
- },
- "Number of Islands": {
- code: `class Solution {\npublic:\n void dfs(vector<vector<char>>& grid, int r, int c) {\n if (r < 0 || c < 0 || r >= grid.size() || c >= grid[0].size() || grid[r][c] != '1') return;\n grid[r][c] = '0';\n dfs(grid, r + 1, c); dfs(grid, r - 1, c);\n dfs(grid, r, c + 1); dfs(grid, r, c - 1);\n }\n int numIslands(vector<vector<char>>& grid) {\n int count = 0;\n for (int r = 0; r < grid.size(); ++r) {\n for (int c = 0; c < grid[0].size(); ++c) {\n if (grid[r][c] == '1') {\n count++;\n dfs(grid, r, c);\n }\n }\n }\n return count;\n }\n};`,
- link: "https://leetcode.com/problems/number-of-islands/",
- keyPoints: "Flood fill via 4-directional DFS. Sinks visited land to avoid extra memory. Time: O(M*N), Space: O(M*N).",
- submittedAt: nowIso,
- },
- };
+  const nowIso = new Date().toISOString();
+  return {
+    "Two Sum": {
+      code: `class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        unordered_map<int, int> seen;\n        for (int i = 0; i < nums.size(); ++i) {\n            int complement = target - nums[i];\n            if (seen.count(complement)) {\n                return {seen[complement], i};\n            }\n            seen[nums[i]] = i;\n        }\n        return {};\n    }\n};`,
+      link: "https://leetcode.com/problems/two-sum/",
+      keyPoints: "Single pass hash map. Stores {value: index}. Time: O(N), Space: O(N).",
+      submittedAt: nowIso,
+    },
+    "Valid Palindrome": {
+      code: `class Solution {\npublic:\n    bool isPalindrome(string s) {\n        int l = 0, r = s.size() - 1;\n        while (l < r) {\n            while (l < r && !isalnum(s[l])) l++;\n            while (l < r && !isalnum(s[r])) r--;\n            if (tolower(s[l]) != tolower(s[r])) return false;\n            l++; r--;\n        }\n        return true;\n    }\n};`,
+      link: "https://leetcode.com/problems/valid-palindrome/",
+      keyPoints: "Two pointers inward from bounds. Skips non-alphanumeric. Time: O(N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Container With Most Water": {
+      code: `class Solution {\npublic:\n    int maxArea(vector<int>& height) {\n        int l = 0, r = height.size() - 1;\n        int maxWater = 0;\n        while (l < r) {\n            int h = min(height[l], height[r]);\n            maxWater = max(maxWater, h * (r - l));\n            if (height[l] < height[r]) l++;\n            else r--;\n        }\n        return maxWater;\n    }\n};`,
+      link: "https://leetcode.com/problems/container-with-most-water/",
+      keyPoints: "Two pointers from edges inward. Always shrink from smaller height. Time: O(N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Lowest Common Ancestor of a BST": {
+      code: `class Solution {\npublic:\n    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {\n        while (root) {\n            if (p->val < root->val && q->val < root->val) root = root->left;\n            else if (p->val > root->val && q->val > root->val) root = root->right;\n            else return root;\n        }\n        return nullptr;\n    }\n};`,
+      link: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
+      keyPoints: "BST search property: if values deviate on opposite sides, root is the LCA split point. Time: O(H), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Validate Binary Search Tree": {
+      code: `class Solution {\npublic:\n    bool validate(TreeNode* node, long minVal, long maxVal) {\n        if (!node) return true;\n        if (node->val <= minVal || node->val >= maxVal) return false;\n        return validate(node->left, minVal, node->val) && validate(node->right, node->val, maxVal);\n    }\n    bool isValidBST(TreeNode* root) {\n        return validate(root, LONG_MIN, LONG_MAX);\n    }\n};`,
+      link: "https://leetcode.com/problems/validate-binary-search-tree/",
+      keyPoints: "Pass valid value range (minVal, maxVal) recursively down tree. Time: O(N), Space: O(H).",
+      submittedAt: nowIso,
+    },
+    "Reverse Linked List": {
+      code: `class Solution {\npublic:\n    ListNode* reverseList(ListNode* head) {\n        ListNode* prev = nullptr;\n        ListNode* curr = head;\n        while (curr) {\n            ListNode* next = curr->next;\n            curr->next = prev;\n            prev = curr;\n            curr = next;\n        }\n        return prev;\n    }\n};`,
+      link: "https://leetcode.com/problems/reverse-linked-list/",
+      keyPoints: "Classic 3-pointer iterative reversal. Time: O(N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Longest Substring Without Repeating Characters": {
+      code: `class Solution {\npublic:\n    int lengthOfLongestSubstring(string s) {\n        unordered_map<char, int> lastSeen;\n        int maxLen = 0, start = 0;\n        for (int i = 0; i < s.size(); ++i) {\n            if (lastSeen.count(s[i]) && lastSeen[s[i]] >= start) {\n                start = lastSeen[s[i]] + 1;\n            }\n            lastSeen[s[i]] = i;\n            maxLen = max(maxLen, i - start + 1);\n        }\n        return maxLen;\n    }\n};`,
+      link: "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+      keyPoints: "Sliding window with character index map. Time: O(N), Space: O(min(N, M)).",
+      submittedAt: nowIso,
+    },
+    "Coin Change": {
+      code: `class Solution {\npublic:\n    int coinChange(vector<int>& coins, int amount) {\n        vector<int> dp(amount + 1, amount + 1);\n        dp[0] = 0;\n        for (int i = 1; i <= amount; ++i) {\n            for (int c : coins) {\n                if (i - c >= 0) dp[i] = min(dp[i], dp[i - c] + 1);\n            }\n        }\n        return dp[amount] > amount ? -1 : dp[amount];\n    }\n};`,
+      link: "https://leetcode.com/problems/coin-change/",
+      keyPoints: "Bottom-up 1D DP. dp[i] = min coins to make value i. Time: O(N * amount), Space: O(amount).",
+      submittedAt: nowIso,
+    },
+    "Number of Islands": {
+      code: `class Solution {\npublic:\n    void dfs(vector<vector<char>>& grid, int r, int c) {\n        if (r < 0 || c < 0 || r >= grid.size() || c >= grid[0].size() || grid[r][c] != '1') return;\n        grid[r][c] = '0';\n        dfs(grid, r + 1, c); dfs(grid, r - 1, c);\n        dfs(grid, r, c + 1); dfs(grid, r, c - 1);\n    }\n    int numIslands(vector<vector<char>>& grid) {\n        int count = 0;\n        for (int r = 0; r < grid.size(); ++r) {\n            for (int c = 0; c < grid[0].size(); ++c) {\n                if (grid[r][c] == '1') { count++; dfs(grid, r, c); }\n            }\n        }\n        return count;\n    }\n};`,
+      link: "https://leetcode.com/problems/number-of-islands/",
+      keyPoints: "Flood fill via 4-directional DFS. Sinks visited land. Time: O(M*N), Space: O(M*N).",
+      submittedAt: nowIso,
+    },
+    "Trapping Rain Water": {
+      code: `class Solution {\npublic:\n    int trap(vector<int>& height) {\n        int l = 0, r = height.size() - 1;\n        int leftMax = 0, rightMax = 0, water = 0;\n        while (l < r) {\n            if (height[l] < height[r]) {\n                if (height[l] >= leftMax) leftMax = height[l];\n                else water += leftMax - height[l];\n                l++;\n            } else {\n                if (height[r] >= rightMax) rightMax = height[r];\n                else water += rightMax - height[r];\n                r--;\n            }\n        }\n        return water;\n    }\n};`,
+      link: "https://leetcode.com/problems/trapping-rain-water/",
+      keyPoints: "Two pointers with leftMax/rightMax tracking. Time: O(N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "LRU Cache": {
+      code: `class LRUCache {\n    int cap;\n    list<pair<int, int>> dll;\n    unordered_map<int, list<pair<int, int>>::iterator> map;\npublic:\n    LRUCache(int capacity) : cap(capacity) {}\n    int get(int key) {\n        if (!map.count(key)) return -1;\n        dll.splice(dll.begin(), dll, map[key]);\n        return map[key]->second;\n    }\n    void put(int key, int value) {\n        if (map.count(key)) {\n            map[key]->second = value;\n            dll.splice(dll.begin(), dll, map[key]);\n            return;\n        }\n        if (dll.size() == cap) {\n            int delKey = dll.back().first;\n            dll.pop_back();\n            map.erase(delKey);\n        }\n        dll.push_front({key, value});\n        map[key] = dll.begin();\n    }\n};`,
+      link: "https://leetcode.com/problems/lru-cache/",
+      keyPoints: "Hash map + Doubly Linked List for O(1) get and put eviction. Time: O(1), Space: O(capacity).",
+      submittedAt: nowIso,
+    },
+    "Binary Search": {
+      code: `class Solution {\npublic:\n    int search(vector<int>& nums, int target) {\n        int l = 0, r = nums.size() - 1;\n        while (l <= r) {\n            int mid = l + (r - l) / 2;\n            if (nums[mid] == target) return mid;\n            if (nums[mid] < target) l = mid + 1;\n            else r = mid - 1;\n        }\n        return -1;\n    }\n};`,
+      link: "https://leetcode.com/problems/binary-search/",
+      keyPoints: "Classic binary search with overflow-safe mid calculation. Time: O(log N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Search in Rotated Sorted Array": {
+      code: `class Solution {\npublic:\n    int search(vector<int>& nums, int target) {\n        int l = 0, r = nums.size() - 1;\n        while (l <= r) {\n            int mid = l + (r - l) / 2;\n            if (nums[mid] == target) return mid;\n            if (nums[l] <= nums[mid]) {\n                if (target >= nums[l] && target < nums[mid]) r = mid - 1;\n                else l = mid + 1;\n            } else {\n                if (target > nums[mid] && target <= nums[r]) l = mid + 1;\n                else r = mid - 1;\n            }\n        }\n        return -1;\n    }\n};`,
+      link: "https://leetcode.com/problems/search-in-rotated-sorted-array/",
+      keyPoints: "Check which half is sorted, then branch binary search accordingly. Time: O(log N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Merge Intervals": {
+      code: `class Solution {\npublic:\n    vector<vector<int>> merge(vector<vector<int>>& intervals) {\n        if (intervals.empty()) return {};\n        sort(intervals.begin(), intervals.end());\n        vector<vector<int>> merged = {intervals[0]};\n        for (int i = 1; i < intervals.size(); ++i) {\n            if (intervals[i][0] <= merged.back()[1]) {\n                merged.back()[1] = max(merged.back()[1], intervals[i][1]);\n            } else {\n                merged.push_back(intervals[i]);\n            }\n        }\n        return merged;\n    }\n};`,
+      link: "https://leetcode.com/problems/merge-intervals/",
+      keyPoints: "Sort by start times, merge overlapping ranges sequentially. Time: O(N log N), Space: O(N).",
+      submittedAt: nowIso,
+    },
+    "Top K Frequent Elements": {
+      code: `class Solution {\npublic:\n    vector<int> topKFrequent(vector<int>& nums, int k) {\n        unordered_map<int, int> count;\n        for (int n : nums) count[n]++;\n        vector<vector<int>> buckets(nums.size() + 1);\n        for (auto& [val, freq] : count) buckets[freq].push_back(val);\n        vector<int> res;\n        for (int i = buckets.size() - 1; i >= 0 && res.size() < k; --i) {\n            for (int val : buckets[i]) {\n                res.push_back(val);\n                if (res.size() == k) break;\n            }\n        }\n        return res;\n    }\n};`,
+      link: "https://leetcode.com/problems/top-k-frequent-elements/",
+      keyPoints: "Bucket sort by frequency count for linear time complexity. Time: O(N), Space: O(N).",
+      submittedAt: nowIso,
+    },
+    "Climbing Stairs": {
+      code: `class Solution {\npublic:\n    int climbStairs(int n) {\n        if (n <= 2) return n;\n        int a = 1, b = 2;\n        for (int i = 3; i <= n; ++i) {\n            int c = a + b;\n            a = b;\n            b = c;\n        }\n        return b;\n    }\n};`,
+      link: "https://leetcode.com/problems/climbing-stairs/",
+      keyPoints: "Fibonacci recurrence relation with constant space optimization. Time: O(N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Maximum Subarray": {
+      code: `class Solution {\npublic:\n    int maxSubArray(vector<int>& nums) {\n        int maxSoFar = nums[0], curr = nums[0];\n        for (int i = 1; i < nums.size(); ++i) {\n            curr = max(nums[i], curr + nums[i]);\n            maxSoFar = max(maxSoFar, curr);\n        }\n        return maxSoFar;\n    }\n};`,
+      link: "https://leetcode.com/problems/maximum-subarray/",
+      keyPoints: "Kadane's algorithm. Track local maximum contiguous sum. Time: O(N), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "3Sum": {
+      code: `class Solution {\npublic:\n    vector<vector<int>> threeSum(vector<int>& nums) {\n        sort(nums.begin(), nums.end());\n        vector<vector<int>> res;\n        for (int i = 0; i < nums.size(); ++i) {\n            if (i > 0 && nums[i] == nums[i - 1]) continue;\n            int l = i + 1, r = nums.size() - 1;\n            while (l < r) {\n                int sum = nums[i] + nums[l] + nums[r];\n                if (sum == 0) {\n                    res.push_back({nums[i], nums[l], nums[r]});\n                    while (l < r && nums[l] == nums[l + 1]) l++;\n                    while (l < r && nums[r] == nums[r - 1]) r--;\n                    l++; r--;\n                } else if (sum < 0) l++;\n                else r--;\n            }\n        }\n        return res;\n    }\n};`,
+      link: "https://leetcode.com/problems/3sum/",
+      keyPoints: "Sort array and use two pointers with duplicate skipping. Time: O(N^2), Space: O(1).",
+      submittedAt: nowIso,
+    },
+    "Invert Binary Tree": {
+      code: `class Solution {\npublic:\n    TreeNode* invertTree(TreeNode* root) {\n        if (!root) return nullptr;\n        swap(root->left, root->right);\n        invertTree(root->left);\n        invertTree(root->right);\n        return root;\n    }\n};`,
+      link: "https://leetcode.com/problems/invert-binary-tree/",
+      keyPoints: "Recursive pointer swap of left and right subtrees. Time: O(N), Space: O(H).",
+      submittedAt: nowIso,
+    },
+    "Valid Parentheses": {
+      code: `class Solution {\npublic:\n    bool isValid(string s) {\n        stack<char> st;\n        for (char c : s) {\n            if (c == '(') st.push(')');\n            else if (c == '{') st.push('}');\n            else if (c == '[') st.push(']');\n            else {\n                if (st.empty() || st.top() != c) return false;\n                st.pop();\n            }\n        }\n        return st.empty();\n    }\n};`,
+      link: "https://leetcode.com/problems/valid-parentheses/",
+      keyPoints: "LIFO matching stack. Push expected closing bracket. Time: O(N), Space: O(N).",
+      submittedAt: nowIso,
+    },
+  };
 }
 
 // ─── Default 3-Star Coder Roadmap / Days ──────────────────────────────────────
@@ -404,29 +470,47 @@ function buildDefaultGuestSettings(): UserSettings {
 
 // ─── Storage Synchronization Handlers ─────────────────────────────────────────
 export function ensureGuestDataInitialized(force = false): void {
- if (typeof window === "undefined") return;
+  if (typeof window === "undefined") return;
 
- if (force || !localStorage.getItem(GUEST_STORAGE_KEYS.PROFILE)) {
- const profile = buildDefaultGuestProfile();
- localStorage.setItem(GUEST_STORAGE_KEYS.PROFILE, JSON.stringify(profile));
- }
+  const today = todayIso();
+  const existingDaysRaw = localStorage.getItem(GUEST_STORAGE_KEYS.DAYS);
+  let days: Day[] = [];
+  if (existingDaysRaw) {
+    try { days = JSON.parse(existingDaysRaw); } catch {}
+  }
 
- if (force || !localStorage.getItem(GUEST_STORAGE_KEYS.SETTINGS)) {
- const settings = buildDefaultGuestSettings();
- localStorage.setItem(GUEST_STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
- }
+  // Auto-heal / re-anchor if days are missing or not aligned to today
+  const isAligned = days && days.length > 0 && days.some((d) => d.date === today && d.dayNumber === 46);
+  if (force || !existingDaysRaw || !isAligned) {
+    days = buildDefaultGuestDays();
+    localStorage.setItem(GUEST_STORAGE_KEYS.DAYS, JSON.stringify(days));
+  }
 
- if (force || !localStorage.getItem(GUEST_STORAGE_KEYS.SUBMISSIONS)) {
- const submissions = buildDefaultGuestSubmissions();
- localStorage.setItem(GUEST_STORAGE_KEYS.SUBMISSIONS, JSON.stringify(submissions));
- const completions = Object.keys(submissions);
- localStorage.setItem(GUEST_STORAGE_KEYS.COMPLETIONS, JSON.stringify(completions));
- }
+  if (force || !localStorage.getItem(GUEST_STORAGE_KEYS.PROFILE)) {
+    const profile = buildDefaultGuestProfile();
+    localStorage.setItem(GUEST_STORAGE_KEYS.PROFILE, JSON.stringify(profile));
+  }
 
- if (force || !localStorage.getItem(GUEST_STORAGE_KEYS.DAYS)) {
- const days = buildDefaultGuestDays();
- localStorage.setItem(GUEST_STORAGE_KEYS.DAYS, JSON.stringify(days));
- }
+  if (force || !localStorage.getItem(GUEST_STORAGE_KEYS.SETTINGS)) {
+    const settings = buildDefaultGuestSettings();
+    localStorage.setItem(GUEST_STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  }
+
+  if (force || !localStorage.getItem(GUEST_STORAGE_KEYS.SUBMISSIONS) || !localStorage.getItem(GUEST_STORAGE_KEYS.COMPLETIONS)) {
+    const submissions = buildDefaultGuestSubmissions();
+    localStorage.setItem(GUEST_STORAGE_KEYS.SUBMISSIONS, JSON.stringify(submissions));
+
+    // Combine submissions with all past completed days (Days 1–45 + Today's 2 solved)
+    const completedFromDays = days.flatMap((d) => d.problems.filter((p) => p.done).map((p) => p.name));
+    const allCompletions = Array.from(new Set([...Object.keys(submissions), ...completedFromDays]));
+    localStorage.setItem(GUEST_STORAGE_KEYS.COMPLETIONS, JSON.stringify(allCompletions));
+
+    // Also populate direct hook keys for immediate instant hydration
+    try {
+      localStorage.setItem(`dsa_completed_problems_${GUEST_USER_ID}`, JSON.stringify(allCompletions));
+      localStorage.setItem(`dsa_code_submissions_${GUEST_USER_ID}`, JSON.stringify(submissions));
+    } catch {}
+  }
 }
 
 export function getGuestProfile(): Partial<UserProfile> {
@@ -456,37 +540,40 @@ export function saveGuestProfile(patch: Partial<UserProfile>): void {
 }
 
 export function getGuestPlan(): { days: Day[]; meta: PlanMeta; sheetId: string } {
- const today = todayIso();
- const startDate = addDays(today, -45);
- let days: Day[] = [];
+  const today = todayIso();
+  const startDate = addDays(today, -45);
+  let days: Day[] = [];
 
- if (typeof window !== "undefined") {
- try {
- const raw = localStorage.getItem(GUEST_STORAGE_KEYS.DAYS);
- if (raw) {
- days = JSON.parse(raw);
- }
- } catch {}
- }
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(GUEST_STORAGE_KEYS.DAYS);
+      if (raw) {
+        days = JSON.parse(raw);
+      }
+    } catch {}
+  }
 
- if (!days || days.length === 0) {
- days = buildDefaultGuestDays();
- if (typeof window !== "undefined") {
- try {
- localStorage.setItem(GUEST_STORAGE_KEYS.DAYS, JSON.stringify(days));
- } catch {}
- }
- }
+  // Check if days are fresh and aligned with today
+  const isAlignedWithToday = days && days.length > 0 && days.some((d) => d.date === today && d.dayNumber === 46);
 
- return {
- days,
- meta: {
- startDate,
- lastActiveDate: today,
- lastSyncedAt: new Date().toISOString(),
- },
- sheetId: "core404",
- };
+  if (!days || days.length === 0 || !isAlignedWithToday) {
+    days = buildDefaultGuestDays();
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(GUEST_STORAGE_KEYS.DAYS, JSON.stringify(days));
+      } catch {}
+    }
+  }
+
+  return {
+    days,
+    meta: {
+      startDate,
+      lastActiveDate: today,
+      lastSyncedAt: new Date().toISOString(),
+    },
+    sheetId: "core404",
+  };
 }
 
 export function saveGuestPlan(days: Day[]): void {
@@ -576,19 +663,25 @@ export function removeGuestCodeSubmission(problemName: string): void {
 }
 
 export function getGuestProblemCompletions(): Set<string> {
- if (typeof window === "undefined") return new Set(Object.keys(buildDefaultGuestSubmissions()));
- try {
- const raw = localStorage.getItem(GUEST_STORAGE_KEYS.COMPLETIONS);
- if (raw) {
- const arr = JSON.parse(raw);
- return new Set(Array.isArray(arr) ? arr : Object.keys(buildDefaultGuestSubmissions()));
- }
- const defKeys = Object.keys(buildDefaultGuestSubmissions());
- localStorage.setItem(GUEST_STORAGE_KEYS.COMPLETIONS, JSON.stringify(defKeys));
- return new Set(defKeys);
- } catch {
- return new Set(Object.keys(buildDefaultGuestSubmissions()));
- }
+  if (typeof window === "undefined") {
+    const days = buildDefaultGuestDays();
+    const completedFromDays = days.flatMap((d) => d.problems.filter((p) => p.done).map((p) => p.name));
+    return new Set([...Object.keys(buildDefaultGuestSubmissions()), ...completedFromDays]);
+  }
+  try {
+    const raw = localStorage.getItem(GUEST_STORAGE_KEYS.COMPLETIONS);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length > 0) return new Set(arr);
+    }
+    const days = buildDefaultGuestDays();
+    const completedFromDays = days.flatMap((d) => d.problems.filter((p) => p.done).map((p) => p.name));
+    const allKeys = Array.from(new Set([...Object.keys(buildDefaultGuestSubmissions()), ...completedFromDays]));
+    localStorage.setItem(GUEST_STORAGE_KEYS.COMPLETIONS, JSON.stringify(allKeys));
+    return new Set(allKeys);
+  } catch {
+    return new Set(Object.keys(buildDefaultGuestSubmissions()));
+  }
 }
 
 export function getGuestScheduleEvents(): ScheduleEventRow[] {

@@ -25,6 +25,7 @@ import type { MasterProblem } from "@/lib/master-problems";
 import { getCanonicalProblemLink } from "@/lib/problems";
 import { DayCard } from "@/components/DayCard";
 import { CodeModal } from "@/components/CodeModal";
+import { LegalDisclaimerModal } from "@/components/LegalDisclaimerModal";
 import { SkippedTopicSolveModal } from "@/components/SkippedTopicSolveModal";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -45,6 +46,8 @@ import {
  Layers,
  Video,
  CheckCircle2,
+  ShieldCheck,
+  Scale,
  Circle,
  Check,
  Settings,
@@ -110,6 +113,7 @@ export default function TopicsPage() {
 
  // In Topic View, selecting a sheet is for VIEW PURPOSE ONLY (Settings is where the active plan is switched)
  const [viewedSheetId, setViewedSheetId] = useState<string>(activePlanSheetId);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
  const [viewMode, setViewMode] = useState<"problems" | "days">("problems");
  const [selectedProblemForModal, setSelectedProblemForModal] = useState<{
  name: string;
@@ -362,7 +366,30 @@ export default function TopicsPage() {
  </div>
  </div>
 
- {/* Informative Note for View Purpose vs Settings Change */}
+ {/* Educational Attribution & Disclaimer Notice */}
+          <div className="mt-3 p-3 rounded-lg bg-card border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start sm:items-center gap-2">
+              <ShieldCheck className="size-4 text-primary shrink-0 mt-0.5 sm:mt-0" />
+              <div className="text-muted-foreground leading-relaxed">
+                <span className="font-semibold text-foreground">{viewedMeta.name}:</span>{" "}
+                {viewedMeta.attribution || "Curated DSA roadmap for step-by-step progress tracking."}{" "}
+                <span className="text-[11px] opacity-80">(All problem links direct to official LeetCode / GeeksforGeeks platforms)</span>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setLegalModalOpen(true)}
+              className="h-7 text-xs font-mono shrink-0 gap-1.5 border-border hover:bg-muted"
+            >
+              <Scale className="size-3 text-primary" />
+              <span>Legal Disclaimer</span>
+            </Button>
+          </div>
+
+          
+          {/* Informative Note for View Purpose vs Settings Change */}
  <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-secondary border border-border text-xs">
  <div className="flex items-center gap-2">
  <Sparkles className="size-4 text-primary shrink-0" />

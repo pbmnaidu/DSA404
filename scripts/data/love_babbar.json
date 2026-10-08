@@ -9,7 +9,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20the%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20the%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20the%20array"
   },
   {
     "id": "BAB-002",
@@ -21,7 +22,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20maximum%20and%20minimum%20element%20in%20an%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20maximum%20and%20minimum%20element%20in%20an%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20maximum%20and%20minimum%20element%20in%20an%20array"
   },
   {
     "id": "BAB-003",
@@ -33,7 +35,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20Kth%20max%20and%20min%20element%20of%20an%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20Kth%20max%20and%20min%20element%20of%20an%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20Kth%20max%20and%20min%20element%20of%20an%20array"
   },
   {
     "id": "BAB-004",
@@ -45,7 +48,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Given%20an%20array%20of%20size%20N%20containing%200%2C%201%2C%20and%202%3B%20sort%20the%20array%20without%20sorting%20algo%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Given%20an%20array%20of%20size%20N%20containing%200%2C%201%2C%20and%202%3B%20sort%20the%20array%20without%20sorting%20algo%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Given%20an%20array%20of%20size%20N%20containing%200%2C%201%2C%20and%202%3B%20sort%20the%20array%20without%20sorting%20algo"
   },
   {
     "id": "BAB-005",
@@ -57,7 +61,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Move%20all%20negative%20elements%20to%20one%20side%20of%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Move%20all%20negative%20elements%20to%20one%20side%20of%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Move%20all%20negative%20elements%20to%20one%20side%20of%20array"
   },
   {
     "id": "BAB-006",
@@ -69,7 +74,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20Union%20and%20Intersection%20of%20two%20sorted%20arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20Union%20and%20Intersection%20of%20two%20sorted%20arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20Union%20and%20Intersection%20of%20two%20sorted%20arrays"
   },
   {
     "id": "BAB-007",
@@ -81,7 +87,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Cyclically%20rotate%20an%20array%20by%20one%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Cyclically%20rotate%20an%20array%20by%20one%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Cyclically%20rotate%20an%20array%20by%20one"
   },
   {
     "id": "BAB-008",
@@ -93,7 +100,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Largest%20sum%20contiguous%20Subarray%20%5BKadane's%20Algorithm%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Largest%20sum%20contiguous%20Subarray%20%5BKadane's%20Algorithm%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Largest%20sum%20contiguous%20Subarray%20%5BKadane's%20Algorithm%5D"
   },
   {
     "id": "BAB-009",
@@ -105,7 +113,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Minimize%20the%20maximum%20difference%20between%20heights%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Minimize%20the%20maximum%20difference%20between%20heights%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimize%20the%20maximum%20difference%20between%20heights"
   },
   {
     "id": "BAB-010",
@@ -117,7 +126,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20no.%20of%20Jumps%20to%20reach%20end%20of%20an%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20no.%20of%20Jumps%20to%20reach%20end%20of%20an%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20no.%20of%20Jumps%20to%20reach%20end%20of%20an%20array"
   },
   {
     "id": "BAB-011",
@@ -129,7 +139,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20duplicate%20in%20an%20array%20of%20N%2B1%20Integers%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20duplicate%20in%20an%20array%20of%20N%2B1%20Integers%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20duplicate%20in%20an%20array%20of%20N%2B1%20Integers"
   },
   {
     "id": "BAB-012",
@@ -141,7 +152,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Merge%202%20sorted%20arrays%20without%20using%20extra%20space%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Merge%202%20sorted%20arrays%20without%20using%20extra%20space%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%202%20sorted%20arrays%20without%20using%20extra%20space"
   },
   {
     "id": "BAB-013",
@@ -153,7 +165,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Kadane's%20Algo%20%5BVVV.%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Kadane's%20Algo%20%5BVVV.%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kadane's%20Algo%20%5BVVV.%20Imp%5D"
   },
   {
     "id": "BAB-014",
@@ -165,7 +178,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Merge%20Intervals%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Merge%20Intervals%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20Intervals"
   },
   {
     "id": "BAB-015",
@@ -177,7 +191,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Next%20Permutation%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Next%20Permutation%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Next%20Permutation"
   },
   {
     "id": "BAB-016",
@@ -189,7 +204,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Count%20Inversion%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Count%20Inversion%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20Inversion"
   },
   {
     "id": "BAB-017",
@@ -201,7 +217,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Best%20time%20to%20buy%20and%20Sell%20stock%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Best%20time%20to%20buy%20and%20Sell%20stock%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Best%20time%20to%20buy%20and%20Sell%20stock"
   },
   {
     "id": "BAB-018",
@@ -213,7 +230,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20all%20pairs%20on%20integer%20array%20whose%20sum%20is%20equal%20to%20given%20number%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20all%20pairs%20on%20integer%20array%20whose%20sum%20is%20equal%20to%20given%20number%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20all%20pairs%20on%20integer%20array%20whose%20sum%20is%20equal%20to%20given%20number"
   },
   {
     "id": "BAB-019",
@@ -225,7 +243,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20common%20elements%20in%203%20sorted%20arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20common%20elements%20in%203%20sorted%20arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20common%20elements%20in%203%20sorted%20arrays"
   },
   {
     "id": "BAB-020",
@@ -237,7 +256,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Rearrange%20the%20array%20in%20alternating%20positive%20%26%20negative%20items%20with%20O(1)%20extra%20space%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Rearrange%20the%20array%20in%20alternating%20positive%20%26%20negative%20items%20with%20O(1)%20extra%20space%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rearrange%20the%20array%20in%20alternating%20positive%20%26%20negative%20items%20with%20O(1)%20extra%20space"
   },
   {
     "id": "BAB-021",
@@ -249,7 +269,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20if%20there%20is%20any%20subarray%20with%20sum%20equal%20to%200%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20if%20there%20is%20any%20subarray%20with%20sum%20equal%20to%200%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20if%20there%20is%20any%20subarray%20with%20sum%20equal%20to%200"
   },
   {
     "id": "BAB-022",
@@ -261,7 +282,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20factorial%20of%20a%20large%20number%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20factorial%20of%20a%20large%20number%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20factorial%20of%20a%20large%20number"
   },
   {
     "id": "BAB-023",
@@ -273,7 +295,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20maximum%20product%20subarray%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20maximum%20product%20subarray%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20maximum%20product%20subarray"
   },
   {
     "id": "BAB-024",
@@ -285,7 +308,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20longest%20consecutive%20subsequence%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20longest%20consecutive%20subsequence%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20longest%20consecutive%20subsequence"
   },
   {
     "id": "BAB-025",
@@ -297,7 +321,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Given%20an%20array%20of%20size%20n%20and%20a%20number%20k%2C%20find%20all%20elements%20that%20appear%20more%20than%20n%2Fk%20times%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Given%20an%20array%20of%20size%20n%20and%20a%20number%20k%2C%20find%20all%20elements%20that%20appear%20more%20than%20n%2Fk%20times%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Given%20an%20array%20of%20size%20n%20and%20a%20number%20k%2C%20find%20all%20elements%20that%20appear%20more%20than%20n%2Fk%20times"
   },
   {
     "id": "BAB-026",
@@ -309,7 +334,8 @@
     "level": "Level 3",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20profit%20by%20buying%20and%20selling%20a%20share%20at%20most%20twice%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20profit%20by%20buying%20and%20selling%20a%20share%20at%20most%20twice%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20profit%20by%20buying%20and%20selling%20a%20share%20at%20most%20twice"
   },
   {
     "id": "BAB-027",
@@ -321,7 +347,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20whether%20an%20array%20is%20a%20subset%20of%20another%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20whether%20an%20array%20is%20a%20subset%20of%20another%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20whether%20an%20array%20is%20a%20subset%20of%20another%20array"
   },
   {
     "id": "BAB-028",
@@ -333,7 +360,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20triplet%20that%20sum%20to%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20triplet%20that%20sum%20to%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20triplet%20that%20sum%20to%20a%20given%20value"
   },
   {
     "id": "BAB-029",
@@ -345,7 +373,8 @@
     "level": "Level 3",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Trapping%20Rain%20water%20problem%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Trapping%20Rain%20water%20problem%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Trapping%20Rain%20water%20problem"
   },
   {
     "id": "BAB-030",
@@ -357,7 +386,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Chocolate%20Distribution%20problem%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Chocolate%20Distribution%20problem%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Chocolate%20Distribution%20problem"
   },
   {
     "id": "BAB-031",
@@ -369,7 +399,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Smallest%20Subarray%20with%20sum%20greater%20than%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Smallest%20Subarray%20with%20sum%20greater%20than%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Smallest%20Subarray%20with%20sum%20greater%20than%20a%20given%20value"
   },
   {
     "id": "BAB-032",
@@ -381,7 +412,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Three%20way%20partitioning%20of%20an%20array%20around%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Three%20way%20partitioning%20of%20an%20array%20around%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Three%20way%20partitioning%20of%20an%20array%20around%20a%20given%20value"
   },
   {
     "id": "BAB-033",
@@ -393,7 +425,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20swaps%20required%20bring%20elements%20less%20equal%20K%20together%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20swaps%20required%20bring%20elements%20less%20equal%20K%20together%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20swaps%20required%20bring%20elements%20less%20equal%20K%20together"
   },
   {
     "id": "BAB-034",
@@ -405,7 +438,8 @@
     "level": "Level 1",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20no.%20of%20operations%20required%20to%20make%20an%20array%20palindrome%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20no.%20of%20operations%20required%20to%20make%20an%20array%20palindrome%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20no.%20of%20operations%20required%20to%20make%20an%20array%20palindrome"
   },
   {
     "id": "BAB-035",
@@ -417,7 +451,8 @@
     "level": "Level 2",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Median%20of%202%20sorted%20arrays%20of%20equal%20size%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Median%20of%202%20sorted%20arrays%20of%20equal%20size%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Median%20of%202%20sorted%20arrays%20of%20equal%20size"
   },
   {
     "id": "BAB-036",
@@ -429,7 +464,8 @@
     "level": "Level 3",
     "topic": "Arrays",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Median%20of%202%20sorted%20arrays%20of%20different%20size%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Median%20of%202%20sorted%20arrays%20of%20different%20size%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Median%20of%202%20sorted%20arrays%20of%20different%20size"
   },
   {
     "id": "BAB-037",
@@ -441,7 +477,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Spiral%20traversal%20on%20a%20Matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Spiral%20traversal%20on%20a%20Matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Spiral%20traversal%20on%20a%20Matrix"
   },
   {
     "id": "BAB-038",
@@ -453,7 +490,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Search%20an%20element%20in%20a%20Matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Search%20an%20element%20in%20a%20Matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Search%20an%20element%20in%20a%20Matrix"
   },
   {
     "id": "BAB-039",
@@ -465,7 +503,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20median%20in%20a%20row%20wise%20sorted%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20median%20in%20a%20row%20wise%20sorted%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20median%20in%20a%20row%20wise%20sorted%20matrix"
   },
   {
     "id": "BAB-040",
@@ -477,7 +516,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20row%20with%20maximum%20no.%20of%201's%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20row%20with%20maximum%20no.%20of%201's%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20row%20with%20maximum%20no.%20of%201's"
   },
   {
     "id": "BAB-041",
@@ -489,7 +529,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Print%20elements%20in%20sorted%20order%20using%20row-column%20sorted%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Print%20elements%20in%20sorted%20order%20using%20row-column%20sorted%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Print%20elements%20in%20sorted%20order%20using%20row-column%20sorted%20matrix"
   },
   {
     "id": "BAB-042",
@@ -501,7 +542,8 @@
     "level": "Level 3",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20size%20rectangle%20binary%20sub-matrix%20with%20all%201s%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20size%20rectangle%20binary%20sub-matrix%20with%20all%201s%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20size%20rectangle%20binary%20sub-matrix%20with%20all%201s"
   },
   {
     "id": "BAB-043",
@@ -513,7 +555,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20a%20specific%20pair%20in%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20a%20specific%20pair%20in%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20a%20specific%20pair%20in%20matrix"
   },
   {
     "id": "BAB-044",
@@ -525,7 +568,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Rotate%20matrix%20by%2090%20degrees%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Rotate%20matrix%20by%2090%20degrees%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rotate%20matrix%20by%2090%20degrees"
   },
   {
     "id": "BAB-045",
@@ -537,7 +581,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Kth%20smallest%20element%20in%20a%20row-column%20sorted%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Kth%20smallest%20element%20in%20a%20row-column%20sorted%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20smallest%20element%20in%20a%20row-column%20sorted%20matrix"
   },
   {
     "id": "BAB-046",
@@ -549,7 +594,8 @@
     "level": "Level 2",
     "topic": "Matrix",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Common%20elements%20in%20all%20rows%20of%20a%20given%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Common%20elements%20in%20all%20rows%20of%20a%20given%20matrix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Common%20elements%20in%20all%20rows%20of%20a%20given%20matrix"
   },
   {
     "id": "BAB-047",
@@ -561,7 +607,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20a%20String%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20a%20String%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20a%20String"
   },
   {
     "id": "BAB-048",
@@ -573,7 +620,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20whether%20a%20String%20is%20Palindrome%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20whether%20a%20String%20is%20Palindrome%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20whether%20a%20String%20is%20Palindrome%20or%20not"
   },
   {
     "id": "BAB-049",
@@ -585,7 +633,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Duplicate%20characters%20in%20a%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Duplicate%20characters%20in%20a%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Duplicate%20characters%20in%20a%20string"
   },
   {
     "id": "BAB-050",
@@ -597,7 +646,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Code%20to%20check%20whether%20one%20string%20is%20a%20rotation%20of%20another%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Code%20to%20check%20whether%20one%20string%20is%20a%20rotation%20of%20another%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20Code%20to%20check%20whether%20one%20string%20is%20a%20rotation%20of%20another"
   },
   {
     "id": "BAB-051",
@@ -609,7 +659,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20check%20whether%20a%20string%20is%20a%20valid%20shuffle%20of%20two%20strings%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20check%20whether%20a%20string%20is%20a%20valid%20shuffle%20of%20two%20strings%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20Program%20to%20check%20whether%20a%20string%20is%20a%20valid%20shuffle%20of%20two%20strings%20or%20not"
   },
   {
     "id": "BAB-052",
@@ -621,7 +672,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Count%20and%20Say%20problem%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Count%20and%20Say%20problem%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20and%20Say%20problem"
   },
   {
     "id": "BAB-053",
@@ -633,7 +685,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20program%20to%20find%20the%20longest%20Palindrome%20in%20a%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20program%20to%20find%20the%20longest%20Palindrome%20in%20a%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20program%20to%20find%20the%20longest%20Palindrome%20in%20a%20string"
   },
   {
     "id": "BAB-054",
@@ -645,7 +698,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Longest%20Recurring%20Subsequence%20in%20String%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Longest%20Recurring%20Subsequence%20in%20String%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Longest%20Recurring%20Subsequence%20in%20String"
   },
   {
     "id": "BAB-055",
@@ -657,7 +711,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Print%20all%20Subsequences%20of%20a%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Print%20all%20Subsequences%20of%20a%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Print%20all%20Subsequences%20of%20a%20string"
   },
   {
     "id": "BAB-056",
@@ -669,7 +724,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Print%20all%20the%20permutations%20of%20the%20given%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Print%20all%20the%20permutations%20of%20the%20given%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Print%20all%20the%20permutations%20of%20the%20given%20string"
   },
   {
     "id": "BAB-057",
@@ -681,7 +737,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Split%20the%20Binary%20string%20into%20two%20substring%20with%20equal%200%E2%80%99s%20and%201%E2%80%99s%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Split%20the%20Binary%20string%20into%20two%20substring%20with%20equal%200%E2%80%99s%20and%201%E2%80%99s%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Split%20the%20Binary%20string%20into%20two%20substring%20with%20equal%200%E2%80%99s%20and%201%E2%80%99s"
   },
   {
     "id": "BAB-058",
@@ -693,7 +750,8 @@
     "level": "Level 3",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Word%20Wrap%20Problem%20%5BVERY%20IMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Word%20Wrap%20Problem%20%5BVERY%20IMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Word%20Wrap%20Problem%20%5BVERY%20IMP%5D"
   },
   {
     "id": "BAB-059",
@@ -705,7 +763,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=EDIT%20Distance%20%5BVery%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=EDIT%20Distance%20%5BVery%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20EDIT%20Distance%20%5BVery%20Imp%5D"
   },
   {
     "id": "BAB-060",
@@ -717,7 +776,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20next%20greater%20number%20with%20same%20set%20of%20digits%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20next%20greater%20number%20with%20same%20set%20of%20digits%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20next%20greater%20number%20with%20same%20set%20of%20digits"
   },
   {
     "id": "BAB-061",
@@ -729,7 +789,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Balanced%20Parenthesis%20problem.%5BImp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Balanced%20Parenthesis%20problem.%5BImp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Balanced%20Parenthesis%20problem.%5BImp%5D"
   },
   {
     "id": "BAB-062",
@@ -741,7 +802,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Word%20Break%20Problem%5B%20Very%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Word%20Break%20Problem%5B%20Very%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Word%20Break%20Problem%5B%20Very%20Imp%5D"
   },
   {
     "id": "BAB-063",
@@ -753,7 +815,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Rabin%20Karp%20Algo%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Rabin%20Karp%20Algo%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rabin%20Karp%20Algo"
   },
   {
     "id": "BAB-064",
@@ -765,7 +828,8 @@
     "level": "Level 3",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=KMP%20Algo%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=KMP%20Algo%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20KMP%20Algo"
   },
   {
     "id": "BAB-065",
@@ -777,7 +841,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Convert%20a%20Sentence%20into%20its%20equivalent%20mobile%20numeric%20keypad%20sequence%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Convert%20a%20Sentence%20into%20its%20equivalent%20mobile%20numeric%20keypad%20sequence%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Convert%20a%20Sentence%20into%20its%20equivalent%20mobile%20numeric%20keypad%20sequence"
   },
   {
     "id": "BAB-066",
@@ -789,7 +854,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20number%20of%20bracket%20reversals%20needed%20to%20make%20an%20expression%20balanced%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20number%20of%20bracket%20reversals%20needed%20to%20make%20an%20expression%20balanced%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20number%20of%20bracket%20reversals%20needed%20to%20make%20an%20expression%20balanced"
   },
   {
     "id": "BAB-067",
@@ -801,7 +867,8 @@
     "level": "Level 3",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Count%20All%20Palindromic%20Subsequence%20in%20a%20given%20String%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Count%20All%20Palindromic%20Subsequence%20in%20a%20given%20String%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20All%20Palindromic%20Subsequence%20in%20a%20given%20String"
   },
   {
     "id": "BAB-068",
@@ -813,7 +880,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Count%20of%20number%20of%20given%20string%20in%202D%20character%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Count%20of%20number%20of%20given%20string%20in%202D%20character%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20of%20number%20of%20given%20string%20in%202D%20character%20array"
   },
   {
     "id": "BAB-069",
@@ -825,7 +893,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Search%20a%20Word%20in%20a%202D%20Grid%20of%20characters%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Search%20a%20Word%20in%20a%202D%20Grid%20of%20characters%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Search%20a%20Word%20in%20a%202D%20Grid%20of%20characters"
   },
   {
     "id": "BAB-070",
@@ -837,7 +906,8 @@
     "level": "Level 3",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Boyer%20Moore%20Algorithm%20for%20Pattern%20Searching%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Boyer%20Moore%20Algorithm%20for%20Pattern%20Searching%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Boyer%20Moore%20Algorithm%20for%20Pattern%20Searching"
   },
   {
     "id": "BAB-071",
@@ -849,7 +919,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Converting%20Roman%20Numerals%20to%20Decimal%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Converting%20Roman%20Numerals%20to%20Decimal%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Converting%20Roman%20Numerals%20to%20Decimal"
   },
   {
     "id": "BAB-072",
@@ -861,7 +932,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Longest%20Common%20Prefix%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Longest%20Common%20Prefix%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Common%20Prefix"
   },
   {
     "id": "BAB-073",
@@ -873,7 +945,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Number%20of%20flips%20to%20make%20binary%20string%20alternate%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Number%20of%20flips%20to%20make%20binary%20string%20alternate%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%20flips%20to%20make%20binary%20string%20alternate"
   },
   {
     "id": "BAB-074",
@@ -885,7 +958,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20first%20repeated%20word%20in%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20first%20repeated%20word%20in%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20first%20repeated%20word%20in%20string"
   },
   {
     "id": "BAB-075",
@@ -897,7 +971,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20number%20of%20swaps%20for%20bracket%20balancing%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20number%20of%20swaps%20for%20bracket%20balancing%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20number%20of%20swaps%20for%20bracket%20balancing"
   },
   {
     "id": "BAB-076",
@@ -909,7 +984,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20longest%20common%20subsequence%20between%20two%20strings%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20longest%20common%20subsequence%20between%20two%20strings%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20longest%20common%20subsequence%20between%20two%20strings"
   },
   {
     "id": "BAB-077",
@@ -921,7 +997,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Program%20to%20generate%20all%20possible%20valid%20IP%20addresses%20from%20given%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Program%20to%20generate%20all%20possible%20valid%20IP%20addresses%20from%20given%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Program%20to%20generate%20all%20possible%20valid%20IP%20addresses%20from%20given%20string"
   },
   {
     "id": "BAB-078",
@@ -933,7 +1010,8 @@
     "level": "Level 3",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Smallest%20window%20in%20a%20string%20containing%20all%20the%20characters%20of%20another%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Smallest%20window%20in%20a%20string%20containing%20all%20the%20characters%20of%20another%20string%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Smallest%20window%20in%20a%20string%20containing%20all%20the%20characters%20of%20another%20string"
   },
   {
     "id": "BAB-079",
@@ -945,7 +1023,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Recursively%20remove%20all%20adjacent%20duplicates%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Recursively%20remove%20all%20adjacent%20duplicates%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Recursively%20remove%20all%20adjacent%20duplicates"
   },
   {
     "id": "BAB-080",
@@ -957,7 +1036,8 @@
     "level": "Level 3",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=String%20matching%20where%20one%20string%20contains%20wildcard%20characters%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=String%20matching%20where%20one%20string%20contains%20wildcard%20characters%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20String%20matching%20where%20one%20string%20contains%20wildcard%20characters"
   },
   {
     "id": "BAB-081",
@@ -969,7 +1049,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Function%20to%20find%20Number%20of%20customers%20who%20could%20not%20get%20a%20computer%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Function%20to%20find%20Number%20of%20customers%20who%20could%20not%20get%20a%20computer%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Function%20to%20find%20Number%20of%20customers%20who%20could%20not%20get%20a%20computer"
   },
   {
     "id": "BAB-082",
@@ -981,7 +1062,8 @@
     "level": "Level 3",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Transform%20One%20String%20to%20Another%20using%20Minimum%20Number%20of%20Given%20Operation%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Transform%20One%20String%20to%20Another%20using%20Minimum%20Number%20of%20Given%20Operation%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Transform%20One%20String%20to%20Another%20using%20Minimum%20Number%20of%20Given%20Operation"
   },
   {
     "id": "BAB-083",
@@ -993,7 +1075,8 @@
     "level": "Level 1",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20two%20given%20strings%20are%20isomorphic%20to%20each%20other%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20two%20given%20strings%20are%20isomorphic%20to%20each%20other%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20two%20given%20strings%20are%20isomorphic%20to%20each%20other"
   },
   {
     "id": "BAB-084",
@@ -1005,7 +1088,8 @@
     "level": "Level 2",
     "topic": "String",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Recursively%20print%20all%20sentences%20that%20can%20be%20formed%20from%20list%20of%20word%20lists%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Recursively%20print%20all%20sentences%20that%20can%20be%20formed%20from%20list%20of%20word%20lists%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Recursively%20print%20all%20sentences%20that%20can%20be%20formed%20from%20list%20of%20word%20lists"
   },
   {
     "id": "BAB-085",
@@ -1017,7 +1101,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20first%20and%20last%20positions%20of%20an%20element%20in%20a%20sorted%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20first%20and%20last%20positions%20of%20an%20element%20in%20a%20sorted%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20first%20and%20last%20positions%20of%20an%20element%20in%20a%20sorted%20array"
   },
   {
     "id": "BAB-086",
@@ -1029,7 +1114,8 @@
     "level": "Level 1",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20a%20Fixed%20Point%20(Value%20equal%20to%20index)%20in%20a%20given%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20a%20Fixed%20Point%20(Value%20equal%20to%20index)%20in%20a%20given%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20a%20Fixed%20Point%20(Value%20equal%20to%20index)%20in%20a%20given%20array"
   },
   {
     "id": "BAB-087",
@@ -1041,7 +1127,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Search%20in%20a%20rotated%20sorted%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Search%20in%20a%20rotated%20sorted%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Search%20in%20a%20rotated%20sorted%20array"
   },
   {
     "id": "BAB-088",
@@ -1053,7 +1140,8 @@
     "level": "Level 1",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Square%20root%20of%20an%20integer%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Square%20root%20of%20an%20integer%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Square%20root%20of%20an%20integer"
   },
   {
     "id": "BAB-089",
@@ -1065,7 +1153,8 @@
     "level": "Level 1",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20and%20minimum%20of%20an%20array%20using%20minimum%20number%20of%20comparisons%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20and%20minimum%20of%20an%20array%20using%20minimum%20number%20of%20comparisons%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20and%20minimum%20of%20an%20array%20using%20minimum%20number%20of%20comparisons"
   },
   {
     "id": "BAB-090",
@@ -1077,7 +1166,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20repeating%20and%20the%20missing%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20repeating%20and%20the%20missing%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20repeating%20and%20the%20missing"
   },
   {
     "id": "BAB-091",
@@ -1089,7 +1179,8 @@
     "level": "Level 1",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20majority%20element%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20majority%20element%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20majority%20element"
   },
   {
     "id": "BAB-092",
@@ -1101,7 +1192,8 @@
     "level": "Level 1",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Searching%20in%20an%20array%20where%20adjacent%20differ%20by%20at%20most%20k%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Searching%20in%20an%20array%20where%20adjacent%20differ%20by%20at%20most%20k%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Searching%20in%20an%20array%20where%20adjacent%20differ%20by%20at%20most%20k"
   },
   {
     "id": "BAB-093",
@@ -1113,7 +1205,8 @@
     "level": "Level 1",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20pair%20with%20given%20difference%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20pair%20with%20given%20difference%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20pair%20with%20given%20difference"
   },
   {
     "id": "BAB-094",
@@ -1125,7 +1218,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20four%20elements%20that%20sum%20to%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20four%20elements%20that%20sum%20to%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20four%20elements%20that%20sum%20to%20a%20given%20value"
   },
   {
     "id": "BAB-095",
@@ -1137,7 +1231,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20sum%20such%20that%20no%202%20elements%20are%20adjacent%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20sum%20such%20that%20no%202%20elements%20are%20adjacent%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20sum%20such%20that%20no%202%20elements%20are%20adjacent"
   },
   {
     "id": "BAB-096",
@@ -1149,7 +1244,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Count%20triplet%20with%20sum%20smaller%20than%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Count%20triplet%20with%20sum%20smaller%20than%20a%20given%20value%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20triplet%20with%20sum%20smaller%20than%20a%20given%20value"
   },
   {
     "id": "BAB-097",
@@ -1161,7 +1257,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Merge%202%20sorted%20arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Merge%202%20sorted%20arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%202%20sorted%20arrays"
   },
   {
     "id": "BAB-098",
@@ -1173,7 +1270,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Product%20array%20puzzle%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Product%20array%20puzzle%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Product%20array%20puzzle"
   },
   {
     "id": "BAB-099",
@@ -1185,7 +1283,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Sort%20array%20according%20to%20count%20of%20set%20bits%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Sort%20array%20according%20to%20count%20of%20set%20bits%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort%20array%20according%20to%20count%20of%20set%20bits"
   },
   {
     "id": "BAB-100",
@@ -1197,7 +1296,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20no.%20of%20swaps%20required%20to%20sort%20the%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Minimum%20no.%20of%20swaps%20required%20to%20sort%20the%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20no.%20of%20swaps%20required%20to%20sort%20the%20array"
   },
   {
     "id": "BAB-101",
@@ -1209,7 +1309,8 @@
     "level": "Level 1",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Bishu%20and%20Soldiers%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Bishu%20and%20Soldiers%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Bishu%20and%20Soldiers"
   },
   {
     "id": "BAB-102",
@@ -1221,7 +1322,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Kth%20smallest%20number%20again%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Kth%20smallest%20number%20again%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20smallest%20number%20again"
   },
   {
     "id": "BAB-103",
@@ -1233,7 +1335,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20pivot%20element%20in%20sorted%20rotated%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20pivot%20element%20in%20sorted%20rotated%20array%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20pivot%20element%20in%20sorted%20rotated%20array"
   },
   {
     "id": "BAB-104",
@@ -1245,7 +1348,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=K-th%20Element%20of%20Two%20Sorted%20Arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=K-th%20Element%20of%20Two%20Sorted%20Arrays%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20K-th%20Element%20of%20Two%20Sorted%20Arrays"
   },
   {
     "id": "BAB-105",
@@ -1257,7 +1361,8 @@
     "level": "Level 3",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Aggressive%20cows%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Aggressive%20cows%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Aggressive%20cows"
   },
   {
     "id": "BAB-106",
@@ -1269,7 +1374,8 @@
     "level": "Level 3",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Book%20Allocation%20Problem%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Book%20Allocation%20Problem%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Book%20Allocation%20Problem"
   },
   {
     "id": "BAB-107",
@@ -1281,7 +1387,8 @@
     "level": "Level 2",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=EKOSPOJ%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=EKOSPOJ%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20EKOSPOJ"
   },
   {
     "id": "BAB-108",
@@ -1293,7 +1400,8 @@
     "level": "Level 3",
     "topic": "Searching & Sorting",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Job%20Scheduling%20Algo%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Job%20Scheduling%20Algo%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Job%20Scheduling%20Algo"
   },
   {
     "id": "BAB-109",
@@ -1305,7 +1413,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20reverse%20the%20Linked%20List.%20(Both%20Iterative%20and%20recursive)%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20reverse%20the%20Linked%20List.%20(Both%20Iterative%20and%20recursive)%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20Program%20to%20reverse%20the%20Linked%20List.%20(Both%20Iterative%20and%20recursive)"
   },
   {
     "id": "BAB-110",
@@ -1317,7 +1426,8 @@
     "level": "Level 3",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20a%20Linked%20List%20in%20group%20of%20Given%20Size.%20%5BVery%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20a%20Linked%20List%20in%20group%20of%20Given%20Size.%20%5BVery%20Imp%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20a%20Linked%20List%20in%20group%20of%20Given%20Size.%20%5BVery%20Imp%5D"
   },
   {
     "id": "BAB-111",
@@ -1329,7 +1439,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20program%20to%20Detect%20loop%20in%20a%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20program%20to%20Detect%20loop%20in%20a%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20program%20to%20Detect%20loop%20in%20a%20linked%20list."
   },
   {
     "id": "BAB-112",
@@ -1341,7 +1452,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20program%20to%20Delete%20loop%20in%20a%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20program%20to%20Delete%20loop%20in%20a%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20program%20to%20Delete%20loop%20in%20a%20linked%20list."
   },
   {
     "id": "BAB-113",
@@ -1353,7 +1465,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20starting%20point%20of%20the%20loop.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20starting%20point%20of%20the%20loop.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20starting%20point%20of%20the%20loop."
   },
   {
     "id": "BAB-114",
@@ -1365,7 +1478,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Remove%20Duplicate%20in%20a%20Sorted%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Remove%20Duplicate%20in%20a%20Sorted%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Remove%20Duplicate%20in%20a%20Sorted%20Linked%20List."
   },
   {
     "id": "BAB-115",
@@ -1377,7 +1491,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Remove%20Duplicates%20in%20a%20Un-sorted%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Remove%20Duplicates%20in%20a%20Un-sorted%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Remove%20Duplicates%20in%20a%20Un-sorted%20Linked%20List."
   },
   {
     "id": "BAB-116",
@@ -1389,7 +1504,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20Move%20the%20last%20element%20to%20Front%20in%20a%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20Move%20the%20last%20element%20to%20Front%20in%20a%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20Program%20to%20Move%20the%20last%20element%20to%20Front%20in%20a%20Linked%20List."
   },
   {
     "id": "BAB-117",
@@ -1401,7 +1517,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Add%20%E2%80%9C1%E2%80%9D%20to%20a%20number%20represented%20as%20a%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Add%20%E2%80%9C1%E2%80%9D%20to%20a%20number%20represented%20as%20a%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Add%20%E2%80%9C1%E2%80%9D%20to%20a%20number%20represented%20as%20a%20Linked%20List."
   },
   {
     "id": "BAB-118",
@@ -1413,7 +1530,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Add%20two%20numbers%20represented%20by%20linked%20lists.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Add%20two%20numbers%20represented%20by%20linked%20lists.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Add%20two%20numbers%20represented%20by%20linked%20lists."
   },
   {
     "id": "BAB-119",
@@ -1425,7 +1543,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Intersection%20of%20two%20Sorted%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Intersection%20of%20two%20Sorted%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Intersection%20of%20two%20Sorted%20Linked%20List."
   },
   {
     "id": "BAB-120",
@@ -1437,7 +1556,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Intersection%20Point%20of%20two%20Linked%20Lists.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Intersection%20Point%20of%20two%20Linked%20Lists.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Intersection%20Point%20of%20two%20Linked%20Lists."
   },
   {
     "id": "BAB-121",
@@ -1449,7 +1569,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Merge%20Sort%20for%20Linked%20Lists.%5BVery%20Important%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Merge%20Sort%20for%20Linked%20Lists.%5BVery%20Important%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20Sort%20for%20Linked%20Lists.%5BVery%20Important%5D"
   },
   {
     "id": "BAB-122",
@@ -1461,7 +1582,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Quicksort%20for%20Linked%20List.%5BVery%20Important%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Quicksort%20for%20Linked%20List.%5BVery%20Important%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Quicksort%20for%20Linked%20List.%5BVery%20Important%5D"
   },
   {
     "id": "BAB-123",
@@ -1473,7 +1595,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20middle%20Element%20of%20a%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20the%20middle%20Element%20of%20a%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20middle%20Element%20of%20a%20linked%20list."
   },
   {
     "id": "BAB-124",
@@ -1485,7 +1608,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20a%20linked%20list%20is%20a%20circular%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20a%20linked%20list%20is%20a%20circular%20linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20a%20linked%20list%20is%20a%20circular%20linked%20list."
   },
   {
     "id": "BAB-125",
@@ -1497,7 +1621,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Split%20a%20Circular%20linked%20list%20into%20two%20halves.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Split%20a%20Circular%20linked%20list%20into%20two%20halves.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Split%20a%20Circular%20linked%20list%20into%20two%20halves."
   },
   {
     "id": "BAB-126",
@@ -1509,7 +1634,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20check%20whether%20the%20Singly%20Linked%20list%20is%20a%20palindrome%20or%20not.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Write%20a%20Program%20to%20check%20whether%20the%20Singly%20Linked%20list%20is%20a%20palindrome%20or%20not.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Write%20a%20Program%20to%20check%20whether%20the%20Singly%20Linked%20list%20is%20a%20palindrome%20or%20not."
   },
   {
     "id": "BAB-127",
@@ -1521,7 +1647,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Deletion%20from%20a%20Circular%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Deletion%20from%20a%20Circular%20Linked%20List.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Deletion%20from%20a%20Circular%20Linked%20List."
   },
   {
     "id": "BAB-128",
@@ -1533,7 +1660,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20a%20Doubly%20Linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20a%20Doubly%20Linked%20list.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20a%20Doubly%20Linked%20list."
   },
   {
     "id": "BAB-129",
@@ -1545,7 +1673,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20pairs%20with%20a%20given%20sum%20in%20a%20DLL.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20pairs%20with%20a%20given%20sum%20in%20a%20DLL.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20pairs%20with%20a%20given%20sum%20in%20a%20DLL."
   },
   {
     "id": "BAB-130",
@@ -1557,7 +1686,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Count%20triplets%20in%20a%20sorted%20DLL%20whose%20sum%20is%20equal%20to%20given%20value%20%E2%80%9CX%E2%80%9D.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Count%20triplets%20in%20a%20sorted%20DLL%20whose%20sum%20is%20equal%20to%20given%20value%20%E2%80%9CX%E2%80%9D.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20triplets%20in%20a%20sorted%20DLL%20whose%20sum%20is%20equal%20to%20given%20value%20%E2%80%9CX%E2%80%9D."
   },
   {
     "id": "BAB-131",
@@ -1569,7 +1699,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Rotate%20Doubly%20Linked%20list%20by%20N%20nodes.%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Rotate%20Doubly%20Linked%20list%20by%20N%20nodes.%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rotate%20Doubly%20Linked%20list%20by%20N%20nodes."
   },
   {
     "id": "BAB-132",
@@ -1581,7 +1712,8 @@
     "level": "Level 3",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Rotate%20a%20Doubly%20Linked%20list%20in%20group%20of%20Given%20Size.%5BVery%20IMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Rotate%20a%20Doubly%20Linked%20list%20in%20group%20of%20Given%20Size.%5BVery%20IMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rotate%20a%20Doubly%20Linked%20list%20in%20group%20of%20Given%20Size.%5BVery%20IMP%5D"
   },
   {
     "id": "BAB-133",
@@ -1593,7 +1725,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Flatten%20a%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Flatten%20a%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Flatten%20a%20Linked%20List"
   },
   {
     "id": "BAB-134",
@@ -1605,7 +1738,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Sort%20a%20LL%20of%200's%2C%201's%20and%202's%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Sort%20a%20LL%20of%200's%2C%201's%20and%202's%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort%20a%20LL%20of%200's%2C%201's%20and%202's"
   },
   {
     "id": "BAB-135",
@@ -1617,7 +1751,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Clone%20a%20linked%20list%20with%20next%20and%20random%20pointer%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Clone%20a%20linked%20list%20with%20next%20and%20random%20pointer%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Clone%20a%20linked%20list%20with%20next%20and%20random%20pointer"
   },
   {
     "id": "BAB-136",
@@ -1629,7 +1764,8 @@
     "level": "Level 3",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Merge%20K%20sorted%20Linked%20list%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Merge%20K%20sorted%20Linked%20list%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20K%20sorted%20Linked%20list"
   },
   {
     "id": "BAB-137",
@@ -1641,7 +1777,8 @@
     "level": "Level 1",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Multiply%202%20no.%20represented%20by%20LL%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Multiply%202%20no.%20represented%20by%20LL%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Multiply%202%20no.%20represented%20by%20LL"
   },
   {
     "id": "BAB-138",
@@ -1653,7 +1790,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Delete%20nodes%20which%20have%20a%20greater%20value%20on%20right%20side%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Delete%20nodes%20which%20have%20a%20greater%20value%20on%20right%20side%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Delete%20nodes%20which%20have%20a%20greater%20value%20on%20right%20side"
   },
   {
     "id": "BAB-139",
@@ -1665,7 +1803,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Segregate%20even%20and%20odd%20nodes%20in%20a%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Segregate%20even%20and%20odd%20nodes%20in%20a%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Segregate%20even%20and%20odd%20nodes%20in%20a%20Linked%20List"
   },
   {
     "id": "BAB-140",
@@ -1677,7 +1816,8 @@
     "level": "Level 2",
     "topic": "LinkedList",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Program%20for%20nth%20node%20from%20the%20end%20of%20a%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Program%20for%20nth%20node%20from%20the%20end%20of%20a%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Program%20for%20nth%20node%20from%20the%20end%20of%20a%20Linked%20List"
   },
   {
     "id": "BAB-141",
@@ -1689,7 +1829,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=level%20order%20traversal%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=level%20order%20traversal%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20level%20order%20traversal"
   },
   {
     "id": "BAB-142",
@@ -1701,7 +1842,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20Level%20Order%20traversal%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Reverse%20Level%20Order%20traversal%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20Level%20Order%20traversal"
   },
   {
     "id": "BAB-143",
@@ -1713,7 +1855,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Height%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Height%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Height%20of%20a%20tree"
   },
   {
     "id": "BAB-144",
@@ -1725,7 +1868,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Diameter%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Diameter%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Diameter%20of%20a%20tree"
   },
   {
     "id": "BAB-145",
@@ -1737,7 +1881,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Mirror%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Mirror%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Mirror%20of%20a%20tree"
   },
   {
     "id": "BAB-146",
@@ -1749,7 +1894,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Inorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Inorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Inorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration"
   },
   {
     "id": "BAB-147",
@@ -1761,7 +1907,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Preorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Preorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Preorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration"
   },
   {
     "id": "BAB-148",
@@ -1773,7 +1920,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Postorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Postorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Postorder%20Traversal%20of%20a%20tree%20both%20using%20recursion%20and%20Iteration"
   },
   {
     "id": "BAB-149",
@@ -1785,7 +1933,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Left%20View%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Left%20View%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Left%20View%20of%20a%20tree"
   },
   {
     "id": "BAB-150",
@@ -1797,7 +1946,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Right%20View%20of%20Tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Right%20View%20of%20Tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Right%20View%20of%20Tree"
   },
   {
     "id": "BAB-151",
@@ -1809,7 +1959,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Top%20View%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Top%20View%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Top%20View%20of%20a%20tree"
   },
   {
     "id": "BAB-152",
@@ -1821,7 +1972,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Bottom%20View%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Bottom%20View%20of%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Bottom%20View%20of%20a%20tree"
   },
   {
     "id": "BAB-153",
@@ -1833,7 +1985,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Zig-Zag%20traversal%20of%20a%20binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Zig-Zag%20traversal%20of%20a%20binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Zig-Zag%20traversal%20of%20a%20binary%20tree"
   },
   {
     "id": "BAB-154",
@@ -1845,7 +1998,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20a%20tree%20is%20balanced%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20a%20tree%20is%20balanced%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20a%20tree%20is%20balanced%20or%20not"
   },
   {
     "id": "BAB-155",
@@ -1857,7 +2011,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Diagonal%20Traversal%20of%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Diagonal%20Traversal%20of%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Diagonal%20Traversal%20of%20a%20Binary%20tree"
   },
   {
     "id": "BAB-156",
@@ -1869,7 +2024,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Boundary%20traversal%20of%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Boundary%20traversal%20of%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Boundary%20traversal%20of%20a%20Binary%20tree"
   },
   {
     "id": "BAB-157",
@@ -1881,7 +2037,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Construct%20Binary%20Tree%20from%20String%20with%20bracket%20representation%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Construct%20Binary%20Tree%20from%20String%20with%20bracket%20representation%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Construct%20Binary%20Tree%20from%20String%20with%20bracket%20representation"
   },
   {
     "id": "BAB-158",
@@ -1893,7 +2050,8 @@
     "level": "Level 3",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Convert%20Binary%20tree%20into%20Doubly%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Convert%20Binary%20tree%20into%20Doubly%20Linked%20List%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Convert%20Binary%20tree%20into%20Doubly%20Linked%20List"
   },
   {
     "id": "BAB-159",
@@ -1905,7 +2063,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Convert%20Binary%20tree%20into%20Sum%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Convert%20Binary%20tree%20into%20Sum%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Convert%20Binary%20tree%20into%20Sum%20tree"
   },
   {
     "id": "BAB-160",
@@ -1917,7 +2076,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Construct%20Binary%20tree%20from%20Inorder%20and%20preorder%20traversal%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Construct%20Binary%20tree%20from%20Inorder%20and%20preorder%20traversal%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Construct%20Binary%20tree%20from%20Inorder%20and%20preorder%20traversal"
   },
   {
     "id": "BAB-161",
@@ -1929,7 +2089,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20minimum%20swaps%20required%20to%20convert%20a%20Binary%20tree%20into%20BST%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20minimum%20swaps%20required%20to%20convert%20a%20Binary%20tree%20into%20BST%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20minimum%20swaps%20required%20to%20convert%20a%20Binary%20tree%20into%20BST"
   },
   {
     "id": "BAB-162",
@@ -1941,7 +2102,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20Binary%20tree%20is%20Sum%20tree%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20Binary%20tree%20is%20Sum%20tree%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20Binary%20tree%20is%20Sum%20tree%20or%20not"
   },
   {
     "id": "BAB-163",
@@ -1953,7 +2115,8 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20all%20leaf%20nodes%20are%20at%20same%20level%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20all%20leaf%20nodes%20are%20at%20same%20level%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20all%20leaf%20nodes%20are%20at%20same%20level%20or%20not"
   },
   {
     "id": "BAB-164",
@@ -1965,7 +2128,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20a%20given%20Graph%20is%20tree%20or%20not.%20%5BIMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%20a%20given%20Graph%20is%20tree%20or%20not.%20%5BIMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20a%20given%20Graph%20is%20tree%20or%20not.%20%5BIMP%5D"
   },
   {
     "id": "BAB-165",
@@ -1977,7 +2141,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Largest%20subtree%20sum%20in%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20Largest%20subtree%20sum%20in%20a%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Largest%20subtree%20sum%20in%20a%20tree"
   },
   {
     "id": "BAB-166",
@@ -1989,7 +2154,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20Sum%20of%20nodes%20in%20Binary%20tree%20such%20that%20no%20two%20are%20adjacent%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Maximum%20Sum%20of%20nodes%20in%20Binary%20tree%20such%20that%20no%20two%20are%20adjacent%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Sum%20of%20nodes%20in%20Binary%20tree%20such%20that%20no%20two%20are%20adjacent"
   },
   {
     "id": "BAB-167",
@@ -2001,7 +2167,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20LCA%20in%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20LCA%20in%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20LCA%20in%20a%20Binary%20tree"
   },
   {
     "id": "BAB-168",
@@ -2013,7 +2180,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20distance%20between%202%20nodes%20in%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20distance%20between%202%20nodes%20in%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20distance%20between%202%20nodes%20in%20a%20Binary%20tree"
   },
   {
     "id": "BAB-169",
@@ -2025,7 +2193,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Kth%20Ancestor%20of%20node%20in%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Kth%20Ancestor%20of%20node%20in%20a%20Binary%20tree%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20Ancestor%20of%20node%20in%20a%20Binary%20tree"
   },
   {
     "id": "BAB-170",
@@ -2037,7 +2206,8 @@
     "level": "Level 2",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Find%20all%20Duplicate%20subtrees%20in%20a%20Binary%20tree%20%5BIMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Find%20all%20Duplicate%20subtrees%20in%20a%20Binary%20tree%20%5BIMP%5D%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20all%20Duplicate%20subtrees%20in%20a%20Binary%20tree%20%5BIMP%5D"
   },
   {
     "id": "BAB-171",
@@ -2049,6 +2219,7 @@
     "level": "Level 1",
     "topic": "Binary Trees",
     "channel": "CodeHelp - by Babbar",
-    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%202%20trees%20are%20mirror%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution"
+    "videoUrl": "https://www.youtube.com/results?search_query=Check%20if%202%20trees%20are%20mirror%20or%20not%20Love%20Babbar%20CodeHelp%20DSA%20solution",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%202%20trees%20are%20mirror%20or%20not"
   }
 ]

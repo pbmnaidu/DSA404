@@ -444,7 +444,7 @@ img, video, canvas { max-width: 100%; }
 }
 
 /* Preserve the supplied raster artwork while recoloring only its yellow mark. */
-.themed-logo { position: relative; display: inline-block; overflow: hidden; border-radius: 999px; line-height: 0; }
+.themed-logo { display: block; width: 100%; height: 100%; object-fit: contain; }
 .themed-logo:not([data-ready="true"]) { opacity: 0; }
 .themed-logo--square { border-radius: 14px; }
 .themed-logo__image { display: block; width: 100%; height: 100%; object-fit: cover; }

@@ -29,6 +29,8 @@ import { Slider } from "@/components/ui/slider";
 import { PasswordInput } from "@/components/PasswordInput";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CURATED_SHEETS, getSheetMeta, type SheetMeta } from "@/lib/sheets-data";
+import { LegalDisclaimerModal } from "@/components/LegalDisclaimerModal";
+import { Scale, ShieldCheck } from "lucide-react";
 import {
  Bell,
  Settings,

@@ -8,7 +8,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/taking-input/1",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Read%20and%20Print%20a%20Number"
   },
   {
     "topicNo": 1,
@@ -19,7 +20,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/cpp/cpp-data-types/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Basic%20Data%20Types"
   },
   {
     "topicNo": 1,
@@ -30,7 +32,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/cpp/cpp-operators/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Basic%20Arithmetic%20Operations"
   },
   {
     "topicNo": 1,
@@ -41,7 +44,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/odd-or-even3618/1",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20Even%20or%20Odd"
   },
   {
     "topicNo": 1,
@@ -52,7 +56,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/greatest-of-three-numbers2520/1",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Largest%20of%20Three%20Numbers"
   },
   {
     "topicNo": 1,
@@ -63,7 +68,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/print-1-to-n-without-using-loops-1587115620/1",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Print%20Numbers%20from%201%20to%20N"
   },
   {
     "topicNo": 1,
@@ -74,7 +80,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sum-of-natural-numbers/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sum%20of%20First%20N%20Natural%20Numbers"
   },
   {
     "topicNo": 1,
@@ -85,7 +92,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/triangle-pattern-1661492263/1",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Pattern%20Printing"
   },
   {
     "topicNo": 1,
@@ -96,7 +104,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/cpp/functions-in-cpp/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Functions%20in%20Programming"
   },
   {
     "topicNo": 1,
@@ -107,7 +116,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/arrays-in-c-cpp/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Array%20Traversal"
   },
   {
     "topicNo": 1,
@@ -118,7 +128,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/string-data-structure/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20String%20Traversal"
   },
   {
     "topicNo": 1,
@@ -129,7 +140,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/program-count-digits-integer-3-different-methods/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20Digits%20in%20a%20Number"
   },
   {
     "topicNo": 1,
@@ -140,7 +152,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/program-for-sum-of-the-digits-of-a-given-number/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sum%20of%20Digits"
   },
   {
     "topicNo": 1,
@@ -151,7 +164,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/analysis-of-algorithms-set-1-asymptotic-analysis/",
     "pattern": "Foundations / Programming Basics",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Time%20and%20Space%20Complexity%20Basics"
   },
   {
     "topicNo": 2,
@@ -162,7 +176,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/print-all-prime-factors-of-a-given-number/",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Prime%20Factors"
   },
   {
     "topicNo": 2,
@@ -173,7 +188,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-number-closest-n-divisible-m/",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Closest%20Number"
   },
   {
     "topicNo": 2,
@@ -184,7 +200,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/eulers-totient-function/",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Euler's%20Totient"
   },
   {
     "topicNo": 2,
@@ -195,7 +212,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/check-whether-k-th-bit-set-not/",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20Set%20Bit"
   },
   {
     "topicNo": 2,
@@ -206,7 +224,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-position-of-the-only-set-bit/",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Only%20set%20bit"
   },
   {
     "topicNo": 2,
@@ -217,7 +236,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/program-calculate-value-ncr/",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20nCr"
   },
   {
     "topicNo": 2,
@@ -228,7 +248,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/prime-number2314/1",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20a%20Number%20is%20Prime"
   },
   {
     "topicNo": 2,
@@ -239,7 +260,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/euclidean-algorithms-basic-and-extended/",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20GCD%20of%20Two%20Numbers"
   },
   {
     "topicNo": 2,
@@ -250,7 +272,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/lcm-and-gcd4516/1",
     "pattern": "Math for DSA",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20LCM%20of%20Two%20Numbers"
   },
   {
     "topicNo": 2,
@@ -261,7 +284,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-set-bits-in-an-integer/",
     "pattern": "Math for DSA",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20Set"
   },
   {
     "topicNo": 2,
@@ -272,7 +296,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/count-primes/",
     "pattern": "Math for DSA",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20Primes%20%E2%80%94%20Sieve%20of%20Eratosthenes"
   },
   {
     "topicNo": 2,
@@ -283,7 +308,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/powx-n/",
     "pattern": "Fast Exponentiation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Pow(x%2C%20n)"
   },
   {
     "topicNo": 2,
@@ -294,7 +320,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/modular-exponentiation-power-in-modular-arithmetic/",
     "pattern": "Fast Exponentiation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Modular%20Exponentiation"
   },
   {
     "topicNo": 3,
@@ -305,7 +332,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/linear-search/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Linear%20Search"
   },
   {
     "topicNo": 3,
@@ -316,7 +344,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/find-minimum-and-maximum-element-in-an-array4428/1",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Minimum%20and%20Maximum"
   },
   {
     "topicNo": 3,
@@ -327,7 +356,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/third-largest-element-array-distinct-elements/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Third%20Largest%20Element"
   },
   {
     "topicNo": 3,
@@ -338,7 +368,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/rotate-array/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rotate%20Array"
   },
   {
     "topicNo": 3,
@@ -349,7 +380,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/reverse-array-in-groups0255/1",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20Array%20in%20Groups"
   },
   {
     "topicNo": 3,
@@ -360,7 +392,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/move-zeroes-end-array/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Move%20All%20Zeroes%20to%20End"
   },
   {
     "topicNo": 3,
@@ -371,7 +404,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/maximum-consecutive-ones-or-zeros-in-a-binary-array/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Consecutive%20Ones"
   },
   {
     "topicNo": 3,
@@ -382,7 +416,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/leaders-in-an-array/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Array%20Leaders"
   },
   {
     "topicNo": 3,
@@ -393,7 +428,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/check-if-an-array-is-wave-array/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Wave%20Array"
   },
   {
     "topicNo": 3,
@@ -404,7 +440,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/plus-one/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Plus%20One"
   },
   {
     "topicNo": 3,
@@ -415,7 +452,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Stock%20Buy%20and%20Sell%20%E2%80%94%20One%20Transaction"
   },
   {
     "topicNo": 3,
@@ -426,7 +464,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/-rearrange-array-alternately-1587115620/0",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rearrange%20Array%20Alternately"
   },
   {
     "topicNo": 3,
@@ -437,7 +476,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-common-elements-three-sorted-arrays/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Common%20Elements%20in%20Three%20Sorted%20Arrays"
   },
   {
     "topicNo": 3,
@@ -448,7 +488,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/maximum-difference-between-two-elements/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Difference%20Between%20Two%20Elements"
   },
   {
     "topicNo": 3,
@@ -459,7 +500,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/majority-element/",
     "pattern": "Arrays",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Majority%20Element"
   },
   {
     "topicNo": 3,
@@ -470,7 +512,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-all-duplicates-in-an-array/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20all%20Duplicate%20Numbers"
   },
   {
     "topicNo": 3,
@@ -481,7 +524,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/set-mismatch/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Set%20Mismatch"
   },
   {
     "topicNo": 3,
@@ -492,7 +536,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-array/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Remove%20Duplicates%20from%20Sorted%20Array"
   },
   {
     "topicNo": 3,
@@ -503,7 +548,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-a-repeating-and-a-missing-number/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Missing%20and%20Repeating%20in%20Array"
   },
   {
     "topicNo": 3,
@@ -514,7 +560,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-the-missing-number/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20Missing%20Number"
   },
   {
     "topicNo": 3,
@@ -525,7 +572,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-second-largest-element-array/",
     "pattern": "Arrays",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Second%20Largest%20Element"
   },
   {
     "topicNo": 3,
@@ -536,7 +584,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/program-to-reverse-an-array/",
     "pattern": "Arrays",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20an%20Array"
   },
   {
     "topicNo": 3,
@@ -547,7 +596,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sum-of-all-subarrays/",
     "pattern": "Arrays",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sum%20of%20All%20Subarrays"
   },
   {
     "topicNo": 3,
@@ -558,7 +608,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/maximum-subarray/",
     "pattern": "Arrays",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Subarray"
   },
   {
     "topicNo": 3,
@@ -569,7 +620,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/majority-element-ii/",
     "pattern": "Arrays",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Majority%20Element%20II"
   },
   {
     "topicNo": 3,
@@ -580,7 +632,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/next-permutation/",
     "pattern": "Arrays",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Next%20Permutation"
   },
   {
     "topicNo": 3,
@@ -591,7 +644,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/maximum-sum-circular-subarray/",
     "pattern": "Arrays",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Circular%20Subarray%20Sum"
   },
   {
     "topicNo": 3,
@@ -602,7 +656,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/union-of-two-sorted-arrays/",
     "pattern": "Two Pointers",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Union%20of%202%20Sorted"
   },
   {
     "topicNo": 3,
@@ -613,7 +668,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/cycle-sort/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Cycle%20Sort"
   },
   {
     "topicNo": 3,
@@ -624,7 +680,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-number-swaps-required-sort-array/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Min%20Swaps%20to%20Sort"
   },
   {
     "topicNo": 3,
@@ -635,7 +692,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/first-missing-positive/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20First%20Missing%20Positive"
   },
   {
     "topicNo": 3,
@@ -646,7 +704,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/trapping-rain-water/",
     "pattern": "Arrays",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Trapping%20Rain%20Water"
   },
   {
     "topicNo": 3,
@@ -657,7 +716,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-the-smallest-positive-number-missing-from-an-unsorted-array/",
     "pattern": "Arrays",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Smallest%20Missing%20Positive%20Number"
   },
   {
     "topicNo": 3,
@@ -668,7 +728,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/kth-missing-positive-number/",
     "pattern": "Cyclic Sort / Index Placement",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20First%20K%20Missing%20Positive%20Numbers"
   },
   {
     "topicNo": 4,
@@ -679,7 +740,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/manachers-algorithm-linear-time-longest-palindromic-substring-part-1/",
     "pattern": "Strings",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Manacher's%20Algorithm"
   },
   {
     "topicNo": 4,
@@ -690,7 +752,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-prefix-also-suffix/",
     "pattern": "String Matching",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Prefix%20Suffix"
   },
   {
     "topicNo": 4,
@@ -701,7 +764,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/program-to-check-if-two-strings-are-same-or-not/",
     "pattern": "Strings",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Same%20Strings"
   },
   {
     "topicNo": 4,
@@ -712,7 +776,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/reverse-string/",
     "pattern": "String Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20String"
   },
   {
     "topicNo": 4,
@@ -723,7 +788,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/reverse-words-in-a-string-iii/",
     "pattern": "String Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20Words%20in%20a%20String%20III"
   },
   {
     "topicNo": 4,
@@ -734,7 +800,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/rotate-string/",
     "pattern": "String Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rotate%20String"
   },
   {
     "topicNo": 4,
@@ -745,7 +812,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/string-compression/",
     "pattern": "String Manipulation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20String%20Compression"
   },
   {
     "topicNo": 4,
@@ -756,7 +824,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/multiply-large-numbers-represented-as-strings/",
     "pattern": "Strings",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Multiply%20Large%20Numbers"
   },
   {
     "topicNo": 4,
@@ -767,7 +836,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/urlify-a-given-string-replace-spaces/",
     "pattern": "Strings",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20URLify"
   },
   {
     "topicNo": 4,
@@ -778,7 +848,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-palindromic-substring/",
     "pattern": "Palindrome Patterns",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Palindromic%20Substrings"
   },
   {
     "topicNo": 4,
@@ -789,7 +860,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/palindromic-substrings/",
     "pattern": "Palindrome Patterns",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Palindromic%20Substrings"
   },
   {
     "topicNo": 4,
@@ -800,7 +872,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/valid-palindrome/",
     "pattern": "Palindrome Patterns",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Palindrome"
   },
   {
     "topicNo": 4,
@@ -811,7 +884,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-number-of-times-a-has-to-be-repeated-such-that-b-is-a-substring-of-it/",
     "pattern": "String Matching",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Min%20Repeats%20for%20Substring"
   },
   {
     "topicNo": 4,
@@ -822,7 +896,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/",
     "pattern": "KMP Pattern Matching",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20the%20Index%20of%20the%20First%20Occurrence%20in%20a%20String"
   },
   {
     "topicNo": 4,
@@ -833,7 +908,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/repeated-substring-pattern/",
     "pattern": "String Matching",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Repeated%20Substring%20Pattern"
   },
   {
     "topicNo": 4,
@@ -844,7 +920,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/repeated-string-match/",
     "pattern": "String Matching",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Repeated%20String%20Match"
   },
   {
     "topicNo": 4,
@@ -855,7 +932,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/string-to-integer-atoi/",
     "pattern": "String Manipulation / Parsing",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20String%20to%20Integer%20(atoi)"
   },
   {
     "topicNo": 4,
@@ -866,7 +944,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/zigzag-conversion/",
     "pattern": "String Manipulation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Zigzag%20Conversion"
   },
   {
     "topicNo": 4,
@@ -877,7 +956,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/encode-and-decode-strings/",
     "pattern": "String Design / Serialization",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Encode%20and%20Decode%20Strings"
   },
   {
     "topicNo": 4,
@@ -888,7 +968,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/text-justification/",
     "pattern": "String Manipulation",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Text%20Justification"
   },
   {
     "topicNo": 4,
@@ -899,7 +980,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/valid-number/",
     "pattern": "String Manipulation / Parsing",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Valid%20Number"
   },
   {
     "topicNo": 4,
@@ -910,7 +992,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/palindrome-substring-queries/",
     "pattern": "Palindrome Patterns",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Palindrome%20Substring%20Queries"
   },
   {
     "topicNo": 5,
@@ -921,7 +1004,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/roman-to-integer/",
     "pattern": "Hashing",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Roman%20to%20Integer"
   },
   {
     "topicNo": 5,
@@ -932,7 +1016,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/c-program-hashing-chaining/",
     "pattern": "Hashing",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Separate%20Chaining"
   },
   {
     "topicNo": 5,
@@ -943,7 +1028,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/valid-anagram/",
     "pattern": "Hashing",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Anagrams"
   },
   {
     "topicNo": 5,
@@ -954,7 +1040,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/frequent-element-array/",
     "pattern": "Hashing",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Most%20Frequent"
   },
   {
     "topicNo": 5,
@@ -965,7 +1052,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/first-unique-character-in-a-string/",
     "pattern": "Frequency Counting",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20First%20Unique%20Character%20in%20a%20String"
   },
   {
     "topicNo": 5,
@@ -976,7 +1064,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/two-sum/",
     "pattern": "Hashing",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Two%20Sum"
   },
   {
     "topicNo": 5,
@@ -987,7 +1076,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/contains-duplicate/",
     "pattern": "Hashing",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Contains%20Duplicate"
   },
   {
     "topicNo": 5,
@@ -998,7 +1088,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/isomorphic-strings/",
     "pattern": "Hashing",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Isomorphic%20Strings"
   },
   {
     "topicNo": 5,
@@ -1009,7 +1100,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/group-anagrams/",
     "pattern": "Hashing",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Group%20Anagrams"
   },
   {
     "topicNo": 5,
@@ -1020,7 +1112,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/subarray-sum-equals-k/",
     "pattern": "Hashing",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Subarray%20Sum%20Equals%20K"
   },
   {
     "topicNo": 5,
@@ -1031,7 +1124,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-consecutive-sequence/",
     "pattern": "Hashing",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Consecutive%20Sequence"
   },
   {
     "topicNo": 5,
@@ -1042,7 +1136,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/4sum-ii/",
     "pattern": "Hashing",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%204Sum%20II"
   },
   {
     "topicNo": 5,
@@ -1053,7 +1148,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-substring-with-at-most-two-distinct-characters/",
     "pattern": "Hashing",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Substring%20with%20At%20Most%20Two%20Distinct%20Characters"
   },
   {
     "topicNo": 6,
@@ -1064,7 +1160,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sort-array-strings-according-string-lengths/",
     "pattern": "Sorting",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort%20by%20Length"
   },
   {
     "topicNo": 6,
@@ -1075,7 +1172,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sort-array-wave-form-2/",
     "pattern": "Sorting",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Wave%20Form"
   },
   {
     "topicNo": 6,
@@ -1086,7 +1184,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/program-check-array-sorted-not-iterative-recursive/",
     "pattern": "Sorting",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Is%20Sorted"
   },
   {
     "topicNo": 6,
@@ -1097,7 +1196,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/k-th-element-two-sorted-arrays/",
     "pattern": "Sorting",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20of%20two%20sorted"
   },
   {
     "topicNo": 6,
@@ -1108,7 +1208,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/median-of-two-sorted-arrays/",
     "pattern": "Sorting",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Median%20of%20two%20sorted"
   },
   {
     "topicNo": 6,
@@ -1119,7 +1220,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/merging-intervals/",
     "pattern": "Sorting",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20Overlapping"
   },
   {
     "topicNo": 6,
@@ -1130,7 +1232,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/shop-in-candy-store1145/1",
     "pattern": "Sorting",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Shop%20in%20Candy%20Store"
   },
   {
     "topicNo": 6,
@@ -1141,7 +1244,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/intersection-of-two-sorted-arrays/",
     "pattern": "Sorting",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Intersection%20of%202%20Sorted"
   },
   {
     "topicNo": 6,
@@ -1152,7 +1256,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/merge-two-sorted-arrays-o1-extra-space/",
     "pattern": "Sorting",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20Without%20Extra%20Space"
   },
   {
     "topicNo": 6,
@@ -1163,7 +1268,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/quick-sort-algorithm/",
     "pattern": "Sorting",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Quick%20Sort"
   },
   {
     "topicNo": 6,
@@ -1174,7 +1280,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/segregate-0s-and-1s-in-an-array-by-traversing-array-once/",
     "pattern": "Sorting",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort%20Binary"
   },
   {
     "topicNo": 7,
@@ -1185,7 +1292,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/",
     "pattern": "Two Pointers",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Two%20Sum%20II%20-%20Sorted%20Array"
   },
   {
     "topicNo": 7,
@@ -1196,7 +1304,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/valid-palindrome-ii/",
     "pattern": "Two Pointers",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Valid%20Palindrome%20II"
   },
   {
     "topicNo": 7,
@@ -1207,7 +1316,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/sort-colors/",
     "pattern": "Two Pointers",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort%20Colors"
   },
   {
     "topicNo": 7,
@@ -1218,7 +1328,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/3sum/",
     "pattern": "Two Pointers",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%203Sum"
   },
   {
     "topicNo": 7,
@@ -1229,7 +1340,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/container-with-most-water/",
     "pattern": "Two Pointers",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Container%20With%20Most%20Water"
   },
   {
     "topicNo": 8,
@@ -1240,7 +1352,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/number-subarrays-product-less-k/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Subarrays%20Less%20Than%20K"
   },
   {
     "topicNo": 8,
@@ -1251,7 +1364,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/number-subarrays-m-odd-numbers/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Subarrays%20with%20k%20odds"
   },
   {
     "topicNo": 8,
@@ -1262,7 +1376,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/first-negative-integer-every-window-size-k/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20First%20negative%20in%20every%20window"
   },
   {
     "topicNo": 8,
@@ -1273,7 +1388,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-swaps-required-group-1s-together/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Min%20Swaps%20to%20group%20all%201's"
   },
   {
     "topicNo": 8,
@@ -1284,7 +1400,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/number-of-sub-arrays-of-size-k-and-average-greater-than-or-equal-to-threshold/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%20Subarrays%20having%20Average%20Greater%20or%20Equal%20to%20%20%20Threshold"
   },
   {
     "topicNo": 8,
@@ -1295,7 +1412,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/repeated-dna-sequences/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Repeated%20DNA%20sequences"
   },
   {
     "topicNo": 8,
@@ -1306,7 +1424,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Substring%20Without%20Repeating%20Characters"
   },
   {
     "topicNo": 8,
@@ -1317,7 +1436,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-window-subsequence/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Window%20Subsequence"
   },
   {
     "topicNo": 8,
@@ -1328,7 +1448,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/smallest-window-containing-0-1-and-2/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Smallest%20containing%200%2C%201%20and%202"
   },
   {
     "topicNo": 8,
@@ -1339,7 +1460,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-occurrences-of-anagrams/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20Anagrams"
   },
   {
     "topicNo": 8,
@@ -1350,7 +1472,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-all-anagrams-in-a-string/",
     "pattern": "String + Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20All%20Anagrams%20in%20a%20String"
   },
   {
     "topicNo": 8,
@@ -1361,7 +1484,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-of-subarrays-having-exactly-k-distinct-elements/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Full%20Distinct%20Subarrays"
   },
   {
     "topicNo": 8,
@@ -1372,7 +1496,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/max-consecutive-ones-iii/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Max%20Consecutive%20Ones"
   },
   {
     "topicNo": 8,
@@ -1383,7 +1508,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-zeroes-to-be-flipped-so-that-number-of-consecutive-1s-is-maximized/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximize%20Ones"
   },
   {
     "topicNo": 8,
@@ -1394,7 +1520,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-subarray-with-given-sum/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Subarray%20with%20given%20sum"
   },
   {
     "topicNo": 8,
@@ -1405,7 +1532,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/subarray-product-less-than-k/",
     "pattern": "Sliding Window",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Subarray%20Product%20Less%20Than%20K"
   },
   {
     "topicNo": 8,
@@ -1416,7 +1544,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/maximize-length-of-subarray-of-equal-elements-by-performing-at-most-k-increment-operations/",
     "pattern": "Sliding Window",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Max%20Subarray%20Length%20with%20K%20Increments"
   },
   {
     "topicNo": 8,
@@ -1427,7 +1556,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sliding-window-maximum-maximum-of-all-subarrays-of-size-k/",
     "pattern": "Sliding Window",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sliding%20Window%20Maximum"
   },
   {
     "topicNo": 8,
@@ -1438,7 +1568,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-window-substring/",
     "pattern": "Sliding Window",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Window%20Substring"
   },
   {
     "topicNo": 9,
@@ -1449,7 +1580,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-number-subarrays-given-xor/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20with%20given%20XOR"
   },
   {
     "topicNo": 9,
@@ -1460,7 +1592,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/compute-before-matrix/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Compute%20before%20Matrix"
   },
   {
     "topicNo": 9,
@@ -1471,7 +1604,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/computing-point-counts-from-a-set-of-intervals/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Point%20Counts%20from%20Intervals"
   },
   {
     "topicNo": 9,
@@ -1482,7 +1616,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-span-sum-two-binary-arrays/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Span"
   },
   {
     "topicNo": 9,
@@ -1493,7 +1628,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-original-array-from-given-prefix-sum-array/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Original%20Array"
   },
   {
     "topicNo": 9,
@@ -1504,7 +1640,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-subarray-sum-divisible-k/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Largest%20with%20sum%20divisible%20by%20k"
   },
   {
     "topicNo": 9,
@@ -1515,7 +1652,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-sub-array-sum-k/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20with%20Sum%20K"
   },
   {
     "topicNo": 9,
@@ -1526,7 +1664,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/product-of-array-except-self/",
     "pattern": "Prefix Sum / Prefix XOR",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Product%20of%20Array%20Except%20Self"
   },
   {
     "topicNo": 10,
@@ -1537,7 +1676,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/first-bad-version/",
     "pattern": "Binary Search",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20First%20Bad%20Version"
   },
   {
     "topicNo": 10,
@@ -1548,7 +1688,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/sqrtx/",
     "pattern": "Binary Search",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sqrt(x)"
   },
   {
     "topicNo": 10,
@@ -1559,7 +1700,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
     "pattern": "Binary Search on Answer",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Search%20in%20Rotated%20Sorted%20Array"
   },
   {
     "topicNo": 10,
@@ -1570,7 +1712,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-days-to-make-m-bouquets/",
     "pattern": "Binary Search on Answer",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20M%20bouquets"
   },
   {
     "topicNo": 10,
@@ -1581,7 +1724,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/kth-smallest-number-in-multiplication-table/",
     "pattern": "Binary Search on Answer",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20kth%20in%20Multiplication%20Table"
   },
   {
     "topicNo": 10,
@@ -1592,7 +1736,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-number-of-days-to-make-m-bouquets/",
     "pattern": "Binary Search",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Number%20of%20Days%20to%20Make%20m%20Bouquets"
   },
   {
     "topicNo": 10,
@@ -1603,7 +1748,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/binary-search/",
     "pattern": "Classic Binary Search",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Binary%20Search"
   },
   {
     "topicNo": 10,
@@ -1614,7 +1760,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/",
     "pattern": "Lower Bound / Upper Bound",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20First%20and%20Last%20Position%20of%20Element%20in%20Sorted%20Array"
   },
   {
     "topicNo": 10,
@@ -1625,7 +1772,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-peak-element/",
     "pattern": "Binary Search / Peak",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Peak%20Element"
   },
   {
     "topicNo": 11,
@@ -1636,7 +1784,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/linked-list-cycle/",
     "pattern": "Linked List",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Linked%20List%20Cycle"
   },
   {
     "topicNo": 11,
@@ -1647,7 +1796,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/reverse-linked-list/",
     "pattern": "Linked List",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20Linked%20List"
   },
   {
     "topicNo": 11,
@@ -1658,7 +1808,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/linked-list-cycle-ii/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Linked%20List%20Cycle%20II"
   },
   {
     "topicNo": 11,
@@ -1669,7 +1820,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/reverse-linked-list-ii/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20Linked%20List%20II"
   },
   {
     "topicNo": 11,
@@ -1680,7 +1832,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/reverse-a-doubly-linked-list/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20a%20Doubly"
   },
   {
     "topicNo": 11,
@@ -1691,7 +1844,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/reverse-a-linked-list-in-groups-of-given-size/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20in%20Groups%20(K-group%20reversal)"
   },
   {
     "topicNo": 11,
@@ -1702,7 +1856,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/add-two-numbers-represented-by-linked-list/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Add%20Two%20Numbers"
   },
   {
     "topicNo": 11,
@@ -1713,7 +1868,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sort-linked-list-0s-1s-2s-changing-links/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort%200s%2C%201s%2C%202s"
   },
   {
     "topicNo": 11,
@@ -1724,7 +1880,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-length-of-loop-in-linked-list/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Length%20of%20the%20Loop"
   },
   {
     "topicNo": 11,
@@ -1735,7 +1892,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/write-a-function-to-get-the-intersection-point-of-two-linked-lists/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Intersection%20Point"
   },
   {
     "topicNo": 11,
@@ -1746,7 +1904,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/merge-two-sorted-linked-lists/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20two%20sorted%20linked%20lists"
   },
   {
     "topicNo": 11,
@@ -1757,7 +1916,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/function-to-check-if-a-singly-linked-list-is-palindrome/",
     "pattern": "Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Palindrome%20Linked%20List"
   },
   {
     "topicNo": 11,
@@ -1768,7 +1928,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/rotate-list/",
     "pattern": "Advanced Linked List",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rotate%20List"
   },
   {
     "topicNo": 11,
@@ -1779,7 +1940,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/a-linked-list-with-next-and-arbit-pointer/",
     "pattern": "Linked List",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Clone%20with%20Random%20Pointer"
   },
   {
     "topicNo": 11,
@@ -1790,7 +1952,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/flatten-a-multi-level-linked-list-set-2-depth-wise/",
     "pattern": "Linked List",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Flattening"
   },
   {
     "topicNo": 11,
@@ -1801,7 +1964,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/reverse-nodes-in-k-group/",
     "pattern": "Advanced Linked List",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20Nodes%20in%20k-Group"
   },
   {
     "topicNo": 12,
@@ -1812,7 +1976,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/valid-parentheses/",
     "pattern": "Stack",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Valid%20Parentheses"
   },
   {
     "topicNo": 12,
@@ -1823,7 +1988,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/min-stack/",
     "pattern": "Stack",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Min%20Stack"
   },
   {
     "topicNo": 12,
@@ -1834,7 +2000,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/queue-using-stacks/",
     "pattern": "Stack",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Implement%20Queue%20using%20Stacks"
   },
   {
     "topicNo": 12,
@@ -1845,7 +2012,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/implement-stack-using-linked-list/1",
     "pattern": "Stack",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Implement%20Stack%20using%20Linked%20List"
   },
   {
     "topicNo": 12,
@@ -1856,7 +2024,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/next-greater-element-i/",
     "pattern": "Monotonic Stack",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Next%20Greater%20Element%20I"
   },
   {
     "topicNo": 12,
@@ -1867,7 +2036,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/decode-string-recursively-encoded-count-followed-substring/",
     "pattern": "Stack",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Decode%20String"
   },
   {
     "topicNo": 12,
@@ -1878,7 +2048,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/length-of-the-longest-valid-substring/",
     "pattern": "Stack",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Valid"
   },
   {
     "topicNo": 12,
@@ -1889,7 +2060,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/calculate-score-of-parentheses-from-a-given-string/",
     "pattern": "Stack",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Score%20of%20Balanced"
   },
   {
     "topicNo": 12,
@@ -1900,7 +2072,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sort-a-stack-using-recursion/",
     "pattern": "Stack",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort"
   },
   {
     "topicNo": 12,
@@ -1911,7 +2084,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/daily-temperatures/",
     "pattern": "Monotonic Stack",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Daily%20Temperatures"
   },
   {
     "topicNo": 12,
@@ -1922,7 +2096,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/next-greater-element-ii/",
     "pattern": "Monotonic Stack",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Next%20Greater%20Element%20II"
   },
   {
     "topicNo": 12,
@@ -1933,7 +2108,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/largest-rectangle-in-histogram/",
     "pattern": "Monotonic Stack",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Largest%20Rectangle%20in%20Histogram"
   },
   {
     "topicNo": 12,
@@ -1944,7 +2120,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/online-stock-span/",
     "pattern": "Monotonic Stack / Stock Span",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Online%20Stock%20Span"
   },
   {
     "topicNo": 12,
@@ -1955,7 +2132,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/stack-set-2-infix-to-postfix/",
     "pattern": "Infix → Postfix",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Infix%20to%20Postfix%20Conversion"
   },
   {
     "topicNo": 13,
@@ -1966,7 +2144,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/implement-stack-using-queue/",
     "pattern": "Queue / Deque",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Implement%20Stack%20using%20Queues"
   },
   {
     "topicNo": 13,
@@ -1977,7 +2156,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-first-non-repeating-character-stream-characters/",
     "pattern": "Queue / Deque",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20First%20non-repeating%20in%20a%20stream"
   },
   {
     "topicNo": 13,
@@ -1988,7 +2168,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/deque-data-structure/",
     "pattern": "Queue / Deque",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Deque"
   },
   {
     "topicNo": 13,
@@ -1999,7 +2180,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-subarray-in-which-absolute-difference-between-any-two-element-is-not-greater-than-x/",
     "pattern": "Monotonic Deque",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Subarray%20with%20Difference%20%E2%89%A4%20X"
   },
   {
     "topicNo": 13,
@@ -2010,7 +2192,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/design-hit-counter/",
     "pattern": "Queue / Time Window Design",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Design%20Hit%20Counter"
   },
   {
     "topicNo": 14,
@@ -2021,7 +2204,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/factorial5739/1",
     "pattern": "Recursion",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Factorial%20of%20a%20Number"
   },
   {
     "topicNo": 14,
@@ -2032,7 +2216,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/check-if-an-array-is-sorted0701/1",
     "pattern": "Recursion",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20if%20Array%20is%20Sorted"
   },
   {
     "topicNo": 14,
@@ -2043,7 +2228,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/reverse-a-string/",
     "pattern": "Recursion",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20a%20String"
   },
   {
     "topicNo": 14,
@@ -2054,7 +2240,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/generate-parentheses/",
     "pattern": "Backtracking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Generate%20Parentheses"
   },
   {
     "topicNo": 14,
@@ -2065,7 +2252,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/rat-in-a-maze/",
     "pattern": "Backtracking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rat%20in%20a%20Maze"
   },
   {
     "topicNo": 14,
@@ -2076,7 +2264,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/permutations/",
     "pattern": "Backtracking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Permutations"
   },
   {
     "topicNo": 14,
@@ -2087,7 +2276,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/generalized-abbreviation/",
     "pattern": "Backtracking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Unique%20Generalized%20Abbreviations"
   },
   {
     "topicNo": 14,
@@ -2098,7 +2288,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-number-subsets-distinct-elements/",
     "pattern": "Backtracking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Max%20Subsets"
   },
   {
     "topicNo": 14,
@@ -2109,7 +2300,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/subsets-ii/",
     "pattern": "Backtracking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Subsets%20With%20Duplicates"
   },
   {
     "topicNo": 14,
@@ -2120,7 +2312,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/check-if-a-word-exists-in-a-grid-or-not/",
     "pattern": "Constraint Backtracking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Word%20Search"
   },
   {
     "topicNo": 14,
@@ -2131,7 +2324,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/the-knights-tour-problem/",
     "pattern": "Backtracking",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Knight's%20Tour"
   },
   {
     "topicNo": 14,
@@ -2142,7 +2336,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/n-queens/",
     "pattern": "Backtracking",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20N%20Queen%20Problem"
   },
   {
     "topicNo": 14,
@@ -2153,7 +2348,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/combination-sum/",
     "pattern": "Backtracking / Combinations",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Combination%20Sum"
   },
   {
     "topicNo": 14,
@@ -2164,7 +2360,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/palindrome-partitioning/",
     "pattern": "Backtracking / Partitioning",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Palindrome%20Partitioning"
   },
   {
     "topicNo": 15,
@@ -2175,7 +2372,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/complement-of-base-10-integer/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Complement%20of%20Base%2010%20Number"
   },
   {
     "topicNo": 15,
@@ -2186,7 +2384,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/maximum-xor-of-two-numbers-in-an-array/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Max%20XOR%20of%20Two"
   },
   {
     "topicNo": 15,
@@ -2197,7 +2396,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-pairs-having-bitwise-xor-less-than-k-from-given-array/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Pairs%20with%20XOR%20less%20than%20K"
   },
   {
     "topicNo": 15,
@@ -2208,7 +2408,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/missing-number/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Missing%20Number%20using%20XOR"
   },
   {
     "topicNo": 15,
@@ -2219,7 +2420,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/power-of-two/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Power%20of%20Two"
   },
   {
     "topicNo": 15,
@@ -2230,7 +2432,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/number-of-1-bits/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%201%20Bits"
   },
   {
     "topicNo": 15,
@@ -2241,7 +2444,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/counting-bits/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Counting%20Bits"
   },
   {
     "topicNo": 15,
@@ -2252,7 +2456,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/single-number/",
     "pattern": "Bit Manipulation",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Single%20Number"
   },
   {
     "topicNo": 15,
@@ -2263,7 +2468,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/single-number-iii/",
     "pattern": "Bit Manipulation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Single%20Number%20III"
   },
   {
     "topicNo": 15,
@@ -2274,7 +2480,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/single-number-ii/",
     "pattern": "Bit Manipulation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Single%20Number%20II"
   },
   {
     "topicNo": 15,
@@ -2285,7 +2492,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/bitwise-and-of-numbers-range/",
     "pattern": "Bit Manipulation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Bitwise%20AND%20of%20Numbers%20Range"
   },
   {
     "topicNo": 15,
@@ -2296,7 +2504,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/sum-of-two-integers/",
     "pattern": "Bit Manipulation",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sum%20of%20Two%20Integers"
   },
   {
     "topicNo": 15,
@@ -2307,7 +2516,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/subsets/",
     "pattern": "Bit Masking",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Subsets"
   },
   {
     "topicNo": 16,
@@ -2318,7 +2528,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/how-to-check-if-a-given-array-represents-a-binary-heap/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20for%20Heap"
   },
   {
     "topicNo": 16,
@@ -2329,7 +2540,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/heap-sort/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Heap%20Sort"
   },
   {
     "topicNo": 16,
@@ -2340,7 +2552,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20Largest%20Element%20in%20an%20Array"
   },
   {
     "topicNo": 16,
@@ -2351,7 +2564,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/k-maximum-sum-combinations-two-arrays/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20K%20Max%20sum%20combinations"
   },
   {
     "topicNo": 16,
@@ -2362,7 +2576,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/convert-bst-min-heap/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20BST%20to%20Min%20Heap"
   },
   {
     "topicNo": 16,
@@ -2373,7 +2588,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/top-k-frequent-elements/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Top%20K%20Frequent%20Elements"
   },
   {
     "topicNo": 16,
@@ -2384,7 +2600,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/top-k-frequent-words/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Top%20K%20Frequent%20Words"
   },
   {
     "topicNo": 16,
@@ -2395,7 +2612,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/k-closest-points-to-origin/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20K%20Closest%20Points%20to%20Origin"
   },
   {
     "topicNo": 16,
@@ -2406,7 +2624,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/reorganize-string/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reorganize%20String"
   },
   {
     "topicNo": 16,
@@ -2417,7 +2636,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-right-interval/",
     "pattern": "Two Heaps",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Next%20Interval"
   },
   {
     "topicNo": 16,
@@ -2428,7 +2648,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-k-pairs-with-smallest-sums/",
     "pattern": "K-Way Merge",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20K%20Pairs%20with%20Smallest%20Sums"
   },
   {
     "topicNo": 16,
@@ -2439,7 +2660,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sort-elements-by-frequency/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sort%20by%20Frequency"
   },
   {
     "topicNo": 16,
@@ -2450,7 +2672,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/the-skyline-problem-using-divide-and-conquer-algorithm/",
     "pattern": "Heap / Priority Queue",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20The%20Skyline%20Problem"
   },
   {
     "topicNo": 16,
@@ -2461,7 +2684,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/sliding-window-median/",
     "pattern": "Two Heaps",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sliding%20Window%20Median"
   },
   {
     "topicNo": 16,
@@ -2472,7 +2696,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/ipo/",
     "pattern": "Two Heaps",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20IPO"
   },
   {
     "topicNo": 16,
@@ -2483,7 +2708,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-median-from-data-stream/",
     "pattern": "Two Heaps",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Find%20Median%20from%20Data%20Stream"
   },
   {
     "topicNo": 16,
@@ -2494,7 +2720,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/",
     "pattern": "K-Way Merge",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Smallest%20Range%3A%20Smallest%20Range%20Covering%20Elements%20from%20K%20Lists"
   },
   {
     "topicNo": 16,
@@ -2505,7 +2732,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/merge-k-sorted-lists/",
     "pattern": "K-Way Merge",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20k%20Sorted%20Lists"
   },
   {
     "topicNo": 17,
@@ -2516,7 +2744,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Binary%20Tree%20Level%20Order%20Traversal"
   },
   {
     "topicNo": 17,
@@ -2527,7 +2756,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/print-right-view-binary-tree-2/",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Right%20View"
   },
   {
     "topicNo": 17,
@@ -2538,7 +2768,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/inorder-tree-traversal-without-recursion-and-without-stack/",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Morris%20Inorder"
   },
   {
     "topicNo": 17,
@@ -2549,7 +2780,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/iterative-postorder-traversal-using-stack/",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Postorder"
   },
   {
     "topicNo": 17,
@@ -2560,7 +2792,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/smallest-string-starting-from-leaf",
     "pattern": "Tree DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Smallest%20string%20starting%20from%20Leaf"
   },
   {
     "topicNo": 17,
@@ -2571,7 +2804,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/balanced-binary-tree/",
     "pattern": "Tree DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Balanced%20Binary%20Tree"
   },
   {
     "topicNo": 17,
@@ -2582,7 +2816,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/binary-tree-paths/",
     "pattern": "Tree DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Binary%20Tree%20Paths"
   },
   {
     "topicNo": 17,
@@ -2593,7 +2828,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/diameter-of-binary-tree/",
     "pattern": "Tree DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Diameter%20of%20Binary%20Tree"
   },
   {
     "topicNo": 17,
@@ -2604,7 +2840,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
     "pattern": "Tree DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Depth%20of%20Binary%20Tree"
   },
   {
     "topicNo": 17,
@@ -2615,7 +2852,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/average-of-levels-in-binary-tree/",
     "pattern": "Tree BFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Level%20Averages%20in%20a%20Binary%20Tree"
   },
   {
     "topicNo": 17,
@@ -2626,7 +2864,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/binary-tree-level-order-traversal-ii/",
     "pattern": "Tree BFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Reverse%20Level%20Order%20Traversal"
   },
   {
     "topicNo": 17,
@@ -2637,7 +2876,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Binary%20Tree%20Zigzag%20Level%20Order%20Traversal"
   },
   {
     "topicNo": 17,
@@ -2648,7 +2888,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/boundary-traversal-of-binary-tree/1",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Boundary%20Traversal"
   },
   {
     "topicNo": 17,
@@ -2659,7 +2900,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/bottom-view-of-binary-tree/1",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Bottom%20View"
   },
   {
     "topicNo": 17,
@@ -2670,7 +2912,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/vertical-order-traversal-of-binary-tree-using-map/",
     "pattern": "Binary Tree Traversal",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Vertical%20Traversal"
   },
   {
     "topicNo": 17,
@@ -2681,7 +2924,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/path-sum-iii/",
     "pattern": "Tree DFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20Paths%20for%20a%20Sum"
   },
   {
     "topicNo": 17,
@@ -2692,7 +2936,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/",
     "pattern": "Tree BFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20All%20Nodes%20Distance%20K%20in%20Binary%20tree"
   },
   {
     "topicNo": 17,
@@ -2703,7 +2948,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/maximum-width-of-binary-tree/",
     "pattern": "Tree BFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20width%20of%20Binary%20Tree"
   },
   {
     "topicNo": 17,
@@ -2714,7 +2960,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/",
     "pattern": "Tree Construction",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Construct%20BT%20from%20Postorder%20and%20Inorder"
   },
   {
     "topicNo": 17,
@@ -2725,7 +2972,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/",
     "pattern": "Tree Construction",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Construct%20BT%20from%20Preorder%20and%20Inorder"
   },
   {
     "topicNo": 17,
@@ -2736,7 +2984,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/",
     "pattern": "LCA / Ancestor Patterns",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20LCA%20of%20Binary%20Tree"
   },
   {
     "topicNo": 17,
@@ -2747,7 +2996,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/lowest-common-ancestor-binary-tree-set-1/",
     "pattern": "Tree DFS",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20LCA"
   },
   {
     "topicNo": 17,
@@ -2758,7 +3008,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/level-order-traversal-in-spiral-form/",
     "pattern": "Tree DFS",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Spiral%20Level%20Order"
   },
   {
     "topicNo": 17,
@@ -2769,7 +3020,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
     "pattern": "Tree DFS",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Binary%20Tree%20Maximum%20Path%20Sum"
   },
   {
     "topicNo": 17,
@@ -2780,7 +3032,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/kth-ancestor-of-a-tree-node/",
     "pattern": "LCA / Ancestor Patterns",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20Ancestor%20of%20a%20Tree%20Node"
   },
   {
     "topicNo": 17,
@@ -2791,7 +3044,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/",
     "pattern": "Tree Serialization",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Serialize%20and%20Deserialize%20Binary%20Tree"
   },
   {
     "topicNo": 18,
@@ -2802,7 +3056,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/insert-into-a-binary-search-tree/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Insert%20into%20a%20BST"
   },
   {
     "topicNo": 18,
@@ -2813,7 +3068,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20LCA%20of%20BST"
   },
   {
     "topicNo": 18,
@@ -2824,7 +3080,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/validate-binary-search-tree/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Validate%20Binary%20Search%20Tree"
   },
   {
     "topicNo": 18,
@@ -2835,7 +3092,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/merge-two-bsts-with-limited-extra-space/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20two%20BSTs"
   },
   {
     "topicNo": 18,
@@ -2846,7 +3104,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/sorted-array-to-balanced-bst/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sorted%20Array%20to%20BST"
   },
   {
     "topicNo": 18,
@@ -2857,7 +3116,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/fix-two-swapped-nodes-of-bst/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Recover%20BST"
   },
   {
     "topicNo": 18,
@@ -2868,7 +3128,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/unique-binary-search-trees/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20of%20Structurally%20Unique%20Binary%20Search%20Trees"
   },
   {
     "topicNo": 18,
@@ -2879,7 +3140,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/unique-binary-search-trees-ii/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Structurally%20Unique%20Binary%20Search%20Trees"
   },
   {
     "topicNo": 18,
@@ -2890,7 +3152,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-pair-given-sum-bst/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%202%20Sum%20in%20BST"
   },
   {
     "topicNo": 18,
@@ -2901,7 +3164,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-k-th-smallest-element-in-bst-order-statistics-in-bst/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kth%20Smallest%20Element"
   },
   {
     "topicNo": 18,
@@ -2912,7 +3176,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/construct-binary-search-tree-from-preorder-traversal/",
     "pattern": "BST",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Construct%20BST%20from%20Preorder"
   },
   {
     "topicNo": 19,
@@ -2923,7 +3188,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-valid-word-with-all-prefixes/",
     "pattern": "Trie",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Word%20With%20All%20Prefixes"
   },
   {
     "topicNo": 19,
@@ -2934,7 +3200,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/implement-trie-prefix-tree/",
     "pattern": "Trie",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Implement%20Trie%20(Prefix%20Tree)"
   },
   {
     "topicNo": 19,
@@ -2945,7 +3212,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/implement-trie-ii-prefix-tree/",
     "pattern": "Trie",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Implement%20Trie%20II%20(Prefix%20Tree)"
   },
   {
     "topicNo": 19,
@@ -2956,7 +3224,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-number-of-distinct-substring-in-a-string/",
     "pattern": "Advanced Trie",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20of%20distinct%20substrings"
   },
   {
     "topicNo": 19,
@@ -2967,7 +3236,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/auto-complete-feature-using-trie/",
     "pattern": "Advanced Trie",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Search%20Suggestions%20System"
   },
   {
     "topicNo": 19,
@@ -2978,7 +3248,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/palindrome-pair-in-an-array-of-words-or-strings/",
     "pattern": "Advanced Trie",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Palindrome%20Pairs"
   },
   {
     "topicNo": 20,
@@ -2989,7 +3260,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/meeting-rooms-check-if-a-person-can-attend-all-meetings/",
     "pattern": "Intervals",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Meeting%20Rooms"
   },
   {
     "topicNo": 20,
@@ -3000,7 +3272,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/insert-interval/",
     "pattern": "Intervals",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Insert%20Interval"
   },
   {
     "topicNo": 20,
@@ -3011,7 +3284,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/merge-intervals/",
     "pattern": "Intervals",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Merge%20Intervals"
   },
   {
     "topicNo": 20,
@@ -3022,7 +3296,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-removals-required-to-make-ranges-non-overlapping/",
     "pattern": "Intervals",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Non-Overlapping%20Intervals"
   },
   {
     "topicNo": 21,
@@ -3033,7 +3308,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/assign-cookies/",
     "pattern": "Greedy",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Assign%20Cookies"
   },
   {
     "topicNo": 21,
@@ -3044,7 +3320,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/fractional-knapsack-problem/",
     "pattern": "Greedy",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Fractional%20Knapsack"
   },
   {
     "topicNo": 21,
@@ -3055,7 +3332,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-number-of-jumps-to-reach-end-of-a-given-array/",
     "pattern": "Greedy",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Jump%20Game"
   },
   {
     "topicNo": 21,
@@ -3066,7 +3344,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/job-sequencing-problem/",
     "pattern": "Greedy",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Job%20Sequencing"
   },
   {
     "topicNo": 21,
@@ -3077,7 +3356,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/task-scheduler/",
     "pattern": "Greedy + Heap",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Task%20Scheduler"
   },
   {
     "topicNo": 21,
@@ -3088,7 +3368,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-cost-to-connect-sticks/",
     "pattern": "Greedy + Heap",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Cost%20to%20Connect%20Sticks"
   },
   {
     "topicNo": 21,
@@ -3099,7 +3380,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-minimum-time-to-finish-all-jobs-with-given-constraints/",
     "pattern": "Greedy",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Min%20time%20to%20finish%20all%20jobs%20with%20given%20constraints"
   },
   {
     "topicNo": 21,
@@ -3110,7 +3392,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimize-cash-flow-among-given-set-friends-borrowed-money/",
     "pattern": "Greedy",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimize%20cash%20flow"
   },
   {
     "topicNo": 21,
@@ -3121,7 +3404,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/maximum-performance-of-a-team/",
     "pattern": "Greedy + Heap",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Performance%20of%20a%20Team"
   },
   {
     "topicNo": 22,
@@ -3132,7 +3416,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/breadth-first-search-or-bfs-for-a-graph/",
     "pattern": "Graph BFS / DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20BFS%20of%20Graph"
   },
   {
     "topicNo": 22,
@@ -3143,7 +3428,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/depth-first-search-or-dfs-for-a-graph/",
     "pattern": "Graph BFS / DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20DFS%20of%20Graph"
   },
   {
     "topicNo": 22,
@@ -3154,7 +3440,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/flood-fill/",
     "pattern": "Grid BFS / DFS",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Flood%20Fill%20Algorithm"
   },
   {
     "topicNo": 22,
@@ -3165,7 +3452,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/detect-cycle-undirected-graph/",
     "pattern": "Graph Cycle Detection",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Detect%20cycle%20in%20an%20undirected%20graph"
   },
   {
     "topicNo": 22,
@@ -3176,7 +3464,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/minimum-steps-reach-target-knight/",
     "pattern": "Graph BFS / DFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Min%20Knight%20steps%20for%20target"
   },
   {
     "topicNo": 22,
@@ -3187,7 +3476,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-height-trees/",
     "pattern": "Graph BFS / DFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Height%20Trees"
   },
   {
     "topicNo": 22,
@@ -3198,7 +3488,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/number-of-islands/",
     "pattern": "Grid BFS / DFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%20islands"
   },
   {
     "topicNo": 22,
@@ -3209,7 +3500,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/is-graph-bipartite/",
     "pattern": "Bipartite Graph",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Bipartite%20Graph"
   },
   {
     "topicNo": 22,
@@ -3220,7 +3512,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/shortest-path-in-binary-matrix/",
     "pattern": "Shortest Path — BFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Shortest%20Path%20in%20Binary%20Matrix"
   },
   {
     "topicNo": 22,
@@ -3231,7 +3524,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/word-ladder/",
     "pattern": "Shortest Path — BFS",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Word%20Ladder"
   },
   {
     "topicNo": 23,
@@ -3242,7 +3536,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/shortest-cycle-in-an-undirected-unweighted-graph/",
     "pattern": "Graph BFS / DFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Shortest%20cycle%20in%20an%20undirected%20graph"
   },
   {
     "topicNo": 23,
@@ -3253,7 +3548,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/course-schedule/",
     "pattern": "Topological Sort",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Course%20Schedule"
   },
   {
     "topicNo": 23,
@@ -3264,7 +3560,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/sequence-reconstruction/",
     "pattern": "Topological Sort",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sequence%20Reconstruction"
   },
   {
     "topicNo": 23,
@@ -3275,7 +3572,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/topological-sorting/",
     "pattern": "Topological Sort",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Topological%20Sort"
   },
   {
     "topicNo": 23,
@@ -3286,7 +3584,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/network-delay-time",
     "pattern": "Dijkstra",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Bellman%20Ford%3A%20Network%20Delay%20time"
   },
   {
     "topicNo": 23,
@@ -3297,7 +3596,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/shortest-path-with-one-curved-edge-in-an-undirected-graph/",
     "pattern": "Dijkstra",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Shortest%20path%20with%20one%20curved%20edge%20in%20an%20undirected%20Graph"
   },
   {
     "topicNo": 23,
@@ -3308,7 +3608,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/distance-from-the-source-bellman-ford-algorithm/1",
     "pattern": "Bellman-Ford",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Shortest%20Path%20with%20Negative%20Edges"
   },
   {
     "topicNo": 23,
@@ -3319,7 +3620,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/cheapest-flights-within-k-stops/",
     "pattern": "Shortest Path — BFS",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Dijkstra's%20Algorithm%3A%20Cheapest%20Flights%20Within%20K%20Stops"
   },
   {
     "topicNo": 23,
@@ -3330,7 +3632,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/",
     "pattern": "Floyd-Warshall",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Floyd-Warshall%3A%20Find%20the%20City%20with%20Smallest%20Number%20of%20%20%20Neighbours%20at%20a%20Threshold%20Distance"
   },
   {
     "topicNo": 23,
@@ -3341,7 +3644,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/floyd-warshall-algorithm-dp-16/",
     "pattern": "Floyd-Warshall",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Floyd%20Warshall"
   },
   {
     "topicNo": 23,
@@ -3352,7 +3656,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/total-number-spanning-trees-graph/",
     "pattern": "Graph Algorithms",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Total%20Spanning%20Trees"
   },
   {
     "topicNo": 23,
@@ -3363,7 +3668,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/alien-dictionary/",
     "pattern": "Topological Sort",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Alien%20Dictionary"
   },
   {
     "topicNo": 23,
@@ -3374,7 +3680,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-cost-to-make-at-least-one-valid-path-in-a-grid/",
     "pattern": "0-1 BFS",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Cost%20to%20Make%20at%20Least%20One%20Valid%20Path%20in%20a%20Grid"
   },
   {
     "topicNo": 23,
@@ -3385,7 +3692,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-obstacle-removal-to-reach-corner/",
     "pattern": "0-1 BFS",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Obstacle%20Removal%20to%20Reach%20Corner"
   },
   {
     "topicNo": 24,
@@ -3396,7 +3704,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/min-cost-to-connect-all-points/",
     "pattern": "Union Find / DSU",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kruskal's%20Algorithm%3A%20Minimum%20Cost%20to%20connect%20all%20Points"
   },
   {
     "topicNo": 24,
@@ -3407,7 +3716,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/union-of-two-arrays/",
     "pattern": "Union Find / DSU",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Union"
   },
   {
     "topicNo": 24,
@@ -3418,7 +3728,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/detect-cycle-in-graph-using-dsu/",
     "pattern": "Union Find / DSU",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Detect%20Cycle%20using%20DSU"
   },
   {
     "topicNo": 24,
@@ -3429,7 +3740,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/number-of-connected-components-of-a-graph-using-disjoint-set-union/",
     "pattern": "Union Find / DSU",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%20connected%20components"
   },
   {
     "topicNo": 24,
@@ -3440,7 +3752,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/number-of-operations-to-make-network-connected/",
     "pattern": "Union Find / DSU",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%20Operations%20to%20Make%20Network%20Connected"
   },
   {
     "topicNo": 24,
@@ -3451,7 +3764,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/redundant-connection/",
     "pattern": "Union Find / DSU",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Redundant%20Connection"
   },
   {
     "topicNo": 24,
@@ -3462,7 +3776,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/",
     "pattern": "Minimum Spanning Tree",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Kruskal's%20Minimum%20Spanning%20Tree"
   },
   {
     "topicNo": 24,
@@ -3473,7 +3788,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/prims-minimum-spanning-tree-mst-greedy-algo-5/",
     "pattern": "Minimum Spanning Tree",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Prim's%20Minimum%20Spanning%20Tree"
   },
   {
     "topicNo": 25,
@@ -3484,7 +3800,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/queries-in-a-matrix/",
     "pattern": "Matrix",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Queries%20in%20a%20Matrix"
   },
   {
     "topicNo": 25,
@@ -3495,7 +3812,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/game-of-life/",
     "pattern": "Matrix",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Game%20of%20Life"
   },
   {
     "topicNo": 25,
@@ -3506,7 +3824,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/max-area-of-island/",
     "pattern": "Matrix",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Max%20Area%20of%20Island"
   },
   {
     "topicNo": 25,
@@ -3517,7 +3836,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/number-of-closed-islands/",
     "pattern": "Matrix",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%20Closed%20Islands"
   },
   {
     "topicNo": 25,
@@ -3528,7 +3848,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/set-matrix-zeroes/",
     "pattern": "Matrix",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Set%20Matrix%20Zeroes"
   },
   {
     "topicNo": 25,
@@ -3539,7 +3860,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/surrounded-regions/",
     "pattern": "Matrix",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Surrounded%20Regions"
   },
   {
     "topicNo": 25,
@@ -3550,7 +3872,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/rotting-oranges/",
     "pattern": "Grid Algorithms",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rotting%20Oranges"
   },
   {
     "topicNo": 25,
@@ -3561,7 +3884,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
     "pattern": "Grid Algorithms",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Increasing%20Path%20in%20a%20Matrix"
   },
   {
     "topicNo": 26,
@@ -3572,7 +3896,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/fibonacci-number/",
     "pattern": "1D DP",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Fibonacci%20Number"
   },
   {
     "topicNo": 26,
@@ -3583,7 +3908,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-common-subsequence/",
     "pattern": "DP Fundamentals",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Common%20Subsequence"
   },
   {
     "topicNo": 26,
@@ -3594,7 +3920,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-a-sorted-subsequence-of-size-3-in-linear-time/",
     "pattern": "DP Fundamentals",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Sorted%20subsequence%20of%203"
   },
   {
     "topicNo": 26,
@@ -3605,7 +3932,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-derangements-permutation-such-that-no-element-appears-in-its-original-position/",
     "pattern": "1D DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Derangements"
   },
   {
     "topicNo": 26,
@@ -3616,7 +3944,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-possible-decodings-given-digit-sequence/",
     "pattern": "1D DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Possible%20Decodings"
   },
   {
     "topicNo": 26,
@@ -3627,7 +3956,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/coin-change/",
     "pattern": "1D DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Coin%20Change"
   },
   {
     "topicNo": 26,
@@ -3638,7 +3968,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-if-a-string-is-interleaved-of-two-other-strings-dp-33/",
     "pattern": "1D DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Interleaving%20String"
   },
   {
     "topicNo": 26,
@@ -3649,7 +3980,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/house-robber-ii/",
     "pattern": "Knapsack DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20House%20Robber%20ii"
   },
   {
     "topicNo": 26,
@@ -3660,7 +3992,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/target-sum/",
     "pattern": "Knapsack DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Target%20Sum"
   },
   {
     "topicNo": 26,
@@ -3671,7 +4004,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/coin-change-ii/",
     "pattern": "Knapsack DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Coin%20Change%20II"
   },
   {
     "topicNo": 26,
@@ -3682,7 +4016,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-cost-for-tickets/",
     "pattern": "Knapsack DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Cost%20For%20Tickets"
   },
   {
     "topicNo": 26,
@@ -3693,7 +4028,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/perfect-squares/",
     "pattern": "Knapsack DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Perfect%20Squares"
   },
   {
     "topicNo": 26,
@@ -3704,7 +4040,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/0-1-knapsack-problem-dp-10/",
     "pattern": "Subsequence DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%200%2F1%20Knapsack"
   },
   {
     "topicNo": 26,
@@ -3715,7 +4052,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/maximum-length-of-pair-chain/",
     "pattern": "Subsequence DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20Length%20of%20Pair%20Chain"
   },
   {
     "topicNo": 26,
@@ -3726,7 +4064,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/number-of-longest-increasing-subsequence/",
     "pattern": "Subsequence DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Number%20of%20LIS"
   },
   {
     "topicNo": 26,
@@ -3737,7 +4076,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/cutting-a-rod-dp-13/",
     "pattern": "Subsequence DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Rod%20Cutting"
   },
   {
     "topicNo": 26,
@@ -3748,7 +4088,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/count-minimum-number-subsets-subsequences-consecutive-numbers/",
     "pattern": "Subsequence DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Consecutive%20Subsequence"
   },
   {
     "topicNo": 26,
@@ -3759,7 +4100,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-consecutive-subsequence/",
     "pattern": "Subsequence DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Consecutive%20Subsequence"
   },
   {
     "topicNo": 26,
@@ -3770,7 +4112,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-common-substring-dp-29/",
     "pattern": "String DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Common%20Substring"
   },
   {
     "topicNo": 26,
@@ -3781,7 +4124,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/given-two-strings-find-first-string-subsequence-second/",
     "pattern": "String DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Check%20Subsequence"
   },
   {
     "topicNo": 26,
@@ -3792,7 +4136,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-palindromic-subsequence/",
     "pattern": "String DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Palindromic%20Subsequence"
   },
   {
     "topicNo": 26,
@@ -3803,7 +4148,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/maximum-size-sub-matrix-with-all-1s-in-a-binary-matrix/",
     "pattern": "Grid DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Largest%20Square%20Submatrix%20with%20All%201s"
   },
   {
     "topicNo": 26,
@@ -3814,7 +4160,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/longest-increasing-path-matrix/",
     "pattern": "Grid DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Increasing%20Path"
   },
   {
     "topicNo": 26,
@@ -3825,7 +4172,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/find-the-longest-path-in-a-matrix-with-given-constraints/",
     "pattern": "Grid DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximum%20path%20sum%20in%20matrix"
   },
   {
     "topicNo": 26,
@@ -3836,7 +4184,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/dungeon-game/",
     "pattern": "Grid DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Dungeon%20Game%3A%20Dungeon%20Game"
   },
   {
     "topicNo": 26,
@@ -3847,7 +4196,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/maximal-square/",
     "pattern": "Grid DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Maximal%20Square"
   },
   {
     "topicNo": 26,
@@ -3858,7 +4208,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/min-cost-path-dp-6/",
     "pattern": "Grid DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20cost%20Path"
   },
   {
     "topicNo": 26,
@@ -3869,7 +4220,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/",
     "pattern": "Stock DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Buy%20and%20Sell%20Stocks%20iii"
   },
   {
     "topicNo": 26,
@@ -3880,7 +4232,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/",
     "pattern": "Stock DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Buy%20and%20Sell%20Stocks%20iv"
   },
   {
     "topicNo": 26,
@@ -3891,7 +4244,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/maximum-profit-by-buying-and-selling-a-share-at-most-k-times/",
     "pattern": "Stock DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Buy%20and%20Sell%20-%20k%20Transactions"
   },
   {
     "topicNo": 26,
@@ -3902,7 +4256,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/maximum-profit-after-buying-and-selling-the-stocks-with-transaction-fees/",
     "pattern": "Stock DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Buy%20and%20Sell%20with%20Transaction%20Fee"
   },
   {
     "topicNo": 26,
@@ -3913,7 +4268,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/matrix-chain-multiplication-dp-8/",
     "pattern": "Partition DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Matrix%20Chain%20Multiplication"
   },
   {
     "topicNo": 26,
@@ -3924,7 +4280,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/boolean-parenthesization-problem-dp-37/",
     "pattern": "Partition DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Boolean%20Parenthesization"
   },
   {
     "topicNo": 26,
@@ -3935,7 +4292,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/dsa/optimal-strategy-for-a-game-dp-31/",
     "pattern": "Partition DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Optimal%20Strategy"
   },
   {
     "topicNo": 26,
@@ -3946,7 +4304,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/minimum-cost-to-cut-a-stick/",
     "pattern": "Partition DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Minimum%20Cost%20to%20Cut%20a%20Stick"
   },
   {
     "topicNo": 26,
@@ -3957,7 +4316,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/house-robber-iii/",
     "pattern": "Tree DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20House%20Robber%20III"
   },
   {
     "topicNo": 26,
@@ -3968,7 +4328,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/distribute-coins-in-binary-tree/",
     "pattern": "Tree DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Distribute%20Coins%20in%20Binary%20Tree"
   },
   {
     "topicNo": 26,
@@ -3979,7 +4340,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-zigzag-path-in-a-binary-tree/",
     "pattern": "Tree DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20ZigZag%20Path%20in%20a%20Binary%20Tree"
   },
   {
     "topicNo": 26,
@@ -3990,7 +4352,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/partition-to-k-equal-sum-subsets/",
     "pattern": "Bitmask DP",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Partition%20to%20K%20Equal%20Sum%20Subsets"
   },
   {
     "topicNo": 26,
@@ -4001,7 +4364,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/burst-balloons/",
     "pattern": "Partition DP",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Burst%20Balloons"
   },
   {
     "topicNo": 26,
@@ -4012,7 +4376,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/binary-tree-cameras/",
     "pattern": "Tree DP",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Binary%20Tree%20Cameras"
   },
   {
     "topicNo": 26,
@@ -4023,7 +4388,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/smallest-sufficient-team/",
     "pattern": "Bitmask DP",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Smallest%20Sufficient%20Team"
   },
   {
     "topicNo": 26,
@@ -4034,7 +4400,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/shortest-path-visiting-all-nodes/",
     "pattern": "Bitmask DP",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Shortest%20Path%20Visiting%20All%20Nodes"
   },
   {
     "topicNo": 26,
@@ -4045,7 +4412,8 @@
     "platform": "GeeksforGeeks",
     "link": "https://www.geeksforgeeks.org/problems/travelling-salesman-problem2731/1",
     "pattern": "Bitmask DP",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Traveling%20Salesman%20Problem"
   },
   {
     "topicNo": 27,
@@ -4056,7 +4424,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/range-sum-query-mutable/",
     "pattern": "Segment Tree / Fenwick Tree",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Range%20Sum%20Query%20-%20Mutable"
   },
   {
     "topicNo": 27,
@@ -4067,7 +4436,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/range-sum-query-2d-mutable/",
     "pattern": "Segment Tree / Fenwick Tree",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Range%20Sum%20Query%202D%20-%20Mutable"
   },
   {
     "topicNo": 27,
@@ -4078,7 +4448,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/count-of-smaller-numbers-after-self/",
     "pattern": "Segment Tree / Fenwick Tree",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Count%20of%20Smaller%20Numbers%20After%20Self"
   },
   {
     "topicNo": 27,
@@ -4089,7 +4460,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/longest-increasing-subsequence-ii/",
     "pattern": "Segment Tree / Fenwick Tree",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Longest%20Increasing%20Subsequence%20II"
   },
   {
     "topicNo": 27,
@@ -4100,7 +4472,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/my-calendar-iii/",
     "pattern": "Segment Tree / Fenwick Tree",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20My%20Calendar%20III"
   },
   {
     "topicNo": 28,
@@ -4111,7 +4484,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/design-hashmap/",
     "pattern": "Design",
-    "level": "Level 1"
+    "level": "Level 1",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Design%20HashMap"
   },
   {
     "topicNo": 28,
@@ -4122,7 +4496,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/lru-cache/",
     "pattern": "Design",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20LRU%20Cache"
   },
   {
     "topicNo": 28,
@@ -4133,7 +4508,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/design-circular-queue/",
     "pattern": "Design",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Design%20Circular%20Queue"
   },
   {
     "topicNo": 28,
@@ -4144,7 +4520,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/design-twitter/",
     "pattern": "Design",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Design%20Twitter"
   },
   {
     "topicNo": 28,
@@ -4155,7 +4532,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/insert-delete-getrandom-o1/",
     "pattern": "Design",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Insert%20Delete%20GetRandom%20O(1)"
   },
   {
     "topicNo": 28,
@@ -4166,7 +4544,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/design-add-and-search-words-data-structure/",
     "pattern": "Design",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Design%20Add%20and%20Search%20Words%20Data%20Structure"
   },
   {
     "topicNo": 28,
@@ -4177,7 +4556,8 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/time-based-key-value-store/",
     "pattern": "Design",
-    "level": "Level 2"
+    "level": "Level 2",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20Time%20Based%20Key-Value%20Store"
   },
   {
     "topicNo": 28,
@@ -4188,6 +4568,7 @@
     "platform": "LeetCode",
     "link": "https://leetcode.com/problems/lfu-cache/",
     "pattern": "Design",
-    "level": "Level 3"
+    "level": "Level 3",
+    "gfgLink": "https://duckduckgo.com/?q=%5C%5Cgeeksforgeeks%20LFU%20Cache"
   }
 ]

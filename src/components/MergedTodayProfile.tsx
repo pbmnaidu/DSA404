@@ -137,6 +137,38 @@ function ThemedTooltip({ hint, children }: { hint: string; children: React.React
  );
 }
 
+function DuolingoOwl({ mood }: { mood: 'sad' | 'neutral' | 'happy' | 'fire' }) {
+  const imgSrc = `/mascots/owl-${mood}.jpg`;
+  
+  return (
+    <div className={`relative size-24 shrink-0 transition-transform hover:scale-110 duolingo-pet mood-${mood}`}>
+      <style jsx>{`
+        @keyframes petHover {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes fireHover {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-3px) scale(1.05); }
+        }
+        .duolingo-pet {
+          animation: petHover 3s ease-in-out infinite;
+        }
+        .mood-fire { 
+          animation: fireHover 0.8s ease-in-out infinite; 
+          filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+        }
+        img {
+          mix-blend-mode: multiply;
+        }
+      `}</style>
+      <div className="w-full h-full rounded-full overflow-hidden border-2 border-border/30 bg-white shadow-sm flex items-center justify-center">
+        <img src={imgSrc} alt={`${mood} owl mascot`} className="w-[120%] h-[120%] object-cover object-center translate-y-2" />
+      </div>
+    </div>
+  );
+}
+
 function MissionWelcomeMascot({ name, streakCount }: { name: string; streakCount: number }) {
   const [mounted, setMounted] = useState(false);
   const [msgIndex, setMsgIndex] = useState(0);
@@ -164,33 +196,33 @@ function MissionWelcomeMascot({ name, streakCount }: { name: string; streakCount
   const highStreakMotivations = [
     `Incredible ${streakCount}-day streak! Don't break it now!`,
     `You are an unstoppable force of nature, ${name}!`,
-    `${streakCount} days! The owl is in awe of your dedication.`
+    `${streakCount} days! The pet is in awe of your dedication.`
   ];
 
   useEffect(() => {
     setMounted(true);
     const interval = setInterval(() => {
       setMsgIndex(prev => prev + 1);
-    }, 8000); // Change message every 8 seconds
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
   let messagesPool = defaultMotivations;
-  let owlEmoji = "🦉";
-  let owlSubMessage = "Your learning companion";
+  let mood: 'sad' | 'neutral' | 'happy' | 'fire' = 'neutral';
+  let petSubMessage = "Your learning companion";
 
   if (streakCount > 7) {
-    owlEmoji = "🔥🦉🔥";
+    mood = 'fire';
     messagesPool = highStreakMotivations;
-    owlSubMessage = "The owl is fired up!";
+    petSubMessage = "The pet is fired up!";
   } else if (streakCount > 3) {
-    owlEmoji = "😎🦉";
+    mood = 'happy';
     messagesPool = activeStreakMotivations;
-    owlSubMessage = "The owl is proud of you.";
+    petSubMessage = "The pet is proud of you.";
   } else if (streakCount === 0) {
-    owlEmoji = "🥺🦉";
+    mood = 'sad';
     messagesPool = zeroStreakMotivations;
-    owlSubMessage = "The owl is waiting.";
+    petSubMessage = "The pet is waiting.";
   }
 
   const currentMessage = messagesPool[msgIndex % messagesPool.length];
@@ -201,29 +233,6 @@ function MissionWelcomeMascot({ name, streakCount }: { name: string; streakCount
       aria-live="polite"
     >
       <style jsx>{`
-        @keyframes owlFlyIn {
-          0% { transform: translate(-100px, -100px) scale(0.5) rotate(-20deg); opacity: 0; }
-          50% { transform: translate(10px, 10px) scale(1.1) rotate(10deg); opacity: 1; }
-          100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
-        }
-        @keyframes owlPetBreath {
-          0%, 100% { transform: translateY(0) scale(1, 1); }
-          50% { transform: translateY(-4px) scale(1.03, 0.97); }
-        }
-        @keyframes owlWingWave {
-          0%, 100% { transform: rotate(0deg) scale(1); }
-          20% { transform: rotate(25deg) scale(1.1); }
-          40% { transform: rotate(-15deg) scale(1.1); }
-          60% { transform: rotate(25deg) scale(1.1); }
-          80% { transform: rotate(-10deg) scale(1.1); }
-        }
-        .owl-animated { 
-          animation: owlFlyIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, owlPetBreath 3.5s ease-in-out 1.2s infinite;
-        }
-        .owl-wing {
-          transform-origin: bottom right;
-          animation: owlWingWave 5s ease-in-out infinite;
-        }
         .msg-transition {
           animation: fade-swap 0.5s ease-in-out;
         }
@@ -232,16 +241,15 @@ function MissionWelcomeMascot({ name, streakCount }: { name: string; streakCount
           100% { opacity: 1; transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) { 
-          .owl-animated, .owl-wing, .msg-transition { animation: none; } 
+          .msg-transition { animation: none; } 
         }
       `}</style>
-      <div className="owl-animated relative flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-4xl shadow-sm z-10">
-        <span role="img" aria-label="Owl mascot" className="transform transition-transform hover:scale-110">{owlEmoji}</span>
-        <span className="owl-wing absolute -right-3 top-1 text-2xl" aria-hidden="true">👋</span>
-      </div>
+      
+      <DuolingoOwl mood={mood} />
+      
       <div className="max-w-[220px] rounded-lg rounded-bl-sm border border-border bg-card px-4 py-3 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/30 z-0">
         <p key={msgIndex} className="msg-transition text-xs font-bold leading-5 text-foreground">{currentMessage}</p>
-        <p className="mt-1 text-[10px] font-medium text-muted-foreground">{owlSubMessage}</p>
+        <p className="mt-1 text-[10px] font-medium text-muted-foreground">{petSubMessage}</p>
       </div>
     </div>
   );
@@ -383,7 +391,7 @@ export function MergedTodayProfile() {
  const inactivityInfo = useMemo(() => getInactivityDays(days, user?.uid), [days, user]);
 
  // Streak — standard derived streak from active plan days
- const streakCount = useMemo(() => currentStreak(days), [days]);
+ const streakCount = useMemo(() => currentStreak(days, submissions), [days, submissions]);
 
  const userNameDisplay = displayName || user?.displayName || user?.email?.split("@")[0] || "Coder";
 
@@ -501,7 +509,7 @@ export function MergedTodayProfile() {
  return { total: completedProblems.length, byPlatform };
  }, [completedProblems]);
 
- const badges = useMemo(() => computeBadges(days), [days]);
+ const badges = useMemo(() => computeBadges(days, submissions), [days, submissions]);
  const earnedBadgeCount = useMemo(() => badges.filter((badge) => badge.earned).length, [badges]);
 
  const missionSolvedCount = sanitizedDay?.problems?.filter((problem) => problem.done).length ?? 0;

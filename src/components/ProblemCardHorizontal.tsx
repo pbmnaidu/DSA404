@@ -32,7 +32,7 @@ import type { Problem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CodeModal } from "@/components/CodeModal";
 import { useProblemCompletions } from "@/hooks/useProblemCompletions";
-import { getCanonicalProblemLink } from "@/lib/problems";
+import { ALL_PROBLEMS, getCanonicalProblemLink } from "@/lib/problems";
 
 const diffClass: Record<string, string> = {
  Easy: "bg-success/20 text-card-foreground border-success/60",
@@ -55,8 +55,18 @@ function googleSearchUrl(problemName: string) {
  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
-function youtubeSearchUrl(problemName: string) {
- const query = `${problemName} solution intuition explained NeetCode OR Striver`;
+function youtubeSearchUrl(problemName: string, sheet?: string) {
+ let channel = "takeUforward OR NeetCode";
+ if (sheet === "Striver's A2Z" || sheet === "Striver's SDE") {
+ channel = "takeUforward";
+ } else if (sheet === "NeetCode 150") {
+ channel = "NeetCode";
+ } else if (sheet === "Love Babbar 450") {
+ channel = "Love Babbar CodeHelp";
+ } else if (sheet === "RisingBrains") {
+ channel = "RisingBrains";
+ }
+ const query = `${problemName} ${channel} solution intuition explained`;
  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 }
 
@@ -257,16 +267,40 @@ export function ProblemCardHorizontal({
  </a>
  </DropdownMenuItem>
  );
- })()}
+  })()}
 
+ {(() => {
+ const globalProblem = ALL_PROBLEMS.find(p => p.name === problem.name);
+ const sheet = globalProblem?.sheet;
+ return (
+ <>
+ {sheet === "Striver's A2Z" || sheet === "Striver's SDE" ? (
  <DropdownMenuItem asChild>
- <a href={youtubeSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-foreground">
+ <a href={'https://duckduckgo.com/?q=' + encodeURIComponent('!ducky site:takeuforward.org ' + problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+ <ExternalLink className="size-3.5 text-[#F87171]" />
+ <span>takeUforward Page</span>
+ </a>
+ </DropdownMenuItem>
+ ) : null}
+ {sheet === "NeetCode 150" ? (
+ <DropdownMenuItem asChild>
+ <a href={'https://duckduckgo.com/?q=' + encodeURIComponent('!ducky site:neetcode.io ' + problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+ <ExternalLink className="size-3.5 text-[#60A5FA]" />
+ <span>NeetCode Page</span>
+ </a>
+ </DropdownMenuItem>
+ ) : null}
+ <DropdownMenuItem asChild>
+ <a href={youtubeSearchUrl(problem.name, sheet)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-foreground">
  <Video className="size-3.5 text-destructive" />
  <ThemedTooltip hint={`view youtube solution video for ${problem.name}`}>
  <span>YouTube Solution Video</span>
  </ThemedTooltip>
  </a>
  </DropdownMenuItem>
+ </>
+ );
+ })()}
 
  <DropdownMenuItem asChild>
  <a href={googleSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-foreground">

@@ -23,6 +23,8 @@ import { useProblemCompletions } from "@/hooks/useProblemCompletions";
 import { CodeModal } from "@/components/CodeModal";
 import type { CodeSubmission } from "@/lib/db";
 import { getChatGPTAiPromptUrl } from "@/lib/aiTutorPrompt";
+import { LegalDisclaimerModal } from "@/components/LegalDisclaimerModal";
+import { Scale } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 function ThemedTooltip({ hint, children }: { hint: string; children: React.ReactNode }) {
@@ -161,6 +163,7 @@ interface FlatProblem {
  topic: string;
  sheet: SheetFilter;
  link: string;
+ gfgLink?: string;
 }
 
 const ALL_PROBLEMS: FlatProblem[] = GLOBAL_PROBLEMS.map((p, idx) => ({
@@ -171,6 +174,7 @@ const ALL_PROBLEMS: FlatProblem[] = GLOBAL_PROBLEMS.map((p, idx) => ({
  topic: p.topic,
  sheet: p.sheet as SheetFilter,
  link: p.link,
+ gfgLink: (p as any).gfgLink,
 }));
 
 function countBy<T>(arr: T[], key: (x: T) => string): Record<string, number> {
@@ -196,7 +200,7 @@ function youtubeSearchUrl(problemName: string, sheet?: SheetFilter) {
  }
  const query = `${problemName} ${channel} solution intuition explained`;
  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-}
+} 
 
 
 // ─── Problem row ─────────────────────────────────────────────────────────────
@@ -285,13 +289,38 @@ function ProblemItem({
  {problem.link && (
  <DropdownMenuItem asChild>
  <a href={problem.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
- <ExternalLink className="size-3.5 text-primary" />
- <span>Official Problem Page</span>
+ <ExternalLink className="size-3.5 text-[#FFA116]" />
+ <span>LeetCode Problem Page</span>
  </a>
  </DropdownMenuItem>
  )}
+ {problem.gfgLink && (
  <DropdownMenuItem asChild>
- <a href={youtubeSearchUrl(problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+ <a href={problem.gfgLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+ <ExternalLink className="size-3.5 text-[#2F8D46]" />
+ <span>GeeksforGeeks Page</span>
+ </a>
+ </DropdownMenuItem>
+ )}
+ {problem.sheet === "Striver's A2Z" || problem.sheet === "Striver's SDE" ? (
+ <DropdownMenuItem asChild>
+ <a href={'https://duckduckgo.com/?q=' + encodeURIComponent('!ducky site:takeuforward.org ' + problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+ <ExternalLink className="size-3.5 text-[#F87171]" />
+ <span>takeUforward Page</span>
+ </a>
+ </DropdownMenuItem>
+ ) : null}
+ {problem.sheet === "NeetCode 150" ? (
+ <DropdownMenuItem asChild>
+ <a href={'https://duckduckgo.com/?q=' + encodeURIComponent('!ducky site:neetcode.io ' + problem.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+ <ExternalLink className="size-3.5 text-[#60A5FA]" />
+ <span>NeetCode Page</span>
+ </a>
+ </DropdownMenuItem>
+ ) : null}
+
+ <DropdownMenuItem asChild>
+ <a href={youtubeSearchUrl(problem.name, problem.sheet)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium cursor-pointer">
  <Video className="size-3.5 text-destructive" />
  <span>YouTube Solutions</span>
  </a>
@@ -365,13 +394,18 @@ export default function ProblemsPage() {
 
  const [pageSize, setPageSize] = useState<number>(10);
  const [initialJumpDone, setInitialJumpDone] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
 
  // All topics list for topic selector
  const topicsList = useMemo(() => {
  const set = new Set<string>();
- ALL_PROBLEMS.forEach((p) => set.add(p.topic));
+ ALL_PROBLEMS.forEach((p) => {
+ if (paramSheet === "All" || p.sheet === paramSheet) {
+ set.add(p.topic);
+ }
+ });
  return ["All", ...Array.from(set).sort()];
- }, []);
+ }, [paramSheet]);
 
  // Update URL helper via Next.js router
  const updateUrl = useCallback(
@@ -627,7 +661,7 @@ export default function ProblemsPage() {
  <label className="text-xs font-bold uppercase tracking-wider text-foreground">Curriculum Sheet</label>
  <select
  value={paramSheet}
- onChange={(e) => setFilterState({ sheet: e.target.value })}
+ onChange={(e) => setFilterState({ sheet: e.target.value, topic: "All" })}
  className="w-full h-10 rounded-lg border border-border bg-secondary px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
  >
  {SHEET_FILTERS.map((sf) => (
@@ -776,7 +810,21 @@ export default function ProblemsPage() {
  </div>
  )}
 
- </main>
+   {/* Platform Attribution & Disclaimer Note */}
+          <div className="mt-8 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+            <p className="text-[11px] leading-relaxed text-center sm:text-left">
+              Problem statements belong to external coding platforms (LeetCode, GeeksforGeeks). Community roadmaps are credited to takeUforward, NeetCode, &amp; CodeHelp.
+            </p>
+            <button
+              type="button"
+              onClick={() => setLegalModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-foreground hover:text-primary transition-colors cursor-pointer shrink-0 underline-offset-4 hover:underline"
+            >
+              <Scale className="size-3 text-primary" />
+              <span>Legal &amp; Attribution</span>
+            </button>
+          </div>
+        </main>
  </div>
  </div>
  </div>

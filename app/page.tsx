@@ -25,6 +25,8 @@ import { ChromeInstallModal } from "@/components/ChromeInstallModal";
 import { DemoShell } from "@/components/demo/DemoShell";
 import { AnimatedHeroBackground } from "@/components/AnimatedHeroBackground";
 import { DSA404Logo } from "@/components/DSA404Logo";
+import { LegalDisclaimerModal } from "@/components/LegalDisclaimerModal";
+import { Scale } from "lucide-react";
 import { useThemeCustomizer } from "./theme-customizer-context";
 
 // Icons
@@ -892,6 +894,7 @@ function StayConsistentSection() {
 export default function LandingPage() {
  const router = useRouter();
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
  const { promptInstall, isModalOpen, setIsModalOpen, isIOS, isStandalone } = usePWAInstall();
  const { forceView, applyView } = useThemeCustomizer();
  
@@ -943,7 +946,8 @@ export default function LandingPage() {
  <Link href="/auth?mode=signup">Start Learning</Link>
  </Button>
  <Button
-   onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
+   suppressHydrationWarning
+    onClick={() => applyView(forceView === "desktop" ? "auto" : "desktop")}
    variant="secondary"
    size="sm"
    className="relative flex items-center justify-center size-8 rounded-full text-[10px] font-mono font-bold text-primary group shadow-sm shadow-black/20 hover:text-primary"
@@ -1008,13 +1012,16 @@ export default function LandingPage() {
  <span className="opacity-50">|</span>
  <Link href="/auth?mode=signup" className="hover:opacity-100">Register</Link>
  <span className="opacity-50">|</span>
- <a href="https://pbmnaidu.vercel.app" target="_blank" rel="noreferrer" className="font-bold hover:underline">Creator</a>
+ <button onClick={() => setIsLegalModalOpen(true)} className="hover:opacity-100 cursor-pointer font-bold inline-flex items-center gap-1"><Scale className="size-3" /> Legal &amp; Attribution</button>
+          <span className="opacity-50">|</span>
+          <a href="https://pbmnaidu.vercel.app" target="_blank" rel="noreferrer" className="font-bold hover:underline">Creator</a>
  </div>
- <p className="text-[11px] opacity-70">© {new Date().getFullYear()} DSA⁴⁰⁴. Built for students and developers.</p>
+ <p className="text-[11px] opacity-70">© {new Date().getFullYear()} DSA⁴⁰⁴. Independent educational progress companion. Not affiliated with takeUforward, NeetCode, or LeetCode.</p>
  </div>
  </footer>
  
- <ChromeInstallModal
+ <LegalDisclaimerModal open={isLegalModalOpen} onOpenChange={setIsLegalModalOpen} />
+      <ChromeInstallModal
  open={isModalOpen}
  onOpenChange={setIsModalOpen}
  isIOS={isIOS}

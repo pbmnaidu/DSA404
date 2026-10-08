@@ -58,6 +58,8 @@ export interface SheetMeta {
   badgeColor: string;
   excelFile: string;
   excelFileName: string;
+  attribution?: string;
+  isCommunityCurated?: boolean;
 }
 
 export const CURATED_SHEETS: SheetMeta[] = [
@@ -73,7 +75,9 @@ export const CURATED_SHEETS: SheetMeta[] = [
     badge: "Official Default",
     badgeColor: "bg-primary/10 text-primary border-primary/30",
     excelFile: "/sheets/Core404_Problems_Grouped_By_Pattern.xlsx",
-    excelFileName: "Core404_Problems_Grouped_By_Pattern.xlsx"
+    excelFileName: "Core404_Problems_Grouped_By_Pattern.xlsx",
+    attribution: "Official Core 404 learning progression.",
+    isCommunityCurated: false
   },
   {
     id: "striver_a2z",
@@ -81,13 +85,15 @@ export const CURATED_SHEETS: SheetMeta[] = [
     shortName: "Striver A2Z",
     author: "Raj Vikramaditya (Striver)",
     channel: "takeUforward",
-    description: "16 structured steps from basics to advanced DP & Graphs with takeUforward video tutorials.",
+    description: "Community tracker for the 16 structured steps curated by Raj Vikramaditya. Direct links to official YouTube tutorials & public practice platforms.",
     problemCount: ${a2zData.length},
     topicCount: 16,
-    badge: "Most Popular",
-    badgeColor: "bg-red-500/10 text-red-500 border-red-500/30",
+    badge: "Community Favorite",
+    badgeColor: "bg-destructive/10 text-destructive border-destructive/30",
     excelFile: "/sheets/Striver_A2Z_DSA_Sheet.xlsx",
-    excelFileName: "Striver_A2Z_DSA_Sheet.xlsx"
+    excelFileName: "Striver_A2Z_DSA_Sheet.xlsx",
+    attribution: "Curriculum curated by Raj Vikramaditya (takeUforward). DSA⁴⁰⁴ is an independent study tool not affiliated with takeUforward.",
+    isCommunityCurated: true
   },
   {
     id: "striver_sde",
@@ -95,13 +101,15 @@ export const CURATED_SHEETS: SheetMeta[] = [
     shortName: "Striver SDE",
     author: "Raj Vikramaditya (Striver)",
     channel: "takeUforward",
-    description: "Top 190 high-frequency interview questions for MAANG & Tier-1 tech company SDE interviews.",
+    description: "Community tracker for the 190 high-frequency interview questions curated by Raj Vikramaditya. Direct links to public coding platforms.",
     problemCount: ${striverSdeData.length},
     topicCount: 26,
     badge: "Interview Classic",
-    badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+    badgeColor: "bg-warning/10 text-warning border-warning/30",
     excelFile: "/sheets/Striver_SDE_Sheet.xlsx",
-    excelFileName: "Striver_SDE_Sheet.xlsx"
+    excelFileName: "Striver_SDE_Sheet.xlsx",
+    attribution: "Curated by Raj Vikramaditya (takeUforward). DSA⁴⁰⁴ is an independent study tracker.",
+    isCommunityCurated: true
   },
   {
     id: "neetcode150",
@@ -109,13 +117,15 @@ export const CURATED_SHEETS: SheetMeta[] = [
     shortName: "NeetCode 150",
     author: "NeetCode",
     channel: "NeetCode",
-    description: "150 essential LeetCode problems categorized into 18 core patterns with visual intuition.",
+    description: "Community tracker for 150 essential LeetCode problems categorized into 18 core patterns with visual intuition.",
     problemCount: ${neetcodeData.length},
     topicCount: 18,
     badge: "Pattern Based",
-    badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+    badgeColor: "bg-success/10 text-success border-success/30",
     excelFile: "/sheets/NeetCode_150_Sheet.xlsx",
-    excelFileName: "NeetCode_150_Sheet.xlsx"
+    excelFileName: "NeetCode_150_Sheet.xlsx",
+    attribution: "Curated by NeetCode. DSA⁴⁰⁴ is an independent study tracker.",
+    isCommunityCurated: true
   },
   {
     id: "love_babbar",
@@ -123,13 +133,15 @@ export const CURATED_SHEETS: SheetMeta[] = [
     shortName: "Love Babbar 450",
     author: "Love Babbar (CodeHelp)",
     channel: "CodeHelp - by Babbar",
-    description: "450 comprehensive DSA problems across 15 topics curated by Love Babbar for rigorous placement prep.",
+    description: "Community tracker for 450 comprehensive DSA problems across 15 topics curated by Love Babbar (CodeHelp).",
     problemCount: ${babbarData.length},
     topicCount: 15,
     badge: "Placement Rigor",
-    badgeColor: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30",
+    badgeColor: "bg-primary/10 text-primary border-primary/30",
     excelFile: "/sheets/Love_Babbar_450_DSA_Cracker.xlsx",
-    excelFileName: "Love_Babbar_450_DSA_Cracker.xlsx"
+    excelFileName: "Love_Babbar_450_DSA_Cracker.xlsx",
+    attribution: "Curated by Love Babbar (CodeHelp). DSA⁴⁰⁴ is an independent study tracker.",
+    isCommunityCurated: true
   },
   {
     id: "rising_brains",
@@ -137,13 +149,15 @@ export const CURATED_SHEETS: SheetMeta[] = [
     shortName: "RisingBrains",
     author: "RisingBrains",
     channel: "RisingBrains",
-    description: "Curated problem set targeting high-bar product startups and top global technology companies.",
+    description: "Community tracker for curated problem set targeting high-bar product startups and top global technology companies.",
     problemCount: ${risingData.length},
     topicCount: 11,
     badge: "Product Focus",
-    badgeColor: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
+    badgeColor: "bg-info/10 text-info border-info/30",
     excelFile: "/sheets/RisingBrains_DSA_Sheet.xlsx",
-    excelFileName: "RisingBrains_DSA_Sheet.xlsx"
+    excelFileName: "RisingBrains_DSA_Sheet.xlsx",
+    attribution: "Curated by RisingBrains. DSA⁴⁰⁴ is an independent study tracker.",
+    isCommunityCurated: true
   }
 ];
 

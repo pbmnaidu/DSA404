@@ -102,7 +102,7 @@ export async function GET(req: Request) {
     const nowMs = Date.now();
     const { data: upcomingContests } = await supabase
       .from("contests")
-      .select("*")
+      .select("id, name, platform, start_ms")
       .gte("start_ms", nowMs - 24 * 3600 * 1000)
       .lt("start_ms", nowMs + 48 * 3600 * 1000);
 
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
       if (!row.paused && (row.email_enabled || row.push_enabled)) {
         const reminderMins = timeToMinutes(row.reminder_time || "19:00");
         
-        // Fixed nag timings
+        // Fixed nag timings for Push Notifications
         const fixedTimings = ["21:15", "21:30", "21:45", "22:00", "22:30", "23:00"];
         
         const triggers = [
@@ -128,17 +128,17 @@ export async function GET(req: Request) {
           ...fixedTimings.map(t => ({ id: t, mins: timeToMinutes(t) }))
         ];
 
-        let sentToday = [];
+        let sentToday: string[] = [];
         if (row.last_reminder_sent_on && row.last_reminder_sent_on.startsWith(today)) {
            const parts = row.last_reminder_sent_on.split(":");
            if (parts.length > 1) {
              sentToday = parts[1].split(",");
            } else {
              // old format, treat as all sent
-             sentToday = triggers.map(t => t.id);
+             sentToday = triggers.map(t => t.id).concat(["custom_email"]);
            }
         } else if (row.last_reminder_sent_on === today) {
-           sentToday = triggers.map(t => t.id);
+           sentToday = triggers.map(t => t.id).concat(["custom_email"]);
         }
 
         const pendingTriggers = triggers.filter(t => nowMins >= t.mins && !sentToday.includes(t.id));
@@ -158,7 +158,13 @@ export async function GET(req: Request) {
 
           if (pendingCount > 0) {
             let sentAny = false;
-            if (row.email_enabled && userEmail) {
+            const newlySentMarks: string[] = [];
+
+            // Email for daily problems is sent ONLY ONCE at the user's preferred evening time ("custom" trigger)
+            const isPreferredTimeDue = pendingTriggers.some(t => t.id === "custom");
+            const alreadySentEmailToday = sentToday.includes("custom_email");
+
+            if (row.email_enabled && userEmail && isPreferredTimeDue && !alreadySentEmailToday) {
               try {
                 await sendEmail(
                   userEmail,
@@ -174,6 +180,7 @@ export async function GET(req: Request) {
                 );
                 eveningSent++;
                 sentAny = true;
+                newlySentMarks.push("custom_email");
               } catch (e) {
                 errors.push(`${uid} evening email: ${e instanceof Error ? e.message : String(e)}`);
               }
@@ -202,9 +209,11 @@ export async function GET(req: Request) {
               }
             }
 
-            if (sentAny) {
-              const newlySent = pendingTriggers.map(t => t.id);
-              const allSent = [...sentToday, ...newlySent].join(",");
+            // Always record push triggers sent to avoid repeating push nags
+            pendingTriggers.forEach(t => newlySentMarks.push(t.id));
+
+            if (sentAny || newlySentMarks.length > 0) {
+              const allSent = Array.from(new Set([...sentToday, ...newlySentMarks])).join(",");
               await supabase
                 .from("user_settings")
                 .update({ last_reminder_sent_on: `${today}:${allSent}` })
@@ -212,7 +221,7 @@ export async function GET(req: Request) {
             }
           } else {
             // Mark as fully sent if no pending problems, so we don't check again today
-            const allTriggers = triggers.map(t => t.id).join(",");
+            const allTriggers = triggers.map(t => t.id).concat(["custom_email"]).join(",");
             await supabase
               .from("user_settings")
               .update({ last_reminder_sent_on: `${today}:${allTriggers}` })
@@ -222,6 +231,7 @@ export async function GET(req: Request) {
       }
 
       // ── 2. Morning Reminder ──────────────────────────────────────────────
+      // Morning push notification is kept active, while morning email for daily problems is disabled to reduce email volume.
       if (!row.paused && row.morning_reminder_enabled && (row.email_enabled || row.push_enabled)) {
         const morningMins = timeToMinutes(row.morning_reminder_time || "08:00");
         const alreadySentMorning = row.last_morning_reminder_sent_on === today;
@@ -240,27 +250,6 @@ export async function GET(req: Request) {
           const pendingCount = (todayDay?.problems || []).filter((p: any) => !p.done).length;
 
           let sentAnyMorning = false;
-          
-          if (row.email_enabled && userEmail) {
-            try {
-              await sendEmail(
-                userEmail,
-                `☀️ Good morning! Today's DSA topic: ${topic}`,
-                `Good morning!\n\nToday's topic is: ${topic}\nProblems scheduled: ${pendingCount}\n\nStart your session now: https://dsa404.vercel.app/today\n\n- DSA⁴⁰⁴ Team`,
-                `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;padding:28px;color:#f8fafc;border:1px solid #1e293b;">
-    <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;">DSA<span style="color:#f97316;">⁴⁰⁴</span></div>
-    <h2 style="margin-top:0;font-size:18px;">☀️ Good Morning!</h2>
-    <p style="color:#94a3b8;line-height:1.6;">Today's topic: <strong style="color:#f8fafc;">${topic}</strong><br>Problems scheduled: <strong style="color:#38bdf8;">${pendingCount}</strong></p>
-    <a href="https://dsa404.vercel.app/today" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#0284c7;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">Start Session →</a>
-    <p style="margin-top:24px;font-size:12px;color:#475569;">You're receiving this because you enabled morning reminders in DSA⁴⁰⁴ Settings.</p>
-  </div>`
-              );
-              morningSent++;
-              sentAnyMorning = true;
-            } catch (e) {
-              errors.push(`${uid} morning email: ${e instanceof Error ? e.message : String(e)}`);
-            }
-          }
 
           if (row.push_enabled && tokensByUid[uid]?.length > 0) {
             try {
@@ -285,7 +274,7 @@ export async function GET(req: Request) {
             }
           }
 
-          if (sentAnyMorning) {
+          if (sentAnyMorning || row.email_enabled) {
             await supabase
               .from("user_settings")
               .update({ last_morning_reminder_sent_on: today })
@@ -299,7 +288,7 @@ export async function GET(req: Request) {
         try {
           const { data: dueReminders } = await supabase
             .from("user_reminders")
-            .select("*")
+            .select("id, topic, note, date, time")
             .eq("user_id", uid)
             .eq("triggered", false)
             .lte("date", today);

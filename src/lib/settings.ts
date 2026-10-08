@@ -167,7 +167,7 @@ export async function loadSettings(userId: string): Promise<UserSettings> {
  return getGuestSettings();
  }
  const supabase = createClient();
- const { data } = await supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle();
+ const { data } = await supabase.from("user_settings").select("theme, theme_custom, theme_font, theme_font_size, theme_force_view, push_enabled, email_enabled, reminder_time, morning_reminder_enabled, morning_reminder_time, contest_reminder_enabled, timezone, paused, active_sheet, counts").eq("user_id", userId).maybeSingle();
  
  if (!data) {
  const seeded = { ...DEFAULT_SETTINGS };

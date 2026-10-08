@@ -82,7 +82,7 @@ export default function MessagesPage() {
       const supabase = createClient();
       const { data } = await supabase
         .from("messages")
-        .select("*")
+        .select("id, title, body, url, created_at, created_by, created_by_name, status, sent_at, tokens_found, success_count, failure_count, invalid_tokens_removed")
         .order("created_at", { ascending: false })
         .limit(50);
         

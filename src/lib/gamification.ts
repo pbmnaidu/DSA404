@@ -10,8 +10,42 @@ import type { Day } from "./types";
 export const dayTouched = (d: Day) =>
  d.problems.some((p) => p.done) || d.checklist.some((c) => c.done);
 
-export function currentStreak(days: Day[], today = todayIso()): number {
-  const touchedDates = Array.from(new Set(days.filter(dayTouched).map(d => d.date.slice(0, 10)))).sort();
+export function getTouchedDates(days: Day[], submissions?: Record<string, any>): string[] {
+ const dates = new Set<string>();
+ for (const d of days) {
+ let dayHasLegacyTouch = false;
+ for (const p of d.problems) {
+ if (p.done) {
+ if (p.completedAt) {
+ dates.add(p.completedAt.slice(0, 10));
+ } else {
+ dayHasLegacyTouch = true;
+ }
+ }
+ }
+ for (const c of d.checklist) {
+ if (c.done) {
+ dayHasLegacyTouch = true;
+ }
+ }
+ if (dayHasLegacyTouch) {
+ dates.add(d.date.slice(0, 10));
+ }
+ }
+
+ if (submissions) {
+ for (const sub of Object.values(submissions)) {
+ if (sub?.submittedAt) {
+ dates.add(sub.submittedAt.slice(0, 10));
+ }
+ }
+ }
+
+ return Array.from(dates).sort();
+}
+
+export function currentStreak(days: Day[], submissions?: Record<string, any>, today = todayIso()): number {
+  const touchedDates = getTouchedDates(days, submissions);
   if (touchedDates.length === 0) return 0;
   
   const pastTouched = touchedDates.filter(d => d <= today);
@@ -35,8 +69,8 @@ export function currentStreak(days: Day[], today = todayIso()): number {
   return streak;
 }
 
-export function longestStreak(days: Day[]): number {
-  const touchedDates = Array.from(new Set(days.filter(dayTouched).map(d => d.date.slice(0, 10)))).sort();
+export function longestStreak(days: Day[], submissions?: Record<string, any>): number {
+  const touchedDates = getTouchedDates(days, submissions);
   if (touchedDates.length === 0) return 0;
   
   let best = 1;
@@ -59,10 +93,10 @@ export interface Badge {
  earned: boolean;
 }
 
-export function computeBadges(days: Day[]): Badge[] {
+export function computeBadges(days: Day[], submissions?: Record<string, any>): Badge[] {
  const counted = days.filter((d) => !d.skipped);
  const solved = counted.reduce((a, d) => a + dayProgress(d).done, 0);
- const streak = Math.max(currentStreak(days), longestStreak(days));
+ const streak = Math.max(currentStreak(days, submissions), longestStreak(days, submissions));
  const sumTotals = counted.reduce((a, d) => a + dayProgress(d).total, 0);
  const total = Math.max(TOTAL_PROBLEMS, sumTotals);
 

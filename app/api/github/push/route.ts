@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     const supabase = await createServerSupabase();
     const { data: connection, error: connError } = await supabase
         .from("github_connections")
-        .select("*")
+        .select("id, owner, repository, branch, folder_path, encrypted_access_token")
         .eq("user_id", user.id)
         .maybeSingle();
 
