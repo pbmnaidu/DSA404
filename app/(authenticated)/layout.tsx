@@ -118,7 +118,7 @@ function PlanBoundary({
     if (settingsLoading) return;
 
     // 2. Database check & returning user detection
-    import('@/lib/db').then(({ isOnboardingCompleted, markOnboardingCompleted }) => {
+    import('@/lib/db').then(({ isOnboardingCompleted }) => {
       isOnboardingCompleted(userId).then((isCompleted) => {
         if (isCompleted) {
           if (typeof window !== 'undefined') {
@@ -126,31 +126,7 @@ function PlanBoundary({
           }
           setPlanReady(true);
           setCheckingPlan(false);
-          return;
-        }
-
-        // Only show onboarding if user has just registered
-        const isFreshRegistration = typeof window !== 'undefined' && (
-          sessionStorage.getItem(`dsa404_just_registered_${userId}`) === 'true' ||
-          new URLSearchParams(window.location.search).get('new_registration') === 'true'
-        );
-
-        const hasExistingPlanOrSettings = Boolean(
-          (settings as any)?.start_date ||
-          settings?.counts?.target ||
-          (settings?.counts as any)?.onboarding_completed
-        );
-
-        // If returning user logging in on new browser/device -> do NOT show onboarding
-        if (!isFreshRegistration && hasExistingPlanOrSettings) {
-          void markOnboardingCompleted(userId);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
-          }
-          setPlanReady(true);
-          setCheckingPlan(false);
         } else {
-          // Brand new user registration -> show onboarding once
           setShowOnboarding(true);
           setCheckingPlan(false);
         }
@@ -162,26 +138,45 @@ function PlanBoundary({
     });
   }, [userId, isAdmin, user, settings, settingsLoading]);
 
-  const handleOnboardingComplete = async (startDate: string, counts: DailyCounts, username?: string) => {
-    // Save their chosen settings
-    await updateSettings({ counts });
-    await saveSettings(userId, { counts });
-    // Seed the plan with their chosen start date and pace counts
-    await seedPlan(userId, startDate, counts);
-    
-    // Mark onboarding as complete across all layers (DB, Auth metadata, localStorage)
-    const { markOnboardingCompleted } = await import('@/lib/db');
-    await markOnboardingCompleted(userId, username);
+  const handleOnboardingComplete = async (payload: { startDate: string; counts: any; username: string; displayName: string; password?: string; sheetId: string; theme: string; }) => {
+    try {
+      if (payload.password) {
+        const { supabase } = await import('@/lib/supabase/client');
+        await supabase.auth.updateUser({ password: payload.password });
+      }
+      
+      const { updateSettings, saveSettings } = await import('@/lib/settings');
+      await updateSettings({ counts: payload.counts, theme: payload.theme as any });
+      
+      const { supabase } = await import('@/lib/supabase/client');
+      await supabase.from("user_settings").upsert({ 
+        user_id: userId, 
+        active_sheet: payload.sheetId,
+      }, { onConflict: "user_id" });
 
-    // Persist flag so refresh and new browsers won't show onboarding again
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
-      sessionStorage.removeItem(`dsa404_just_registered_${userId}`);
+      const { seedPlan } = await import('@/lib/db');
+      await seedPlan(userId, payload.startDate, payload.counts, payload.sheetId);
+      
+      const { markOnboardingCompleted, updateProfile } = await import('@/lib/db');
+      await markOnboardingCompleted(userId, payload.username);
+      if (payload.displayName) {
+        await updateProfile(userId, { display_name: payload.displayName });
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
+        sessionStorage.removeItem(`dsa404_just_registered_${userId}`);
+      }
+      setShowOnboarding(false);
+      setPlanReady(true);
+      router.push('/guide');
+    } catch (err) {
+      console.error("Onboarding completion failed:", err);
+      // Even if it fails, try to let them through
+      setShowOnboarding(false);
+      setPlanReady(true);
+      router.push('/guide');
     }
-    // Show the app — land on User Guide
-    setShowOnboarding(false);
-    setPlanReady(true);
-    router.push('/guide');
   }
 
   if (checkingPlan) {
@@ -194,14 +189,10 @@ function PlanBoundary({
       <>
         <OnboardingModal
           open={true}
-          onClose={async () => {
-            const { DEFAULT_DAILY_COUNTS, todayIso } = await import('@/lib/plan');
-            await handleOnboardingComplete(todayIso(), DEFAULT_DAILY_COUNTS, "");
-          }}
           onComplete={handleOnboardingComplete}
         />
         {/* Faded background while onboarding */}
-        <div className="fixed inset-0 bg-background  z-40" />
+        <div className="fixed inset-0 bg-background z-40" />
       </>
     )
   }

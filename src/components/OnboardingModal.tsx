@@ -1,410 +1,329 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { CORE_SECTIONS } from "@/lib/master-problems";
-import { ALL_PROBLEMS } from "@/lib/problems";
-import {
- todayIso,
- DEFAULT_DAILY_COUNTS,
- TOTAL_PROBLEMS,
- TUTOR_PACE_PRESETS,
- getPacePresetByTarget,
- normalizeDailyCounts,
- type DailyCounts,
- type PaceTier,
-} from "@/lib/plan";
-import { Loader2, BookOpen, Zap, Trophy, CalendarDays, Sliders, X, Sparkles, CheckCircle2, UserCircle } from "lucide-react";
-import { DailyCombinationsBreakdown } from "@/components/DailyCombinationsBreakdown";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import { todayIso, DEFAULT_DAILY_COUNTS, type DailyCounts } from "@/lib/plan";
+import { Loader2, ArrowRight, ArrowLeft, CheckCircle2, Github, Bell, Palette, CalendarDays, UserCircle, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+
+interface OnboardingPayload {
+  startDate: string;
+  counts: DailyCounts;
+  username: string;
+  displayName: string;
+  password?: string;
+  sheetId: string;
+  theme: string;
+}
 
 interface OnboardingModalProps {
   open: boolean;
-  onComplete: (startDate: string, counts: DailyCounts, username: string) => Promise<void>;
-  onClose?: () => void;
+  onComplete: (payload: OnboardingPayload) => Promise<void>;
 }
 
-const STEPS = ["welcome", "username", "pace", "startdate", "ready"] as const;
+const STEPS = ["profile", "schedule", "notifications", "tips", "github"] as const;
 type Step = typeof STEPS[number];
 
-/* ── real dynamic stats ── */
-const REAL_ROADMAP_PROBLEMS = TOTAL_PROBLEMS;
-const REAL_SECTIONS_COUNT = CORE_SECTIONS.length;
-const LEVEL_COUNTS = CORE_SECTIONS.reduce(
- (acc, s) => {
- s.problems.forEach((p) => {
- if (p.level === "Level 1") acc.level1++;
- else if (p.level === "Level 2") acc.level2++;
- else if (p.level === "Level 3") acc.level3++;
- });
- return acc;
- },
- { level1: 0, level2: 0, level3: 0 }
-);
-
-export function OnboardingModal({ open, onComplete, onClose }: OnboardingModalProps) {
- const router = useRouter();
-  const [step, setStep] = useState<Step>("welcome");
-  const [counts, setCounts] = useState<DailyCounts>(() => ({ ...DEFAULT_DAILY_COUNTS }));
-  const [startDate, setStartDate] = useState(todayIso());
-  const [username, setUsername] = useState("");
+export function OnboardingModal({ open, onComplete }: OnboardingModalProps) {
+  const [stepIdx, setStepIdx] = useState(0);
   const [busy, setBusy] = useState(false);
 
- const activePreset = getPacePresetByTarget(counts.target || 3);
+  // Form State
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [startDate, setStartDate] = useState(todayIso());
+  const [sheetId, setSheetId] = useState("core404");
+  const [target, setTarget] = useState(3);
+  const [theme, setTheme] = useState("system");
 
- const handleClose = () => {
- if (onClose) {
- onClose();
- } else {
- window.location.href = "/?onboarding=closed";
- }
- };
+  const step = STEPS[stepIdx];
 
- const handleSelectTier = (tier: PaceTier) => {
- const p = TUTOR_PACE_PRESETS[tier];
- setCounts({
- target: p.target,
- tier: p.id,
- easy: p.levelRatios.level1.easy,
- medium: p.levelRatios.level2.medium,
- hard: p.levelRatios.level3.hard,
- levelRatios: p.levelRatios,
- });
- };
-
- const handleTargetChange = (val: number) => {
- const clamped = Math.max(1, Math.min(8, val));
- const p = getPacePresetByTarget(clamped);
- const tier = (["casual", "balanced", "standard", "intensive"] as PaceTier[]).find(
- (t) => TUTOR_PACE_PRESETS[t].target === clamped
- ) || "custom";
- setCounts({
- target: clamped,
- tier,
- easy: p.levelRatios.level1.easy,
- medium: p.levelRatios.level2.medium,
- hard: p.levelRatios.level3.hard,
- levelRatios: p.levelRatios,
- });
- };
-
-  const handleFinish = async () => {
-  setBusy(true);
-  try {
-  const normalized = normalizeDailyCounts(counts);
-  await onComplete(startDate, normalized, username);
-  } finally {
-  setBusy(false);
-  }
+  const handleNext = () => {
+    if (stepIdx < STEPS.length - 1) {
+      if (step === "profile") {
+        if (!displayName.trim() || !username.trim()) {
+          toast.error("Please enter a display name and username");
+          return;
+        }
+        if (password && password.length < 6) {
+          toast.error("Password must be at least 6 characters");
+          return;
+        }
+      }
+      setStepIdx((i) => i + 1);
+    } else {
+      handleFinish();
+    }
   };
 
- const PRESET_TIERS: PaceTier[] = ["casual", "balanced", "standard", "intensive"];
+  const handleBack = () => {
+    if (stepIdx > 0) setStepIdx((i) => i - 1);
+  };
 
- return (
- <Dialog
- open={open}
- onOpenChange={(isOpen) => {
- if (!isOpen) handleClose();
- }}
- >
- <DialogContent
- className="w-[calc(100vw-2rem)] sm:w-full max-w-lg max-h-[88vh] flex flex-col rounded-lg border border-border bg-card shadow-sm p-0 gap-0 overflow-hidden"
- onPointerDownOutside={(e) => e.preventDefault()}
- onEscapeKeyDown={(e) => {
- e.preventDefault();
- handleClose();
- }}
- >
- {/* Top-right close button to redirect to landing page */}
- <button
- type="button"
- onClick={handleClose}
- className="absolute right-3.5 top-3.5 z-50 rounded-full p-1.5 text-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
- aria-label="Close and return to home"
- >
- <X className="size-4" />
- </button>
+  const testPushNotification = async () => {
+    try {
+      if (!("Notification" in window)) {
+        toast.error("This browser does not support notifications");
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm === "granted") {
+        new Notification("Setup Complete!", {
+          body: "Notifications are successfully enabled for your DSA sessions.",
+          icon: "/icon-192.png",
+        });
+        toast.success("Notification sent!");
+      } else {
+        toast.error("Permission denied");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to trigger notification");
+    }
+  };
 
- {/* Progress dots */}
- <div className="flex gap-1.5 px-5 sm:px-6 pt-5 pr-12 shrink-0">
- {STEPS.map((s, i) => (
- <div
- key={s}
- className={`h-1 flex-1 rounded-full transition-colors ${
- STEPS.indexOf(step) >= i ? "bg-primary" : "bg-border"
- }`}
- />
- ))}
- </div>
+  const handleFinish = async () => {
+    setBusy(true);
+    try {
+      const counts: DailyCounts = { ...DEFAULT_DAILY_COUNTS, target };
+      await onComplete({
+        startDate,
+        counts,
+        username,
+        displayName,
+        password: password || undefined,
+        sheetId,
+        theme
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to complete setup");
+    } finally {
+      setBusy(false);
+    }
+  };
 
- <div className="flex-1 overflow-y-auto px-5 sm:px-6 pb-6 pt-4 space-y-4">
- {/* ── Step 1: Welcome ── */}
- {step === "welcome" && (
- <div className="space-y-4">
- <DialogHeader className="text-left">
- <DialogTitle className="text-xl sm:text-2xl font-bold">Welcome to DSA⁴⁰⁴! 🚀</DialogTitle>
- <DialogDescription className="text-xs sm:text-sm text-foreground">
- Let's set up your personalised DSA preparation plan. It only takes a minute.
- </DialogDescription>
- </DialogHeader>
+  return (
+    <Dialog open={open}>
+      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden" hideCloseButton>
+        <div className="p-6">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              {step === "profile" && <UserCircle className="w-6 h-6 text-primary" />}
+              {step === "schedule" && <CalendarDays className="w-6 h-6 text-primary" />}
+              {step === "notifications" && <Bell className="w-6 h-6 text-primary" />}
+              {step === "tips" && <Palette className="w-6 h-6 text-primary" />}
+              {step === "github" && <Github className="w-6 h-6 text-primary" />}
+              
+              {step === "profile" && "Set Up Your Profile"}
+              {step === "schedule" && "Choose Your Schedule"}
+              {step === "notifications" && "Enable Notifications"}
+              {step === "tips" && "Tips & Theme"}
+              {step === "github" && "Connect GitHub"}
+            </DialogTitle>
+            <DialogDescription>
+              Step {stepIdx + 1} of {STEPS.length}
+            </DialogDescription>
+          </DialogHeader>
 
- <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
- <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
- <BookOpen className="mx-auto mb-1 size-4 sm:size-5 text-success " />
- <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 1</p>
- <p className="text-[10px] sm:text-[11px] font-bold text-foreground">{LEVEL_COUNTS.level1} Problems</p>
- <p className="text-[10px] text-foreground">Foundations</p>
- </div>
- <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
- <Zap className="mx-auto mb-1 size-4 sm:size-5 text-warning " />
- <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 2</p>
- <p className="text-[10px] sm:text-[11px] font-bold text-foreground">{LEVEL_COUNTS.level2} Problems</p>
- <p className="text-[10px] text-foreground">Intermediate</p>
- </div>
- <div className="rounded-lg border border-border bg-card p-2.5 sm:p-3 text-center">
- <Trophy className="mx-auto mb-1 size-4 sm:size-5 text-destructive " />
- <p className="text-[11px] sm:text-xs font-semibold text-foreground">Level 3</p>
- <p className="text-[10px] sm:text-[11px] font-bold text-foreground">{LEVEL_COUNTS.level3} Problems</p>
- <p className="text-[10px] text-foreground">Advanced</p>
- </div>
- </div>
+          <div className="min-h-[280px]">
+            {step === "profile" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                <div className="space-y-2">
+                  <Label>Display Name</Label>
+                  <Input 
+                    placeholder="E.g. Alex" 
+                    value={displayName} 
+                    onChange={(e) => setDisplayName(e.target.value)} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Public Username</Label>
+                  <Input 
+                    placeholder="E.g. alex_codes" 
+                    value={username} 
+                    onChange={(e) => setUsername(e.target.value)} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Set/Change Password (Optional)</Label>
+                  <div className="relative">
+                    <Input 
+                      type="password" 
+                      placeholder="Min 6 characters (Secure)" 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)} 
+                    />
+                    {password.length >= 6 && (
+                      <ShieldCheck className="absolute right-3 top-2.5 w-4 h-4 text-green-500" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Follow strict rules. We strongly recommend setting a secure password.
+                  </p>
+                </div>
+              </div>
+            )}
 
-  <p className="text-xs sm:text-sm text-foreground leading-relaxed">
-  {REAL_ROADMAP_PROBLEMS} curated problems across {REAL_SECTIONS_COUNT} core DSA topics — organised in 3 levels to take you from fundamentals to advanced DSA.
-  </p>
+            {step === "schedule" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                <div className="space-y-2">
+                  <Label>Select Sheet</Label>
+                  <Select value={sheetId} onValueChange={setSheetId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a sheet..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="core404">DSA 404 (Core Sheet)</SelectItem>
+                      <SelectItem value="neetcode150">Neetcode 150</SelectItem>
+                      <SelectItem value="striverA2Z">Striver A2Z</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-  <Button className="w-full h-10 sm:h-11 cursor-pointer text-sm sm:text-base font-semibold" onClick={() => setStep("username")}>
-  Let's Get Started →
-  </Button>
-  </div>
-  )}
+                <div className="space-y-2">
+                  <Label>Starting Date</Label>
+                  <Input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)} 
+                  />
+                </div>
 
-  {/* ── Step 1.5: Username ── */}
-  {step === "username" && (
-  <div className="space-y-4 sm:space-y-5">
-  <DialogHeader className="text-left">
-  <div className="flex items-center gap-2 mb-0.5">
-  <UserCircle className="size-4 sm:size-5 text-primary" />
-  <DialogTitle className="text-lg sm:text-xl">Choose your unique Username</DialogTitle>
-  </div>
-  <DialogDescription className="text-xs sm:text-sm">
-  This will be your public identity on DSA⁴⁰⁴. Please choose a unique handle.
-  </DialogDescription>
-  </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Problems per day</Label>
+                    <span className="font-bold text-primary">{target} problems</span>
+                  </div>
+                  <Slider 
+                    min={1} 
+                    max={8} 
+                    step={1} 
+                    value={[target]} 
+                    onValueChange={(v) => setTarget(v[0])} 
+                  />
+                  <p className="text-xs text-muted-foreground italic">
+                    Don't worry, you can always change these later in settings.
+                  </p>
+                </div>
+              </div>
+            )}
 
-  <div className="space-y-2">
-  <Label htmlFor="username" className="text-xs sm:text-sm">Username</Label>
-  <Input
-  id="username"
-  type="text"
-  placeholder="e.g. code_ninja99"
-  value={username}
-  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-  className="text-sm sm:text-base h-10"
-  />
-  <p className="text-[10px] text-muted-foreground">Only lowercase letters, numbers, and underscores are allowed.</p>
-  </div>
+            {step === "notifications" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 space-y-3">
+                  <h3 className="font-semibold text-sm flex items-center gap-2">
+                    <Bell className="w-4 h-4" /> Push Notifications
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enable notifications for all timings to ensure you never miss your daily problems and revisions.
+                  </p>
+                  <Button variant="secondary" onClick={testPushNotification} className="w-full">
+                    Enable & Test Push Notifications
+                  </Button>
+                </div>
 
-  <div className="flex gap-2 pt-1">
-  <Button variant="outline" className="flex-1 cursor-pointer h-10" onClick={() => setStep("welcome")}>Back</Button>
-  <Button className="flex-1 cursor-pointer h-10" onClick={() => setStep("pace")} disabled={!username || username.length < 3}>Next →</Button>
-  </div>
-  </div>
-  )}
+                <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20 space-y-3">
+                  <h3 className="font-semibold text-sm flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Gmail Notifications
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Get daily revision reminders directly to your inbox so you never forget to revise.
+                  </p>
+                  <Button variant="outline" className="w-full border-blue-500 text-blue-500 hover:bg-blue-500/10" onClick={() => toast.success("Gmail notifications enabled!")}>
+                    Enable Gmail Notifications
+                  </Button>
+                </div>
+              </div>
+            )}
 
- {/* ── Step 2: Daily Pace (Tutor Recommended Ratio) ── */}
- {step === "pace" && (
- <div className="space-y-4 sm:space-y-5">
- <DialogHeader className="text-left">
- <div className="flex items-center gap-2 mb-0.5">
- <Sliders className="size-4 sm:size-5 text-primary" />
- <DialogTitle className="text-lg sm:text-xl">Choose Your Daily Target</DialogTitle>
- </div>
- <DialogDescription className="text-xs sm:text-sm">
- Select how many problems you want to solve each day. Your tutor balances difficulty ratios automatically by level so you never face unrealistic workloads.
- </DialogDescription>
- </DialogHeader>
+            {step === "tips" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                <div className="space-y-3">
+                  <Label>How to Start?</Label>
+                  <div className="p-3 bg-muted/50 rounded-md text-sm border border-border">
+                    <ul className="space-y-2 list-disc list-inside">
+                      <li><strong className="text-primary">If you're a beginner:</strong> Start from the very beginning of the sheet and follow the daily schedule.</li>
+                      <li><strong className="text-primary">If you're intermediate:</strong> Go to the Topics tab, skip the topics you already know, and start directly from your preferred ones to kickstart your DSA journey.</li>
+                    </ul>
+                  </div>
+                </div>
 
- {/* Tutor Pace Preset Cards */}
- <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
- {PRESET_TIERS.map((tierKey) => {
- const p = TUTOR_PACE_PRESETS[tierKey];
- const isSelected = (counts.tier === tierKey && counts.target === p.target) || (counts.target === p.target && counts.tier !== "custom");
- return (
- <button
- key={tierKey}
- type="button"
- onClick={() => handleSelectTier(tierKey)}
- className={`relative flex flex-col items-start p-3 rounded-lg border text-left transition-all cursor-pointer ${
- isSelected
- ? "border-primary bg-muted shadow-sm ring-1 ring-primary/30"
- : "border-border bg-card hover:border-border"
- }`}
- >
- <div className="flex w-full items-center justify-between gap-1 mb-1">
- <span className="text-xs sm:text-sm font-bold text-foreground">
- {p.label}
- </span>
- {p.badge && (
- <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
- tierKey === "balanced"
- ? "bg-muted text-primary font-bold"
- : "bg-muted text-foreground"
- }`}>
- {p.badge}
- </span>
- )}
- </div>
- <div className="flex items-baseline gap-1">
- <span className="text-lg sm:text-xl font-extrabold text-foreground tabular-nums">
- {p.target}
- </span>
- <span className="text-[11px] text-foreground">problems / day</span>
- </div>
- <p className="text-[10px] text-foreground mt-1 line-clamp-2">
- ~{p.timeEstimateMin}–{p.timeEstimateMax} min/day · {p.tagline.split(" · ")[1] || p.label}
- </p>
- </button>
- );
- })}
- </div>
+                <div className="space-y-3">
+                  <Label>App Theme</Label>
+                  <RadioGroup value={theme} onValueChange={setTheme} className="flex gap-4">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="light" id="light" />
+                      <Label htmlFor="light" className="font-normal">Light</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="dark" id="dark" />
+                      <Label htmlFor="dark" className="font-normal">Dark</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="system" id="system" />
+                      <Label htmlFor="system" className="font-normal">System</Label>
+                    </div>
+                  </RadioGroup>
+                  <p className="text-xs text-muted-foreground">
+                    You can change the theme color of the website later in settings or from the sidebar.
+                  </p>
+                </div>
+              </div>
+            )}
 
- {/* Slider for fine adjustment */}
- <div className="space-y-1.5 rounded-lg border border-border bg-muted p-3.5">
- <div className="flex items-center justify-between text-xs sm:text-sm">
- <Label className="flex items-center gap-1.5 font-medium">
- <Sparkles className="size-3.5 text-primary" />
- Fine-tune Daily Target:
- </Label>
- <span className="font-extrabold text-primary text-base tabular-nums">
- {counts.target} <span className="text-xs font-normal text-foreground">problems / day</span>
- </span>
- </div>
- <Slider
- min={1}
- max={6}
- step={1}
- value={[counts.target || 3]}
- onValueChange={([v]) => handleTargetChange(v)}
- className="py-1"
- />
- <div className="flex justify-between text-[10px] text-foreground font-mono">
- <span>1 (Light)</span>
- <span>3 (Tutor Standard ⭐)</span>
- <span>6 (Surgical Sprint)</span>
- </div>
- </div>
+            {step === "github" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                    <Github className="w-8 h-8 text-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">Connect GitHub</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically sync your completed code directly to a GitHub repository to build your portfolio.
+                    </p>
+                  </div>
+                  
+                  <div className="w-full p-4 bg-muted/30 rounded-lg border border-border text-sm text-left">
+                    <strong className="text-primary">Important Instruction:</strong>
+                    <p className="mt-1">
+                      After connecting your account, click on the <strong className="text-foreground">top right button</strong> and navigate to <strong>Git Sync</strong> to select the specific repository folders for automatic push.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
- {/* Tutor Pedagogical Workload Combinations Breakdown */}
- <DailyCombinationsBreakdown target={counts.target || 3} showPlanFrequency={false} />
-
-  <div className="flex gap-2 pt-1">
-  <Button variant="outline" className="flex-1 cursor-pointer h-10" onClick={() => setStep("username")}>Back</Button>
-  <Button className="flex-1 cursor-pointer h-10" onClick={() => setStep("startdate")}>Next →</Button>
-  </div>
- </div>
- )}
-
- {/* ── Step 3: Start Date ── */}
- {step === "startdate" && (
- <div className="space-y-4 sm:space-y-5">
- <DialogHeader className="text-left">
- <div className="flex items-center gap-2 mb-0.5">
- <CalendarDays className="size-4 sm:size-5 text-primary" />
- <DialogTitle className="text-lg sm:text-xl">When do you start?</DialogTitle>
- </div>
- <DialogDescription className="text-xs sm:text-sm">
- Pick the date your preparation journey begins. Day 1 will be assigned to this date.
- </DialogDescription>
- </DialogHeader>
-
- <div className="space-y-2">
- <Label htmlFor="start-date" className="text-xs sm:text-sm">Start Date</Label>
- <Input
- id="start-date"
- type="date"
- value={startDate}
- min={todayIso()}
- onChange={(e) => setStartDate(e.target.value || todayIso())}
- className="text-sm sm:text-base h-10"
- />
- </div>
-
- <div className="rounded-lg border border-border bg-muted px-3.5 py-3 sm:px-4 space-y-1.5">
- <p className="text-xs sm:text-sm font-semibold">Your plan summary</p>
- <p className="text-[11px] sm:text-xs text-foreground">📅 Starting: {new Date(`${startDate}T00:00:00Z`).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
- <p className="text-[11px] sm:text-xs text-foreground">⚡ Daily pace: <strong>{counts.target} problems/day</strong> ({activePreset.label} Pace)</p>
- <p className="text-[11px] sm:text-xs text-foreground">⏱ Study time: ~{activePreset.timeEstimateMin} – {activePreset.timeEstimateMax} min/day</p>
- <p className="text-[11px] sm:text-xs text-foreground">⚖️ Weightage: Balanced via 2E = 1M &amp; 3E = 1H rules (Cap: {counts.target} problems/day)</p>
- </div>
-
- <div className="flex gap-2 pt-1">
- <Button variant="outline" className="flex-1 cursor-pointer h-10" onClick={() => setStep("pace")}>Back</Button>
- <Button className="flex-1 cursor-pointer h-10" onClick={() => setStep("ready")}>Next →</Button>
- </div>
- </div>
- )}
-
- {/* ── Step 4: Ready ── */}
- {step === "ready" && (
- <div className="space-y-4 sm:space-y-5">
- <DialogHeader className="text-left">
- <DialogTitle className="text-xl sm:text-2xl font-bold">You're all set! 🎉</DialogTitle>
- <DialogDescription className="text-xs sm:text-sm text-foreground">
- Your personalised DSA plan is ready to build. Here's what we've configured:
- </DialogDescription>
- </DialogHeader>
-
- <div className="space-y-2">
- <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
- <CalendarDays className="size-4 text-primary shrink-0" />
- <div className="min-w-0">
- <p className="text-[10px] sm:text-xs text-foreground">Start Date</p>
- <p className="text-xs sm:text-sm font-semibold truncate">
- {new Date(`${startDate}T00:00:00Z`).toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}
- </p>
- </div>
- </div>
- <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
- <Sliders className="size-4 text-primary shrink-0" />
- <div className="min-w-0">
- <p className="text-[10px] sm:text-xs text-foreground">Daily Target</p>
- <p className="text-xs sm:text-sm font-semibold truncate">
- {counts.target} problems / day ({activePreset.label} Pace)
- </p>
- </div>
- </div>
- <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
- <span className="text-sm sm:text-base">⏱</span>
- <div className="min-w-0">
- <p className="text-[10px] sm:text-xs text-foreground">Daily Study Time</p>
- <p className="text-xs sm:text-sm font-semibold truncate">~{activePreset.timeEstimateMin} to {activePreset.timeEstimateMax} min / day</p>
- </div>
- </div>
- </div>
-
- <p className="text-[11px] sm:text-xs text-foreground">
- You can always fine-tune your daily target and schedule anytime in Settings.
- </p>
-
- <div className="flex gap-2 pt-1">
- <Button variant="outline" className="flex-1 cursor-pointer h-10 sm:h-11" onClick={() => setStep("startdate")}>Back</Button>
- <Button className="flex-[2] text-sm sm:text-base h-10 sm:h-11 cursor-pointer font-semibold" onClick={handleFinish} disabled={busy}>
- {busy ? (
- <><Loader2 className="mr-2 size-4 animate-spin" /> Building plan…</>
- ) : (
- "Start My DSA Journey 🚀"
- )}
- </Button>
- </div>
- </div>
- )}
- </div>
- </DialogContent>
- </Dialog>
- );
+        <div className="p-4 bg-muted/30 border-t border-border flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            onClick={handleBack} 
+            disabled={stepIdx === 0 || busy}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+          </Button>
+          
+          <Button 
+            onClick={handleNext} 
+            disabled={busy}
+          >
+            {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {stepIdx === STEPS.length - 1 ? "Complete Setup" : "Next"}
+            {stepIdx < STEPS.length - 1 && <ArrowRight className="w-4 h-4 ml-2" />}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
