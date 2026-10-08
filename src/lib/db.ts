@@ -874,27 +874,11 @@ export async function isOnboardingCompleted(userId: string): Promise<boolean> {
 
     if (!error && settings) {
       const countsObj = (settings.counts as any) || {};
-      if (
-        Boolean(settings.start_date) ||
-        Boolean(countsObj.onboarding_completed) ||
-        Boolean(countsObj.target) ||
-        Boolean(settings.active_sheet)
-      ) {
+      if (Boolean(countsObj.onboarding_completed)) {
         // Backfill user_metadata so future checks are instant
         void supabase.auth.updateUser({ data: { onboarding_completed: true } }).catch(() => {});
         return true;
       }
-    }
-  } catch {
-    // Non-blocking
-  }
-
-  // 3. Fallback: check if study_days rows exist
-  try {
-    const hasPlan = await hasExistingPlan(userId);
-    if (hasPlan) {
-      void supabase.auth.updateUser({ data: { onboarding_completed: true } }).catch(() => {});
-      return true;
     }
   } catch {
     // Non-blocking
