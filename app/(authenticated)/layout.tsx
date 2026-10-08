@@ -138,17 +138,28 @@ function PlanBoundary({
     });
   }, [userId, isAdmin, user, settings, settingsLoading]);
 
-  const handleOnboardingComplete = async (payload: { startDate: string; counts: any; username: string; displayName: string; password?: string; sheetId: string; theme: string; }) => {
+  const handleOnboardingComplete = async (payload: { 
+    startDate: string; 
+    counts: any; 
+    username: string; 
+    displayName: string; 
+    password?: string; 
+    sheetId: string; 
+    theme: string;
+    notifications: any;
+  }) => {
     try {
       if (payload.password) {
-        const { supabase } = await import('@/lib/supabase/client');
+        const { createClient } = await import('@/integrations/supabase/client');
+        const supabase = createClient();
         await supabase.auth.updateUser({ password: payload.password });
       }
       
-      const { updateSettings, saveSettings } = await import('@/lib/settings');
-      await updateSettings({ counts: payload.counts, theme: payload.theme as any });
+      const { saveSettings } = await import('@/lib/settings');
+      await saveSettings(userId, { counts: payload.counts, theme: payload.theme as any, ...payload.notifications });
       
-      const { supabase } = await import('@/lib/supabase/client');
+      const { createClient } = await import('@/integrations/supabase/client');
+      const supabase = createClient();
       await supabase.from("user_settings").upsert({ 
         user_id: userId, 
         active_sheet: payload.sheetId,
@@ -157,25 +168,26 @@ function PlanBoundary({
       const { seedPlan } = await import('@/lib/db');
       await seedPlan(userId, payload.startDate, payload.counts, payload.sheetId);
       
-      const { markOnboardingCompleted, updateProfile } = await import('@/lib/db');
+      const { markOnboardingCompleted, updateUserProfile } = await import('@/lib/db');
       await markOnboardingCompleted(userId, payload.username);
       if (payload.displayName) {
-        await updateProfile(userId, { display_name: payload.displayName });
+        await updateUserProfile(userId, { displayName: payload.displayName });
       }
 
       if (typeof window !== 'undefined') {
         localStorage.setItem(`dsa404_onboarded_${userId}`, 'true');
         sessionStorage.removeItem(`dsa404_just_registered_${userId}`);
+        window.location.href = '/guide';
+      } else {
+        setShowOnboarding(false);
+        setPlanReady(true);
       }
-      setShowOnboarding(false);
-      setPlanReady(true);
-      router.push('/guide');
     } catch (err) {
       console.error("Onboarding completion failed:", err);
       // Even if it fails, try to let them through
-      setShowOnboarding(false);
-      setPlanReady(true);
-      router.push('/guide');
+      if (typeof window !== 'undefined') {
+        window.location.href = '/guide';
+      }
     }
   }
 
@@ -185,11 +197,17 @@ function PlanBoundary({
 
   // Show onboarding modal — render a minimal shell behind it so app is ready
   if (showOnboarding) {
+    const isGoogleAuth = user?.app_metadata?.provider === "google";
+    const initialUsername = isGoogleAuth ? "" : (user?.user_metadata?.username || "");
+    const initialDisplayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.user_metadata?.display_name || "";
+
     return (
       <>
         <OnboardingModal
           open={true}
           onComplete={handleOnboardingComplete}
+          initialUsername={initialUsername}
+          initialDisplayName={initialDisplayName}
         />
         {/* Faded background while onboarding */}
         <div className="fixed inset-0 bg-background z-40" />

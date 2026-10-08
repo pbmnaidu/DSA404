@@ -21,6 +21,7 @@ export interface MasterProblem {
  topicNo?: number;
  channel?: string;
  videoUrl?: string;
+ gfgLink?: string;
 }
 
 export interface CoreSection {
