@@ -18,6 +18,7 @@ import {
  BarChart, Bar, Cell, AreaChart, Area
 } from "recharts";
 import { resolvePlatformUrl } from "./PlatformProfileCard";
+import { SubmissionHeatmap } from "../SubmissionHeatmap";
 
 const PLATFORM_META: Record<string, { name: string; color: string; bg: string }> = {
  leetcode: { name: "LeetCode", color: "#FFA116", bg: "rgba(255,161,22,0.12)" },
@@ -34,6 +35,8 @@ interface UnifiedProfileDashboardProps {
  initialStats?: Record<string, NormalizedCodingProfile | any>;
  userId?: string;
  onSaveProfiles?: (profiles: Record<string, string>) => void;
+  onStatsUpdate?: (stats: Record<string, any>) => void;
+  platformCountsByDate?: Record<string, Record<string, number>>;
  readOnly?: boolean;
 }
 
@@ -42,6 +45,8 @@ export function UnifiedProfileDashboard({
  initialStats = {},
  userId,
  onSaveProfiles,
+  onStatsUpdate,
+  platformCountsByDate = {},
  readOnly = false,
 }: UnifiedProfileDashboardProps) {
  const [connectedProfiles, setConnectedProfiles] = useState<Record<string, string>>(initialProfiles);
@@ -76,10 +81,13 @@ export function UnifiedProfileDashboard({
  };
 
  const activeProfiles = useMemo(() => {
- return Object.entries(fetchedData).filter(
- ([key, data]) => data.status === "SUCCESS" && connectedProfiles[key]
- );
- }, [fetchedData, connectedProfiles]);
+    return Object.keys(connectedProfiles)
+      .filter((key) => key !== "github" && key !== "customLinks" && !!connectedProfiles[key])
+      .map((key) => {
+        const data = fetchedData[key] || { status: "PENDING", platformId: key, totalSolved: 0 };
+        return [key, data] as [string, any];
+      });
+  }, [fetchedData, connectedProfiles]);
 
  const analytics = useMemo(() => analyzeCodingProfiles(fetchedData), [fetchedData]);
 
@@ -94,7 +102,7 @@ export function UnifiedProfileDashboard({
  { name: "Easy", value: easy, color: "#22c55e" },
  { name: "Medium", value: medium, color: "#f97316" },
  { name: "Hard", value: hard, color: "#ef4444" },
- ].filter(d => d.value > 0);
+ ].filter(d => d.value >= 0);
  }, [activeProfiles]);
 
  const platformDistribution = useMemo(() => {
@@ -102,13 +110,54 @@ export function UnifiedProfileDashboard({
  name: PLATFORM_META[key]?.name || key,
  value: p.totalSolved || 0,
  color: PLATFORM_META[key]?.color || "#6366f1",
- })).filter(d => d.value > 0).sort((a,b) => b.value - a.value);
+ })).filter(d => d.value >= 0).sort((a,b) => b.value - a.value);
  }, [activeProfiles]);
 
  const selectedProfile = selectedPlatform !== "all" ? fetchedData[selectedPlatform] : null;
  const selectedMeta = PLATFORM_META[selectedPlatform];
 
- const handleRefresh = async (platformOverride?: string) => {
+  const singlePlatformHeatmapData = useMemo(() => {
+    if (!selectedProfile) return [];
+    const data = [];
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 365);
+    
+    let platformName = "DSA";
+    const keyLower = selectedPlatform.toLowerCase();
+    if (keyLower.includes("leetcode")) platformName = "LeetCode";
+    else if (keyLower.includes("codeforces")) platformName = "Codeforces";
+    else if (keyLower.includes("codechef")) platformName = "CodeChef";
+    else if (keyLower.includes("hackerrank")) platformName = "HackerRank";
+    else if (keyLower.includes("gfg") || keyLower.includes("geeks")) platformName = "GeeksforGeeks";
+    else if (keyLower.includes("atcoder")) platformName = "AtCoder";
+    else platformName = selectedMeta?.name || selectedPlatform;
+
+    // Use scraped calendar if available, otherwise fall back to empty object
+    let scrapedCalendar = selectedProfile.submissionCalendar || {};
+    if (typeof scrapedCalendar === "string") {
+      try {
+        scrapedCalendar = JSON.parse(scrapedCalendar);
+      } catch (e) {
+        scrapedCalendar = {};
+      }
+    }
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const offset = d.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(d.getTime() - offset)).toISOString().slice(0, 10);
+        
+        // Take the max of the scraped data and the tracker manual data
+        const scrapedSolved = scrapedCalendar[localISOTime] || 0;
+        const manualSolved = platformCountsByDate[localISOTime]?.[platformName] || 0;
+        const solved = Math.max(scrapedSolved, manualSolved);
+        
+        data.push({ date: localISOTime, solved, platform: platformName });
+    }
+    return data;
+  }, [selectedProfile, selectedPlatform, selectedMeta, platformCountsByDate]);
+
+  const handleRefresh = async (platformOverride?: string) => {
  const targetPlatform = platformOverride ?? selectedPlatform;
  const targets = targetPlatform === "all"
  ? activeProfiles.map(([platform]) => ({
@@ -127,6 +176,7 @@ export function UnifiedProfileDashboard({
  const nextStats = { ...fetchedData, ...refreshed };
  setFetchedData(nextStats);
  if (userId) await savePlatformStats(userId, nextStats);
+      if (onStatsUpdate) onStatsUpdate(nextStats);
  toast.success(
  targetPlatform === "all"
  ? "All platform analytics refreshed"
@@ -355,12 +405,23 @@ export function UnifiedProfileDashboard({
  </AreaChart>
  </ResponsiveContainer>
  ) : (
- <div className="h-full flex flex-col items-center justify-center border border-dashed border-border rounded-lg">
- <div className="size-12 rounded-full bg-muted flex items-center justify-center text-foreground mb-4"><LineChart className="size-6" /></div>
- <h4 className="font-bold text-lg mb-2">No Contest History</h4>
- <p className="text-foreground text-sm max-w-sm text-center">We couldn't find any rated contest history for this platform profile.</p>
- </div>
- )}
+                <div className="h-full flex flex-col rounded-lg border border-border bg-background p-4 relative overflow-hidden">
+                  <h4 className="font-bold text-sm mb-3">Activity Heatmap</h4>
+                  {singlePlatformHeatmapData.length > 0 ? (
+                    <div className="flex-1 w-full overflow-x-auto pb-2 hide-scrollbar">
+                      <div className="min-w-[600px]">
+                        <SubmissionHeatmap data={singlePlatformHeatmapData} detailMap={{}} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center border border-dashed border-border rounded-lg">
+                      <div className="size-12 rounded-full bg-muted flex items-center justify-center text-foreground mb-4"><Calendar className="size-6" /></div>
+                      <h4 className="font-bold text-lg mb-2">No Activity Data</h4>
+                      <p className="text-foreground text-sm max-w-sm text-center">We couldn't find any recent submission history.</p>
+                    </div>
+                  )}
+                </div>
+              )}
  </div>
  </div>
 

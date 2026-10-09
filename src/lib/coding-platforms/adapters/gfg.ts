@@ -144,29 +144,7 @@ export class GFGAdapter implements PlatformAdapter {
  }
  }
 
- // If calendarMap is still empty but user has solved problems, synthesize recent daily activity
- if (Object.keys(calendarMap).length === 0 && totalSolved && totalSolved > 0) {
- const today = new Date();
- // Spread the solved problems over recent days/weeks
- let remaining = totalSolved;
- let dayOffset = 0;
- while (remaining > 0 && dayOffset < 30) {
- const d = subDays(today, dayOffset * 2);
- const dateStr = format(d, "yyyy-MM-dd");
- const countForDay = Math.min(remaining, dayOffset === 0 ? 2 : 1);
- calendarMap[dateStr] = countForDay;
- recentSubs.push({
- id: `gfg-${cleanUsername}-${dateStr}-${dayOffset}`,
- problemId: `prob-${totalSolved - remaining + 1}`,
- problemName: `Problem ${totalSolved - remaining + 1}`,
- platform: "gfg",
- verdict: "Accepted",
- timestamp: new Date(dateStr).toISOString(),
- });
- remaining -= countForDay;
- dayOffset++;
- }
- }
+    // We do not synthesize data here because GeeksforGeeks restricted their calendar API.
 
  if (!isFound && rating === null && totalSolved === null) {
  return normalizeProfileData(this.id, cleanUsername, {

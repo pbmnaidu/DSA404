@@ -2,7 +2,7 @@ import { NormalizedCodingProfile, PlatformAdapter } from "../types";
 import { PLATFORM_CAPABILITIES_MAP } from "../capabilities";
 import { normalizeProfileData } from "../normalizer";
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 2500): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 8000): Promise<Response> {
  const controller = new AbortController();
  const id = setTimeout(() => controller.abort(), timeoutMs);
  try {
@@ -224,10 +224,65 @@ export class LeetCodeAdapter implements PlatformAdapter {
  errorDetails: "User profile not found on LeetCode",
  });
  } catch (err: any) {
- return normalizeProfileData(this.id, cleanUsername, {
- status: "FETCH_FAILED",
- errorDetails: err.message || "Failed to fetch LeetCode profile",
- });
- }
- }
+    try {
+      const fallbackRes2 = await fetchWithTimeout(`https://alfa-leetcode-api.onrender.com/${cleanUsername}`, {}, 8000);
+      if (fallbackRes2.ok) {
+        const fbData = await fallbackRes2.json();
+        if (fbData && !fbData.errors) {
+          const ratingRes = await fetchWithTimeout(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/contest`, {}, 8000).catch(() => null);
+          let ratingData: any = null;
+          if (ratingRes && ratingRes.ok) ratingData = await ratingRes.json();
+          
+          const calRes = await fetchWithTimeout(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/calendar`, {}, 8000).catch(() => null);
+          let calData: any = null;
+          if (calRes && calRes.ok) calData = await calRes.json();
+          
+          const solvedRes = await fetchWithTimeout(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/solved`, {}, 8000).catch(() => null);
+          let solvedData: any = null;
+          if (solvedRes && solvedRes.ok) solvedData = await solvedRes.json();
+
+          let parsedCalendar: Record<string, number> | null = null;
+          if (calData && calData.submissionCalendar) {
+            try {
+              const rawCal = typeof calData.submissionCalendar === "string" ? JSON.parse(calData.submissionCalendar) : calData.submissionCalendar;
+              if (rawCal && typeof rawCal === "object") {
+                parsedCalendar = {};
+                for (const [tsStr, count] of Object.entries(rawCal)) {
+                  const sec = Number(tsStr);
+                  if (!isNaN(sec)) {
+                    const dateKey = new Date(sec * 1000).toISOString().slice(0, 10);
+                    parsedCalendar[dateKey] = (parsedCalendar[dateKey] || 0) + Number(count);
+                  }
+                }
+              }
+            } catch {}
+          }
+
+          return normalizeProfileData(this.id, cleanUsername, {
+            status: "SUCCESS",
+            displayName: fbData.name || cleanUsername,
+            avatarUrl: fbData.avatar,
+            country: fbData.country,
+            rank: fbData.ranking,
+            rating: ratingData?.contestRating ? Math.round(ratingData.contestRating) : null,
+            contestsParticipated: ratingData?.attendedContestsCount ?? null,
+            totalSolved: solvedData?.solvedProblem || fbData.totalSolved,
+            easySolved: solvedData?.easySolved || fbData.easySolved,
+            mediumSolved: solvedData?.mediumSolved || fbData.mediumSolved,
+            hardSolved: solvedData?.hardSolved || fbData.hardSolved,
+            reputation: fbData.reputation,
+            submissionCalendar: parsedCalendar,
+            recentSubmissions: [],
+            dataSource: "Alfa API Fallback"
+          });
+        }
+      }
+    } catch (fbErr) {}
+
+      return normalizeProfileData(this.id, cleanUsername, {
+        status: "FETCH_FAILED",
+        errorDetails: err.message || "Failed to fetch LeetCode profile",
+      });
+    }
+  }
 }

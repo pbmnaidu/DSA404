@@ -46,7 +46,7 @@ export function getPlatformColorClass(platform: string | undefined, level: numbe
     else if (p.includes("atcoder")) normalized = "AtCoder";
   }
   
-  const opacities = ["", "opacity-30", "opacity-50", "opacity-75", "opacity-100"];
+  const opacities = ["", "opacity-40", "opacity-60", "opacity-85", "opacity-100"];
   
   if (normalized !== "DSA" && PLATFORM_HEX_COLORS[normalized]) {
     return `border ${opacities[level]}`;
@@ -79,6 +79,27 @@ const LEVEL_CLASSES: Record<number, string> = {
 export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  const [selectedDate, setSelectedDate] = useState<string | null>(null);
  const [selectedYear, setSelectedYear] = useState<string>("All");
+
+ // Get active platforms from data
+ const activePlatforms = useMemo(() => {
+   const platforms = new Set<string>();
+   data.forEach((d) => {
+     if (d.solved > 0) {
+       let normalized = "DSA";
+       if (d.platform) {
+         const p = d.platform.toLowerCase();
+         if (p.includes("leetcode")) normalized = "LeetCode";
+         else if (p.includes("geeks") || p.includes("gfg")) normalized = "GeeksforGeeks";
+         else if (p.includes("codeforces")) normalized = "Codeforces";
+         else if (p.includes("hackerrank")) normalized = "HackerRank";
+         else if (p.includes("codechef")) normalized = "CodeChef";
+         else if (p.includes("atcoder")) normalized = "AtCoder";
+       }
+       platforms.add(normalized);
+     }
+   });
+   return platforms;
+ }, [data]);
 
  // Available years in data
  const availableYears = useMemo(() => {
@@ -267,6 +288,8 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  </div>
 
  {/* ── Larger GitHub / LeetCode Heatmap Grid ── */}
+ {totalSubmissions > 0 && (
+  <>
  <div className="overflow-x-auto pb-2 scrollbar-thin" ref={scrollRef}>
  <div className="inline-block min-w-full align-middle">
  {/* Month headers row */}
@@ -338,18 +361,40 @@ export function SubmissionHeatmap({ data, detailMap }: SubmissionHeatmapProps) {
  </div>
 
  {/* ── Heatmap Footer / Legend ── */}
- <div className="flex items-center justify-end gap-2 text-xs text-foreground pt-1">
- <div className="flex items-center gap-1.5">
- <span>Less</span>
- {[0, 1, 2, 3, 4].map((lvl) => (
- <span
- key={lvl}
- className={`size-3.5 rounded-[3px] ${LEVEL_CLASSES[lvl]}`}
- />
- ))}
- <span>More</span>
- </div>
- </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-foreground pt-3 border-t border-border mt-2">
+          {/* Platform Colors Legend */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold mr-1">Platforms:</span>
+            {Object.entries(PLATFORM_HEX_COLORS)
+              .filter(([name]) => activePlatforms.has(name))
+              .map(([name, hex]) => (
+              <div key={name} className="flex items-center gap-1">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: hex }} />
+                <span className="text-[10px] sm:text-xs">{name}</span>
+              </div>
+            ))}
+            {activePlatforms.has("DSA") && (
+              <div className="flex items-center gap-1">
+                <span className="size-2.5 rounded-full bg-primary" />
+                <span className="text-[10px] sm:text-xs">DSA (Tracker)</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Intensity Legend */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span>Less</span>
+            {[0, 1, 2, 3, 4].map((lvl) => (
+              <span
+                key={lvl}
+                className={`size-3.5 rounded-[3px] ${LEVEL_CLASSES[lvl]}`}
+              />
+            ))}
+            <span>More</span>
+          </div>
+        </div>
+  </>
+ )}
 
  {/* ── Day Details Modal on Click ── */}
  {selectedDate && (

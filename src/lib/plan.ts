@@ -170,8 +170,8 @@ function interleaveWeeklyRevision(
  if (isSunday) {
  if (!firstSundayHandled) {
  firstSundayHandled = true;
- // If starting day is Thursday..Sunday, skip revision on the 1st Sunday!
- isRevision = !isThuToSun;
+ // Always skip revision on the 1st Sunday so the first revision is the next Sunday
+        isRevision = false;
  } else {
  isRevision = true;
  }
@@ -256,54 +256,85 @@ export function seedDays(startDate = START_DATE, sheetId = "core404"): Day[] {
  * If `isPaused` is false, active days flow consecutively day by day with zero gaps.
  */
 export function renumber(
- days: Day[],
- startDate = START_DATE,
- offset = 0,
- isPaused = false,
+  days: Day[],
+  startDate = START_DATE,
+  offset = 0,
+  isPaused = false,
 ): Day[] {
- if (isPaused) {
- let seq = 0;
- let skippedSeq = 0;
- return days.map((d) => {
- if (d.skipped) {
- skippedSeq += 1;
- return { ...d, dayNumber: -skippedSeq };
- }
- seq += 1;
- return { ...d, dayNumber: seq };
- });
- }
+  // First, dynamically evaluate revision days based on preceding active content.
+  let recentActiveCount = 0;
+  const dynamicallySkippedDays = days.map((d) => {
+    if (d.isRevisionDay) {
+      const shouldSkip = recentActiveCount === 0;
+      recentActiveCount = 0; // reset for the next block
+      return {
+        ...d,
+        skipped: shouldSkip,
+        status: shouldSkip ? ('skipped' as const) : d.status === 'skipped' ? ('pending' as const) : d.status
+      };
+    } else {
+      if (!d.skipped) recentActiveCount++;
+      return d;
+    }
+  });
 
- const firstActive = days.find((d) => !d.skipped);
- if (!firstActive) {
- let skippedSeq = 0;
- return days.map((d) => {
- skippedSeq += 1;
- return { ...d, dayNumber: -skippedSeq };
- });
- }
+  if (isPaused) {
+    let seq = 0;
+    let skippedSeq = 0;
+    let currentWeekDayNumbers: number[] = [];
+    return dynamicallySkippedDays.map((d) => {
+      if (d.skipped) {
+        skippedSeq += 1;
+        return { ...d, dayNumber: -skippedSeq, date: addDays("2000-01-01", skippedSeq) };
+      }
+      seq += 1;
+      
+      const out = { ...d, dayNumber: seq };
+      if (out.isRevisionDay) {
+        out.revisionDayNumbers = currentWeekDayNumbers;
+        currentWeekDayNumbers = [];
+      } else {
+        currentWeekDayNumbers.push(seq);
+      }
+      return out;
+    });
+  }
 
- // Determine starting calendar anchor
- // Must anchor on startDate + offset so every single calendar date is strictly covered without leaving any date missing
- const baseDate = addDays(startDate, offset);
+  const firstActive = dynamicallySkippedDays.find((d) => !d.skipped);
+  if (!firstActive) {
+    let skippedSeq = 0;
+    return dynamicallySkippedDays.map((d) => {
+      skippedSeq += 1;
+        return { ...d, dayNumber: -skippedSeq, date: addDays("2000-01-01", skippedSeq) };
+    });
+  }
 
- let seq = 0;
- let skippedSeq = 0;
- let calOffset = 0;
+  const baseDate = addDays(startDate, offset);
 
- return days.map((d) => {
- if (d.skipped) {
- skippedSeq += 1;
- return { ...d, dayNumber: -skippedSeq };
- }
+  let seq = 0;
+  let skippedSeq = 0;
+  let calOffset = 0;
+  let currentWeekDayNumbers: number[] = [];
 
- seq += 1;
- // Strictly consecutive calendar date: diffDays between consecutive active days is always exactly 1
- const calDate = addDays(baseDate, calOffset);
- calOffset += 1;
+  return dynamicallySkippedDays.map((d) => {
+    if (d.skipped) {
+      skippedSeq += 1;
+        return { ...d, dayNumber: -skippedSeq, date: addDays("2000-01-01", skippedSeq) };
+    }
 
- return { ...d, dayNumber: seq, date: calDate };
- });
+    seq += 1;
+    const calDate = addDays(baseDate, calOffset);
+    calOffset += 1;
+
+    const out = { ...d, dayNumber: seq, date: calDate };
+    if (out.isRevisionDay) {
+      out.revisionDayNumbers = currentWeekDayNumbers;
+      currentWeekDayNumbers = [];
+    } else {
+      currentWeekDayNumbers.push(seq);
+    }
+    return out;
+  });
 }
 
 /**

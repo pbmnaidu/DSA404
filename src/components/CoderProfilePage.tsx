@@ -517,7 +517,7 @@ export function CoderProfilePage() {
 
  
 
- const { heatmapData, detailMap } = useMemo(() => {
+ const { heatmapData, detailMap, platformCountsByDate } = useMemo(() => {
  const dateMap = new Map<string, any[]>();
  for (const day of days) {
  const doneProbs = day.problems.filter((p) => p.done);
@@ -644,12 +644,38 @@ export function CoderProfilePage() {
  for (const day of days) {
  if (!day.skipped && !platformCountsByDate[day.date]) hData.push({ date: day.date, solved: 0 });
  }
- return { heatmapData: hData, detailMap: dMap };
+ return { heatmapData: hData, detailMap: dMap, platformCountsByDate };
  }, [days, submissions, platformStats]);
 
  const stats = useMemo(() => {
- const byPlatform: Record<string, number> = {};
- for (const p of completedProblems) {
+    const byPlatform: Record<string, number> = {};
+
+    // Pre-initialize connected profiles with 0
+    if (codingProfiles) {
+      for (const rawKey of Object.keys(codingProfiles)) {
+        if (rawKey === "github" || rawKey === "customLinks") continue;
+        if ((codingProfiles as any)[rawKey]) {
+          const lk = rawKey.toLowerCase();
+          const normKey =
+            lk === "leetcode"
+              ? "LeetCode"
+              : lk === "gfg" || lk.includes("geeks")
+              ? "GeeksforGeeks"
+              : lk === "codeforces"
+              ? "Codeforces"
+              : lk === "codechef"
+              ? "CodeChef"
+              : lk === "hackerrank"
+              ? "HackerRank"
+              : lk === "atcoder"
+              ? "AtCoder"
+              : rawKey;
+          byPlatform[normKey] = 0;
+        }
+      }
+    }
+
+    for (const p of completedProblems) {
  // Exclude GitHub: Git contributions/commits are not solved coding problems
  if (p.platform?.toLowerCase() === "github") continue;
  const plat = (p.platform === "GFG" || p.platform?.toLowerCase().includes("geeks")) ? "GeeksforGeeks" : (p.platform || "DSA");
@@ -663,7 +689,7 @@ export function CoderProfilePage() {
  for (const [rawKey, prof] of Object.entries(platformStats)) {
  const lk = rawKey.toLowerCase();
  if (lk === "github" || lk === "linkedin") continue;
- if (prof && typeof prof === "object" && typeof prof.totalSolved === "number" && prof.totalSolved > 0) {
+ if (prof && typeof prof === "object" && typeof prof.totalSolved === "number" && prof.totalSolved >= 0) {
  const normKey =
  lk === "leetcode"
  ? "LeetCode"
@@ -689,7 +715,7 @@ export function CoderProfilePage() {
  if (publicStats?.byPlatform) {
  for (const [k, v] of Object.entries(publicStats.byPlatform)) {
  if (k.toLowerCase() === "github" || k.toLowerCase() === "linkedin") continue;
- if (typeof v === "number" && v > 0) {
+ if (typeof v === "number" && v >= 0) {
  const lk = k.toLowerCase();
  const normKey =
  lk === "leetcode"
@@ -1188,6 +1214,7 @@ export function CoderProfilePage() {
  {/* Unified Platform Profiles (Full Width of Primary Column) */}
  <div className="rounded-lg border border-border bg-card p-4 shadow-sm overflow-hidden sm:p-6 lg:order-1 lg:col-span-8 lg:p-8">
  <UnifiedProfileDashboard
+        platformCountsByDate={platformCountsByDate}
  initialProfiles={codingProfiles as Record<string, string>}
  initialStats={platformStats}
  userId={user?.uid}
