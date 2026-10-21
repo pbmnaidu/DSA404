@@ -270,10 +270,13 @@ export class LeetCodeAdapter implements PlatformAdapter {
             easySolved: solvedData?.easySolved || fbData.easySolved,
             mediumSolved: solvedData?.mediumSolved || fbData.mediumSolved,
             hardSolved: solvedData?.hardSolved || fbData.hardSolved,
-            reputation: fbData.reputation,
             submissionCalendar: parsedCalendar,
             recentSubmissions: [],
-            dataSource: "Alfa API Fallback"
+            dataSource: "Third-Party API",
+            platformSpecificData: {
+              provider: "alfa-leetcode-api",
+              reputation: fbData.reputation
+            }
           });
         }
       }

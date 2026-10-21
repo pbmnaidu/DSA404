@@ -4,7 +4,7 @@ import { getServerUser, createServerSupabase, decryptToken } from "@/lib/server/
 export async function GET(req: Request) {
     const user = await getServerUser();
     if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return NextResponse.json({ connected: false });
     }
 
     const supabase = await createServerSupabase();

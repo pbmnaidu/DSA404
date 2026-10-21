@@ -85,7 +85,10 @@ export function toValidUuid(val?: string): string {
 }
 
 async function deleteAllDays(uid: string) {
-  const { error } = await supabase.from("study_days").delete().eq("user_id", uid);
+  if (isGuestUser(uid)) return;
+  const { data: authData } = await supabase.auth.getUser();
+  const verifiedUid = authData?.user?.id || uid;
+  const { error } = await supabase.from("study_days").delete().eq("user_id", verifiedUid);
   if (error) {
     console.error("Error deleting study_days:", {
       message: error.message,
@@ -98,11 +101,25 @@ async function deleteAllDays(uid: string) {
 }
 
 async function writeAllDays(uid: string, days: Day[]) {
+  if (isGuestUser(uid)) {
+    saveGuestPlan(days);
+    return;
+  }
+
+  // Ensure active session is verified and matches auth.uid()
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData?.user?.id) {
+    console.warn("No active Supabase user session for writeAllDays, saving locally:", authError?.message);
+    saveGuestPlan(days);
+    return;
+  }
+
+  const verifiedUid = authData.user.id;
   const rows = days.map((d, seq_index) => {
     d.id = toValidUuid(d.id);
     return {
       id: d.id,
-      user_id: uid,
+      user_id: verifiedUid,
       date: d.date,
       topic: d.topic,
       section: d.section || "",
@@ -122,7 +139,8 @@ async function writeAllDays(uid: string, days: Day[]) {
     };
   });
   for (let i = 0; i < rows.length; i += 100) {
-    const { error } = await supabase.from("study_days").upsert(rows.slice(i, i + 100), {
+    const batch = rows.slice(i, i + 100);
+    const { error } = await supabase.from("study_days").upsert(batch, {
       onConflict: "user_id, date",
     });
     if (error) {
@@ -132,8 +150,10 @@ async function writeAllDays(uid: string, days: Day[]) {
         details: error.details,
         hint: error.hint,
         batchStart: i,
-        batchSize: Math.min(100, rows.length - i),
+        batchSize: batch.length,
       });
+      // Fallback: save to local guest storage so user progress is never lost
+      saveGuestPlan(days);
       throw new Error(`Failed to save study days: ${error.message}`);
     }
   }
@@ -714,12 +734,19 @@ export async function saveBannerBase64(uid: string, b64: string): Promise<string
 }
 
 export async function saveSequence(userId: string, days: Day[]) {
- if (isGuestUser(userId)) {
- saveGuestPlan(days);
- return;
- }
- await deleteAllDays(userId);
- await writeAllDays(userId, days);
+  if (isGuestUser(userId)) {
+    saveGuestPlan(days);
+    return;
+  }
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData?.user?.id) {
+    console.warn("No active Supabase session when saving plan sequence, falling back to local storage:", authError?.message);
+    saveGuestPlan(days);
+    return;
+  }
+  const verifiedUid = authData.user.id;
+  await deleteAllDays(verifiedUid);
+  await writeAllDays(verifiedUid, days);
 }
 
 export async function switchUserSheet(userId: string, sheetId: string, ignoredOldStartDate?: string): Promise<{ days: Day[]; meta: PlanMeta }> {

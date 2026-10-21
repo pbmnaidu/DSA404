@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
-import Script from 'next/script'
 import { Providers } from './providers'
+import { ConferbotDraggableWidget } from '@/components/ConferbotDraggableWidget'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -123,6 +123,8 @@ export default function RootLayout({
       </head>
       <body className="antialiased text-foreground min-h-screen">
         <Providers>{children}</Providers>
+        {/* Conferbot Live Chat Widget with Drag & Larger Size Support */}
+        <ConferbotDraggableWidget />
       </body>
     </html>
   )

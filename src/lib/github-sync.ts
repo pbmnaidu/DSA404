@@ -1,5 +1,7 @@
 // src/lib/github-sync.ts
 
+import { isGuestUser } from "./guest-data";
+
 export interface GitHubSyncConfig {
     enabled: boolean;
     owner: string;
@@ -25,7 +27,7 @@ export interface PushSolutionParams {
 
 /** Loads sync config from server API */
 export async function loadCloudGitHubSyncConfig(userId?: string | null): Promise<GitHubSyncConfig | null> {
-    if (typeof window === "undefined" || !userId) return null;
+    if (typeof window === "undefined" || !userId || isGuestUser(userId)) return null;
     
     try {
         const res = await fetch("/api/github/connection");

@@ -28,8 +28,8 @@ export function isGuestMode(): boolean {
 
 /** Check if given userId is the guest account or guest mode is active. */
 export function isGuestUser(userId?: string | null): boolean {
- if (!userId) return isGuestMode();
- return userId === GUEST_USER_ID || (isGuestMode() && userId === GUEST_USER_ID);
+  if (!userId || userId === "undefined" || userId === "null") return true;
+  return userId === GUEST_USER_ID || isGuestMode();
 }
 
 /** Enable Guest Mode and ensure default 3-star coder data is seeded in localStorage. */
