@@ -118,12 +118,41 @@ export default function RootLayout({
         <meta name="theme-color" content="#FAF9F6" />
         <meta name="msapplication-navbutton-color" content="#FAF9F6" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        {/* Preconnect & Preload for Ultra-Fast Conferbot Delivery */}
+        <link rel="preconnect" href="https://cdn.conferbot.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.conferbot.com" />
+        <link rel="preconnect" href="https://wdt.conferbot.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://wdt.conferbot.com" />
+        <link rel="preload" href="https://cdn.conferbot.com/dist/v1/widget.min.js" as="script" />
         {/* Synchronous anti-FOUC script inside head for React 19 & Next.js */}
         <script id="anti-fouc" dangerouslySetInnerHTML={{ __html: antiFoucScript }} />
       </head>
       <body className="antialiased text-foreground min-h-screen">
         <Providers>{children}</Providers>
-        {/* Conferbot Live Chat Widget with Drag & Larger Size Support */}
+        {/* Early Conferbot Live Chat Loader */}
+        <script
+          id="conferbot-js-loader"
+          dangerouslySetInnerHTML={{
+            __html: `(function (d, s, id) {
+              var js, el = d.getElementsByTagName(s)[0];
+              if (d.getElementById(id)) return;
+              js = d.createElement(s);
+              js.async = true;
+              js.src = 'https://cdn.conferbot.com/dist/v1/widget.min.js';
+              js.id = id;
+              js.charset = 'UTF-8';
+              el.parentNode.insertBefore(js, el);
+              js.onload = function () {
+                try {
+                  if (window.ConferbotWidget) {
+                    window.ConferbotWidget("6ad3484595ebb65f7c274902", "live_chat");
+                  }
+                } catch(e) {}
+              };
+            })(document, 'script', 'conferbot-js');`
+          }}
+        />
+        {/* Conferbot Live Chat Widget with Instant Display, Drag & Larger Size Support */}
         <ConferbotDraggableWidget />
       </body>
     </html>
